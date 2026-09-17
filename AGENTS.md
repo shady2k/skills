@@ -6,7 +6,7 @@ existing is [`docs/design.md`](docs/design.md). Read that before adding a skill.
 
 ## Layout
 
-Skills live in bucket folders under `skills/`, one folder per skill:
+Skills live in bucket folders under `skills/` (`backlog/`, `productivity/`), one folder per skill:
 `skills/<bucket>/<skill-name>/SKILL.md`. Every skill has an entry in the top-level
 `README.md`, in its bucket's `README.md`, and in the `skills` array of
 `.claude-plugin/plugin.json`. Both READMEs group entries into **User-invoked**

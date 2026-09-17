@@ -1,0 +1,5 @@
+interface:
+  display_name: "Handoff"
+  short_description: "Hand this conversation to a fresh session"
+policy:
+  allow_implicit_invocation: false

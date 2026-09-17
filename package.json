@@ -1,8 +1,8 @@
 {
   "name": "shady2k-skills",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "private": true,
-  "description": "shady2k's process skills",
+  "description": "shady2k's agent skills",
   "repository": {
     "type": "git",
     "url": "https://github.com/shady2k/skills"

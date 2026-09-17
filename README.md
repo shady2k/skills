@@ -1,6 +1,7 @@
 # shady2k-skills
 
-Light process skills for agents, around a backlog gate that binds.
+My agent skills. Most of them keep a backlog an answer to "what do I work on
+next", around a gate that binds; one hands a conversation to a fresh session.
 
 Light skills oblige nothing: they can be invoked at any moment or never, and
 when nobody invokes them no process is followed. Heavy process frameworks fix
@@ -72,6 +73,9 @@ Reachable only when you type them.
   milestone into stages and one-session tasks with assertion-shaped criteria.
 - **[groom-backlog](skills/backlog/groom-backlog/SKILL.md)**: dig out a mess by
   amnesty rather than review: declare the slice, defer the rest, reversibly.
+- **[handoff](skills/productivity/handoff/SKILL.md)**: hand the conversation to a
+  fresh session without committing anything: a document outside the repository,
+  a note where the work lives, the first sentence for the next agent.
 
 ### Model-invoked
 

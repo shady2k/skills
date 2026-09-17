@@ -49,7 +49,9 @@ new error, and its `fix` line is the decision to take to the owner.
 
 Two answers come from what the person just said rather than from the state,
 and they win over rungs 7 to 10: something **arrived** (an idea, a bug, a
-request) means `/to-backlog`; something was **finished** means `/close-out`.
+request) means `/to-backlog`; something was **finished** means `/close-out`;
+**stopping** mid-work, or a conversation grown too long to think in, means
+`/handoff`.
 
 ## 3. Say it like this
 
@@ -74,3 +76,4 @@ Issues are always "Title" (id). Never answer with a list of skills.
 - `/to-backlog` files what arrives into its lane: work, a finding, an idea. The agent reaches for it unprompted.
 - `/close-out` closes finished work with evidence and releases what was not finished. The agent reaches for it unprompted.
 - `/groom-backlog` digs out a backlog that has stopped being a queue.
+- `/handoff` passes this conversation to a fresh session: a document outside the repository, and it runs `/close-out` for the backlog's part.
