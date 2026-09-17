@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-01-31T00:00:00Z",
-  "source": "fixture bad/off-milestone-open",
+  "source": "fixture bad/finding-budget",
   "issues": [
     {
       "id": "E1",
@@ -8,11 +8,69 @@
       "type": "epic",
       "status": "open",
       "labels": [
-        "transport"
+        "transport",
+        "v0-5"
       ],
       "parent": null,
       "blockedBy": [],
       "body": "DONE WHEN a person can do the thing. Falsified if they cannot.",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "B1",
+      "title": "Issue B1",
+      "type": "bug",
+      "status": "closed",
+      "labels": [
+        "transport",
+        "finding"
+      ],
+      "parent": "E1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "B2",
+      "title": "Issue B2",
+      "type": "bug",
+      "status": "open",
+      "labels": [
+        "transport",
+        "finding"
+      ],
+      "parent": "E1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "B3",
+      "title": "Issue B3",
+      "type": "bug",
+      "status": "open",
+      "labels": [
+        "transport",
+        "finding",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "B4",
+      "title": "Issue B4",
+      "type": "bug",
+      "status": "deferred",
+      "labels": [
+        "transport",
+        "finding"
+      ],
+      "parent": "E1",
+      "blockedBy": [],
+      "body": "",
       "updatedAt": "2026-01-30T00:00:00.000Z"
     },
     {
@@ -24,59 +82,6 @@
         "transport"
       ],
       "parent": "E1",
-      "blockedBy": [],
-      "body": "",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
-    },
-    {
-      "id": "T2",
-      "title": "Issue T2",
-      "type": "task",
-      "status": "closed",
-      "labels": [
-        "transport"
-      ],
-      "parent": null,
-      "blockedBy": [],
-      "body": "",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
-    },
-    {
-      "id": "E2",
-      "title": "Issue E2",
-      "type": "epic",
-      "status": "open",
-      "labels": [
-        "transport",
-        "v0-6"
-      ],
-      "parent": null,
-      "blockedBy": [],
-      "body": "DONE WHEN a person can do the thing. Falsified if they cannot.",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
-    },
-    {
-      "id": "T3",
-      "title": "Issue T3",
-      "type": "task",
-      "status": "open",
-      "labels": [
-        "transport"
-      ],
-      "parent": "E2",
-      "blockedBy": [],
-      "body": "",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
-    },
-    {
-      "id": "ORPHAN",
-      "title": "Issue ORPHAN",
-      "type": "task",
-      "status": "open",
-      "labels": [
-        "transport"
-      ],
-      "parent": null,
       "blockedBy": [],
       "body": "",
       "updatedAt": "2026-01-30T00:00:00.000Z"

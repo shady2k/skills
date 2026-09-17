@@ -3,24 +3,12 @@
   "staleDays": 14,
   "holdDays": 2,
   "bulkCluster": 20,
-  "areaLabels": [
-    "transport",
-    "ui"
-  ],
-  "milestoneLabels": [
-    "v0-5",
-    "v0-6"
-  ],
-  "roadmapLabels": [
-    "milestone"
-  ],
-  "triageLabels": [
-    "needs-triage"
-  ],
-  "ideaLabels": [
-    "idea"
-  ],
-  "ideaTitlePrefixes": [
-    "Brainstorming:"
-  ]
+  "areaLabels": ["transport", "ui"],
+  "milestoneLabels": ["v0-5", "v0-6"],
+  "roadmapLabels": ["milestone"],
+  "triageLabels": ["needs-triage"],
+  "ideaLabels": ["idea"],
+  "ideaTitlePrefixes": ["Brainstorming:"],
+  "findingLabels": ["finding"],
+  "findingBudget": 2
 }

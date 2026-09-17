@@ -1,4 +1,12 @@
 {
-  "projectWords": ["nocx", "herdr"],
-  "trackerWords": ["beads", ".beads", "issues.jsonl"]
+  "projectWords": [
+    "nocx",
+    "herdr"
+  ],
+  "trackerWords": [
+    "beads",
+    ".beads",
+    "issues.jsonl",
+    "discovered-from"
+  ]
 }

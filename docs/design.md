@@ -3,8 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: the protocol below is decided; the installer is built (§12), the other
-six skills are not.
+Status: the protocol below is decided and all seven skills are written. None
+has yet been run in a project other than the origin.
 
 ## 1. The owner's idea, as stated
 
@@ -103,15 +103,23 @@ Plus two lanes **outside** the flow:
 ### Layer 2 — the gate
 
 One check that reads the tracker's export and fails. In pre-commit and in CI.
-**This is what binds.** It enforces:
+**This is what binds.** What it enforces today, each rule with a fixture that
+violates it:
 
-- one area label, one milestone (or membership of the ideas lane);
-- **the horizon**: decomposition to task level only inside the current
-  milestone; the next milestone exists at feature level only;
-- an epic has a DONE WHEN that stops being false exactly once;
-- nothing has been held longer than a day without being held;
-- no cycles, no orphans, no blocking edge on a root or a stage;
-- a title that is a sentence, not "fix ui".
+- everything live belongs to the current milestone, and what does not is
+  deferred: that is the **horizon**, and it is also "no orphans";
+- ideas stay deferred and block nothing;
+- findings stay within the milestone's budget;
+- exactly one area label, and no label outside the declared vocabulary;
+- a feature or a stage has a DONE WHEN;
+- nothing is held that nobody is holding;
+- no edge onto a deferred issue, no edge that outlived its reason, no cycle in
+  the parent chain.
+
+Designed and **not yet enforced**, so still advice: that the next milestone is
+decomposed no further than features, that no blocking edge sits on a feature or
+a stage, and that a title is a sentence. Each needs a rule and a fixture before
+this document may call it a gate.
 
 ### Layer 3 — harness hooks
 
@@ -295,7 +303,7 @@ quarter was not needed.
 Executed the same day: ready 773 → 28, open 933 → 71, deferred 23 → 963, zero
 unheld holds, 665 live roots → 4. Nothing closed; every move reversible.
 
-## 11. The ten rules, each bought by a case
+## 11. The rules, each bought by a case
 
 1. **An idea does not block a build.** Five brainstorms were holding live epics;
    that makes them undecided questions, not ideas.
@@ -320,6 +328,12 @@ unheld holds, 665 live roots → 4. Nothing closed; every move reversible.
 10. **Search the behaviour, not your name for it.** A split-panes epic was filed
     twice because the searches were "split", "pane" and "panes" while the
     existing issue was titled "Drag one tab onto another and watch both at once".
+
+11. **A finding spends a budget, or it spends the ship date.** Bugs and debt
+    found mid-flight went to the front one at a time, each reasonable, and
+    pushed features out by a week or two that nobody decided on. This one was
+    the owner's from the start; it became a rule when the skills needed it to
+    be checkable.
 
 ## 12. What was built first, what was wrong with it, and what it became
 

@@ -37,8 +37,8 @@ An adapter reads whatever the project's tracker holds and prints this:
 ## What an adapter must get right
 
 **`blockedBy` carries gating edges and nothing else.** A tracker that also
-records provenance ("discovered from") must leave those out. On 2026-09-17 three
-brainstorms reached a work queue because a `discovered-from` edge was read as a
+records provenance ("found while working on") must leave those out. On 2026-09-17 three
+brainstorms reached a work queue because a provenance edge was read as a
 dependency by a hand-written script; the tracker itself never blocked on them.
 
 **`updatedAt` is the tracker's own last-modified**, honestly copied and never
@@ -50,6 +50,10 @@ instead hides the problem where nothing can see it.
 tracker offers. It is where a baseline comes from — what was already wrong before
 this change — and the only honest source of ages once a bulk edit has rewritten
 them.
+
+**A native milestone is emitted as a label.** The rules read labels and nothing
+else, so a tracker with a milestone field of its own has the adapter add that
+milestone's name to `labels`, spelled as the config's `milestoneLabels` spell it.
 
 **An adapter emits closed issues too.** Several checks need to tell "closed" from
 "absent", and an adapter that filters them makes a deleted issue and a finished

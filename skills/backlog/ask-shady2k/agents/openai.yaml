@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ask shady2k"
+  short_description: "The one command to run next"
+policy:
+  allow_implicit_invocation: false

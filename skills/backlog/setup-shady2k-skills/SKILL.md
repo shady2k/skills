@@ -6,12 +6,10 @@ disable-model-invocation: true
 
 # Setup shady2k-skills
 
-A backlog stops being a queue quietly. Nothing breaks; issues accumulate until
-"what do I work on next" has hundreds of answers, which is none. Measured on
-2026-09-17 in the repository that bought these rules: 933 issues open, **773 of
-them ready to work** across 665 independent roots, 82 of 83 in progress
-untouched for over two days. Skills did not prevent that and cannot: a skill is
-advice. **The gate is what binds**, and this skill installs it.
+A backlog stops being a queue quietly: issues accumulate until "what do I work
+on next" has hundreds of answers, which is none. Skills cannot prevent that,
+because a skill is advice. **The gate is what binds**, and this skill installs
+it.
 
 Four pieces, and only the first ships here:
 
@@ -53,16 +51,23 @@ then the next. Lead with the recommended answer so it can be accepted in a word.
 
 **A. Vocabulary.** Show declared against in-tree. Recommend the declared list
 plus whatever in-tree labels carry live work; the rest is what
-`label-vocabulary` will report. Exactly one **area** label per issue is a rule,
-so say which labels are areas and which are other axes.
+`label-vocabulary` will report. No labels anywhere: recommend areas from the
+project's top-level layout, its modules or its services. Exactly one **area**
+label per issue is a rule, so say which labels are areas (`areaLabels`) and
+which are other axes the project already uses (`roadmapLabels`,
+`triageLabels`). Show the three thresholds with their defaults and let them
+stand unless the owner objects: `staleDays` 14, `holdDays` 2, `bulkCluster` 20.
 
 **B. The current milestone**, and the labels of the others. None yet? Recommend
 declaring one now, named for what ships in it: without a current milestone
 there is no horizon, and the horizon is what keeps next quarter out of today's
 queue.
 
-**C. The ideas lane**: the label that marks an idea. Ideas stay deferred, block
-nothing, and are closed without regret.
+**C. The two lanes outside the flow**: the label that marks an **idea** (ideas
+stay deferred, block nothing, and are closed without regret), and the label
+that marks a **finding**, a bug or a piece of debt found mid-milestone. The
+finding budget itself is the charter's number and `/to-milestone` sets it; a
+project with a milestone already running is asked for it now.
 
 **D. Strength. Always ask this one, with the price of each** — a setting nobody
 was asked about is one everybody has without knowing they chose it.
@@ -79,6 +84,13 @@ was asked about is one everybody has without knowing they chose it.
 **E. Where it runs**: which hook, which CI job. Recommend both the fast local
 gate and CI — local alone is skippable, CI alone reports after the fact.
 
+**F. Documents and evidence.** Where the vision lives and where milestone
+charters go (recommend what exists, else `docs/vision.md` and
+`docs/milestones/`), and **what may be cited when closing work**. Recommend by
+the kind of backlog: for development a commit, a test, a file or symbol; for
+operations a runbook that ran, an alert that fired in a drill, a dashboard
+showing a value.
+
 ## 3. Write
 
 **The config** — one JSON file, beside the project's other gate files:
@@ -91,11 +103,17 @@ gate and CI — local alone is skippable, CI alone reports after the fact.
   "areaLabels": ["<exactly one of these per issue>"],
   "roadmapLabels": [], "triageLabels": [], "ideaLabels": ["idea"],
   "ideaTitlePrefixes": [],
+  "findingLabels": ["finding"], "findingBudget": null,
   "staleDays": 14, "holdDays": 2, "bulkCluster": 20,
   "projectWords": ["<the project's own names>"],
   "trackerWords": ["<the tracker's names>"]
 }
 ```
+
+`findingBudget` stays `null`, which switches its check off, until a charter
+sets it: a number nobody chose is worse than none. `currentMilestone` may be
+`null` the same way on a project that has not declared one; the horizon check
+waits for it.
 
 **The adapter** — a script printing [`model.md`](model.md)'s shape on stdout.
 Read that file's three warnings before writing a line: `blockedBy` carries
@@ -121,10 +139,15 @@ Exit 1 fails the hook; exit 2 is misuse and must fail it too, loudly — a gate
 that cannot run is red, not green. For `report`, print the output and ignore
 exit 1 only.
 
-**The pointer** — `docs/agents/backlog.md`, the one fixed path the other
-skills read: the exact gate command, where the config and the adapter live, the
-strength chosen and the date it was chosen, and how to re-run against an
-earlier revision. Add one line to the project's agent doc pointing at it.
+**The project's backlog doc** — `docs/agents/backlog.md`, the one fixed path
+every other skill of the set reads, and the only thing they know about this
+project's tracker. Copy the seed [`backlog.md`](backlog.md) and fill every
+`<placeholder>`: the protocol section stays word for word, the rest is what you
+found and what was answered. The **tracker verbs** table is the adapter's
+counterpart for writes: fill it from the tracker's own skill or `--help`, try
+each verb you can try without leaving a mark, and where the tracker cannot do
+one, write what stands in. Then add one line to the project's agent doc
+(`AGENTS.md` or `CLAUDE.md`, whichever exists) pointing at it.
 
 ## 4. Prove
 
@@ -139,7 +162,9 @@ strengths their verdicts, and no file here may contain a `projectWords` or
 adapter, so count: issues per status from the adapter beside the tracker's own
 counts; and the ids the tracker calls ready beside the model's
 open-and-unblocked-by-anything-live. Explain every difference or fix the
-adapter. A provenance edge read as a blocker shows up exactly here.
+adapter. A provenance edge read as a blocker shows up exactly here. An empty
+tracker proves nothing this way: create one throwaway issue per status, one
+blocking edge and one provenance edge, run the comparison, then delete them.
 
 **c. The wiring, through the real entry point.** Plant one error-severity
 violation in the backlog (an idea left open is the cheapest), run the actual
@@ -154,6 +179,10 @@ under `block-new` it blocks nobody. Two lines of it need saying out loud:
 
 - **`AGES MAY BE CONTAMINATED`** — many issues share one minute, so a bulk edit
   rewrote their timestamps and every age-based check is reading the edit, not
-  the work. Re-run the adapter against a revision from before it.
+  the work. Run the adapter against a revision from before it and pass the
+  result as `--ages-from`.
 - A violation somebody can defend is closed by **amending the config**, never by
   editing the backlog to please a script.
+
+Then tell the user the set is installed, and that `/ask-shady2k` answers what
+to do next from here on.

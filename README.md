@@ -36,33 +36,56 @@ tracks work, asks about its label vocabulary, its current milestone and how hard
 the gate should bind, writes the config, the tracker adapter and the wiring, and
 proves all three before it says it is done.
 
+## The flow
+
+```
+/setup-shady2k-skills    once per project: the gate, and docs/agents/backlog.md
+        |
+/to-milestone            a charter: outcomes in, what is out, a finding budget
+        |
+/to-stages               one outcome -> stages -> one-session tasks
+        |
+   take work  ->  /close-out          evidence, release, walk up
+        ^              |
+        +-- /to-backlog               whatever arrives, into its lane
+```
+
+`/ask-shady2k` reads the state and says which of these to run now.
+`/groom-backlog` is the way in when the backlog already exists and has stopped
+being a queue.
+
 ## Skills
 
 ### User-invoked
 
+Reachable only when you type them.
+
 - **[setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md)**:
-  configure a project for the set by installing the backlog gate and proving it.
+  configure a project for the set by installing the backlog gate (config,
+  tracker adapter, wiring) and proving all three. Once per project.
+- **[ask-shady2k](skills/backlog/ask-shady2k/SKILL.md)**: reads the backlog's
+  state and answers with the one command to run next, not a map of routes.
+- **[to-milestone](skills/backlog/to-milestone/SKILL.md)**: the vision and the
+  business requirements into a milestone charter: outcomes, what is out, a
+  budget for findings.
+- **[to-stages](skills/backlog/to-stages/SKILL.md)**: one outcome of the current
+  milestone into stages and one-session tasks with assertion-shaped criteria.
+- **[groom-backlog](skills/backlog/groom-backlog/SKILL.md)**: dig out a mess by
+  amnesty rather than review: declare the slice, defer the rest, reversibly.
 
-### Planned
+### Model-invoked
 
-Named and designed, not written yet. In the order they will be written:
+The agent reaches for these unprompted; you can type them too.
 
-- `ask-shady2k`: reads the backlog's state (the gate's report, the current
-  milestone, what is being held, the finding budget) and answers with the one
-  command to run next, not a map of routes. Absorbs "what do I take".
-- `groom-backlog`: dig out a mess by amnesty rather than review: declare the
-  slice, attach live work, defer the rest with a review date. Must carry the
-  rule that a bulk edit forges its own evidence, so ages are read from a
-  revision before it.
-- `to-milestone`: vision and business requirements into a milestone charter: in,
-  out, and a budget for findings. The next milestone exists at feature level
-  only.
-- `to-backlog` (model-invoked): an idea, a bug or a finding into the lane it
-  belongs in. Carries the three checks a script cannot make: search the
-  behaviour, not your name for it; write a criterion that stops being false
-  exactly once; state what is deliberately out. A finding beyond the milestone's
-  budget never goes silently to the front.
-- `close-out` (model-invoked): close with evidence a stranger can check,
-  re-parent what was found. What counts as evidence is the project's config.
-- `to-stages`: one outcome into stages and tasks with assertion-shaped criteria.
-  Last, and only if the gate alone turns out not to be enough.
+- **[to-backlog](skills/backlog/to-backlog/SKILL.md)**: an idea, a bug or a
+  finding into the lane it belongs in. A finding beyond the milestone's budget
+  goes to the owner, never silently to the front.
+- **[close-out](skills/backlog/close-out/SKILL.md)**: close finished work with
+  evidence a stranger can check, file what it found, release what is not held.
+
+## Development
+
+```bash
+npm test                  # the gate's fixtures, and the guard over every skill
+scripts/link-skills.sh    # symlink the skills into ~/.claude/skills and ~/.agents/skills
+```

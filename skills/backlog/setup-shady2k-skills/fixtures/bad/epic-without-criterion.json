@@ -8,7 +8,8 @@
       "type": "epic",
       "status": "open",
       "labels": [
-        "transport"
+        "transport",
+        "v0-5"
       ],
       "parent": null,
       "blockedBy": [],
@@ -34,7 +35,8 @@
       "type": "task",
       "status": "closed",
       "labels": [
-        "transport"
+        "transport",
+        "v0-5"
       ],
       "parent": null,
       "blockedBy": [],
@@ -47,7 +49,8 @@
       "type": "epic",
       "status": "open",
       "labels": [
-        "transport"
+        "transport",
+        "v0-5"
       ],
       "parent": null,
       "blockedBy": [],

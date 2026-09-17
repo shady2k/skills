@@ -8,7 +8,8 @@
       "type": "epic",
       "status": "open",
       "labels": [
-        "transport"
+        "transport",
+        "v0-5"
       ],
       "parent": null,
       "blockedBy": [],
@@ -21,7 +22,8 @@
       "type": "task",
       "status": "open",
       "labels": [
-        "transport"
+        "transport",
+        "v0-5"
       ],
       "parent": "E1",
       "blockedBy": [],
@@ -34,7 +36,8 @@
       "type": "task",
       "status": "closed",
       "labels": [
-        "transport"
+        "transport",
+        "v0-5"
       ],
       "parent": null,
       "blockedBy": [],
@@ -47,7 +50,8 @@
       "type": "task",
       "status": "open",
       "labels": [
-        "transport"
+        "transport",
+        "v0-5"
       ],
       "parent": "C2",
       "blockedBy": [],
@@ -60,7 +64,8 @@
       "type": "task",
       "status": "open",
       "labels": [
-        "transport"
+        "transport",
+        "v0-5"
       ],
       "parent": "C1",
       "blockedBy": [],

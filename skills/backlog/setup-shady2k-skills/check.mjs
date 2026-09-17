@@ -172,17 +172,16 @@ const CHECKS = [
   {
     id: 'off-milestone-open',
     severity: 'error',
-    why: 'A milestone that is not current must be deferred, or the queue offers next quarter\'s feature as today\'s work. 802 issues were deferred in one pass for having been planned past that horizon.',
-    fix: 'Defer it with its milestone label intact. It comes back whole when that milestone becomes current.',
+    why: 'Everything live belongs to the current milestone; whatever does not is deferred. Otherwise the queue offers next quarter\'s feature as today\'s work, and a parentless issue filed by hand is how a groomed backlog grows back into 665 roots while every other check stays green. 802 issues were deferred in one pass for having been planned past that horizon.',
+    fix: 'Defer it, with its own milestone label intact if it has one, so it comes back whole. If it is on the current milestone\'s path, give it the parent it serves.',
     run: (m, cfg) =>
       m.issues.flatMap((i) => {
-        if (!LIVE(i.status)) return [];
+        if (!cfg.currentMilestone || !LIVE(i.status) || isIdea(cfg, i)) return [];
         const root = m.by.get(rootOf(m, i.id)) || i;
         const ls = root.labels || [];
-        const other = ls.find((l) => cfg.milestoneLabels.includes(l) && l !== cfg.currentMilestone);
-        return other && !ls.includes(cfg.currentMilestone)
-          ? [{ id: i.id, note: `its root ${root.id} is ${other}, current is ${cfg.currentMilestone}` }]
-          : [];
+        if (ls.includes(cfg.currentMilestone)) return [];
+        const other = ls.find((l) => cfg.milestoneLabels.includes(l));
+        return [{ id: i.id, note: `its root ${root.id} ${other ? `is ${other}` : 'carries no milestone'}, current is ${cfg.currentMilestone}` }];
       }),
   },
   {
@@ -220,6 +219,7 @@ const CHECKS = [
         ...cfg.roadmapLabels,
         ...cfg.triageLabels,
         ...cfg.ideaLabels,
+        ...(cfg.findingLabels || []),
       ]);
       return m.issues
         .filter((i) => LIVE(i.status))
@@ -243,6 +243,24 @@ const CHECKS = [
           ? []
           : [{ id: i.id, note: areas.length ? `${areas.length} area labels: ${areas.join(', ')}` : 'no area label' }];
       }),
+  },
+  {
+    id: 'finding-budget',
+    severity: 'error',
+    why: 'Bugs and debt found mid-milestone go to the front one at a time, each reasonable, and push the feature out by a fortnight nobody decided on. The charter declares how many the milestone absorbs.',
+    fix: 'Take it to the owner: it goes to the next milestone, deferred, or it displaces something that is named and deferred with it. Raising the budget is a charter change, made on purpose.',
+    run: (m, cfg) => {
+      if (cfg.findingBudget == null) return [];
+      const marks = cfg.findingLabels || [];
+      const spent = m.issues.filter((i) => {
+        if (i.status === 'deferred' || !(i.labels || []).some((l) => marks.includes(l))) return false;
+        const root = m.by.get(rootOf(m, i.id)) || i;
+        return [...(i.labels || []), ...(root.labels || [])].includes(cfg.currentMilestone);
+      });
+      return spent.length <= cfg.findingBudget
+        ? []
+        : spent.map((i) => ({ id: i.id, note: `one of ${spent.length} findings against a budget of ${cfg.findingBudget}` }));
+    },
   },
   {
     id: 'parent-cycle',
@@ -279,6 +297,22 @@ function bulkClusters(m, threshold) {
 // ---------------------------------------------------------------- run
 
 const STRENGTHS = ['block', 'block-new', 'report'];
+
+/**
+ * A bulk edit rewrites the timestamps it touches, so after one the backlog's
+ * own ages describe the edit. `agesFrom` is a normalized backlog saved BEFORE
+ * it: statuses, edges and labels are read from the current one, last-modified
+ * from the old one wherever the issue already existed.
+ */
+function withAgesFrom(backlog, agesFrom) {
+  if (!agesFrom) return backlog;
+  const old = new Map(agesFrom.issues.map((i) => [i.id, i.updatedAt]));
+  return {
+    ...backlog,
+    source: `${backlog.source || '(unnamed)'}; ages from ${agesFrom.source || 'a snapshot'}`,
+    issues: backlog.issues.map((i) => (old.has(i.id) ? { ...i, updatedAt: old.get(i.id) } : i)),
+  };
+}
 
 function evaluate(backlog, cfg, only, clock) {
   const m = index(backlog);
@@ -319,6 +353,11 @@ function judge(report, baseline, strength) {
   const failing = report.results
     .filter((r) => r.severity === 'error')
     .flatMap((r) => r.violations.filter((v) => strength === 'block' || v.isNew));
+  // What the skills read. `failed` depends on the strength and is never true
+  // under `report`; "did this change make the backlog worse" must not.
+  report.newErrors = report.results
+    .filter((r) => r.severity === 'error')
+    .reduce((n, r) => n + r.violations.filter((v) => v.isNew).length, 0);
   report.failed = strength !== 'report' && failing.length > 0;
   return report;
 }
@@ -346,8 +385,9 @@ function render(report) {
     for (const c of report.clusters.slice(0, 5)) lines.push(`      ${c.count} live issues share ${c.minute}`);
     lines.push('      A bulk edit rewrites timestamps. Re-run the adapter against a revision from before it.');
   }
-  if (report.strength === 'report') lines.push('', 'strength is `report`: nothing here fails anything. It is still true.');
-  else lines.push('', report.failed ? 'RED' : 'green');
+  lines.push('', `new errors: ${report.newErrors}${report.compared ? '' : ' (no baseline: every violation counts as new)'}`);
+  if (report.strength === 'report') lines.push('strength is `report`: nothing here fails anything. It is still true.');
+  else lines.push(report.failed ? 'RED' : 'green');
   return lines.join('\n');
 }
 
@@ -375,7 +415,7 @@ function portability(projectConfigPath) {
     console.log('SKIP  portability: the project config declares no projectWords or trackerWords');
     return 0;
   }
-  const files = ['check.mjs', 'model.md', 'SKILL.md', 'fixtures/config.json'];
+  const files = ['check.mjs', 'model.md', 'SKILL.md', 'backlog.md', 'fixtures/config.json'];
   for (const kind of ['bad', 'good'])
     for (const n of readdirSync(join(HERE, 'fixtures', kind))) files.push(`fixtures/${kind}/${n}`);
   let failures = 0;
@@ -440,19 +480,25 @@ function runSelftest(cfg, projectConfigPath) {
     const seen = v.results.some((r) => r.violations.length);
     say(v.failed === red && seen, `strength ${strength} on ${what} → ${v.failed ? 'red' : 'green'}, report ${seen ? 'kept' : 'LOST'}`);
   }
+  // A bulk edit made every issue look touched today, which hides the stale
+  // hold. Ages from the snapshot taken before it bring the violation back.
+  const edited = { ...dirty, issues: dirty.issues.map((i) => ({ ...i, updatedAt: dirty.generatedAt })) };
+  const fired = (b) => evaluate(b, cfg, ['stale-hold']).results[0].violations.length;
+  say(fired(edited) === 0 && fired(withAgesFrom(edited, dirty)) > 0, 'ages-from: a stale hold hidden by a bulk edit is seen again through the snapshot');
   console.log(failures ? `\n${failures} failure(s)` : '\nall fixtures pass');
   return failures ? 1 : 0;
 }
 
 function main() {
   const argv = process.argv.slice(2);
-  const args = { json: false, only: null, input: null, selftest: false, config: null, baseline: null, strength: null };
+  const args = { json: false, only: null, input: null, selftest: false, config: null, baseline: null, strength: null, agesFrom: null };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--json') args.json = true;
     else if (argv[i] === '--only') args.only = argv[++i].split(',');
     else if (argv[i] === '--config') args.config = argv[++i];
     else if (argv[i] === '--baseline') args.baseline = argv[++i];
     else if (argv[i] === '--strength') args.strength = argv[++i];
+    else if (argv[i] === '--ages-from') args.agesFrom = argv[++i];
     else if (argv[i] === '--selftest') args.selftest = true;
     else if (argv[i] === '--help' || argv[i] === '-h') args.help = true;
     else args.input = argv[i];
@@ -460,10 +506,12 @@ function main() {
   if (args.help) {
     console.log(
       'check.mjs --config <project config> [<normalized.json>|-] [--baseline <normalized.json>]\n' +
-        '          [--strength block|block-new|report] [--only <id,id>] [--json]\n' +
+        '          [--strength block|block-new|report] [--ages-from <normalized.json>]\n' +
+        '          [--only <id,id>] [--json]\n' +
         'check.mjs --selftest [--config <project config>]\n\n' +
         'Applies the backlog invariants to the normalized backlog on stdin or at <path>.\n' +
         'Strength comes from the config unless given; block-new needs --baseline.\n' +
+        '--ages-from reads last-modified from a snapshot saved before a bulk edit.\n' +
         'Exit 0 green, 1 red, 2 misuse.\n\n' +
         'Checks: ' + CHECKS.map((c) => c.id).join(', '),
     );
@@ -489,8 +537,9 @@ function main() {
   if (strength === 'block-new' && !args.baseline) return misuse('block-new needs --baseline: without one every violation is new');
 
   const read = (p) => JSON.parse(!p || p === '-' ? readFileSync(0, 'utf8') : readFileSync(p, 'utf8'));
-  const report = evaluate(read(args.input), cfg, args.only);
-  const baseline = args.baseline ? evaluate(read(args.baseline), cfg, args.only, report.now) : null;
+  const ages = args.agesFrom ? read(args.agesFrom) : null;
+  const report = evaluate(withAgesFrom(read(args.input), ages), cfg, args.only);
+  const baseline = args.baseline ? evaluate(withAgesFrom(read(args.baseline), ages), cfg, args.only, report.now) : null;
   judge(report, baseline, strength);
   console.log(args.json ? JSON.stringify(report, null, 2) : render(report));
   return report.failed ? 1 : 0;

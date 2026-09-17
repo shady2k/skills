@@ -46,7 +46,15 @@ declares, clean backlogs fire nothing, the three strengths give their verdicts,
 and no file of the skill contains a listed word. Add a rule, add its fixture in
 the same commit.
 
+## Every skill reads one file
+
+`setup-shady2k-skills` writes `docs/agents/backlog.md` into the project from its
+seed, and every other skill opens with the same sentence: that file should have
+been provided, and if not, tell the user to run the installer. The protocol
+(levels, lanes, the horizon, names over identifiers) has its single source of
+truth in that seed; a skill uses its words and does not restate it.
+
 ## The router lies when it is stale
 
-Once `ask-shady2k` exists: whenever a skill is added, renamed, removed or changes
-how it fits the flow, update the router in the same commit.
+Whenever a skill is added, renamed, removed or changes how it fits the flow,
+update `ask-shady2k` in the same commit: its ladder and its list of routes.
