@@ -45,15 +45,24 @@ proves all three before it says it is done.
 
 ### Planned
 
-Named and designed, not written yet:
+Named and designed, not written yet. In the order they will be written:
 
-- `ask-shady2k`: reads the backlog's state and answers with the one command to
-  run next.
-- `to-milestone`: vision and business requirements into a milestone charter with
-  a budget for findings.
+- `ask-shady2k`: reads the backlog's state (the gate's report, the current
+  milestone, what is being held, the finding budget) and answers with the one
+  command to run next, not a map of routes. Absorbs "what do I take".
+- `groom-backlog`: dig out a mess by amnesty rather than review: declare the
+  slice, attach live work, defer the rest with a review date. Must carry the
+  rule that a bulk edit forges its own evidence, so ages are read from a
+  revision before it.
+- `to-milestone`: vision and business requirements into a milestone charter: in,
+  out, and a budget for findings. The next milestone exists at feature level
+  only.
 - `to-backlog` (model-invoked): an idea, a bug or a finding into the lane it
-  belongs in.
-- `close-out` (model-invoked): close with evidence, re-parent what was found.
-- `groom-backlog`: dig out a mess by amnesty rather than review.
+  belongs in. Carries the three checks a script cannot make: search the
+  behaviour, not your name for it; write a criterion that stops being false
+  exactly once; state what is deliberately out. A finding beyond the milestone's
+  budget never goes silently to the front.
+- `close-out` (model-invoked): close with evidence a stranger can check,
+  re-parent what was found. What counts as evidence is the project's config.
 - `to-stages`: one outcome into stages and tasks with assertion-shaped criteria.
   Last, and only if the gate alone turns out not to be enough.
