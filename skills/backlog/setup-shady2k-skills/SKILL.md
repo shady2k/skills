@@ -48,6 +48,8 @@ Read, don't assume:
 
 Say what you found, then take the sections in order — one section, one answer,
 then the next. Lead with the recommended answer so it can be accepted in a word.
+A, B and D are each asked alone: they are the three that change what the gate
+does, and an answer given in a batch is an answer nobody weighed.
 
 **A. Vocabulary.** Show declared against in-tree. Recommend the declared list
 plus whatever in-tree labels carry live work; the rest is what
@@ -93,6 +95,11 @@ showing a value.
 
 ## 3. Write
 
+**Where other agents commit into this checkout, install on a branch in a
+worktree of your own.** Proving the hook means staging files, and a staged file
+belongs to whoever commits next: in a shared checkout another session's commit
+swept a half-proved gate onto the main branch under its own unrelated message.
+
 **The config** — one JSON file, beside the project's other gate files:
 
 ```json
@@ -136,6 +143,11 @@ adapter --at <last committed revision>             > baseline.json
 adapter | check --config <config> --baseline baseline.json \
                 --baseline-config baseline-config.json -
 ```
+
+In CI the baseline is the **merge-base for a pull request and the previous head
+for a push**. The merge-base of a branch with itself is its own head: the
+baseline then equals the backlog, nothing is ever new, and the job is green for
+ever.
 
 The baseline is judged by the config of its own day. Without that, lowering a
 budget or renaming the current milestone creates violations that look like old
