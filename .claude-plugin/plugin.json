@@ -1,6 +1,6 @@
 {
   "name": "shady2k-skills",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "shady2k's agent skills: a backlog that stays a queue, kept true by a gate installed per project for any tracker (milestone charters, stages, lanes for ideas and findings, closing on evidence, digging out a mess), plus a handoff to a fresh session that commits nothing.",
   "author": {
     "name": "shady2k",

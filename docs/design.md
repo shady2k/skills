@@ -3,8 +3,10 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: the protocol below is decided and all seven skills are written. None
-has yet been run in a project other than the origin.
+Status: the protocol below is decided. The seven backlog skills and `handoff`
+are written; the installer has been run once, in the origin; layer 3, the
+harness hooks, is not built. §1 and §2 are the record of the conversation and
+are left as they were said; from §3 on the document is kept current.
 
 ## 1. The owner's idea, as stated
 
@@ -127,7 +129,9 @@ this document may call it a gate.
 
 Session start injects the current milestone **by name**, what you are holding,
 how much has gone stale. Stop and pre-compact release holds. This is the
-"remind the user and the model" the owner asked for.
+"remind the user and the model" the owner asked for. **Not built.** Until it
+is, the reminder is one line in the project's agent doc pointing at
+`docs/agents/backlog.md`, which the installer adds.
 
 ### Layer 4 — the skills
 
@@ -142,6 +146,11 @@ Light, each with one entry and one exit:
 | `to-backlog`           | incoming → a lane (work / bug under a stage / idea)                          | the model  |
 | `close-out`            | close with evidence, re-parent findings, publish                             | the model  |
 | `groom-backlog`        | dig out a mess                                                               | the user   |
+| `handoff`              | this conversation → a fresh session, with nothing committed                  | the user   |
+
+`handoff` is the one skill outside the backlog: it lives in its own bucket, uses
+`docs/agents/backlog.md` when it is there (it calls `close-out`) and works
+without it.
 
 **The set is `shady2k-skills`** — the owner's own, as `mattpocock-skills` is its
 author's, and that set is the reference for shape: a name says the action or
@@ -167,24 +176,27 @@ environment. The skill explains what must be validated and the model writes the
 wiring for that project's specifics.
 
 **The trap, and it is worse than having no gate:** a generated validator that
-silently passes everything does not merely fail to catch — it certifies. This
-repository has the lesson twice already: a criterion written on `deadcode
+silently passes everything does not merely fail to catch — it certifies. The
+origin has the lesson twice already: a criterion written on `deadcode
 -filter` is unfalsifiable, and a gate people learn to skip with `--no-verify`
 protects nothing.
 
-So the skill ships a **corpus**, not just a spec:
+So the installer ships a **corpus**, not just a spec:
 
 ```
-rules/            one rule per file: what it forbids, why, the case that bought it, the fix
-model.md          the normalized backlog — the only thing rules know
-fixtures/bad/     one backlog per rule, violating exactly that rule
+check.mjs         the rules, each with why it exists and the move that clears it
+model.md          the normalized backlog — the only thing the rules know
+fixtures/bad/     backlogs that violate exactly the rule they are named for
 fixtures/good/    backlogs that must pass
-reference.mjs     an implementation to port rather than invent
+backlog.md        the seed of the project's backlog doc: the protocol, the tracker verbs
 ```
+
+The rules stay in one file rather than one per rule: a project without Node
+ports one file, and the fixtures are what prove the port.
 
 The last step of installation is not "I wired it in" but **running the fixtures
-and showing the table**. If the generated wiring passes `bad/no-milestone`, that
-is visible in the minute of installation rather than in a month.
+and showing the table**. If the generated wiring passes a backlog known to be
+bad, that is visible in the minute of installation rather than in a month.
 
 Three layers of ownership, or three projects grow three validators with three
 bugs:
@@ -202,7 +214,8 @@ becomes "off":
 
 - `block` — a red gate fails the commit;
 - `block-new` — fails only what this commit created or changed; old debt is a
-  report. **Default.**
+  report. **Recommended, never defaulted**: the rules refuse to run with no
+  strength chosen.
 - `report` — never fails, but the result is always visible.
 
 Two conditions. It is **asked once at setup, with the price of each explained** —
@@ -284,7 +297,7 @@ with one command:**
 ```
 > the slice was declared 12 days ago, its finding budget is spent (7 of 5)
 > you are holding 3 issues older than a day
-> the gate is red: 2 epics with no DONE WHEN
+> the gate reports 2 new errors: two features with no DONE WHEN
 >
 > first:  release  — let go of what you are not holding
 > then:   groom    — the budget is blown; decide what leaves the slice
@@ -364,11 +377,26 @@ self-test, and the guard widened so that neither a project's nor a tracker's
 name may appear in any file of the skill. `npm test` runs that guard against
 the origin's words, which are the ones most likely to leak.
 
+What happened after that, in order. A reader who had not written the skills
+walked a new project and a 900-issue mess through them and found the router
+sending the mess to the wrong skill, `to-milestone` deferring the slice that
+grooming had just declared, and a gate that let a parentless issue through. A
+second reader, a different model, was asked to construct backlogs that prove a
+check wrong: three rules the design called enforced were only warnings,
+`block-new` judged the past by today's config, a typo in `--only` ran no check
+and exited green. Then the first real install, in the origin, by a session that
+had not written the installer: it left files staged in a shared checkout and
+another session's commit carried the half-proved gate onto the main branch.
+Each of the three changed the text or the code, and the commits say how.
+
 ## 13. Still open
 
-- Whether the rules ship as one file per rule (§4) or stay inline.
-- The two unresolved edges in the current slice.
 - How agent assignment is expressed in the protocol — the owner named it as a
-  requirement and it has not been designed.
+  requirement and it has not been designed. The model carries an optional
+  `holder`, and the seed asks what happens when two claim at once; that is all.
 - What the review date on a deferred idea does when it arrives, given that an
   automatic return would rebuild the swamp.
+- Layer 3, the harness hooks, and whether the installer can generate them for
+  harnesses other than the one it runs in.
+- The three rules that are still advice (§3, layer 2).
+- A project with no Node: the port has never been attempted.

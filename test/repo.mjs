@@ -49,5 +49,10 @@ for (const s of skills) {
     fail(`${relative(ROOT, s)} is user-invoked in one harness and model-invoked in the other`);
 }
 
-console.log(failures ? `\n${failures} failure(s)` : `PASS  ${skills.length} skills, ${files.length} files: no origin words, manifest and invocation in step`);
+const version = JSON.parse(readFileSync(join(ROOT, '.claude-plugin/plugin.json'), 'utf8')).version;
+const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).version;
+const rules = (readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/check.mjs'), 'utf8').match(/RULES_VERSION = '([^']+)'/) || [])[1];
+if (version !== pkg || version !== rules) fail(`versions differ: plugin.json ${version}, package.json ${pkg}, check.mjs ${rules}`);
+
+console.log(failures ? `\n${failures} failure(s)` : `PASS  ${skills.length} skills, ${files.length} files: no origin words, manifest and invocation in step, version ${version}`);
 process.exit(failures ? 1 : 0);

@@ -323,6 +323,10 @@ function bulkClusters(m, threshold) {
 
 // ---------------------------------------------------------------- run
 
+// The version of the set these rules shipped with. A project holds a COPY of
+// this file, and this is how anybody tells that the copy has fallen behind.
+const RULES_VERSION = '0.4.1';
+
 const STRENGTHS = ['block', 'block-new', 'report'];
 
 /** Thrown for anything that is the caller's mistake; main turns it into exit 2. */
@@ -448,7 +452,7 @@ function judge(report, baseline, strength) {
 
 function render(report) {
   const lines = [
-    `gate (${report.strength}) — milestone ${report.milestone}, ${report.live} live of ${report.total}`,
+    `gate ${RULES_VERSION} (${report.strength}) — milestone ${report.milestone}, ${report.live} live of ${report.total}`,
     `source: ${report.source}`,
     '',
   ];
@@ -627,7 +631,12 @@ function main() {
     else if (argv[i] === '--ages-from') args.agesFrom = argv[++i];
     else if (argv[i] === '--selftest') args.selftest = true;
     else if (argv[i] === '--help' || argv[i] === '-h') args.help = true;
+    else if (argv[i] === '--version') args.version = true;
     else args.input = argv[i];
+  }
+  if (args.version) {
+    console.log(RULES_VERSION);
+    return 0;
   }
   if (args.help) {
     console.log(
@@ -635,7 +644,8 @@ function main() {
         '          [--baseline <normalized.json> [--baseline-config <config as it was then>]]\n' +
         '          [--strength block|block-new|report] [--ages-from <normalized.json>]\n' +
         '          [--only <id,id>] [--json]\n' +
-        'check.mjs --selftest [--config <project config>]\n\n' +
+        'check.mjs --selftest [--config <project config>]\n' +
+        'check.mjs --version\n\n' +
         'Applies the backlog invariants to the normalized backlog on stdin or at <path>.\n' +
         'Strength comes from the config unless given; block-new needs --baseline.\n' +
         '--ages-from reads last-modified from a snapshot saved before a bulk edit.\n' +

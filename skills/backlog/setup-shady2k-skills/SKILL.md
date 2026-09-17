@@ -42,7 +42,7 @@ Read, don't assume:
 - **The runtime.** `check.mjs` needs Node and nothing else. No Node means
   porting it — see step 3.
 - **A prior install**: `docs/agents/backlog.md`. If it exists you are changing
-  an installation, not making one; read it first.
+  an installation, not making one: read it first, then go to "Updating" below.
 
 ## 2. Present and ask
 
@@ -123,15 +123,20 @@ sets it: a number nobody chose is worse than none. `currentMilestone` may be
 waits for it.
 
 **The adapter** — a script printing [`model.md`](model.md)'s shape on stdout.
-Read that file's three warnings before writing a line: `blockedBy` carries
-gating edges only, `updatedAt` is copied and never improved, closed issues are
-emitted. It **must be able to read an earlier revision** (`--at <rev>` or the
+Read everything under "What an adapter must get right" there before writing a
+line: `blockedBy` carries gating edges only, `updatedAt` is copied and never
+improved, a native milestone becomes a label, closed issues are emitted. Emit
+the optional `holder` and `createdAt` wherever the tracker can say them: the
+first turns "nobody holds this" from an inference into a fact, the second
+decides which findings are the ones over budget. It **must be able to read an
+earlier revision** (`--at <rev>` or the
 tracker's equivalent): that is where a baseline comes from, and the only honest
 source of ages after a bulk edit has rewritten every timestamp.
 
 **The rules.** If this skill sits inside the project's tree, the wiring calls
 `check.mjs` in place. Otherwise copy it **verbatim** next to the adapter, with a
-first-line comment naming where it came from; never edit the copy. No Node:
+first-line comment naming where it came from; never edit the copy. It knows
+its own version: `check.mjs --version`. No Node:
 port it to what the project has, and then step 4a is not optional colour but
 the only evidence the port is the same rules.
 
@@ -208,3 +213,14 @@ under `block-new` it blocks nobody. Two lines of it need saying out loud:
 
 Then tell the user the set is installed, and that `/ask-shady2k` answers what
 to do next from here on.
+
+## Updating
+
+The project's copy of `check.mjs` does not update with the set; it is a file in
+the project. After the set is updated, compare `--version` of the project's
+copy with `--version` of the one beside this file. If they differ: copy `check.mjs` again, verbatim; read `model.md`
+for fields the adapter could now emit and flags the wiring could now pass; then
+run proofs 4a and 4c again and show the first report again. A newer set may
+turn warnings into errors, so the report can grow; under `block-new` that is
+old debt and blocks nobody. Ask nothing that was already answered unless the
+user wants it changed.

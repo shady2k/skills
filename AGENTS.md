@@ -6,12 +6,18 @@ existing is [`docs/design.md`](docs/design.md). Read that before adding a skill.
 
 ## Layout
 
-Skills live in bucket folders under `skills/` (`backlog/`, `productivity/`), one folder per skill:
-`skills/<bucket>/<skill-name>/SKILL.md`. Every skill has an entry in the top-level
+Skills live in bucket folders under `skills/` (`backlog/`, `productivity/`), one
+folder per skill: `skills/<bucket>/<skill-name>/SKILL.md`, with its Codex
+metadata beside it in `agents/openai.yaml`. Every skill has an entry in the top-level
 `README.md`, in its bucket's `README.md`, and in the `skills` array of
 `.claude-plugin/plugin.json`. Both READMEs group entries into **User-invoked**
-and **Model-invoked**. Run `claude plugin validate . --strict` after touching a
-manifest.
+and **Model-invoked**. Run `claude plugin validate . --strict` and the same on
+`.claude-plugin/plugin.json` after touching a manifest.
+
+**Bump the version** in `plugin.json`, `package.json` and `check.mjs`'s
+`RULES_VERSION` (the test holds the three together) in every commit that
+changes what a skill does. An installed plugin updates by version, so a change
+pushed under the old number reaches nobody.
 
 ## Names
 
@@ -41,10 +47,16 @@ one tracker, so those are the words most likely to leak, and they are listed in
 npm test
 ```
 
-It runs the gate's self-test: every rule's fixture fires exactly the checks it
-declares, clean backlogs fire nothing, the three strengths give their verdicts,
-and no file of the skill contains a listed word. Add a rule, add its fixture in
-the same commit.
+It runs two things. The gate's self-test: every rule's fixture fires exactly
+the checks it declares (and, where it lists them, exactly those violations),
+clean backlogs fire nothing, the three strengths give their verdicts, and the
+command line exits 2 on every kind of misuse. Then `test/repo.mjs`, over every
+skill: no file contains a listed word, the plugin manifest lists exactly the
+skills that exist, and each is user-invoked in both harnesses or in neither.
+
+Add a rule, add its fixture in the same commit, **and break the rule once to
+see the fixture catch it**: a fixture that passes whether or not its rule works
+is how a gate certifies instead of checking.
 
 ## Every skill reads one file
 
@@ -52,7 +64,9 @@ the same commit.
 seed, and every other skill opens with the same sentence: that file should have
 been provided, and if not, tell the user to run the installer. The protocol
 (levels, lanes, the horizon, names over identifiers) has its single source of
-truth in that seed; a skill uses its words and does not restate it.
+truth in that seed; a skill uses its words and does not restate it. A skill
+outside the backlog set (`handoff`) treats that file as optional: it uses it
+when it is there and works without it.
 
 ## The router lies when it is stale
 
