@@ -33,17 +33,18 @@ cannot be done without it.
 | #  | condition                                                                            | answer                                                                   |
 | -- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | 1  | the gate cannot run                                                                  | `/setup-shady2k-skills`                                                  |
-| 2  | no current milestone, and the live issues are beyond what a person can read          | `/groom-backlog`: it declares the slice and defers the rest              |
-| 3  | no current milestone; or it has no charter file; or no feature wears its label       | `/to-milestone`                                                          |
+| 2  | no current milestone, and there are live issues                                      | `/groom-backlog`: it declares the slice and defers the rest              |
+| 3  | no current milestone and nothing live; or the milestone has no charter file; or no feature wears its label | `/to-milestone`                                    |
 | 4  | issues are held and nothing in their trees moved within the hold limit               | release them, by name: the tracker's release verb                        |
-| 5  | the gate reports new errors, a handful                                               | fix these, by name, each with the gate's own `fix` line                  |
-| 6  | the gate reports errors beyond a handful, or the ready leaves are beyond reading     | `/groom-backlog`                                                         |
+| 5  | the gate reports new errors, 7 or fewer                                              | fix these, by name, each with the gate's own `fix` line                  |
+| 6  | the gate reports more than 7 errors, or there are more than 30 ready leaves          | `/groom-backlog`                                                         |
 | 7  | every outcome of the current milestone is done, and there is at least one            | `/to-milestone`                                                          |
 | 8  | no ready leaf, and an outcome has no stages or its next open stage has no tasks      | `/to-stages` for that outcome, by name                                   |
 | 9  | no ready leaf, and every open leaf is held by somebody else or blocked               | say so; an empty queue is an answer, never widen the query               |
 | 10 | otherwise                                                                            | take the first ready leaf, by name: the tracker's claim verb             |
 
-A finding beyond the budget needs no rung of its own: the gate reports it as a
+Say the count beside the limit whenever rung 5 or 6 decides ("9 errors, limit
+7"). A finding beyond the budget needs no rung of its own: the gate reports it as a
 new error, and its `fix` line is the decision to take to the owner.
 
 Two answers come from what the person just said rather than from the state,

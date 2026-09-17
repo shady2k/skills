@@ -32,8 +32,10 @@ blocks. Features and stages are finished, never taken.
 
 - **Ideas**: deferred, no parent, no edges, a review date. Never in the ready
   queue, closed without regret.
-- **Findings**: bugs and debt found mid-milestone. The charter declares a budget
-  for them. A finding beyond the budget goes to the next milestone or displaces
+- **Findings**: bugs and debt found mid-milestone. Each wears the finding label
+  **and the label of the milestone it was filed in**, so a feature carried into
+  the next milestone does not bring its old findings to the new budget. The
+  charter declares that budget. A finding beyond the budget goes to the next milestone or displaces
   something by the owner's explicit decision; it never goes silently to the
   front.
 
@@ -83,7 +85,7 @@ cannot, say so here and say what stands in.
 | -------- | ------------------------------------------------------- |
 | create   | <title, type, labels, parent, body>                     |
 | link     | <blocking edge; parent; how provenance is kept apart>   |
-| claim    | <hold an issue: status and holder in one step>          |
+| claim    | <hold an issue: status and holder in one step. What happens when two claim at once: the tracker refuses the second, or last write wins and the claimer re-reads after claiming> |
 | release  | <give it back>                                          |
 | close    | <with a reason>                                         |
 | comment  | <add a note to an issue>                                |

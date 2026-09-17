@@ -113,8 +113,10 @@ violates it:
 - exactly one area label, and no label outside the declared vocabulary;
 - a feature or a stage has a DONE WHEN;
 - nothing is held that nobody is holding;
-- no edge onto a deferred issue, no edge that outlived its reason, no cycle in
-  the parent chain.
+- no edge onto a deferred issue, no cycle in the parent chain;
+- and, as a warning only, an edge onto a blocker nobody has touched in weeks or
+  that no longer exists. It measures the blocker and not the edge, because few
+  trackers date an edge.
 
 Designed and **not yet enforced**, so still advice: that the next milestone is
 decomposed no further than features, that no blocking edge sits on a feature or

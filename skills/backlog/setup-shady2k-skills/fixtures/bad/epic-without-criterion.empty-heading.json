@@ -1,0 +1,37 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture: the heading is there and nothing is under it",
+  "issues": [
+    {
+      "id": "E1",
+      "title": "Issue E1",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "What this is about.\n\n## DONE WHEN\n\n## Out\n\nNothing yet.",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "E2",
+      "title": "Issue E2",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "## DONE WHEN\n\nA person creates a group and sees it after a restart.",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    }
+  ],
+  "expectViolations": [
+    "epic-without-criterion|E1|"
+  ]
+}

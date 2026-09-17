@@ -29,7 +29,7 @@ found the issue that already owns this.
 | what arrived                                                      | lane                                                                                     |
 | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | an idea, a wish, a "what if"                                       | the **ideas** lane, with a review date                                                   |
-| a bug or debt on the path of the current milestone                | **finding**: under the stage it serves, the finding label, and step 3 before it is filed |
+| a bug or debt on the path of the current milestone                | **finding**: under the stage it serves, wearing the finding label and the current milestone's label, and step 3 before it is filed |
 | a bug or debt off that path                                       | deferred, under the feature it belongs to, or with no parent when it belongs to none     |
 | planned work the current milestone's charter already names        | tell the user `/to-stages` owns it. The exception is a task a stage turned out to be missing at close-out: that is a finding |
 | work for a later milestone                                        | deferred, under that milestone's label, as a feature title and nothing finer             |

@@ -16,11 +16,15 @@ user to run `/setup-shady2k-skills`.
 
 ## 0. Which milestone is this?
 
-If the config's `currentMilestone` has **no charter file**, you are chartering
-the milestone that is already running, declared by the installer or by
-`/groom-backlog`. Nothing is ending: skip question 4, and defer nothing in
-step 3. Otherwise you are chartering the **next** one, and the current one is
-ending.
+- `currentMilestone` is **null and nothing is live**: a new project. You are
+  chartering its first milestone; nothing is ending, so skip question 4.
+- `currentMilestone` is **null and issues are live**: stop. Tell the user to run
+  `/groom-backlog` first; a charter written over an undeclared slice leaves
+  every unrelated root live and the gate red.
+- `currentMilestone` is set and **has no charter file**: you are chartering the
+  milestone already running, declared by the installer or by `/groom-backlog`.
+  Nothing is ending: skip question 4, and defer nothing in step 3.
+- Otherwise you are chartering the **next** one, and the current one is ending.
 
 ## 1. Read before asking
 

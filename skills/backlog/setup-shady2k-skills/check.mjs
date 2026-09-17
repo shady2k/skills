@@ -49,11 +49,19 @@
  *     filed twice because the searches were "split", "pane" and
  *     "panes" while the existing issue was titled "Drag one tab onto another
  *     and watch both at once".
+ *   - `stale-edge` MEASURES THE BLOCKER, NOT THE EDGE. Few trackers date an
+ *     edge, so the model carries none, and a brand-new dependency on an old
+ *     issue reads the same as an old one. It is a warning for that reason.
+ *   - A RENAMED ID IS A NEW ISSUE. `block-new` matches a violation by check,
+ *     issue id and the other party to it. A tracker that renumbers turns old
+ *     debt into new errors once, and nothing here can know better.
  *   - IT JUDGES NO SCOPE. Whether the current milestone is the right one, and
  *     whether a criterion is a good criterion, belong to the owner.
  */
 
-import { readdirSync, readFileSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -106,9 +114,16 @@ const isIdea = (cfg, i) =>
   (i.labels || []).some((l) => cfg.ideaLabels.includes(l)) ||
   cfg.ideaTitlePrefixes.some((p) => (i.title || '').startsWith(p));
 
+// A marker alone is a heading somebody meant to fill in. It counts when words
+// follow it before the next heading.
 const hasCriterion = (i) => {
   const b = (i.body || '').toLowerCase();
-  return CRITERION_MARKERS.some((mk) => b.includes(mk));
+  return CRITERION_MARKERS.some((mk) => {
+    const at = b.indexOf(mk);
+    if (at < 0) return false;
+    const after = b.slice(at + mk.length).split(/\n\s*#/)[0];
+    return (after.match(/[\p{L}\p{N}]{2,}/gu) || []).length >= 3;
+  });
 };
 
 // ---------------------------------------------------------------- checks
@@ -149,7 +164,8 @@ const CHECKS = [
           ? []
           : (i.blockedBy || []).flatMap((b) => {
               const blocker = m.by.get(b);
-              if (!blocker || !LIVE(blocker.status)) return [];
+              if (!blocker) return [{ id: i.id, ref: b, note: `blocked by ${b}, which does not exist` }];
+              if (!LIVE(blocker.status)) return [];
               const age = ctx.age(blocker);
               return age > cfg.staleDays ? [{ id: i.id, ref: b, note: `blocked by ${b}, untouched ${age}d` }] : [];
             }),
@@ -181,7 +197,7 @@ const CHECKS = [
         const ls = root.labels || [];
         if (ls.includes(cfg.currentMilestone)) return [];
         const other = ls.find((l) => cfg.milestoneLabels.includes(l));
-        return [{ id: i.id, note: `its root ${root.id} ${other ? `is ${other}` : 'carries no milestone'}, current is ${cfg.currentMilestone}` }];
+        return [{ id: i.id, ref: root.id, note: `its root ${root.id} ${other ? `is ${other}` : 'carries no milestone'}, current is ${cfg.currentMilestone}` }];
       }),
   },
   {
@@ -192,6 +208,9 @@ const CHECKS = [
     run: (m, cfg, ctx) =>
       m.issues.flatMap((i) => {
         if (i.status !== 'active') return [];
+        // `holder` is optional in the model. An adapter that emits it lets
+        // this say so outright instead of inferring it from age.
+        if (i.holder === null || i.holder === '') return [{ id: i.id, note: 'active, and nobody holds it' }];
         const tree = [i.id, ...subtree(m, i.id)].map((id) => m.by.get(id)).filter(Boolean);
         const freshest = Math.min(...tree.map(ctx.age));
         return freshest > cfg.holdDays ? [{ id: i.id, note: `nothing in its tree moved for ${freshest}d` }] : [];
@@ -199,7 +218,7 @@ const CHECKS = [
   },
   {
     id: 'epic-without-criterion',
-    severity: 'warn',
+    severity: 'error',
     why: 'An epic with no criterion that stops being false exactly once becomes an area of code wearing an epic\'s clothes, and absorbs every new bug in its area until it can never finish.',
     fix: 'Name in one sentence what somebody can do that they could not before, and what would falsify it.',
     run: (m) =>
@@ -209,7 +228,7 @@ const CHECKS = [
   },
   {
     id: 'label-vocabulary',
-    severity: 'warn',
+    severity: 'error',
     why: 'A vocabulary enforced only by prose drifts. One repository declared a closed list in its contract and held about seventy labels in the tree.',
     fix: 'Map it onto a declared label, or add it to the config deliberately.',
     run: (m, cfg) => {
@@ -232,7 +251,7 @@ const CHECKS = [
   },
   {
     id: 'area-label',
-    severity: 'warn',
+    severity: 'error',
     why: 'Exactly one area label, by the area that OWNS the behaviour. None makes it unfindable; two usually means it is two issues.',
     fix: 'Label by the area that owns the behaviour, not every area it touches. If two genuinely own it, file two.',
     run: (m, cfg) =>
@@ -254,12 +273,20 @@ const CHECKS = [
       const marks = cfg.findingLabels || [];
       const spent = m.issues.filter((i) => {
         if (i.status === 'deferred' || !(i.labels || []).some((l) => marks.includes(l))) return false;
-        const root = m.by.get(rootOf(m, i.id)) || i;
-        return [...(i.labels || []), ...(root.labels || [])].includes(cfg.currentMilestone);
+        // Its OWN milestone label wins: a feature carried into the next
+        // milestone must not charge the findings it already closed to the new
+        // budget. Only a finding with no milestone of its own reads its root's.
+        const own = (i.labels || []).filter((l) => cfg.milestoneLabels.includes(l));
+        if (own.length) return own.includes(cfg.currentMilestone);
+        return ((m.by.get(rootOf(m, i.id)) || i).labels || []).includes(cfg.currentMilestone);
       });
-      return spent.length <= cfg.findingBudget
-        ? []
-        : spent.map((i) => ({ id: i.id, note: `one of ${spent.length} findings against a budget of ${cfg.findingBudget}` }));
+      // Only the overage is in violation, oldest findings first, so crossing
+      // the budget by one is one new error and not the whole list.
+      const order = (i) => `${i.createdAt || ''}|${i.id}`;
+      return spent
+        .sort((a, b) => (order(a) < order(b) ? -1 : 1))
+        .slice(cfg.findingBudget)
+        .map((i, n) => ({ id: i.id, note: `finding ${cfg.findingBudget + n + 1} of ${spent.length}, against a budget of ${cfg.findingBudget}` }));
     },
   },
   {
@@ -297,6 +324,63 @@ function bulkClusters(m, threshold) {
 // ---------------------------------------------------------------- run
 
 const STRENGTHS = ['block', 'block-new', 'report'];
+
+/** Thrown for anything that is the caller's mistake; main turns it into exit 2. */
+class Misuse extends Error {}
+
+const LIST_KEYS = ['areaLabels', 'milestoneLabels', 'roadmapLabels', 'triageLabels', 'ideaLabels', 'ideaTitlePrefixes', 'findingLabels'];
+const NUMBER_KEYS = { staleDays: 14, holdDays: 2, bulkCluster: 20 };
+
+/**
+ * A gate that cannot read its input is red, never green, and says why in one
+ * line. A missing list is an empty list; a missing threshold is its default;
+ * anything of the wrong type is refused rather than guessed at.
+ */
+function checkedConfig(raw, where) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Misuse(`${where}: the config is not a JSON object`);
+  const cfg = { ...raw };
+  for (const k of LIST_KEYS) {
+    if (cfg[k] == null) cfg[k] = [];
+    if (!Array.isArray(cfg[k]) || cfg[k].some((x) => typeof x !== 'string')) throw new Misuse(`${where}: ${k} must be a list of strings`);
+  }
+  for (const [k, dflt] of Object.entries(NUMBER_KEYS)) {
+    if (cfg[k] == null) cfg[k] = dflt;
+    if (!Number.isFinite(cfg[k]) || cfg[k] < 0) throw new Misuse(`${where}: ${k} must be a number, zero or more`);
+  }
+  if (cfg.findingBudget != null && !(Number.isInteger(cfg.findingBudget) && cfg.findingBudget >= 0))
+    throw new Misuse(`${where}: findingBudget must be a whole number or null`);
+  if (cfg.currentMilestone != null && !cfg.milestoneLabels.includes(cfg.currentMilestone))
+    throw new Misuse(`${where}: currentMilestone "${cfg.currentMilestone}" is not in milestoneLabels`);
+  return cfg;
+}
+
+function checkedBacklog(raw, where) {
+  if (!raw || !Array.isArray(raw.issues)) throw new Misuse(`${where}: not a normalized backlog (no "issues" list); see model.md`);
+  const seen = new Set();
+  for (const i of raw.issues) {
+    if (!i || typeof i.id !== 'string' || !i.id) throw new Misuse(`${where}: an issue has no id`);
+    if (seen.has(i.id)) throw new Misuse(`${where}: the id ${i.id} appears twice`);
+    seen.add(i.id);
+    if (!['open', 'active', 'deferred', 'closed'].includes(i.status)) throw new Misuse(`${where}: ${i.id} has the status "${i.status}"; see model.md`);
+    // An unreadable date makes every age comparison false, which reads as "fresh".
+    if (LIVE(i.status) && !Number.isFinite(Date.parse(i.updatedAt))) throw new Misuse(`${where}: ${i.id} has no readable updatedAt`);
+  }
+  return raw;
+}
+
+function readJson(path, what) {
+  let text;
+  try {
+    text = !path || path === '-' ? readFileSync(0, 'utf8') : readFileSync(path, 'utf8');
+  } catch (e) {
+    throw new Misuse(`cannot read ${what} (${path || 'stdin'}): ${e.code || e.message}`);
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Misuse(`${what} (${path || 'stdin'}) is not JSON${text.trim() ? '' : ': it is empty'}`);
+  }
+}
 
 /**
  * A bulk edit rewrites the timestamps it touches, so after one the backlog's
@@ -446,18 +530,28 @@ function runSelftest(cfg, projectConfigPath) {
     // also tripping `blocked-by-deferred`, because an idea belongs deferred.
     // Declaring the set is what keeps a rule from quietly widening — a check
     // that starts firing on a fixture it did not declare fails here.
-    const expected = (backlog.expect || [name.replace(/\.json$/, '')]).slice().sort();
+    const expected = (backlog.expect || [name.split('.')[0]]).slice().sort();
     const report = evaluate(backlog, cfg, null);
     const fired = report.results.filter((r) => r.violations.length).map((r) => r.id).sort();
-    const ok = fired.join(',') === expected.join(',');
-    say(ok, `bad/${name} → [${fired.join(', ') || 'nothing'}]${ok ? '' : `  expected [${expected.join(', ')}]`}`);
+    let ok = fired.join(',') === expected.join(',');
+    let detail = ok ? '' : `  expected [${expected.join(', ')}]`;
+    // Naming the check is not enough for a rule with several branches: a
+    // fixture may list the exact violations, as check|issue|ref, and then
+    // finding only some of them fails.
+    if (ok && backlog.expectViolations) {
+      const got = report.results.flatMap((r) => r.violations.map((v) => `${r.id}|${v.id}|${v.ref || ''}`)).sort();
+      const want = backlog.expectViolations.slice().sort();
+      ok = got.join(' ') === want.join(' ');
+      if (!ok) detail = `  violations [${got.join(' ')}]  expected [${want.join(' ')}]`;
+    }
+    say(ok, `bad/${name} → [${fired.join(', ') || 'nothing'}]${detail}`);
   }
   for (const name of readdirSync(join(dir, 'good')).sort()) {
     const report = evaluate(load('good', name), cfg, null);
     const fired = report.results.filter((r) => r.violations.length).map((r) => r.id);
     say(fired.length === 0, `good/${name} → [${fired.join(', ') || 'nothing'}]`);
   }
-  const covered = new Set(readdirSync(join(dir, 'bad')).map((n) => n.replace(/\.json$/, '')));
+  const covered = new Set(readdirSync(join(dir, 'bad')).map((n) => n.split('.')[0]));
   for (const c of CHECKS) if (!covered.has(c.id)) say(false, `no fixture for check ${c.id}`);
 
   // The three strengths, on one backlog that violates an error-severity rule.
@@ -485,18 +579,50 @@ function runSelftest(cfg, projectConfigPath) {
   const edited = { ...dirty, issues: dirty.issues.map((i) => ({ ...i, updatedAt: dirty.generatedAt })) };
   const fired = (b) => evaluate(b, cfg, ['stale-hold']).results[0].violations.length;
   say(fired(edited) === 0 && fired(withAgesFrom(edited, dirty)) > 0, 'ages-from: a stale hold hidden by a bulk edit is seen again through the snapshot');
+  // The command line, run for real. A gate that cannot read its input must
+  // exit 2 and never 0, and none of these may pass by accident.
+  const tmp = mkdtempSync(join(tmpdir(), 'gate-selftest-'));
+  const put = (name, value) => {
+    const p = join(tmp, name);
+    writeFileSync(p, typeof value === 'string' ? value : JSON.stringify(value));
+    return p;
+  };
+  const run = (...argv) => spawnSync(process.execPath, [fileURLToPath(import.meta.url), ...argv], { encoding: 'utf8' });
+  const fixtureCfg = join(dir, 'config.json');
+  const overBudget = join(dir, 'bad', 'finding-budget.json');
+  const stale = join(dir, 'bad', 'stale-hold.json');
+  for (const [what, want, argv] of [
+    ['an unknown --only', 2, ['--config', fixtureCfg, '--strength', 'block', '--only', 'no-such-check', stale]],
+    ['an empty backlog file', 2, ['--config', fixtureCfg, '--strength', 'block', put('empty.json', '')]],
+    ['a config that is not an object', 2, ['--config', put('cfg.json', '[]'), '--strength', 'block', stale]],
+    ['a live issue with an unreadable date', 2, ['--config', fixtureCfg, '--strength', 'block', put('nodate.json', { issues: [{ id: 'A', status: 'active', updatedAt: 'not-a-date' }] })]],
+    ['no strength chosen anywhere', 2, ['--config', fixtureCfg, stale]],
+    ['a config with only a strength, on a violating backlog', 1, ['--config', put('min.json', { strength: 'block' }), stale]],
+  ]) {
+    const got = run(...argv).status;
+    say(got === want, `cli: ${what} → exit ${got}${got === want ? '' : `, expected ${want}`}`);
+  }
+  // Lowering the budget creates violations. Judged by today's config the
+  // baseline has them too and block-new is green; judged by its own it is not.
+  const roomy = put('roomy.json', { ...cfg, findingBudget: 9, strength: 'block-new' });
+  const tight = put('tight.json', { ...cfg, strength: 'block-new' });
+  const blind = run('--config', tight, '--baseline', overBudget, overBudget).status;
+  const sighted = run('--config', tight, '--baseline', overBudget, '--baseline-config', roomy, overBudget).status;
+  say(blind === 0 && sighted === 1, `cli: a lowered budget is old debt without --baseline-config (exit ${blind}) and a new error with it (exit ${sighted})`);
+
   console.log(failures ? `\n${failures} failure(s)` : '\nall fixtures pass');
   return failures ? 1 : 0;
 }
 
 function main() {
   const argv = process.argv.slice(2);
-  const args = { json: false, only: null, input: null, selftest: false, config: null, baseline: null, strength: null, agesFrom: null };
+  const args = { json: false, only: null, input: null, selftest: false, config: null, baseline: null, baselineConfig: null, strength: null, agesFrom: null };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--json') args.json = true;
     else if (argv[i] === '--only') args.only = argv[++i].split(',');
     else if (argv[i] === '--config') args.config = argv[++i];
     else if (argv[i] === '--baseline') args.baseline = argv[++i];
+    else if (argv[i] === '--baseline-config') args.baselineConfig = argv[++i];
     else if (argv[i] === '--strength') args.strength = argv[++i];
     else if (argv[i] === '--ages-from') args.agesFrom = argv[++i];
     else if (argv[i] === '--selftest') args.selftest = true;
@@ -505,13 +631,16 @@ function main() {
   }
   if (args.help) {
     console.log(
-      'check.mjs --config <project config> [<normalized.json>|-] [--baseline <normalized.json>]\n' +
+      'check.mjs --config <project config> [<normalized.json>|-]\n' +
+        '          [--baseline <normalized.json> [--baseline-config <config as it was then>]]\n' +
         '          [--strength block|block-new|report] [--ages-from <normalized.json>]\n' +
         '          [--only <id,id>] [--json]\n' +
         'check.mjs --selftest [--config <project config>]\n\n' +
         'Applies the backlog invariants to the normalized backlog on stdin or at <path>.\n' +
         'Strength comes from the config unless given; block-new needs --baseline.\n' +
         '--ages-from reads last-modified from a snapshot saved before a bulk edit.\n' +
+        '--baseline-config judges the baseline by the rules of its own day, so a\n' +
+        'config change that creates violations shows up as new errors.\n' +
         'Exit 0 green, 1 red, 2 misuse.\n\n' +
         'Checks: ' + CHECKS.map((c) => c.id).join(', '),
     );
@@ -522,27 +651,39 @@ function main() {
   // which is the opposite of what it is for. The project's config is read for
   // one thing only — the words the skill may not contain.
   if (args.selftest)
-    return runSelftest(JSON.parse(readFileSync(join(HERE, 'fixtures', 'config.json'), 'utf8')), args.config);
+    return runSelftest(checkedConfig(readJson(join(HERE, 'fixtures', 'config.json'), 'the fixture config'), 'fixture config'), args.config);
 
-  const misuse = (why) => {
-    console.error(`check.mjs: ${why}`);
-    return 2;
-  };
-  if (!args.config) return misuse('--config <project config> is required; the rules carry no project of their own');
-  const cfg = JSON.parse(readFileSync(args.config, 'utf8'));
+  if (!args.config) throw new Misuse('--config <project config> is required; the rules carry no project of their own');
+  const cfg = checkedConfig(readJson(args.config, 'the config'), 'config');
   const strength = args.strength || cfg.strength;
   // No default. A strength nobody chose is a strength everybody has without
   // knowing it, and the quiet one of the three is indistinguishable from off.
-  if (!STRENGTHS.includes(strength)) return misuse(`strength must be one of ${STRENGTHS.join(', ')}; got ${strength ?? 'none'}`);
-  if (strength === 'block-new' && !args.baseline) return misuse('block-new needs --baseline: without one every violation is new');
+  if (!STRENGTHS.includes(strength)) throw new Misuse(`strength must be one of ${STRENGTHS.join(', ')}; got ${strength ?? 'none'}`);
+  if (strength === 'block-new' && !args.baseline) throw new Misuse('block-new needs --baseline: without one every violation is new');
+  // A typo here used to select no check at all and exit green.
+  const unknown = (args.only || []).filter((id) => !CHECKS.some((c) => c.id === id));
+  if (unknown.length || (args.only && !args.only.length))
+    throw new Misuse(`--only names no such check: ${unknown.join(', ') || '(nothing)'}. Checks: ${CHECKS.map((c) => c.id).join(', ')}`);
 
-  const read = (p) => JSON.parse(!p || p === '-' ? readFileSync(0, 'utf8') : readFileSync(p, 'utf8'));
-  const ages = args.agesFrom ? read(args.agesFrom) : null;
-  const report = evaluate(withAgesFrom(read(args.input), ages), cfg, args.only);
-  const baseline = args.baseline ? evaluate(withAgesFrom(read(args.baseline), ages), cfg, args.only, report.now) : null;
+  const ages = args.agesFrom ? checkedBacklog(readJson(args.agesFrom, 'the ages snapshot'), 'ages snapshot') : null;
+  const report = evaluate(withAgesFrom(checkedBacklog(readJson(args.input, 'the backlog'), 'backlog'), ages), cfg, args.only);
+  // The baseline is judged by the config of ITS day when one is given. With
+  // the current config, lowering a budget or renaming the milestone creates
+  // violations that look like old debt, and block-new waves them through.
+  const thenCfg = args.baselineConfig ? checkedConfig(readJson(args.baselineConfig, 'the baseline config'), 'baseline config') : cfg;
+  const baseline = args.baseline
+    ? evaluate(withAgesFrom(checkedBacklog(readJson(args.baseline, 'the baseline'), 'baseline'), ages), thenCfg, args.only, report.now)
+    : null;
   judge(report, baseline, strength);
   console.log(args.json ? JSON.stringify(report, null, 2) : render(report));
   return report.failed ? 1 : 0;
 }
 
-process.exit(main());
+try {
+  process.exitCode = main();
+} catch (e) {
+  // Anything unforeseen is misuse too: exit 1 means "the backlog is red", and
+  // a crash has established no such thing.
+  console.error(`check.mjs: ${e instanceof Misuse ? e.message : e.stack}`);
+  process.exitCode = 2;
+}

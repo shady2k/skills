@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-01-31T00:00:00Z",
-  "source": "fixture bad/area-label",
+  "source": "fixture: a feature carried into v0-5 with the findings it closed in v0-4",
   "issues": [
     {
       "id": "E1",
@@ -17,12 +17,14 @@
       "updatedAt": "2026-01-30T00:00:00.000Z"
     },
     {
-      "id": "T1",
-      "title": "Issue T1",
-      "type": "task",
-      "status": "open",
+      "id": "OLD1",
+      "title": "Issue OLD1",
+      "type": "bug",
+      "status": "closed",
       "labels": [
-        "transport"
+        "transport",
+        "finding",
+        "v0-4"
       ],
       "parent": "E1",
       "blockedBy": [],
@@ -30,49 +32,49 @@
       "updatedAt": "2026-01-30T00:00:00.000Z"
     },
     {
-      "id": "T2",
-      "title": "Issue T2",
-      "type": "task",
+      "id": "OLD2",
+      "title": "Issue OLD2",
+      "type": "bug",
       "status": "closed",
       "labels": [
         "transport",
-        "v0-5"
+        "finding",
+        "v0-4"
       ],
-      "parent": null,
+      "parent": "E1",
       "blockedBy": [],
       "body": "",
       "updatedAt": "2026-01-30T00:00:00.000Z"
     },
     {
-      "id": "T3",
-      "title": "Issue T3",
-      "type": "task",
-      "status": "open",
+      "id": "OLD3",
+      "title": "Issue OLD3",
+      "type": "bug",
+      "status": "closed",
       "labels": [
-        "v0-5"
+        "transport",
+        "finding",
+        "v0-4"
       ],
-      "parent": null,
+      "parent": "E1",
       "blockedBy": [],
       "body": "",
       "updatedAt": "2026-01-30T00:00:00.000Z"
     },
     {
-      "id": "T9",
-      "title": "Issue T9",
-      "type": "task",
+      "id": "B1",
+      "title": "Issue B1",
+      "type": "bug",
       "status": "open",
       "labels": [
         "transport",
-        "ui"
+        "finding",
+        "v0-5"
       ],
       "parent": "E1",
       "blockedBy": [],
       "body": "",
       "updatedAt": "2026-01-30T00:00:00.000Z"
     }
-  ],
-  "expectViolations": [
-    "area-label|T3|",
-    "area-label|T9|"
   ]
 }

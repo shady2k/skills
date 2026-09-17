@@ -81,5 +81,12 @@
       "body": "",
       "updatedAt": "2026-01-30T00:00:00.000Z"
     }
+  ],
+  "expectViolations": [
+    "off-milestone-open|E1|E1",
+    "off-milestone-open|T1|E1",
+    "off-milestone-open|E2|E2",
+    "off-milestone-open|T3|E2",
+    "off-milestone-open|ORPHAN|ORPHAN"
   ]
 }

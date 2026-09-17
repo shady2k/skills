@@ -20,7 +20,9 @@ An adapter reads whatever the project's tracker holds and prints this:
       "parent": null,
       "blockedBy": ["PRJ-87"],
       "body": "…full description, for the checks that read it…",
-      "updatedAt": "2026-09-17T17:05:00Z"
+      "updatedAt": "2026-09-17T17:05:00Z",
+      "createdAt": "2026-08-30T09:12:00Z",
+      "holder": "somebody"
     }
   ]
 }
@@ -33,6 +35,8 @@ An adapter reads whatever the project's tracker holds and prints this:
 | `parent`    | an id, or `null`                           | One parent. A tracker with several picks one and says so.     |
 | `blockedBy` | ids that must close first                  | ONLY edges that actually gate work. Provenance edges are not. |
 | `body`      | free text, may be empty                    | Read by `epic-without-criterion` and nothing else.            |
+| `createdAt` | a timestamp, optional                      | Orders findings, so the ones over budget are the latest.      |
+| `holder`    | who holds it, `null` for nobody; optional  | Omit the key if the tracker cannot say. `null` on an active issue is a violation. |
 
 ## What an adapter must get right
 

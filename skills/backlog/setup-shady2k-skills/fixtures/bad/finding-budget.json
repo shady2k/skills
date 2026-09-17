@@ -14,7 +14,8 @@
       "parent": null,
       "blockedBy": [],
       "body": "DONE WHEN a person can do the thing. Falsified if they cannot.",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-10T00:00:00.000Z"
     },
     {
       "id": "B1",
@@ -28,7 +29,8 @@
       "parent": "E1",
       "blockedBy": [],
       "body": "",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-11T00:00:00.000Z"
     },
     {
       "id": "B2",
@@ -42,7 +44,8 @@
       "parent": "E1",
       "blockedBy": [],
       "body": "",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-12T00:00:00.000Z"
     },
     {
       "id": "B3",
@@ -57,7 +60,8 @@
       "parent": null,
       "blockedBy": [],
       "body": "",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-13T00:00:00.000Z"
     },
     {
       "id": "B4",
@@ -71,7 +75,8 @@
       "parent": "E1",
       "blockedBy": [],
       "body": "",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-14T00:00:00.000Z"
     },
     {
       "id": "T1",
@@ -84,7 +89,11 @@
       "parent": "E1",
       "blockedBy": [],
       "body": "",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-15T00:00:00.000Z"
     }
+  ],
+  "expectViolations": [
+    "finding-budget|B3|"
   ]
 }

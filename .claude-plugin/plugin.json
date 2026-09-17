@@ -1,6 +1,6 @@
 {
   "name": "shady2k-skills",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Light process skills around a backlog gate that binds: the gate is installed per project and proved against known-bad backlogs, for any tracker and any engineering backlog.",
   "author": {
     "name": "shady2k",

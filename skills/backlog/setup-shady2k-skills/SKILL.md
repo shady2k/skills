@@ -131,9 +131,15 @@ the only evidence the port is the same rules.
 **The wiring** — for `block-new`, in whatever the project's hooks are written in:
 
 ```
-adapter --at <last committed revision>  > baseline.json
-adapter | check --config <config> --baseline baseline.json -
+adapter --at <last committed revision>             > baseline.json
+<the config as of that same revision>              > baseline-config.json
+adapter | check --config <config> --baseline baseline.json \
+                --baseline-config baseline-config.json -
 ```
+
+The baseline is judged by the config of its own day. Without that, lowering a
+budget or renaming the current milestone creates violations that look like old
+debt, and `block-new` waves them through.
 
 Exit 1 fails the hook; exit 2 is misuse and must fail it too, loudly — a gate
 that cannot run is red, not green. For `report`, print the output and ignore
@@ -164,14 +170,18 @@ counts; and the ids the tracker calls ready beside the model's
 open-and-unblocked-by-anything-live. Explain every difference or fix the
 adapter. A provenance edge read as a blocker shows up exactly here. An empty
 tracker proves nothing this way: create one throwaway issue per status, one
-blocking edge and one provenance edge, run the comparison, then delete them.
+blocking edge and one provenance edge, run the comparison, then remove them by
+whatever the tracker allows: delete, or close with a reason naming this proof.
 
 **c. The wiring, through the real entry point.** Plant one error-severity
 violation in the backlog (an idea left open is the cheapest), run the actual
-hook — not the command inside it — and watch it go red. Remove it, watch it go
-green. Under `report`, watch the violation get printed.
+hook — not the command inside it — and watch it go red. Undo it (defer the idea,
+or remove it as in 4b), watch it go green. Under `report`, watch the violation get printed.
 
 ## 5. The first report
+
+All checks but one are errors. `stale-edge` is a warning, because it measures
+the blocker's age and not the edge's: few trackers date an edge.
 
 Run the gate on the live backlog and show it. **Do not fix anything**: a large
 first report is a grooming job with its own decisions, not a setup step, and

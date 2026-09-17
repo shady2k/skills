@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-01-31T00:00:00Z",
-  "source": "fixture bad/area-label",
+  "source": "fixture: touched today, active, and the tracker says nobody holds it",
   "issues": [
     {
       "id": "E1",
@@ -20,59 +20,32 @@
       "id": "T1",
       "title": "Issue T1",
       "type": "task",
-      "status": "open",
+      "status": "active",
       "labels": [
         "transport"
       ],
       "parent": "E1",
       "blockedBy": [],
       "body": "",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "holder": null
     },
     {
       "id": "T2",
       "title": "Issue T2",
       "type": "task",
-      "status": "closed",
+      "status": "active",
       "labels": [
-        "transport",
-        "v0-5"
-      ],
-      "parent": null,
-      "blockedBy": [],
-      "body": "",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
-    },
-    {
-      "id": "T3",
-      "title": "Issue T3",
-      "type": "task",
-      "status": "open",
-      "labels": [
-        "v0-5"
-      ],
-      "parent": null,
-      "blockedBy": [],
-      "body": "",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
-    },
-    {
-      "id": "T9",
-      "title": "Issue T9",
-      "type": "task",
-      "status": "open",
-      "labels": [
-        "transport",
-        "ui"
+        "transport"
       ],
       "parent": "E1",
       "blockedBy": [],
       "body": "",
-      "updatedAt": "2026-01-30T00:00:00.000Z"
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "holder": "somebody"
     }
   ],
   "expectViolations": [
-    "area-label|T3|",
-    "area-label|T9|"
+    "stale-hold|T1|"
   ]
 }
