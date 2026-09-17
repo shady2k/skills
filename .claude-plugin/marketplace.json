@@ -1,0 +1,17 @@
+{
+  "name": "shady2k",
+  "owner": {
+    "name": "shady2k",
+    "url": "https://github.com/shady2k"
+  },
+  "description": "shady2k's process skills, as an installable Claude Code plugin.",
+  "plugins": [
+    {
+      "name": "shady2k-skills",
+      "source": "./",
+      "description": "Light process skills around a backlog gate that binds.",
+      "category": "productivity",
+      "keywords": ["backlog", "process", "gate"]
+    }
+  ]
+}

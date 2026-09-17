@@ -1,0 +1,13 @@
+{
+  "name": "shady2k-skills",
+  "version": "0.1.0",
+  "private": true,
+  "description": "shady2k's process skills",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shady2k/skills"
+  },
+  "scripts": {
+    "test": "node skills/backlog/setup-shady2k-skills/check.mjs --selftest --config test/origin-words.json"
+  }
+}

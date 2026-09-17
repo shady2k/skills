@@ -1,0 +1,159 @@
+---
+name: setup-shady2k-skills
+description: Configure this project for shady2k-skills by installing the backlog gate — its config, its tracker adapter, its wiring — and proving all three. Run once before first use of the other skills in the set.
+disable-model-invocation: true
+---
+
+# Setup shady2k-skills
+
+A backlog stops being a queue quietly. Nothing breaks; issues accumulate until
+"what do I work on next" has hundreds of answers, which is none. Measured on
+2026-09-17 in the repository that bought these rules: 933 issues open, **773 of
+them ready to work** across 665 independent roots, 82 of 83 in progress
+untouched for over two days. Skills did not prevent that and cannot: a skill is
+advice. **The gate is what binds**, and this skill installs it.
+
+Four pieces, and only the first ships here:
+
+| piece       | what it is                                                     | lives                  |
+| ----------- | -------------------------------------------------------------- | ---------------------- |
+| the rules   | [`check.mjs`](check.mjs) over the backlog of [`model.md`](model.md) | here, identical everywhere |
+| the config  | this project's vocabulary, milestone, thresholds, strength     | the project            |
+| the adapter | this project's tracker → the normalized backlog                | the project            |
+| the wiring  | the hook and the CI step that run the three above              | the project            |
+
+You write the last three, for the environment you find. This is a prompt-driven
+skill, not a deterministic script: explore, present, ask, write — and then
+**prove**, because a generated gate that passes everything does not merely fail
+to catch, it certifies.
+
+## 1. Explore
+
+Read, don't assume:
+
+- **The tracker.** The project's agent docs (`AGENTS.md`, `CLAUDE.md`, a tracker
+  doc they point at) and the tracker's own skill or `--help`. You need: how to
+  list every issue with status, type, labels, parent and blocking edges; how it
+  tells a blocking edge from a provenance one; whether an export is tracked in
+  version control.
+- **The labels actually in the tree**, counted, beside any list the docs
+  declare. They differ more often than not.
+- **The milestones**: a native field, a label convention, or nothing yet.
+- **Where gates already live**: a hooks directory, a pre-commit framework, the CI
+  config. The gate goes where this project's other gates are.
+- **The runtime.** `check.mjs` needs Node and nothing else. No Node means
+  porting it — see step 3.
+- **A prior install**: `docs/agents/backlog.md`. If it exists you are changing
+  an installation, not making one; read it first.
+
+## 2. Present and ask
+
+Say what you found, then take the sections in order — one section, one answer,
+then the next. Lead with the recommended answer so it can be accepted in a word.
+
+**A. Vocabulary.** Show declared against in-tree. Recommend the declared list
+plus whatever in-tree labels carry live work; the rest is what
+`label-vocabulary` will report. Exactly one **area** label per issue is a rule,
+so say which labels are areas and which are other axes.
+
+**B. The current milestone**, and the labels of the others. None yet? Recommend
+declaring one now, named for what ships in it: without a current milestone
+there is no horizon, and the horizon is what keeps next quarter out of today's
+queue.
+
+**C. The ideas lane**: the label that marks an idea. Ideas stay deferred, block
+nothing, and are closed without regret.
+
+**D. Strength. Always ask this one, with the price of each** — a setting nobody
+was asked about is one everybody has without knowing they chose it.
+
+- `block-new` (**recommended**): fails only a violation this change introduced.
+  Old debt is printed every time and fails nothing. Costs: needs the backlog in
+  version control, for a baseline to compare against.
+- `block`: any error-severity violation fails. Honest on a clean backlog; on an
+  existing one it is red on day one, and a gate that is always red teaches
+  `--no-verify`.
+- `report`: fails nothing, prints always. The cheapest, and the one that decays:
+  nothing forces anybody to read it.
+
+**E. Where it runs**: which hook, which CI job. Recommend both the fast local
+gate and CI — local alone is skippable, CI alone reports after the fact.
+
+## 3. Write
+
+**The config** — one JSON file, beside the project's other gate files:
+
+```json
+{
+  "strength": "block-new",
+  "currentMilestone": "<label>",
+  "milestoneLabels": ["<every milestone label, current included>"],
+  "areaLabels": ["<exactly one of these per issue>"],
+  "roadmapLabels": [], "triageLabels": [], "ideaLabels": ["idea"],
+  "ideaTitlePrefixes": [],
+  "staleDays": 14, "holdDays": 2, "bulkCluster": 20,
+  "projectWords": ["<the project's own names>"],
+  "trackerWords": ["<the tracker's names>"]
+}
+```
+
+**The adapter** — a script printing [`model.md`](model.md)'s shape on stdout.
+Read that file's three warnings before writing a line: `blockedBy` carries
+gating edges only, `updatedAt` is copied and never improved, closed issues are
+emitted. It **must be able to read an earlier revision** (`--at <rev>` or the
+tracker's equivalent): that is where a baseline comes from, and the only honest
+source of ages after a bulk edit has rewritten every timestamp.
+
+**The rules.** If this skill sits inside the project's tree, the wiring calls
+`check.mjs` in place. Otherwise copy it **verbatim** next to the adapter, with a
+first-line comment naming where it came from; never edit the copy. No Node:
+port it to what the project has, and then step 4a is not optional colour but
+the only evidence the port is the same rules.
+
+**The wiring** — for `block-new`, in whatever the project's hooks are written in:
+
+```
+adapter --at <last committed revision>  > baseline.json
+adapter | check --config <config> --baseline baseline.json -
+```
+
+Exit 1 fails the hook; exit 2 is misuse and must fail it too, loudly — a gate
+that cannot run is red, not green. For `report`, print the output and ignore
+exit 1 only.
+
+**The pointer** — `docs/agents/backlog.md`, the one fixed path the other
+skills read: the exact gate command, where the config and the adapter live, the
+strength chosen and the date it was chosen, and how to re-run against an
+earlier revision. Add one line to the project's agent doc pointing at it.
+
+## 4. Prove
+
+Three proofs, each shown as its table — not "I wired it in".
+
+**a. The rules.** `check.mjs --selftest --config <config>`. Every rule's fixture
+must fire exactly the checks it declares, the clean backlogs nothing, the three
+strengths their verdicts, and no file here may contain a `projectWords` or
+`trackerWords` entry.
+
+**b. The adapter, against the tracker's own numbers.** Fixtures cannot see an
+adapter, so count: issues per status from the adapter beside the tracker's own
+counts; and the ids the tracker calls ready beside the model's
+open-and-unblocked-by-anything-live. Explain every difference or fix the
+adapter. A provenance edge read as a blocker shows up exactly here.
+
+**c. The wiring, through the real entry point.** Plant one error-severity
+violation in the backlog (an idea left open is the cheapest), run the actual
+hook — not the command inside it — and watch it go red. Remove it, watch it go
+green. Under `report`, watch the violation get printed.
+
+## 5. The first report
+
+Run the gate on the live backlog and show it. **Do not fix anything**: a large
+first report is a grooming job with its own decisions, not a setup step, and
+under `block-new` it blocks nobody. Two lines of it need saying out loud:
+
+- **`AGES MAY BE CONTAMINATED`** — many issues share one minute, so a bulk edit
+  rewrote their timestamps and every age-based check is reading the edit, not
+  the work. Re-run the adapter against a revision from before it.
+- A violation somebody can defend is closed by **amending the config**, never by
+  editing the backlog to please a script.
