@@ -63,6 +63,7 @@ the work can be understood from.
 
 - **Config:** <path>
 - **Adapter:** <path>
+- **Rules:** <path of `check.mjs`: called in place, or a verbatim copy of version <version>, never edited>
 - **Strength:** <block | block-new | report>, chosen <date>
 - **Run it:** `<the exact command, as the hook runs it>`
 - **Every violation as JSON:** `<the same with --json>`

@@ -43,6 +43,9 @@ Read, don't assume:
   porting it — see step 3.
 - **A prior install**: `docs/agents/backlog.md`. If it exists you are changing
   an installation, not making one: read it first, then go to "Updating" below.
+  Missing here, look in the other worktrees and branches before concluding
+  there is none: an install that was written and never landed is invisible
+  from this checkout, and the answer to it is step 6, not a second install.
 
 ## 2. Present and ask
 
@@ -134,9 +137,11 @@ tracker's equivalent): that is where a baseline comes from, and the only honest
 source of ages after a bulk edit has rewritten every timestamp.
 
 **The rules.** If this skill sits inside the project's tree, the wiring calls
-`check.mjs` in place. Otherwise copy it **verbatim** next to the adapter, with a
-first-line comment naming where it came from; never edit the copy. It knows
-its own version: `check.mjs --version`. No Node:
+`check.mjs` in place. Otherwise copy it **verbatim** next to the adapter and
+never edit the copy, not even to say where it came from: its first line is the
+line that makes it runnable, and a copy that differs by one byte can no longer
+be compared with its source. Where it came from goes in the project's backlog
+doc. It knows its own version: `check.mjs --version`. No Node:
 port it to what the project has, and then step 4a is not optional colour but
 the only evidence the port is the same rules.
 
@@ -167,9 +172,16 @@ every other skill of the set reads, and the only thing they know about this
 project's tracker. Copy the seed [`backlog.md`](backlog.md) and fill every
 `<placeholder>`: the protocol section stays word for word, the rest is what you
 found and what was answered. The **tracker verbs** table is the adapter's
-counterpart for writes: fill it from the tracker's own skill or `--help`, try
-each verb you can try without leaving a mark, and where the tracker cannot do
-one, write what stands in. Then add one line to the project's agent doc
+counterpart for writes: fill it from the tracker's own skill or `--help`. **Run
+every verb that only reads** (ready, holds, children, search, show): reading
+leaves no mark, so none of them goes into the table untried, and a command
+written from memory is how a flag of one subcommand ends up on another. Check
+that it answers the question the table asks and not a neighbouring one:
+children means every child in every status, which a listing of ready children
+is not, and closing a parent is decided on exactly that difference. A verb
+that writes is tried where it can be undone and otherwise checked against its
+own `--help`. Where the tracker cannot do one, write what stands in. Then add
+one line to the project's agent doc
 (`AGENTS.md` or `CLAUDE.md`, whichever exists) that points at it and says where
 a new issue comes from: every bug, idea or piece of debt is filed through
 `/to-backlog`. That line is the only part of the set a session always has in
@@ -179,10 +191,13 @@ context, so it is what routes a bug when no skill has fired.
 
 Three proofs, each shown as its table — not "I wired it in".
 
-**a. The rules.** `check.mjs --selftest --config <config>`. Every rule's fixture
-must fire exactly the checks it declares, the clean backlogs nothing, the three
-strengths their verdicts, and no file here may contain a `projectWords` or
-`trackerWords` entry.
+**a. The rules.** `check.mjs --selftest --config <config>`, run on the
+`check.mjs` beside this file: the fixtures live here and are not copied, so the
+project's copy cannot test itself. Every rule's fixture must fire exactly the
+checks it declares, the clean backlogs nothing, the three strengths their
+verdicts, and no file here may contain a `projectWords` or `trackerWords`
+entry. Then show that the project's copy is byte for byte the one that passed.
+A port has no such shortcut: it runs the fixture corpus itself.
 
 **b. The adapter, against the tracker's own numbers.** Fixtures cannot see an
 adapter, so count: issues per status from the adapter beside the tracker's own
@@ -214,6 +229,29 @@ under `block-new` it blocks nobody. Two lines of it need saying out loud:
 - A violation somebody can defend is closed by **amending the config**, never by
   editing the backlog to please a script.
 
+## 6. Land it
+
+**The set is installed when it works in the checkout people work from**, and
+not a minute before: the files are on that branch, the line in the agent doc is
+there, and the gate runs from there. Every other skill looks in the checkout it
+runs in: an install left on a branch is, for all of them, no install, and the
+next session is told to run this skill again.
+
+So the report of step 5 ends with the question, not with "installed": land what
+was written the way this project lands work (a commit and a merge, or its pull
+request), and install the hooks in the clone people use. What the owner has not
+already allowed is asked for in the same message, by name, and done on a yes.
+Until then say, in these words, that the set is **written and proved, not
+installed**, and where it lies. After landing, run the gate once from the
+target checkout: a merged file does not prove a hook was installed.
+
+A worktree shares its hooks directory with the clone it came from, so a hook
+proved in step 4c is already running against the main branch, whose tree has no
+gate yet. The hook lets through only a tree that **never had** the gate, and
+says so; a tree that has the config and cannot run the gate is broken, and
+stays red like any other exit 2. "No gate here" as a blanket pass is a bypass
+that outlives the install.
+
 Then tell the user the set is installed, and that `/ask-shady2k` answers what
 to do next from here on.
 
@@ -226,4 +264,4 @@ for fields the adapter could now emit and flags the wiring could now pass; then
 run proofs 4a and 4c again and show the first report again. A newer set may
 turn warnings into errors, so the report can grow; under `block-new` that is
 old debt and blocks nobody. Ask nothing that was already answered unless the
-user wants it changed.
+user wants it changed. An update lands the same way an install does: step 6.

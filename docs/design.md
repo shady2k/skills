@@ -389,7 +389,14 @@ check wrong: three rules the design called enforced were only warnings,
 and exited green. Then the first real install, in the origin, by a session that
 had not written the installer: it left files staged in a shared checkout and
 another session's commit carried the half-proved gate onto the main branch.
-Each of the three changed the text or the code, and the commits say how.
+Then the second install, in another project, which followed the cure for that
+(a branch in a worktree of its own) to the letter, reported "installed" with
+nothing committed, and stopped: the next session, in the main checkout, found
+no backlog doc and sent the owner to install again. The installer had no step
+for landing what it wrote, so it got one, and "installed" now means the doc is
+on the branch people work from. The same install wrote a reading verb it had
+not run, with a flag that belongs to another subcommand.
+Each of the four changed the text or the code, and the commits say how.
 
 ## 13. Still open
 
