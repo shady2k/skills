@@ -19,5 +19,6 @@ Codex: `policy.allow_implicit_invocation: false` in `agents/openai.yaml`).
 
 Model- or user-reachable.
 
-- **[to-backlog](./to-backlog/SKILL.md)**: file what arrives into its lane.
+- **[to-backlog](./to-backlog/SKILL.md)**: file a bug, an idea or a request into its lane.
+  The way every new issue gets in.
 - **[close-out](./close-out/SKILL.md)**: close with evidence, leave the backlog true.

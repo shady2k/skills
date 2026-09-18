@@ -170,7 +170,10 @@ found and what was answered. The **tracker verbs** table is the adapter's
 counterpart for writes: fill it from the tracker's own skill or `--help`, try
 each verb you can try without leaving a mark, and where the tracker cannot do
 one, write what stands in. Then add one line to the project's agent doc
-(`AGENTS.md` or `CLAUDE.md`, whichever exists) pointing at it.
+(`AGENTS.md` or `CLAUDE.md`, whichever exists) that points at it and says where
+a new issue comes from: every bug, idea or piece of debt is filed through
+`/to-backlog`. That line is the only part of the set a session always has in
+context, so it is what routes a bug when no skill has fired.
 
 ## 4. Prove
 

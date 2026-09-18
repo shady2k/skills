@@ -64,7 +64,7 @@ a plugin update, run it again to refresh the project's copy of the rules.
         |
    take work  ->  /close-out          evidence, release, walk up
         ^              |
-        +-- /to-backlog               whatever arrives, into its lane
+        +-- /to-backlog               a bug, an idea, a request: into its lane
 
 /ask-shady2k             reads the state, answers with the one command to run now
 /groom-backlog           the way in when a backlog exists and is no longer a queue

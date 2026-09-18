@@ -131,7 +131,8 @@ Session start injects the current milestone **by name**, what you are holding,
 how much has gone stale. Stop and pre-compact release holds. This is the
 "remind the user and the model" the owner asked for. **Not built.** Until it
 is, the reminder is one line in the project's agent doc pointing at
-`docs/agents/backlog.md`, which the installer adds.
+`docs/agents/backlog.md` and naming `/to-backlog` as the way a new issue gets
+in, which the installer adds.
 
 ### Layer 4 — the skills
 
@@ -162,7 +163,8 @@ filing a finding, closing work — is model-invoked.
 The first draft had eight, under bare names (`setup`, `shape`, `spec`, `next`,
 `land`, `triage`, `groom`, a router). `next` went into the router, which already
 reads the state and says what to take. `land` already means merging a branch
-here. `to-stages` is written last and only if needed: the gate checks the shape
+here. `triage` became `to-backlog`: the name says where a thing ends up, and
+sorting is only how it gets there. `to-stages` is written last and only if needed: the gate checks the shape
 of a result whoever produced it.
 
 Names are English, like everything committed here. `spec` is not "too narrow"
