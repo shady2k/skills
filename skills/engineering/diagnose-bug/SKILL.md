@@ -46,6 +46,11 @@ evidence. Request the missing artifact or access when necessary; instrumenting
 production requires appropriate authorization. A slow or rare failure need
 not be abandoned just because it cannot be reduced to a seconds-long loop.
 
+Ask only for evidence you cannot obtain yourself. Use the user's established
+role, otherwise product engineer: explain what the requested observation will
+distinguish, recommend the least disruptive way to obtain it, and state its
+effort and risk. Do not make them select debugging tools or re-enter known facts.
+
 ## 2. Reproduce, then minimise
 
 Watch it go red, on the failure the **user** described and not a neighbour of
@@ -57,8 +62,10 @@ hypothesis space, and later the regression check.
 
 Rank the plausible alternatives before committing to one; do not invent extra
 hypotheses to meet a quota. Each states its prediction: "if X is the cause, changing Y
-makes it disappear". No prediction, no hypothesis. Show the list to the user;
-they often re-rank it in a sentence. Do not wait for them if they are away.
+makes it disappear". No prediction, no hypothesis. Show the ranked explanation
+in terms the user can assess, with the recommended next probe and why. Invite
+correction of facts, not approval of every technical hypothesis; continue safe
+authorized investigation without waiting for that optional feedback.
 
 ## 4. Probe
 

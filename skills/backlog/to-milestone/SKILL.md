@@ -22,26 +22,34 @@ protocol (levels, lanes, the horizon, what a clean gate is) is
 ## 0. Which milestone is this?
 
 - `currentMilestone` is **null and nothing is live**: a new project. You are
-  chartering its first milestone; nothing is ending, so skip question 4.
+  chartering its first milestone; nothing is ending, so skip carryover in step 2.
 - `currentMilestone` is **null and issues are live**: stop. Tell the user to run
   `/groom-backlog` first; a charter written over an undeclared slice leaves
   every unrelated root live and the gate red.
 - `currentMilestone` is set and **has no charter file**: you are chartering the
   milestone already running, declared by the installer or by `/groom-backlog`.
-  Nothing is ending: skip question 4, and defer nothing in step 3.
+  Nothing is ending: skip carryover in step 2, and defer nothing in step 3.
 - Otherwise you are chartering the **next** one, and the current one is ending.
 
 ## 1. Read before asking
 
 The vision document, the previous charter, and the state of the milestone that
 is ending: which outcomes are done, which are not, how many findings it took
-against its budget. If there is no vision document, interview the owner for one
-first: where this is going, for whom, and what it deliberately is not, on one
-page, at the path the backlog integration names.
+against its budget. If there is no vision document, draft its direction,
+audience and exclusions from known decisions and show the recommendation.
+Ask only for missing consequential requirements, not for answers already in
+the conversation. Record the agreed vision on one page at the integration's path.
 
-## 2. Interview the owner, one question at a time
+## 2. Propose the charter for review
 
-Lead each question with your recommended answer.
+Use the established role, otherwise product engineer: explain what ships,
+for whom, at what cost and with what risk, not internal settings. Present a
+coherent proposed charter with retained decisions and recommended new values.
+For each meaningful choice, explain what it means, why it is needed, why this
+recommendation and the consequences of changing it. The list below is coverage
+for your draft, not six required questions. Let the user approve it together or
+change only named items; ask separately, one at a time, only about material
+unknowns or conflicting priorities. Existing approval needs no second vote.
 
 1. **What ships?** The milestone is named for it, in the owner's words, and
    gets a label or the tracker's native milestone.
@@ -56,8 +64,10 @@ Lead each question with your recommended answer.
    instead. Carrying is a decision, never a default.
 5. **The finding budget**: how many bugs and pieces of debt found along the way
    this milestone will absorb before something has to leave. Recommend from the
-   ending milestone's count. Say the price out loud: every finding taken beyond
-   it moves the ship date, and the gate will say so at the moment it happens.
+   ending milestone's count and the already agreed scope; never add a reserve
+   merely because some findings have closed. Explain that raising it admits more
+   unplanned work and can delay delivery; keeping it requires deferral or an
+   explicit trade-off when the limit is reached.
 6. **The next milestone**, as feature titles only. It is not decomposed.
 
 Done when applicable consequential choices are settled; reuse previous answers

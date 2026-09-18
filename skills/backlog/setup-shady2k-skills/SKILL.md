@@ -9,8 +9,14 @@ disable-model-invocation: true
 Every invocation is a **full reconciliation**, including an existing installation.
 A matching version is not proof that its tracker, commands, hooks or settings
 still work. Preserve valid prior choices, inspect actual state, repair drift
-and prove the resulting installation. Ask only about missing choices or changes
-whose consequences need the owner. Never reduce an update to copying one script.
+and prove the resulting installation. Missing settings call for recommendations,
+not an interview per field. Never reduce an update to copying one script.
+
+Use the user's established role; otherwise assume **product engineer**: they
+own product outcomes and trade-offs, not the code or tool configuration. Explain
+choices as behaviour, time, cost and risk. An owner needs outcomes and priorities,
+an analyst domain rules, an architect boundaries and constraints. Investigate
+technical facts yourself; do not ask the user to supply commands or config keys.
 
 The set owns [the protocol](protocol.md), [the rules](check.mjs),
 [the commit check](check-commits.mjs) and [the normalized model](model.md).
@@ -26,8 +32,11 @@ If a tracker exists, verify access, export and write capabilities using its own
 documentation. If none exists, present suitable choices based on portability,
 local/offline use, collaboration, history, ownership and dependencies. Recommend
 an option, explain its costs and get the user's choice before installing and
-initializing it. A repository-backed issue store is a valid small-project
-choice; no particular product is required. Verify that it can represent the
+initializing it, unless that choice and installation were already authorized.
+This prerequisite may need a decision before the rest of the profile; it does
+not justify a separate question for every later setting. A repository-backed
+issue store is a valid small-project choice; no particular product is required.
+Verify that it can represent the
 protocol, natively or through documented adapter metadata. Do not pretend an
 inaccessible tracker is absent or replace an existing one without a decision.
 
@@ -50,17 +59,44 @@ it is not blocked by needing the gate it is preparing to install.
 
 ## 2. Reconcile project choices
 
-Read previous answers first. Ask consequential unanswered questions one at a
-time, with alternatives, cost and a recommendation. Do not silently reset
-settings to defaults during an update.
+Read previous answers, charters and relevant decision history first. Reconcile
+them with actual state before recommending changes. Preserve valid choices,
+including limits set in prose; an absent config key is not an unanswered product
+decision. Do not silently reset settings or add a reserve to an agreed budget.
+
+Present **one recommended profile**, not a sequence of questions. Use a compact
+table or list with plain-language setting names, current/recommended values,
+whether each is retained or changed, what it controls and why it matters, and
+the practical consequence of accepting or changing it. Explain unfamiliar terms:
+for example, mutation testing deliberately breaks changed logic to check whether
+tests catch it; its budget trades extra confidence against acceptance time.
+Put commands and config keys in implementation details, not in the user's quiz.
+
+Invite the user to accept the profile or name only the entries to change.
+Approval of the displayed profile settles its choices together; do not confirm
+each row again. If the user delegates remaining routine choices with "use the
+recommended values", choose evidence-based defaults, disclose them and continue.
+Do not manufacture capacity or arbitrary budgets: respect actual resources,
+review headroom, observed test costs and the project's risk policy.
+
+Only genuinely unresolved scope, material cost/risk, conflicting decisions or
+missing authority need a separate question. Ask one such question at a time,
+with a recommendation, real alternatives and consequences at the user's level.
+Profile approval is not permission for undisclosed bulk cleanup, publication,
+weaker acceptance or expanded scope; silence is not approval. Reuse approval
+already given, and defer settings unrelated to completing this setup.
+
+Cover the following in the profile; this is a checklist for the agent, **not a
+questionnaire for the user**:
 
 - **Vocabulary and horizon:** labels, areas, current milestone and finding
   budget. Compare documented and actual labels; do not erase live work to fit
   a list. If needed, establish the current slice during cleanup. A missing
   charter is written through `to-milestone` when the user invokes it; the
-  initial budget is still explicitly chosen now. Only the current milestone
+  initial budget is still explicitly agreed, including through profile approval.
+  Only the current milestone
   is decomposed, but its independent features may run concurrently.
-- **Gate strength:** always obtain a choice if none was made. `block-new`
+- **Gate strength:** retain the agreed choice or recommend one in the profile. `block-new`
   is recommended where historical snapshots exist: introduced errors block,
   old debt remains visible. `block` rejects every error; `report` prints
   errors without rejecting a commit. Explain each cost. Defaults for age
@@ -118,8 +154,9 @@ installation. Staging in a shared index risks another agent committing it.
 }
 ```
 
-The execution numbers above are examples, not choices to impose. Required
-unanswered choices remain unresolved until answered. `findingBudget` and
+The execution numbers above are examples, not choices to impose. A profile
+approval counts as a decision; delegated routine defaults need no per-field
+answer. Consequential unknowns without agreement remain unresolved. `findingBudget` and
 `currentMilestone` may remain null only when no live slice has been admitted.
 `setupVersion` is the version last fully proved and landed, not the version
 currently being attempted.
@@ -237,7 +274,8 @@ short-circuit an explicit setup invocation.
 
 For old installs, migrate configuration, adapter statuses, commands, hooks and
 documents as part of the full reconciliation. Keep answered preferences;
-ask about newly introduced choices such as development mode and mutation policy.
+include newly introduced settings in the recommended profile rather than
+restarting an interview about development mode, capacity and mutation policy.
 A pre-0.5 standalone backlog document is merged into the project's tracker doc,
 with references updated and duplicated protocol removed. Retain compatibility
 until other harnesses using the old installation can migrate. Never claim

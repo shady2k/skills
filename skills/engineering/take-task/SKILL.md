@@ -21,6 +21,13 @@ before implementation. Read its requirements, existing spec, charter and code.
 Resume submitted results at integration and implemented stages at acceptance,
 not from scratch.
 
+Use the user's established role, otherwise product engineer. Present the
+recommended route and execution profile together, explaining what they achieve,
+why they fit, and effects on time, cost and risk. Preserve setup choices and
+prior approvals; let the user change named entries without asking them to
+select worker counts, commands or every helper. Delegated recommendations cover
+routine choices, not new scope, spending or weaker acceptance requirements.
+
 Assess **size, uncertainty and risk**, independently of the project's TDD
 choice. A small irreversible change can need more design than a large routine one.
 
@@ -95,7 +102,8 @@ in other stages wait for acceptance. Never release implemented work into ready.
 
 - Decide reversible implementation details yourself. Escalate changed product
   behaviour, material cost/risk, irreversible choices or missing authority.
-  Pause the affected branch, explain options in consequences, and continue
+  Pause the affected branch, recommend an option with its reason and explain
+  alternatives in the user's terms, and continue
   independent authorized work.
 - File unrelated bugs, debt and blocked questions through `to-backlog`.
   Fixing this stage's failure to meet its agreed criterion is still this work;

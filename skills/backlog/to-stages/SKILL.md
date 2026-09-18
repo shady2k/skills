@@ -6,9 +6,9 @@ description: "Decompose tracked work into independently acceptable stages and de
 # To stages
 
 Break one **outcome** into **stages**, and the first stages into **tasks**.
-This is where the owner is needed. After it, work is taken and finished without
-them, and a problem comes back as an escalation, not as a question that should
-have been asked here.
+The agent owns routine decomposition; the owner settles only consequential
+scope, cost or risk choices. After it, work proceeds within those decisions,
+and a material new problem comes back as an escalation.
 
 This project's **backlog integration** should have been provided to you: how
 its gate is run, how its tracker is driven, where its vision and charters
@@ -92,10 +92,13 @@ Stages and tasks alike wear exactly one area label. Stages are created as the
 type the backlog integration names for them, which is the type the gate checks
 for a DONE WHEN.
 
-## 4. Quiz the owner
+## 4. Present the recommended breakdown
 
 Show the breakdown as a numbered list: title, what it makes true, blocked by.
 Explain the stage result, size, real prerequisites and parallel opportunities.
+Use the established role, otherwise product engineer: explain each recommended
+boundary by the outcome it enables and the cost or risk of changing it. Let the
+user change named entries, not approve every task, edge or worker assignment.
 Ask about unresolved product, cost or risk decisions one at a time; do not
 re-ask for already approved scope or routine implementation sequencing.
 

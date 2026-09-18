@@ -20,10 +20,12 @@ everything below to that and leave the rest out.
 
 Anything left half-done is a trap the next agent cannot see.
 
-- **Uncommitted work.** List it (the version control's own status). For each
-  piece say whether it is finished, and ask the user whether to commit it now
-  or hand it over as it is. A fresh session in another checkout or worktree
-  will not see it at all, so say where it sits.
+- **Uncommitted work.** List it (the version control's own status), its readiness
+  and location. By default hand it over without committing; do not ask a commit
+  question for each piece. Explain that another checkout will not see it and
+  recommend a continuation path that preserves access. If transfer genuinely
+  needs a commit or other new authority, ask once for that bounded action with
+  alternatives and consequences, at the user's role (otherwise product engineer).
 - **The backlog**, if this project's agent doc points at a backlog
   integration: use "close-out". It closes only work covered by stage acceptance,
   preserves submitted results and implemented work awaiting acceptance, files findings and releases
@@ -73,6 +75,10 @@ half-checked in a separate list under the words "not verified".
 Made, with the reason in a clause, so they are not re-opened. Then the ones
 still open, and whose each is: the owner's are named as the owner's, never
 quietly decided here.
+
+Preserve the user's role, accepted profile, named overrides and any delegation
+to use recommendations, with its limits, so the next agent does not repeat the
+interview. For real open decisions, include a recommendation and its consequences.
 
 ## Traps
 

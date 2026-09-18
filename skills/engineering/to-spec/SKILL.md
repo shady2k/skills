@@ -36,9 +36,13 @@ change the spec only for a gap or an approved change of behaviour.
 Use the full form below when risk, uncertainty or scope justifies it. TDD is
 an independent project setting, not a reason to choose a larger document.
 
-A spec records decisions, it does not make them. If the decisions are not
-already in this conversation, use "brainstorming" and
-come back when decisions blocking this stage are settled. Read the feature issue, the charter and
+A spec records decisions; a missing conversation is not proof they are missing.
+Read existing decisions first. Draft from what is known, identifying retained
+choices and recommendations the user can change by name. Use the established
+role, otherwise product engineer: explain what changes for users, why it is
+recommended and its cost/risk, not internal implementation choices. Use
+"brainstorming" only for consequential unknowns blocking this stage, not to
+reapprove routine details. Read the feature issue, the charter and
 the vision first, and the code or system the outcome lands in: the
 conversation is for what they do not say. Use the project's glossary for every term, and respect the
 decisions already recorded in the area.
@@ -51,10 +55,10 @@ for operations, the alert, the dashboard, the runbook's last line. Prefer a
 seam that exists to a new one, at the level that makes the behaviour observable.
 Use enough boundaries to cover the important success and failure scenarios.
 
-This is an architect's decision. Put it to whoever holds that role here, as
-what will be watched and what that leaves unwatched, not as a list of modules;
-where nobody does, choose, and say so in the spec. Routine choices of test level
-are the agent's. These are acceptance boundaries, not a restriction on related
+Recommend the coverage together: what will be watched, why these boundaries
+and what they leave unwatched. Only a material unagreed coverage or risk trade-off
+needs the decision-maker; routine choices of test level are the agent's, not a
+separate architecture question. These are acceptance boundaries, not a restriction on related
 unit or integration tests through stable interfaces.
 
 ## 4. Write it

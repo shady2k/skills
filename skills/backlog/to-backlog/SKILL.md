@@ -53,6 +53,13 @@ update the config budget and record the charter decision together with the
 displacement. Deferring planned work alone does not reduce a count of findings.
 Do not make an unapproved finding ready; registration need not wait for admission.
 
+Recommend a disposition in the user's established role (otherwise product
+engineer), naming what would ship later or what risk remains if deferred.
+Explain what the budget protects and why the recommendation fits prior scope.
+Group related admission trade-offs where possible; do not ask about routine
+labels, fields or already authorized filing. "Use defaults" is not permission
+to increase the finding budget or expand the milestone.
+
 ## 4. Write it so it can be finished
 
 - A **title that is a sentence**: the work can be understood from it alone.

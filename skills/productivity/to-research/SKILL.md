@@ -9,6 +9,13 @@ Reading is legwork, and it does not need this conversation's attention. Start a
 **background agent** where the harness has one, and keep working; where it has
 none, say so and do the reading here.
 
+Derive the brief from the request and known decisions. Recommend a bounded
+scope and effort with the expected benefit and limitations; do not ask the
+user to choose sources, note paths or routine research settings. Use their
+established role, otherwise product engineer, and explain what decision the
+evidence will support. Ask only about material missing requirements or costs;
+"use recommendations" does not authorize paid access or expanded scope.
+
 Its brief:
 
 1. **The question**, as one sentence, and what decision hangs on the answer.

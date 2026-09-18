@@ -27,8 +27,10 @@ term resolved, the first decision worth recording. Not before.
 
 ## The glossary, while a design is being discussed
 
-- **Challenge against it.** "The glossary says a cancellation is X; you seem to
-  mean Y. Which?"
+- **Challenge against it.** Show the conflicting meanings with a concrete
+  scenario, recommend the one supported by domain evidence and explain what
+  behaviour each implies. Use the established role, otherwise product engineer;
+  ask only if the semantic difference needs their decision, not for every term.
 - **Sharpen.** A word doing three jobs gets three words, or one job. Propose
   the canonical term.
 - **Probe with scenarios** that sit on the boundary between two concepts, until

@@ -22,6 +22,12 @@ answers the wrong question is pure waste. Genuinely ambiguous and nobody to
 ask: take the shape the surrounding code suggests and state that assumption in
 the same place.
 
+Reuse the established role, otherwise product engineer. Recommend the question,
+experiment shape and bounded effort together, explaining what they will teach,
+why and what they cannot prove. Let the user correct named assumptions; ask only
+when a missing requirement or material cost/risk changes the experiment, not
+which tool or file to use.
+
 ## 2. Pick the shape
 
 **Does this logic hold?** One self-contained file that opens by double-click,

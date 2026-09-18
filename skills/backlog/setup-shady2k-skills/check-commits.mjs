@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const RULES_VERSION = '0.7.1';
+const RULES_VERSION = '0.7.2';
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 function evaluate(input) {

@@ -62,3 +62,9 @@ Publish only through the project's authorized workflow.
 
 Report by name what was accepted and on which revision, what remains pending,
 what was filed or released, and the milestone's outcomes and finding budget.
+
+Use the established role, otherwise product engineer: explain acceptance in
+terms of what now works and what remains unproved. If a decision is needed,
+recommend the next action, explain why and its time/risk consequences; do not
+ask the user to interpret check internals or approve each routine closure.
+An unresolved acceptance limitation is not waived by a generic "use defaults".

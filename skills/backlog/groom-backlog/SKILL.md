@@ -56,8 +56,13 @@ native before/after snapshots and normalize both once the adapter is ready.
 The slice is the current milestone: what is actually being built now. Find the
 evidence before asking: issues whose trees moved recently (ages from the
 snapshot), what recent commits name, what is genuinely held. Present the
-features that evidence points at and ask the owner to confirm the slice by
-**name**. No current milestone in the config means this step declares one: a
+features that evidence points at and reuse a still-valid agreed slice. If it
+needs a decision, recommend it by **name**, explaining what stays live and what
+would wait. Use the established role, otherwise product engineer; do not ask
+the user to choose tracker labels or interpret raw dependency identifiers.
+The slice can be confirmed together with the cleanup proposal in step 4 or
+setup's profile; do not ask again if that exact choice is already approved.
+No current milestone in the config means this step declares one: a
 label named for what ships, written to the config's `currentMilestone` and
 `milestoneLabels`, and put on the root of every feature in the slice with the
 tracker's milestone verb. Its charter is `/to-milestone`'s job, afterwards.
@@ -78,7 +83,9 @@ proposal as **counts by kind**, never as a list of issues:
   can never finish;
 - holds nobody is holding: released.
 
-The owner may pull anything back by name. **Nothing is closed or deleted.**
+Explain what each proposed action means, why it is recommended, how it affects
+current work and how to reverse it. Let the owner accept the proposal together
+or pull anything back by name. **Nothing is closed or deleted.**
 Do not steal live assignments or defer independent features merely because
 another feature is executing. Get approval for the proposed bulk scope unless
 the user already authorized that exact cleanup.
@@ -94,12 +101,15 @@ integration must document the restore operation and any non-restorable fields.
 
 ## 6. Mend the edges
 
-Run the gate with both age snapshots once it is available. Two checks now matter, and each
-violation is a decision of a few words for the owner, taken one at a time: a
+Run the gate with both age snapshots once it is available. Two checks now matter: a
 live issue **blocked by a deferred one** (pull the blocker into the slice, or
 defer the blocked one too), and a **stale edge** (unlink it, or move it onto
 the leaf that really needs the result or conflicts). Also resolve dependency
-cycles; age alone does not make a genuine prerequisite unnecessary.
+cycles; age alone does not make a genuine prerequisite unnecessary. Investigate
+the required results yourself and group evidence-backed repairs into a proposal
+with their consequences. Routine metadata repairs within approved cleanup need
+no per-edge question. Only an unresolved scope or priority trade-off goes back
+to the owner, one at a time, with a recommendation and real alternatives.
 
 Record the bulk edit's date and both snapshot paths under "The gate" in the
 project's backlog integration.

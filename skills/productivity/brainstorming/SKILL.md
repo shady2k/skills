@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Think a plan, a design or an idea through with the user, one question at a time, each with the positions one could take and what each would cost, until nothing is left silently assumed. Use when the user wants to brainstorm or think something through, when a plan is about to be written down with decisions still open, or when another skill says to settle its questions first.
+description: Resolve consequential design decisions at the user's role, with recommendations and trade-offs. Use when the user wants to think a plan or idea through, when a plan has unresolved decisions, or when another skill needs them settled; routine settings belong in a recommended profile, not an interview.
 ---
 
 # Brainstorming
@@ -37,15 +37,26 @@ so at the end.
 
 A role nobody here holds does not make its questions disappear. Say whose
 decision it is, decide it provisionally yourself with the reason, and mark it
-for that person. With a product engineer there is no such role: ask.
+for that person. With a product engineer there is no such role: bring genuinely
+unresolved consequential decisions to them, not every technical setting.
 
-## 2. One question at a time
+## 2. A recommendation before an interview
+
+Read the existing answers and relevant decisions first. Preserve them unless
+new evidence changes their consequences. For routine setup or configuration,
+show one coherent recommended profile: setting in plain language, retained or
+proposed value, what it controls and why, and what accepting or changing it means.
+Let the user accept it or change named entries only; do not turn it into a form
+they must fill. "Use recommended values" delegates routine choices: disclose
+them and proceed, without another approval for each field. It does not authorize
+undisclosed scope, spending, destructive actions or weaker safety requirements.
 
 Keep the **design tree** in your head: every decision branches into the ones
 that hang off it, and the **frontier** is the set whose prerequisites are
-settled. From the frontier, ask the **one** question that unblocks the most,
-and wait for the answer before the next. A batch of questions gets a batch of
-reflexes; one question gets thought.
+settled. When a material decision is genuinely unresolved, ask the **one**
+question that unblocks the most, and wait for the answer before the next. This
+rule limits substantive design questions; it does not require serial approval
+of defaults or repeated confirmation of a profile the user already accepted.
 
 ## 3. Asked at their height
 
@@ -87,7 +98,8 @@ because…" is often the most useful reply there is.
 
 Never ask for what you could look up: what the code does, what the tool
 supports, what the tracker holds. Find it, with a sub-agent where the harness
-has them, and meanwhile ask a question that does not wait on it. Bring a fact
+has them, and meanwhile continue independent work; ask only if a consequential
+decision actually needs the user. Bring a fact
 into a question only as far as it bears on the decision: "today a rollback
 takes twenty minutes and three people", not how it is implemented.
 

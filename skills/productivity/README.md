@@ -11,7 +11,7 @@ Skills for decisions, evidence and continuity.
 
 Also available directly to the user.
 
-- [brainstorming](./brainstorming/SKILL.md): one consequential question at a time,
-  by role, with alternatives and their costs.
+- [brainstorming](./brainstorming/SKILL.md): role-aware recommendations and
+  trade-offs; one unresolved consequential question at a time, not a settings interview.
 - [to-research](./to-research/SKILL.md): bounded primary-source investigation;
   independent questions may be delegated in parallel.

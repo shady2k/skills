@@ -114,7 +114,11 @@ Every setup invocation rechecks the entire installation, including one whose
 version matches. It selects and initializes a tracker if needed, snapshots and
 cleans an existing queue with the owner, preserves valid prior choices, verifies
 adapters and execution commands, proves local/CI hooks and lands the result.
-New settings are asked; existing answers are not needlessly asked again.
+New settings are presented as one recommended profile: what each controls, why
+it is recommended and the consequences of changing it. Accept the profile or
+change only named entries. Explanations match your role (product engineer by
+default); only material unresolved decisions need separate questions. Existing
+answers and delegated routine choices are not needlessly asked again.
 
 The config records setup status and the last fully verified version. A failed
 rerun remains failed even at the same version. Before writes, the
@@ -183,7 +187,7 @@ not executable checks.
 ### User-invoked
 
 - [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md): install
-  or fully reverify tracker, workflow and checks.
+  or fully reverify tracker, workflow and checks with a recommended settings profile.
 - [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md): next useful action from actual state.
 - [to-milestone](skills/backlog/to-milestone/SKILL.md): agree outcomes, scope and budget.
 - [take-task](skills/engineering/take-task/SKILL.md): coordinate tracked work to stage acceptance.
@@ -194,8 +198,8 @@ not executable checks.
 Also directly callable by the user. Availability does not authorize unrelated
 changes, new scope or external publication.
 
-- [brainstorming](skills/productivity/brainstorming/SKILL.md): decisions one at
-  a time, at the owner's role; default product engineer.
+- [brainstorming](skills/productivity/brainstorming/SKILL.md): role-aware
+  recommendations; one unresolved consequential decision at a time.
 - [to-spec](skills/engineering/to-spec/SKILL.md): short or full behavioural spec.
 - [to-stages](skills/backlog/to-stages/SKILL.md): session-sized stages and real dependencies.
 - [to-research](skills/productivity/to-research/SKILL.md): bounded primary-source research.
@@ -212,6 +216,8 @@ Version 0.7 revises execution and setup. Fixtures and package checks run locally
 the new complete workflow still needs validation in real projects. Earlier
 installation runs informed the protections around proof, isolated staging and
 landing. Harness-specific automatic update/session hooks are not shipped.
+Version 0.7.2 replaces per-setting interviews with role-aware recommendations
+across the set; consequential decisions and explicit authorization remain required.
 
 ## Credits
 
@@ -230,3 +236,6 @@ scripts/link-skills.sh    # link into local skill directories
 ```
 
 [AGENTS.md](AGENTS.md) defines layout, invocation, portability and versioning.
+Role-aware dialogue evaluation cases are in
+[test/dialogue-scenarios.md](test/dialogue-scenarios.md); automated package
+checks do not establish conversational quality.

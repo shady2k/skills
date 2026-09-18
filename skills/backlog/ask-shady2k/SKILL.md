@@ -61,15 +61,21 @@ Stopping suggests `/handoff`, with pending acceptance preserved.
 Give the few state facts needed to justify the action, then that action.
 Use "Title" (id), never identifiers alone. Explain what releases a real blocker;
 do not present every skill unless the user asks for the map.
+Use the established role, otherwise product engineer: say what the action
+achieves, why it is recommended now and what it costs or postpones. Do not turn
+routing into a configuration interview; setup presents a recommended profile,
+and only material unresolved decisions need questions.
 
 ## Routes
 
 - `setup-shady2k-skills`: choose/verify the tracker, clean its queue, configure
-  execution and fully prove setup; repeat after updates and whenever requested.
+  execution through a role-aware recommended profile and fully prove setup;
+  repeat after updates and whenever requested, preserving prior decisions.
 - `to-milestone`: agree outcomes and scope/budget; independent outcomes may run together.
 - `take-task`: route tracked work through proportional design, parallel local
   implementation where possible, integration and stage acceptance.
-- `brainstorming`: one consequential question at a time, at the user's role.
+- `brainstorming`: role-aware recommendations; one genuinely unresolved
+  consequential question at a time, not an interview about routine settings.
 - `to-spec`: short behavioural delta or full spec, according to risk and uncertainty.
 - `to-stages`: stages sized for a session including acceptance, with real
   dependencies and parallel-ready leaves.

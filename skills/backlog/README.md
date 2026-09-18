@@ -5,7 +5,8 @@ Skills that keep the queue usable and stage acceptance honest.
 ## User-invoked
 
 - [setup-shady2k-skills](./setup-shady2k-skills/SKILL.md): choose/verify the
-  tracker, clean the queue and prove setup; fully recheck on every invocation.
+  tracker, propose a role-aware settings profile, clean the queue and prove
+  setup; fully recheck on every invocation without repeating settled questions.
 - [ask-shady2k](./ask-shady2k/SKILL.md): next useful action from actual state.
 - [to-milestone](./to-milestone/SKILL.md): agree independent outcomes and budget.
 
