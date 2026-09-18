@@ -1,0 +1,5 @@
+interface:
+  display_name: "To Spec"
+  short_description: "Write the spec of one outcome"
+policy:
+  allow_implicit_invocation: false

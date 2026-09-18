@@ -143,10 +143,17 @@ Light, each with one entry and one exit:
 | `setup-shady2k-skills` | configures a project for the set: installs the gate, then proves it          | the user   |
 | `ask-shady2k`          | state → the one command to run next; absorbs "what do I take"                | the user   |
 | `to-milestone`         | vision and business requirements → a milestone charter with a finding budget | the user   |
-| `to-stages`            | one outcome → stages and tasks with assertion-shaped criteria                | the user   |
+| `to-spec`              | one outcome, talked through → its spec: problem, solution, decisions, seams  | the user   |
+| `to-stages`            | the spec → stages and tasks: vertical slices, assertion-shaped criteria      | the user   |
+| `take-task`            | one ready leaf → closed: red before green, reviewed against the spec         | the user   |
 | `to-backlog`           | incoming → a lane (work / bug under a stage / idea)                          | the model  |
 | `close-out`            | close with evidence, re-parent findings, publish                             | the model  |
 | `groom-backlog`        | dig out a mess                                                               | the user   |
+| `brainstorming`        | a plan → one question at a time, by role, with positions → nothing assumed   | the model  |
+| `diagnose-bug`         | a bug that resists a glance → a command red on it → the cause → a check      | the model  |
+| `to-prototype`         | a design question talking cannot settle → throwaway code → the answer        | the user   |
+| `to-research`          | a question → a background agent → a cited note                               | the user   |
+| `model-domain`         | a fuzzy term or a costly decision → the glossary, a decision record          | the model  |
 | `handoff`              | this conversation → a fresh session, with nothing committed                  | the user   |
 
 `handoff` is the one skill outside the backlog: it lives in its own bucket, uses
@@ -423,11 +430,53 @@ test; the project keeps only a "backlog integration" section in its own
 tracker doc, reached through a pointer in its agent doc; changing values stay
 in the gate's config alone; and "is it installed" is asked of the gate.
 
+The same day the owner said the set felt as if it had lost its point, and
+asked what had been lost from the reference. The answer was in §1. Every skill
+built so far kept the **queue**; none helped think up the work or do it. The
+`spec` of the first draft had vanished on the way to `to-stages`, which is the
+reference's ticket-cutting and not its spec; the glossary and the decision
+records were never built; and the autonomy flow had no skill to take a task at
+all, the router ended on "take the first ready leaf" and said nothing about
+how. The reference's set is exactly that missing half. The owner's decision:
+take its ideas **into** this set, rewritten rather than installed beside it,
+because this set will keep moving and needs something to move from. So 0.6
+adds the work layer: `brainstorming`, `to-spec`, `take-task` (the reference's
+implement, test-first and review folded into one road from claim to close),
+`diagnose-bug`, `to-prototype`, `to-research`, `model-domain`. What makes them
+this set's and not copies is where they stand: a spec is written only inside
+the horizon and ends in the feature's DONE WHEN; a task's red-before-green
+check **is** its assertion-shaped criterion, which is why it works for a drill
+as well as for a test; what a task finds goes to a lane and spends a budget; a
+task closes through `close-out`, on evidence; and an undecided question is an
+escalation, released and taken to the owner, which is the first piece of the
+autonomy flow to exist. The interview is the one that moved furthest from the
+reference, on the owner's first reading of it. There it is a grilling: the
+whole frontier of open questions in one round, each with one recommended
+answer. The owner's objection was that a person is rarely inside the code and
+is not there to be questioned about it: they are there as a product owner, an
+analyst or an architect, or, most often, as a **product engineer**: one person
+who answers for all three and builds through agents without reading the code,
+which is the role to assume when nothing says otherwise. So `brainstorming` asks **one question at a time**, at
+the height of the role it belongs to, translated from the technical fork into
+its consequence, with two to four positions and what each sets in motion;
+whatever has no consequence at that height is the agent's to decide, and the
+summary lists those decisions so any can be overruled. Not taken: the reference's triage (ours is
+`to-backlog`), its map of decision tickets for a foggy effort, and the rest.
+
 ## 13. Still open
 
 - How agent assignment is expressed in the protocol — the owner named it as a
   requirement and it has not been designed. The model carries an optional
-  `holder`, and the seed asks what happens when two claim at once; that is all.
+  `holder`, the seed asks what happens when two claim at once, and `take-task`
+  claims, escalates and releases; who dispatches it, and to whom an escalation
+  goes when no person is there, is not designed.
+- The wiki of §1. Its two durable parts exist since 0.6, the glossary and the
+  decision records (`model-domain`); "where the system stands" is §7's command
+  and not a page; "the stages it went through, by feature" is the tracker's
+  closed features with their specs and evidence, and nothing renders it yet.
+- A foggy effort too big for one interview. The reference charts it as decision
+  tickets on the tracker; here the nearest thing is "a question that blocks a
+  build is work", and it has not been tried on anything large.
 - What the review date on a deferred idea does when it arrives, given that an
   automatic return would rebuild the swamp.
 - Layer 3, the harness hooks, and whether the installer can generate them for

@@ -27,9 +27,17 @@ turn comes. Say so and stop.
 
 ## 2. Gather
 
-Read the feature issue, the charter, the vision, and the code or system the
-outcome lands in. Settle with the owner every question whose answer changes the
-breakdown, one at a time, before drafting.
+Read the outcome's **spec**, the feature issue, the charter, and the code or
+system the outcome lands in. An outcome with no spec: tell the user `/to-spec`
+owns that, and stop, unless the owner says this one is small enough to need
+none. Best of all is the conversation the spec was written in: the breakdown
+then stands on the thinking, not on its summary.
+
+A question whose answer changes the breakdown is settled before drafting: call
+the Skill tool with "brainstorming".
+
+Look for the **prefactor**: what, changed first, makes the rest easy. Make the
+change easy, then make the easy change.
 
 ## 3. Draft
 
@@ -46,12 +54,25 @@ two stages.
 their turn; decomposing them early is the same mistake as decomposing the next
 milestone.
 
-- One session each, a narrow but complete path, verifiable on its own.
+- One session each, sized to fit one fresh conversation.
+- A **vertical slice**: a narrow but complete path through every layer the
+  outcome touches, never one layer across. Finished, it can be shown or
+  checked on its own.
+- Prefactoring first, as tasks of its own.
+- Checked at one of the seams the spec agreed, and nowhere else.
 - The title is a sentence the work can be understood from.
 - The criterion is an **assertion**: something a stranger can run or look at
   and get yes or no. For every "fails when" there is a paired "and on an
   ordinary day it succeeds".
 - Edges per the protocol: a collision only, on the leaf.
+
+**A wide refactor is the exception to slicing.** One mechanical change whose
+blast radius is the whole codebase (a renamed column, a retyped shared symbol)
+breaks every caller at once, and no vertical slice of it lands green. Sequence
+it as **expand, migrate, contract**: add the new form beside the old; move the
+callers over in batches sized by blast radius, each batch a task; delete the
+old form in a last task, once no caller remains. The old form is what keeps
+every batch green.
 
 Stages and tasks alike wear exactly one area label. Stages are created as the
 type the backlog integration names for them, which is the type the gate checks
@@ -68,4 +89,4 @@ is missing. Iterate until approved.
 Create stages under the feature and tasks under their stages, with the
 tracker's verbs. Run the gate. Done when it is clean and the ready leaves are
 exactly the first tasks you expect. Then publish, and report by name what is
-ready to take.
+ready to take: `/take-task`, one task per fresh conversation.

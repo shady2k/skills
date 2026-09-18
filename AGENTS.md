@@ -6,7 +6,8 @@ existing is [`docs/design.md`](docs/design.md). Read that before adding a skill.
 
 ## Layout
 
-Skills live in bucket folders under `skills/` (`backlog/`, `productivity/`), one
+Skills live in bucket folders under `skills/` (`backlog/` keeps the queue,
+`engineering/` carries the work, `productivity/` is the work around the work), one
 folder per skill: `skills/<bucket>/<skill-name>/SKILL.md`, with its Codex
 metadata beside it in `agents/openai.yaml`. Every skill has an entry in the top-level
 `README.md`, in its bucket's `README.md`, and in the `skills` array of
@@ -78,13 +79,18 @@ Three kinds of knowledge, three owners:
 - **Values that change** (the current milestone, the budget, the vocabulary)
   are the gate config's and are copied nowhere.
 
-Every other skill opens with the same sentence: the backlog integration should
-have been provided, and if not, tell the user to run the installer. It names no
-path. **Whether the set is installed is asked of the gate**, which either runs
-in this checkout or does not; a file's presence proved nothing the one time it
-was relied on. A skill outside the backlog set (`handoff`) treats the
-integration as optional: it uses it when the agent doc points at one and works
-without it.
+A skill that **writes to the tracker** depends on the integration hard: the
+backlog skills, `to-spec`, `take-task`. Each opens with the same sentence: the
+backlog integration should have been provided, and if not, tell the user to
+run the installer. It names no path, and the skill links its own copy of the
+protocol. A skill that merely does better with one (`handoff`, `diagnose-bug`,
+`to-prototype`) says "where the project has a backlog integration" at the one
+step that uses it, and carries neither the sentence nor the protocol. The rest
+(`brainstorming`, `to-research`, `model-domain`) work in an empty directory.
+
+**Whether the set is installed is asked of the gate**, which either runs in
+this checkout or does not; a file's presence proved nothing the one time it was
+relied on.
 
 ## The router lies when it is stale
 

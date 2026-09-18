@@ -80,5 +80,5 @@ Done when the owner has confirmed each of the six.
 
 Run the gate. Done when it is clean, every outcome has exactly one feature
 issue wearing the milestone's label, and nothing outside the milestone is
-live. Then publish, and tell the owner the next command: `/to-stages` for the
+live. Then publish, and tell the owner the next command: `/to-spec` for the
 first outcome, by name.

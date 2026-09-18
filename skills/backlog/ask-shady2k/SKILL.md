@@ -29,8 +29,9 @@ Then collect, using the integration's gate command and tracker operations:
 - **The gate's report**, as JSON: `newErrors`, which checks fired, and each
   violation's own `fix` line.
 - **The current milestone**: the config's `currentMilestone`, whether its
-  charter file exists, its outcomes (the feature issues wearing its label) and
-  which are done, its finding budget and how many findings it has taken.
+  charter file exists, its outcomes (the feature issues wearing its label),
+  which of them have a spec and which are done, its finding budget and how
+  many findings it has taken.
 - **Holds**: every active issue, who holds it, and when its tree last moved.
 - **Ready leaves** inside the current milestone, and how many live issues there
   are in all.
@@ -50,19 +51,23 @@ cannot be done without it.
 | 5  | the gate reports new errors, 7 or fewer                                              | fix these, by name, each with the gate's own `fix` line                  |
 | 6  | the gate reports more than 7 errors, or there are more than 30 ready leaves          | `/groom-backlog`                                                         |
 | 7  | every outcome of the current milestone is done, and there is at least one            | `/to-milestone`                                                          |
-| 8  | no ready leaf, and an outcome has no stages or its next open stage has no tasks      | `/to-stages` for that outcome, by name                                   |
-| 9  | no ready leaf, and every open leaf is held by somebody else or blocked               | say so; an empty queue is an answer, never widen the query               |
-| 10 | otherwise                                                                            | take the first ready leaf, by name: the tracker's claim verb             |
+| 8  | no ready leaf, and an outcome has neither a spec nor stages                          | `/to-spec` for that outcome, by name                                     |
+| 9  | no ready leaf, and an outcome has no stages or its next open stage has no tasks      | `/to-stages` for that outcome, by name                                   |
+| 10 | no ready leaf, and every open leaf is held by somebody else or blocked               | say so; an empty queue is an answer, never widen the query               |
+| 11 | otherwise                                                                            | `/take-task` for the first ready leaf, by name, in a fresh conversation  |
 
 Say the count beside the limit whenever rung 5 or 6 decides ("9 errors, limit
 7"). A finding beyond the budget needs no rung of its own: the gate reports it as a
 new error, and its `fix` line is the decision to take to the owner.
 
 Two answers come from what the person just said rather than from the state,
-and they win over rungs 7 to 10: something **arrived** (an idea, a bug, a
-request) means `/to-backlog`; something was **finished** means `/close-out`;
+and they win over rungs 7 to 11: something **arrived** (an idea, a bug, a
+request) means `/to-backlog`; something is **broken and nobody knows why**
+means `/diagnose-bug`; something was **finished** means `/close-out`;
 **stopping** mid-work, or a conversation grown too long to think in, means
-`/handoff`.
+`/handoff`. A plan with decisions still open means `/brainstorming`; a design
+question talking cannot settle means `/to-prototype`; reading that needs doing
+means `/to-research`.
 
 ## 3. Say it like this
 
@@ -83,7 +88,14 @@ Issues are always "Title" (id). Never answer with a list of skills.
 
 - `/setup-shady2k-skills` installs the gate, writes the project's backlog integration and points the agent doc at it. Once per project.
 - `/to-milestone` charters a milestone: outcomes in, what is out, the finding budget.
-- `/to-stages` breaks one outcome of the current milestone into stages and tasks.
+- `/brainstorming` thinks a plan through one question at a time, put to the role it belongs to, each with its positions and what they cost. The other skills call it to settle their questions.
+- `/to-spec` writes the spec of one outcome of the current milestone: problem, solution, decisions, where it is checked, what is out.
+- `/to-stages` breaks one outcome of the current milestone into stages and tasks, from its spec.
+- `/take-task` takes one ready task from claim to close: red before green, reviewed against the spec. One task per conversation.
+- `/diagnose-bug` finds the cause of a bug that resists a first look: a command that goes red on it, before any theory. The agent reaches for it unprompted.
+- `/to-prototype` answers one design question with throwaway code.
+- `/to-research` sends a background agent to the primary sources and gets a cited note back.
+- `/model-domain` keeps the glossary and the decision records. The agent reaches for it unprompted.
 - `/to-backlog` files what arrives into its lane: work, a finding, an idea. The agent reaches for it unprompted.
 - `/close-out` closes finished work with evidence and releases what was not finished. The agent reaches for it unprompted.
 - `/groom-backlog` digs out a backlog that has stopped being a queue.

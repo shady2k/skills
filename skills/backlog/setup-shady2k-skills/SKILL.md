@@ -98,7 +98,10 @@ gate and CI — local alone is skippable, CI alone reports after the fact.
 
 **F. Documents and evidence.** Where the vision lives and where milestone
 charters go (recommend what exists, else `docs/vision.md` and
-`docs/milestones/`), and **what may be cited when closing work**. Recommend by
+`docs/milestones/`); where an outcome's spec lives (recommend the body of its
+feature issue, unless the project already keeps specs as files); where the
+glossary and the decision records are, if it keeps any; and **what may be
+cited when closing work**. Recommend by
 the kind of backlog: for development a commit, a test, a file or symbol; for
 operations a runbook that ran, an alert that fired in a drill, a dashboard
 showing a value.

@@ -7,6 +7,8 @@ strength.
 
 - **Vision:** <path>
 - **Milestone charters:** <directory>/<milestone label>.md
+- **Specs:** <in the body of the outcome's feature issue | a directory, with the issue pointing at the file>
+- **Glossary and decision records:** <paths, where the project keeps them | none yet>
 - **Evidence that may be cited at close:** <a commit, a test, a file or symbol | a runbook run, an alert fired in a drill, a dashboard value | …>
 - **Features and stages are created as:** <the tracker's type that the adapter maps to `epic`>. The gate looks for a DONE WHEN on that type only.
 - **Labels:** ideas wear `<idea label>`, findings wear `<finding label>`. The area labels, the current milestone and the finding budget are the gate config's, read from there and never copied here.

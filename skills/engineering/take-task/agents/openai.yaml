@@ -1,0 +1,5 @@
+interface:
+  display_name: "Take Task"
+  short_description: "Take one ready task and finish it"
+policy:
+  allow_implicit_invocation: false

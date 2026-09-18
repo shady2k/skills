@@ -1,9 +1,10 @@
 # shady2k-skills
 
-My agent skills. Seven of them keep a backlog an answer to "what do I work on
-next"; one hands a conversation to a fresh session. They work in any harness
-that reads `SKILL.md` files, with any issue tracker, and for any engineering
-backlog, development or operations alike.
+My agent skills. Seven keep a backlog an answer to "what do I work on next";
+seven carry the work itself, from an idea talked through until nothing is assumed to
+a task closed on evidence; one hands a conversation to a fresh session. They
+work in any harness that reads `SKILL.md` files, with any issue tracker, and
+for any engineering backlog, development or operations alike.
 
 ## Why
 
@@ -62,14 +63,19 @@ a plugin update, run it again to refresh the project's copy of the rules.
         |
 /to-milestone            a charter: outcomes in, what is out, a finding budget
         |
-/to-stages               one outcome -> stages -> one-session tasks
-        |
-   take work  ->  /close-out          evidence, release, walk up
-        ^              |
+/to-spec                 one outcome: /brainstorming until nothing is assumed, then the spec
+        |                   (a question talking cannot settle: /to-prototype)
+/to-stages               the spec -> stages -> one-session tasks, vertical slices
+        |                   (keep spec and stages in one conversation)
+/take-task   ->  /close-out           red before green, reviewed against the spec;
+        ^              |              evidence, release, walk up. One task per conversation
         +-- /to-backlog               a bug, an idea, a request: into its lane
 
 /ask-shady2k             reads the state, answers with the one command to run now
 /groom-backlog           the way in when a backlog exists and is no longer a queue
+/diagnose-bug            something is broken and a glance did not find why
+/to-research             reading that needs doing, done in the background
+/model-domain            a word doing two jobs; a decision whose reason will be lost
 /handoff                 stopping, or the conversation got too long: a fresh session
 ```
 
@@ -111,8 +117,21 @@ Reachable only when you type them.
 - **[to-milestone](skills/backlog/to-milestone/SKILL.md)**: the vision and the
   business requirements into a milestone charter: outcomes, what is out, a
   budget for findings.
+- **[to-spec](skills/engineering/to-spec/SKILL.md)**: the spec of one outcome:
+  the problem and the solution as their observer sees them, the decisions, the
+  seams it will be checked at, what is out.
 - **[to-stages](skills/backlog/to-stages/SKILL.md)**: one outcome of the current
-  milestone into stages and one-session tasks with assertion-shaped criteria.
+  milestone, from its spec, into stages and one-session tasks: vertical slices
+  with assertion-shaped criteria.
+- **[take-task](skills/engineering/take-task/SKILL.md)**: one ready task from
+  claim to close: watch its check fail, make it pass in thin slices, have it
+  reviewed against the standards and the spec, close on evidence. What the spec
+  does not settle goes back as an escalation, never as a guess.
+- **[to-prototype](skills/engineering/to-prototype/SKILL.md)**: answer one design
+  question with throwaway code: a state model to push through its hard cases,
+  or several looks of one screen.
+- **[to-research](skills/productivity/to-research/SKILL.md)**: a background agent
+  reads the primary sources and leaves a cited note.
 - **[groom-backlog](skills/backlog/groom-backlog/SKILL.md)**: dig out a mess by
   amnesty rather than review: declare the slice, defer the rest, reversibly.
 - **[handoff](skills/productivity/handoff/SKILL.md)**: hand the conversation to a
@@ -130,15 +149,36 @@ The guarantee is the gate.
   goes to the owner, never silently to the front.
 - **[close-out](skills/backlog/close-out/SKILL.md)**: close finished work with
   evidence a stranger can check, file what it found, release what is not held.
+- **[brainstorming](skills/productivity/brainstorming/SKILL.md)**: think a plan
+  through one question at a time, each put at the height of the role it
+  belongs to (product owner, analyst, architect, or the product engineer who
+  is all three and does not read the code) with the positions one could take
+  and what each sets in motion. Facts and cheap choices are the agent's,
+  and it says which it made.
+- **[diagnose-bug](skills/engineering/diagnose-bug/SKILL.md)**: for the bug that
+  resists a first look: a command that goes red on it before any theory, then
+  minimise, rank hypotheses, probe, fix behind a check.
+- **[model-domain](skills/engineering/model-domain/SKILL.md)**: the glossary and
+  the decision records, changed the moment a term or a decision is settled.
 
 ## Status
 
-Young. The installer has been run once, in the project the rules came from;
-the other skills have been reviewed twice by readers who did not write them and
-not yet run in anger. Designed and not built: harness hooks that name the
+Young. The installer has been run twice, and each run changed it; the backlog
+skills have been reviewed twice by readers who did not write them. The seven
+work skills are new in 0.6 and have not been run in anger at all. Designed and not built: harness hooks that name the
 current milestone at session start and release holds at its end. Three rules
 are still only advice: the next milestone is decomposed no further than
 features, no blocking edge sits on a feature or a stage, a title is a sentence.
+
+## Credits
+
+The shape of the set, and the ideas behind the work skills (the design-tree
+interview, the spec, vertical slices, red before green, the two-axis review,
+the diagnosis loop, prototypes, the glossary and decision records) come from
+[mattpocock/skills](https://github.com/mattpocock/skills), MIT:
+[`docs/third-party/mattpocock-skills.LICENSE`](docs/third-party/mattpocock-skills.LICENSE).
+They are rewritten here, not copied, so they can stand on this set's protocol
+and move with it.
 
 ## Development
 
