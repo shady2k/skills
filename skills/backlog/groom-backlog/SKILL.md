@@ -13,9 +13,13 @@ everything else in one pass. Deferring is no judgement about truth, so it needs
 no review: what matters comes back by itself through a bug, a spec or a
 question, and what has not come back in a quarter was not needed.
 
-`docs/agents/backlog.md` should have been provided to you: the protocol, the
-gate command and the tracker verbs. If not, tell the user to run
-`/setup-shady2k-skills`.
+This project's **backlog integration** should have been provided to you: how
+its gate is run, how its tracker is driven, where its vision and charters
+live. The project's agent doc points at it; follow the pointer before you
+write anything. If there is none, tell the user to run
+`/setup-shady2k-skills`, and leave the backlog as it is until then. The
+protocol (levels, lanes, the horizon, what a clean gate is) is
+[`protocol.md`](protocol.md), beside this file.
 
 ## 1. Take the snapshot
 
@@ -77,8 +81,8 @@ live issue **blocked by a deferred one** (pull the blocker into the slice, or
 defer the blocked one too), and a **stale edge** (unlink it, or move it onto
 the leaf that really collides).
 
-Record the bulk edit's date and the snapshot's path under "The gate" in
-`docs/agents/backlog.md`.
+Record the bulk edit's date and the snapshot's path under "The gate" in the
+project's backlog integration.
 
 Done when the gate's report shows no error-severity violation at all, old or
 new: a dig-out that leaves errors behind has only moved the mess. Then publish.

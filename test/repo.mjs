@@ -6,7 +6,10 @@
  *     (test/origin-words.json), since that is where every rule here was
  *     bought and so the words most likely to leak;
  *   - every skill is listed in the plugin manifest, and nothing else is;
- *   - a skill is user-invoked in both harnesses or in neither.
+ *   - a skill is user-invoked in both harnesses or in neither;
+ *   - a skill that links to the protocol has it in its own folder, word for
+ *     word the source's (test/sync-protocol.mjs writes the copies), and no
+ *     copy lies in a folder that does not link to it.
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -49,10 +52,22 @@ for (const s of skills) {
     fail(`${relative(ROOT, s)} is user-invoked in one harness and model-invoked in the other`);
 }
 
+const protocol = readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/protocol.md'), 'utf8');
+for (const s of skills) {
+  const links = readFileSync(join(s, 'SKILL.md'), 'utf8').includes('](protocol.md)');
+  let copy = null;
+  try {
+    copy = readFileSync(join(s, 'protocol.md'), 'utf8');
+  } catch {}
+  if (links && copy === null) fail(`${relative(ROOT, s)} links to protocol.md and has none: npm run protocol`);
+  else if (links && copy !== protocol) fail(`${relative(ROOT, s)}/protocol.md differs from the source: npm run protocol`);
+  else if (!links && copy !== null) fail(`${relative(ROOT, s)} has a protocol.md its SKILL.md never links to`);
+}
+
 const version = JSON.parse(readFileSync(join(ROOT, '.claude-plugin/plugin.json'), 'utf8')).version;
 const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).version;
 const rules = (readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/check.mjs'), 'utf8').match(/RULES_VERSION = '([^']+)'/) || [])[1];
 if (version !== pkg || version !== rules) fail(`versions differ: plugin.json ${version}, package.json ${pkg}, check.mjs ${rules}`);
 
-console.log(failures ? `\n${failures} failure(s)` : `PASS  ${skills.length} skills, ${files.length} files: no origin words, manifest and invocation in step, version ${version}`);
+console.log(failures ? `\n${failures} failure(s)` : `PASS  ${skills.length} skills, ${files.length} files: no origin words, manifest, invocation and protocol copies in step, version ${version}`);
 process.exit(failures ? 1 : 0);

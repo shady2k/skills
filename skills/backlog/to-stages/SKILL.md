@@ -11,8 +11,13 @@ This is where the owner is needed. After it, work is taken and finished without
 them, and a problem comes back as an escalation, not as a question that should
 have been asked here.
 
-`docs/agents/backlog.md` should have been provided to you. If not, tell the
-user to run `/setup-shady2k-skills`.
+This project's **backlog integration** should have been provided to you: how
+its gate is run, how its tracker is driven, where its vision and charters
+live. The project's agent doc points at it; follow the pointer before you
+write anything. If there is none, tell the user to run
+`/setup-shady2k-skills`, and leave the backlog as it is until then. The
+protocol (levels, lanes, the horizon, what a clean gate is) is
+[`protocol.md`](protocol.md), beside this file.
 
 ## 1. Check the horizon
 
@@ -49,7 +54,7 @@ milestone.
 - Edges per the protocol: a collision only, on the leaf.
 
 Stages and tasks alike wear exactly one area label. Stages are created as the
-type `docs/agents/backlog.md` names for them, which is the type the gate checks
+type the backlog integration names for them, which is the type the gate checks
 for a DONE WHEN.
 
 ## 4. Quiz the owner

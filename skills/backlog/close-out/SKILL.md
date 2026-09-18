@@ -9,9 +9,13 @@ A backlog goes false at the end of a session, not at the start: work closed on
 a feeling, holds left behind, findings kept in somebody's head. Close out is
 what makes the next "what do I work on" an honest question.
 
-`docs/agents/backlog.md` should have been provided to you: the protocol, the
-kinds of evidence this project accepts, and the tracker verbs. If not, tell the
-user to run `/setup-shady2k-skills`.
+This project's **backlog integration** should have been provided to you: how
+its gate is run, how its tracker is driven, where its vision and charters
+live. The project's agent doc points at it; follow the pointer before you
+write anything. If there is none, tell the user to run
+`/setup-shady2k-skills`, and leave the backlog as it is until then. The
+protocol (levels, lanes, the horizon, what a clean gate is) is
+[`protocol.md`](protocol.md), beside this file.
 
 ## 1. Evidence first, then the close
 

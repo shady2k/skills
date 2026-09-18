@@ -24,11 +24,13 @@ Anything left half-done is a trap the next agent cannot see.
   piece say whether it is finished, and ask the user whether to commit it now
   or hand it over as it is. A fresh session in another checkout or worktree
   will not see it at all, so say where it sits.
-- **The backlog**, if this project has `docs/agents/backlog.md`: call the Skill
-  tool with "close-out". It closes what is done on evidence, files what was
-  found, and releases what you hold with a comment on where it stands. That
-  comment is the handoff for work that lives in an issue; do not repeat it in
-  the document, point at it.
+- **The backlog**, if this project's agent doc points at a backlog
+  integration: call the Skill tool with "close-out". It closes what is done on
+  evidence, files what was found, and releases what you hold with a comment on
+  where it stands. That comment is the handoff for work that lives in an
+  issue; do not repeat it in the document, point at it. If it could not
+  finish, because the gate or the tracker would not run, the document says
+  which holds were left and why: optional does not mean silent.
 - **Running things**: background commands, other agents, open branches or
   worktrees you created. Say which are still running and who is to collect them.
 

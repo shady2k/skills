@@ -41,11 +41,18 @@ Read, don't assume:
   config. The gate goes where this project's other gates are.
 - **The runtime.** `check.mjs` needs Node and nothing else. No Node means
   porting it — see step 3.
-- **A prior install**: `docs/agents/backlog.md`. If it exists you are changing
-  an installation, not making one: read it first, then go to "Updating" below.
-  Missing here, look in the other worktrees and branches before concluding
-  there is none: an install that was written and never landed is invisible
-  from this checkout, and the answer to it is step 6, not a second install.
+- **The tracker's own doc or skill**: whatever already tells an agent how this
+  tracker is driven. The set adds a section to it and never a rival to it.
+- **Which agent docs each harness loads here**: `AGENTS.md`, `CLAUDE.md`, one
+  importing the other, or both standing alone. The pointer of step 3 has to
+  reach a session in every harness the project is worked from.
+- **A prior install**: a "Backlog integration" section, the gate's config, or,
+  from before 0.5, a `docs/agents/backlog.md`. Any of them means you are
+  changing an installation, not making one: read it first, then go to
+  "Updating" below. None here, look in the other worktrees and branches before
+  concluding there is none: an install that was written and never landed is
+  invisible from this checkout, and the answer to it is step 6, not a second
+  install.
 
 ## 2. Present and ask
 
@@ -167,25 +174,48 @@ Exit 1 fails the hook; exit 2 is misuse and must fail it too, loudly — a gate
 that cannot run is red, not green. For `report`, print the output and ignore
 exit 1 only.
 
-**The project's backlog doc** — `docs/agents/backlog.md`, the one fixed path
-every other skill of the set reads, and the only thing they know about this
-project's tracker. Copy the seed [`backlog.md`](backlog.md) and fill every
-`<placeholder>`: the protocol section stays word for word, the rest is what you
-found and what was answered. The **tracker verbs** table is the adapter's
-counterpart for writes: fill it from the tracker's own skill or `--help`. **Run
-every verb that only reads** (ready, holds, children, search, show): reading
-leaves no mark, so none of them goes into the table untried, and a command
-written from memory is how a flag of one subcommand ends up on another. Check
-that it answers the question the table asks and not a neighbouring one:
-children means every child in every status, which a listing of ready children
-is not, and closing a parent is decided on exactly that difference. A verb
-that writes is tried where it can be undone and otherwise checked against its
-own `--help`. Where the tracker cannot do one, write what stands in. Then add
-one line to the project's agent doc
-(`AGENTS.md` or `CLAUDE.md`, whichever exists) that points at it and says where
-a new issue comes from: every bug, idea or piece of debt is filed through
-`/to-backlog`. That line is the only part of the set a session always has in
-context, so it is what routes a bug when no skill has fired.
+**The backlog integration** — a section, not a file of the set's own, and the
+only thing the other skills know about this project. It goes into the doc that
+already says how this tracker is driven; where there is none, create
+`docs/agents/issue-tracker.md` and put it there. Copy the seed
+[`integration.md`](integration.md) and fill every `<placeholder>` with what you
+found and what was answered. [The protocol](protocol.md) is not copied: it ships
+with the skills and updates with them, and a project's copy would only go
+stale. Values the gate's config holds are not copied either.
+
+Its **tracker operations** table is the adapter's counterpart for writes, and
+it does not say twice what the project already says once: a row points at the
+tracker's own doc or skill where that covers it, and adds only what the
+protocol needs on top. Fill the rest from the tracker's own skill or `--help`.
+**Run every verb that only reads** (ready, holds, children, search, show),
+whether the command is yours or one the project's doc already had: reading
+leaves no mark, so none of them goes in untried, and a command written from
+memory is how a flag of one subcommand ends up on another. Check that it
+answers the question the table asks and not a neighbouring one: children means
+every child in every status, which a listing of ready children is not, and
+closing a parent is decided on exactly that difference. A verb that writes is
+tried where it can be undone and otherwise checked against its own `--help`.
+Where the tracker cannot do one, write what stands in.
+
+**The pointer** — a few lines in the project's agent doc, the only part of the
+set a session always has in context, so it is what routes a bug when no skill
+has fired:
+
+```markdown
+## Backlog
+
+Every bug, idea or piece of debt is filed through `/to-backlog`, and work that
+is finished or dropped goes through `/close-out`. Before touching the backlog,
+read "Backlog integration" in <path>: the gate, how the tracker is driven, where
+the vision and the charters are.
+```
+
+It carries no value that changes (no milestone, no budget, no counts) and no
+command: a summary that can be acted on is a pointer nobody follows. Put it
+where **every harness the project is worked from** will load it: the one agent
+doc when the other imports it, both when each stands alone. Another set's
+block in that doc is left as it is, and this one is kept outside it, where that
+set's installer will not rewrite it.
 
 ## 4. Prove
 
@@ -265,3 +295,14 @@ run proofs 4a and 4c again and show the first report again. A newer set may
 turn warnings into errors, so the report can grow; under `block-new` that is
 old debt and blocks nobody. Ask nothing that was already answered unless the
 user wants it changed. An update lands the same way an install does: step 6.
+
+**An install from before 0.5** has a `docs/agents/backlog.md` of its own: the
+protocol copied in, the project's facts, the gate and a verbs table. It keeps
+working, since the agent doc points at it and the skills follow the pointer,
+but its protocol is a copy that no update reaches. Move it: the project's facts
+and the gate into a "Backlog integration" section as in step 3, each verb
+checked against the tracker's own doc and kept only where that doc is silent,
+the copied protocol dropped, the pointer in the agent doc rewritten, the old
+file removed. One commit, so that no revision has two documents disagreeing.
+Where another harness still runs an older set against this project, say so and
+leave the old file until that one is updated too.

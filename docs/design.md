@@ -130,9 +130,9 @@ this document may call it a gate.
 Session start injects the current milestone **by name**, what you are holding,
 how much has gone stale. Stop and pre-compact release holds. This is the
 "remind the user and the model" the owner asked for. **Not built.** Until it
-is, the reminder is one line in the project's agent doc pointing at
-`docs/agents/backlog.md` and naming `/to-backlog` as the way a new issue gets
-in, which the installer adds.
+is, the reminder is a few lines in the project's agent doc pointing at the
+project's backlog integration and naming `/to-backlog` as the way a new issue
+gets in, which the installer adds.
 
 ### Layer 4 — the skills
 
@@ -150,8 +150,8 @@ Light, each with one entry and one exit:
 | `handoff`              | this conversation → a fresh session, with nothing committed                  | the user   |
 
 `handoff` is the one skill outside the backlog: it lives in its own bucket, uses
-`docs/agents/backlog.md` when it is there (it calls `close-out`) and works
-without it.
+the project's backlog integration when the agent doc points at one (it calls
+`close-out`) and works without it.
 
 **The set is `shady2k-skills`** — the owner's own, as `mattpocock-skills` is its
 author's, and that set is the reference for shape: a name says the action or
@@ -190,7 +190,8 @@ check.mjs         the rules, each with why it exists and the move that clears it
 model.md          the normalized backlog — the only thing the rules know
 fixtures/bad/     backlogs that violate exactly the rule they are named for
 fixtures/good/    backlogs that must pass
-backlog.md        the seed of the project's backlog doc: the protocol, the tracker verbs
+protocol.md       the protocol; copied into every skill that uses it, never into a project
+integration.md    the seed of the project's backlog integration: the gate, the tracker operations
 ```
 
 The rules stay in one file rather than one per rule: a project without Node
@@ -236,6 +237,16 @@ The abstraction is by **capability**, not by command: the adapter declares what
 the tracker can do — hierarchy? a dependency graph? labels? — and the protocol
 either maps onto it (milestone → a label here, a milestone there, a cycle
 elsewhere) or refuses honestly. Porting is one file.
+
+As built, that place has two halves. Reading is the project's adapter script,
+proved by counting against the tracker's own numbers. Writing is the "tracker
+operations" table of the project's backlog integration, and it was first built
+as a table of commands of our own, which is exactly the looking inside that §1
+ruled out: in the second install it sat beside the project's own tracker doc
+and disagreed with it, and ours was the wrong one. So the table now says what
+the skills ask for, points at the tracker's own doc or skill for how, and
+carries a command only where nothing else does; and every reading verb is run,
+and checked for answering the question asked, before it is written down.
 
 ## 6. Domain-agnostic: this is not only for development
 
@@ -397,6 +408,20 @@ for landing what it wrote, so it got one, and "installed" now means the doc is
 on the branch people work from. The same install wrote a reading verb it had
 not run, with a flag that belongs to another subcommand.
 Each of the four changed the text or the code, and the commits say how.
+
+That install also put the question the owner then asked: why does the set hang
+on a file at all? Every skill had opened by naming `docs/agents/backlog.md`, so
+the session's first act was to list a directory, and a missing file was read as
+"not installed" while the gate's hooks were already running in that very clone.
+And the file held the protocol, which is the set's and not the project's: a
+copy in every project that no update of the set would ever reach. A second
+opinion from another model agreed on the direction and corrected the means: a
+protocol spread by hand through six skills drifts, and a path out of a skill's
+folder breaks where skills are installed one folder at a time. So since 0.5 the
+protocol ships as an identical copy inside each skill that uses it, held by a
+test; the project keeps only a "backlog integration" section in its own
+tracker doc, reached through a pointer in its agent doc; changing values stay
+in the gate's config alone; and "is it installed" is asked of the gate.
 
 ## 13. Still open
 

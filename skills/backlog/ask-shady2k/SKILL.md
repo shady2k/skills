@@ -10,10 +10,21 @@ disable-model-invocation: true
 
 ## 1. Read the state
 
-Read `docs/agents/backlog.md`. If it is missing, the answer is
-`/setup-shady2k-skills` and you are done.
+This project's **backlog integration** should have been provided to you: how
+its gate is run, how its tracker is driven, where its vision and charters
+live. The project's agent doc points at it; follow the pointer. If there is
+none, the answer is `/setup-shady2k-skills` and you are done. The protocol is
+[`protocol.md`](protocol.md), beside this file.
 
-Then collect, using that file's gate command and tracker verbs:
+**Whether the set is installed is a question for the gate, not for a file.**
+Run the gate from this checkout. If it cannot run, say what failed in its own
+words before answering with rung 1: a script the integration names and this
+checkout lacks usually means an install that never landed, so look at the other
+worktrees and branches and name the one that has it; a missing runtime or a
+tracker that will not answer is a different repair, and neither is a reason to
+interview the owner from the start.
+
+Then collect, using the integration's gate command and tracker operations:
 
 - **The gate's report**, as JSON: `newErrors`, which checks fired, and each
   violation's own `fix` line.
@@ -32,7 +43,7 @@ cannot be done without it.
 
 | #  | condition                                                                            | answer                                                                   |
 | -- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| 1  | the gate cannot run                                                                  | `/setup-shady2k-skills`                                                  |
+| 1  | the gate cannot run                                                                  | `/setup-shady2k-skills`, with what failed; for an install that never landed, land it instead |
 | 2  | no current milestone, and there are live issues                                      | `/groom-backlog`: it declares the slice and defers the rest              |
 | 3  | no current milestone and nothing live; or the milestone has no charter file; or no feature wears its label | `/to-milestone`                                    |
 | 4  | issues are held and nothing in their trees moved within the hold limit               | release them, by name: the tracker's release verb                        |
@@ -70,7 +81,7 @@ Issues are always "Title" (id). Never answer with a list of skills.
 
 ## The routes, for when the person asks what exists
 
-- `/setup-shady2k-skills` installs the gate and writes `docs/agents/backlog.md`. Once per project.
+- `/setup-shady2k-skills` installs the gate, writes the project's backlog integration and points the agent doc at it. Once per project.
 - `/to-milestone` charters a milestone: outcomes in, what is out, the finding budget.
 - `/to-stages` breaks one outcome of the current milestone into stages and tasks.
 - `/to-backlog` files what arrives into its lane: work, a finding, an idea. The agent reaches for it unprompted.

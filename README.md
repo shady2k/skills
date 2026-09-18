@@ -48,15 +48,17 @@ Make sure `setup-shady2k-skills` is one of the skills you take.
 
 Then run **`/setup-shady2k-skills`** once per project. It reads how the project
 tracks work; asks about the label vocabulary, the current milestone and how
-hard the gate should bind; writes the config, the tracker adapter, the wiring
-and `docs/agents/backlog.md`, the one file every other skill reads; and proves
-all of it before it says it is done. The gate needs Node and nothing else. After
+hard the gate should bind; writes the config, the tracker adapter and the
+wiring; adds a "Backlog integration" section to the project's own tracker doc
+and a pointer to it in the agent doc; and proves all of it, and lands it,
+before it says it is done. The protocol itself is not copied into the project:
+it ships inside each skill and updates with the set. The gate needs Node and nothing else. After
 a plugin update, run it again to refresh the project's copy of the rules.
 
 ## The flow
 
 ```
-/setup-shady2k-skills    once per project: the gate, and docs/agents/backlog.md
+/setup-shady2k-skills    once per project: the gate, and the backlog integration
         |
 /to-milestone            a charter: outcomes in, what is out, a finding budget
         |

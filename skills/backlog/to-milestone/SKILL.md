@@ -11,8 +11,13 @@ nobody wrote down what for or what not. A **charter** is the missing page. It
 is short, a person writes it once per milestone, and it is what the gate's
 horizon and the finding budget are measured against.
 
-`docs/agents/backlog.md` should have been provided to you. If not, tell the
-user to run `/setup-shady2k-skills`.
+This project's **backlog integration** should have been provided to you: how
+its gate is run, how its tracker is driven, where its vision and charters
+live. The project's agent doc points at it; follow the pointer before you
+write anything. If there is none, tell the user to run
+`/setup-shady2k-skills`, and leave the backlog as it is until then. The
+protocol (levels, lanes, the horizon, what a clean gate is) is
+[`protocol.md`](protocol.md), beside this file.
 
 ## 0. Which milestone is this?
 
@@ -32,7 +37,7 @@ The vision document, the previous charter, and the state of the milestone that
 is ending: which outcomes are done, which are not, how many findings it took
 against its budget. If there is no vision document, interview the owner for one
 first: where this is going, for whom, and what it deliberately is not, on one
-page, at the path `docs/agents/backlog.md` names.
+page, at the path the backlog integration names.
 
 ## 2. Interview the owner, one question at a time
 
@@ -63,7 +68,7 @@ Done when the owner has confirmed each of the six.
 - One feature issue per outcome. **Search first**: a feature that already
   exists, live in the slice or created deferred by the previous charter, is
   adopted: undeferred, given the milestone's label and its DONE WHEN. Create
-  only what is missing, as the type `docs/agents/backlog.md` names for
+  only what is missing, as the type the backlog integration names for
   features, with one area label and a body ending in a `## DONE WHEN` that
   stops being false exactly once. The next milestone's features are created
   **deferred**, under their own label.

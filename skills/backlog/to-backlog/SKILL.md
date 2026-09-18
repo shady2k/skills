@@ -9,9 +9,13 @@ Everything that arrives goes into exactly one **lane**, and the lane decides
 whether it may touch today's queue. Filing straight to the front is how a
 feature slips a fortnight without anybody deciding that it should.
 
-`docs/agents/backlog.md` should have been provided to you: the protocol, the
-gate command and the tracker verbs. If not, tell the user to run
-`/setup-shady2k-skills`.
+This project's **backlog integration** should have been provided to you: how
+its gate is run, how its tracker is driven, where its vision and charters
+live. The project's agent doc points at it; follow the pointer before you
+write anything. If there is none, tell the user to run
+`/setup-shady2k-skills`, and leave the backlog as it is until then. The
+protocol (levels, lanes, the horizon, what a clean gate is) is
+[`protocol.md`](protocol.md), beside this file.
 
 ## 1. Search the behaviour
 

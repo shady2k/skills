@@ -52,21 +52,39 @@ the checks it declares (and, where it lists them, exactly those violations),
 clean backlogs fire nothing, the three strengths give their verdicts, and the
 command line exits 2 on every kind of misuse. Then `test/repo.mjs`, over every
 skill: no file contains a listed word, the plugin manifest lists exactly the
-skills that exist, and each is user-invoked in both harnesses or in neither.
+skills that exist, each is user-invoked in both harnesses or in neither, and
+every copy of the protocol is word for word its source.
 
 Add a rule, add its fixture in the same commit, **and break the rule once to
 see the fixture catch it**: a fixture that passes whether or not its rule works
 is how a gate certifies instead of checking.
 
-## Every skill reads one file
+## A skill depends on what it was given, not on a file
 
-`setup-shady2k-skills` writes `docs/agents/backlog.md` into the project from its
-seed, and every other skill opens with the same sentence: that file should have
-been provided, and if not, tell the user to run the installer. The protocol
-(levels, lanes, the horizon, names over identifiers) has its single source of
-truth in that seed; a skill uses its words and does not restate it. A skill
-outside the backlog set (`handoff`) treats that file as optional: it uses it
-when it is there and works without it.
+Three kinds of knowledge, three owners:
+
+- **The protocol** (levels, lanes, the horizon, names over identifiers, what a
+  clean gate is) is the set's. Its single source is
+  `skills/backlog/setup-shady2k-skills/protocol.md`; every skill that uses it
+  links to a copy **in its own folder**, because a harness may install one
+  folder at a time. `npm run protocol` writes the copies and `npm test` fails
+  on one that drifted. A skill uses its words and does not restate it.
+- **The backlog integration** (the gate's command and files, how the tracker
+  is driven, where the vision and charters are) is the project's. The installer
+  writes it as a section of the project's own tracker doc, from the seed
+  `integration.md`, and points the project's agent doc at it. How a tracker is
+  driven is said once, by whoever owns that tracker's doc or skill; the section
+  adds only what the protocol needs on top.
+- **Values that change** (the current milestone, the budget, the vocabulary)
+  are the gate config's and are copied nowhere.
+
+Every other skill opens with the same sentence: the backlog integration should
+have been provided, and if not, tell the user to run the installer. It names no
+path. **Whether the set is installed is asked of the gate**, which either runs
+in this checkout or does not; a file's presence proved nothing the one time it
+was relied on. A skill outside the backlog set (`handoff`) treats the
+integration as optional: it uses it when the agent doc points at one and works
+without it.
 
 ## The router lies when it is stale
 

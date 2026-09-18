@@ -325,7 +325,7 @@ function bulkClusters(m, threshold) {
 
 // The version of the set these rules shipped with. A project holds a COPY of
 // this file, and this is how anybody tells that the copy has fallen behind.
-const RULES_VERSION = '0.4.3';
+const RULES_VERSION = '0.5.0';
 
 const STRENGTHS = ['block', 'block-new', 'report'];
 
@@ -484,9 +484,10 @@ function render(report) {
  * own authoring a project name reached the rules, so the guard is code rather
  * than a promise. `projectWords` and `trackerWords` come from the PROJECT's
  * config — the skill cannot know them, which is the point — and neither may
- * appear in any file here: the rules, the fixtures, the model, SKILL.md. The
- * tracker is reached through the project's adapter and the project's own
- * tracker doc, never through anything that ships with the rules.
+ * appear in any file here: the rules, the fixtures, the model, the protocol,
+ * the seed, SKILL.md. The tracker is reached through the project's adapter and
+ * the project's own tracker doc, never through anything that ships with the
+ * rules.
  *
  * Without a project config there is nothing to look for and it says so.
  */
@@ -503,7 +504,7 @@ function portability(projectConfigPath) {
     console.log('SKIP  portability: the project config declares no projectWords or trackerWords');
     return 0;
   }
-  const files = ['check.mjs', 'model.md', 'SKILL.md', 'backlog.md', 'fixtures/config.json'];
+  const files = ['check.mjs', 'model.md', 'SKILL.md', 'integration.md', 'protocol.md', 'fixtures/config.json'];
   for (const kind of ['bad', 'good'])
     for (const n of readdirSync(join(HERE, 'fixtures', kind))) files.push(`fixtures/${kind}/${n}`);
   let failures = 0;
