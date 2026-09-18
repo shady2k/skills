@@ -10,63 +10,105 @@ A green backlog is not evidence that the code works.
 
 ## Installation and updates
 
-**Claude Code**, as a plugin:
+Choose your agent: [Claude Code](#claude-code) · [Codex](#codex) ·
+[Other agents / standalone skills](#other-agents--standalone-skills).
 
-```
+If you use both Claude Code and Codex, install the plugin separately in each.
+Within one agent, use either the plugin or standalone skill files (including
+development symlinks), not both: otherwise the same skills appear twice.
+
+### Claude Code
+
+#### Install
+
+Run these commands inside Claude Code:
+
+```text
 /plugin marketplace add shady2k/skills
 /plugin install shady2k-skills@shady2k
-/setup-shady2k-skills
 ```
 
-After updating:
+Start a new Claude Code session in the target project, then run setup:
 
+```text
+/shady2k-skills:setup-shady2k-skills
 ```
+
+Invoke other plugin skills the same way, for example
+`/shady2k-skills:take-task`.
+
+#### Update
+
+Inside Claude Code:
+
+```text
 /plugin marketplace update shady2k
 /plugin update shady2k-skills@shady2k
-/setup-shady2k-skills
 ```
 
-**Codex**, as a plugin (verified with Codex CLI `0.154.0`):
+Start a new session and rerun `/shady2k-skills:setup-shady2k-skills`
+in each project that uses the set.
+
+### Codex
+
+#### Install
+
+Run these commands in your terminal (verified with Codex CLI `0.154.0`):
 
 ```bash
 codex plugin marketplace add shady2k/skills
 codex plugin add shady2k-skills@shady2k
 ```
 
-Start a new Codex session in the target project and run:
+Start a new Codex session in the target project, then run setup in the chat:
 
 ```text
 $shady2k-skills:setup-shady2k-skills
 ```
 
-After updating:
+Invoke other plugin skills the same way, for example
+`$shady2k-skills:take-task`.
+
+#### Update
+
+In your terminal:
 
 ```bash
 codex plugin marketplace upgrade shady2k
 codex plugin add shady2k-skills@shady2k
 ```
 
-Start a new session and run setup again. Plugin skills are namespaced: for
-example, `$shady2k-skills:take-task`. Installation, compatibility and isolated
-test details are in [docs/codex.md](docs/codex.md).
+Start a new session and rerun `$shady2k-skills:setup-shady2k-skills`
+in each project that uses the set.
 
-**Codex and other skill-compatible agents**, alternatively as files:
+See [Codex installation details](docs/codex.md) for local checkouts,
+compatibility notes and isolated installation tests.
+
+### Other agents / standalone skills
+
+Use the universal installer if your agent reads `SKILL.md` files. This is also
+an alternative to the plugin for Claude Code and Codex, not an extra step.
 
 ```bash
 npx skills@latest add shady2k/skills
 ```
 
-Install the complete set for composed workflows, including the installer.
-Run `setup-shady2k-skills` in the harness's skill syntax after installation
-and every update. Individually installed folders remain self-contained, but a
-workflow that needs another skill must have that skill installed too.
+Select your agent and install the complete set, including the installer.
+Run `setup-shady2k-skills` in your agent's skill syntax: standalone Claude Code
+uses `/setup-shady2k-skills`; standalone Codex uses `$setup-shady2k-skills`.
 
-Choose one installation method per agent: plugin **or** standalone skill files
-(including development symlinks), not both. Otherwise the same skills appear
-twice. When switching, inspect and remove only the previous installation of
-this set; preserve any locally edited skill files. Standalone Codex skills use
-unprefixed names, for example `$setup-shady2k-skills`. Update those files with
-`npx skills update`, then rerun setup.
+To update:
+
+```bash
+npx skills update
+```
+
+Then rerun setup. Individually installed folders remain self-contained, but a
+workflow that needs another skill must have that skill installed too.
+When switching installation methods, inspect and remove only the previous
+installation of this set; preserve any locally edited skill files.
+
+### What setup verifies
 
 Every setup invocation rechecks the entire installation, including one whose
 version matches. It selects and initializes a tracker if needed, snapshots and
