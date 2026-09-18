@@ -11,9 +11,10 @@
  *     word the source's (test/sync-protocol.mjs writes the copies), and no
  *     copy lies in a folder that does not link to it.
  */
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pluginContract } from './plugin-contract.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const walk = (d) =>
@@ -26,6 +27,13 @@ const fail = (line) => {
   console.log(`FAIL  ${line}`);
   failures++;
 };
+
+const json = (path) => JSON.parse(readFileSync(join(ROOT, path), 'utf8'));
+for (const error of pluginContract({
+  hasPortableManifest: existsSync(join(ROOT, 'plugin.json')), codex: json('.codex-plugin/plugin.json'),
+  claude: json('.claude-plugin/plugin.json'), marketplace: json('.claude-plugin/marketplace.json'),
+  pkg: json('package.json'),
+})) fail(error);
 
 for (const f of files) {
   const text = readFileSync(f, 'utf8').toLowerCase();

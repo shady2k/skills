@@ -26,7 +26,31 @@ After updating:
 /setup-shady2k-skills
 ```
 
-**Other skill-compatible agents**, as files:
+**Codex**, as a plugin (verified with Codex CLI `0.154.0`):
+
+```bash
+codex plugin marketplace add shady2k/skills
+codex plugin add shady2k-skills@shady2k
+```
+
+Start a new Codex session in the target project and run:
+
+```text
+$shady2k-skills:setup-shady2k-skills
+```
+
+After updating:
+
+```bash
+codex plugin marketplace upgrade shady2k
+codex plugin add shady2k-skills@shady2k
+```
+
+Start a new session and run setup again. Plugin skills are namespaced: for
+example, `$shady2k-skills:take-task`. Installation, compatibility and isolated
+test details are in [docs/codex.md](docs/codex.md).
+
+**Codex and other skill-compatible agents**, alternatively as files:
 
 ```bash
 npx skills@latest add shady2k/skills
@@ -36,6 +60,13 @@ Install the complete set for composed workflows, including the installer.
 Run `setup-shady2k-skills` in the harness's skill syntax after installation
 and every update. Individually installed folders remain self-contained, but a
 workflow that needs another skill must have that skill installed too.
+
+Choose one installation method per agent: plugin **or** standalone skill files
+(including development symlinks), not both. Otherwise the same skills appear
+twice. When switching, inspect and remove only the previous installation of
+this set; preserve any locally edited skill files. Standalone Codex skills use
+unprefixed names, for example `$setup-shady2k-skills`. Update those files with
+`npx skills update`, then rerun setup.
 
 Every setup invocation rechecks the entire installation, including one whose
 version matches. It selects and initializes a tracker if needed, snapshots and

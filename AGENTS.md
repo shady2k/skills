@@ -15,8 +15,16 @@ metadata beside it in `agents/openai.yaml`. Every skill has an entry in the top-
 and **Model-invoked**. Run `claude plugin validate . --strict` and the same on
 `.claude-plugin/plugin.json` after touching a manifest.
 
-**Bump the version** in `plugin.json`, `package.json` and `check.mjs`'s
-`RULES_VERSION` (the test holds the three together) in every commit that
+Codex uses `.codex-plugin/plugin.json`, with `skills: "./skills/"`, and the same
+`.claude-plugin/marketplace.json` catalog. All bucket folders under `skills/`
+are shipped. Do not add a portable root `plugin.json` without rechecking nested
+discovery: Codex 0.154.0 installs it but discovers no skills in this layout.
+Run `npm run test:codex` (Linux, bubblewrap and Codex CLI) after changing packaging;
+it installs and updates an isolated Git marketplace without network or personal
+configuration changes. See `docs/codex.md`.
+
+**Bump the version** in both plugin manifests, `package.json`, both checks'
+`RULES_VERSION` and the source protocol (then `npm run protocol`) in every commit that
 changes what a skill does. An installed plugin updates by version, so a change
 pushed under the old number reaches nobody.
 

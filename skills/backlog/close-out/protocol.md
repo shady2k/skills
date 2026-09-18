@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Protocol version: 0.7.0
+Protocol version: 0.7.1
 
 **Compatibility before writes.** Compare this version with the project's
 config `setupVersion` and both installed checks' `--version`, and require
