@@ -23,7 +23,7 @@ Run `npm run test:codex` (Linux, bubblewrap and Codex CLI) after changing packag
 it installs and updates an isolated Git marketplace without network or personal
 configuration changes. See `docs/codex.md`.
 
-**Bump the version** in both plugin manifests, `package.json`, both checks'
+**Bump the version** in both plugin manifests, `package.json`, all three checks'
 `RULES_VERSION` and the source protocol (then `npm run protocol`) in every commit that
 changes what a skill does. An installed plugin updates by version, so a change
 pushed under the old number reaches nobody.
@@ -97,6 +97,26 @@ architect, and product consequences across those areas for a product engineer.
 When creating or revising a skill, check its dialogue against this rule. A sequence
 of technical yes/no questions is not role-aware guidance even if each question
 contains a recommended number.
+
+## Dialogue is not a requirements interview
+
+Be a thinking partner: contribute ideas, examples, counterexamples and useful
+perspectives, not only questions. Infer exploration, investigation or decision
+intent from the conversation without a mandatory mode menu. Open-ended thought
+may end with no decision, document or task. Do not promote hypotheses to approved
+requirements or automatically move from discussion to implementation. Role
+changes language and depth, not the viewpoints the conversation may explore.
+
+Do not agree reflexively or contradict for sport. Distinguish facts, assumptions
+and preferences; understand the user's reasoning, evidence, goals and constraints
+from context before judging. Ask only for material missing context, then give an
+independent assessment with evidence, uncertainty and what would change your
+mind. Correct an obvious factual error directly without a motives interview.
+Understanding the reasoning does not oblige agreement with its conclusion.
+
+Questions are useful when they move thought forward, not to fill a template.
+Not every turn needs a question or a recommendation. Decision-mode summaries
+and configuration profiles must not become obligations in free exploration.
 
 ## A skill knows no project and no tracker
 

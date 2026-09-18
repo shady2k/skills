@@ -26,6 +26,16 @@ const mutations = [
     change: (code) => code.replace("if (!issue) violations.push", "if (!issue) continue; else if (false) violations.push") },
   { name: 'commit-container', file: 'check-commits.mjs', failure: 'FAIL  commits/container.json',
     change: (code) => code.replace("issue.type === 'epic' || parents.has(id)", 'false') },
+  ...['unfinished-content', 'duplicate-id', 'missing-scenario', 'empty-capability',
+    'empty-policy', 'missing-outcome', 'missing-change', 'open-question',
+    'untracked-change', 'change-kind', 'invalid-delta', 'stale-base',
+    'unknown-requirement', 'unsynced-current', 'uncovered-requirement',
+    'missing-approval', 'stale-evidence', 'unproved-check'].map((id) => ({
+    name: `documents-${id}`, file: 'check-docs.mjs', failure: `FAIL  documents/${id}:`,
+    change: (code) => code.replace('if (condition) violations.push', `if (condition && id !== '${id}') violations.push`),
+  })),
+  { name: 'documents-schema', file: 'check-docs.mjs', failure: 'FAIL  documents/unknown-field:',
+    change: (code) => code.replace("schema(model, modelSchema, 'model');", '// model schema deliberately disabled') },
 ];
 
 let failures = 0;

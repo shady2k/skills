@@ -6,8 +6,12 @@ last verified setup version/time and the current pending/failed/verified status,
 live only in the config.
 
 - **Config:** <path; read current values there>
-- **Vision and charters:** <paths>
-- **Specs:** <feature body or files; short deltas may live on tasks with a spec pointer>
+- **Vision, roadmap and charters:** <paths; roadmap may be a vision section; status comes from the tracker>
+- **Current specifications:** <canonical capability docs for accepted mainline behaviour; coverage limits>
+- **Changes:** <proposals/deltas and archive; short deltas may live on tasks with a spec pointer>
+- **Document resources:** <installed templates and documents.md contract; preserved local format overrides>
+- **Workflow ownership:** <existing tools retained; single authority per artifact and task status; detected conflicts>
+- **Architecture and explorations:** <paths only where useful; exploratory notes are optional and not commitments>
 - **Glossary and decisions:** <paths or none>
 - **Acceptance records:** <where stage base/final revisions, included tasks,
   criteria, test/mutation/review evidence and pending limitations are retained>
@@ -23,7 +27,13 @@ live only in the config.
 ### Checks and execution
 
 - **Backlog adapter:** <path and export command; historical export when supported>
-- **Rules:** <paths/provenance for check.mjs and check-commits.mjs; verbatim copies or proved ports>
+- **Rules:** <paths/provenance for check.mjs, check-commits.mjs and check-docs.mjs; verbatim copies or proved ports>
+- **Document adapter and gate:** <deterministic export from real docs/tasks; product/feature/acceptance/close commands>
+- **Document policy:** <config source for approval and required checks; protected policy selection>
+- **Document baseline/scope:** <actual target revision, full affected capabilities and complete changed-file enumeration>
+- **Verified receipts:** <runner/approval API verification, revision and digest binding; no author-asserted passes>
+- **Document synchronization:** <prepare delta replay, verify final tree, publish, archive and close idempotently>
+- **Enforcement boundary:** <protected required CI and tracker transition guard, or explicitly audit-only limits>
 - **Backlog gate:** <exact command, config and baseline/config-revision selection>
 - **JSON report:** <exact command>
 - **Commit-link input and check:** <message/range parser, tracker resolution,

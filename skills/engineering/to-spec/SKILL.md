@@ -21,6 +21,10 @@ protocol (levels, lanes, the horizon, what a clean gate is) is
 
 ## 1. Check the horizon
 
+First distinguish a request to retain a specification from free exploration.
+For "just discuss" or an idea without commitment, use `brainstorming`; do not
+require setup, create documents or push the user into this workflow.
+
 The outcome must belong to the current milestone. A spec written for a later
 one is stale before its turn comes. Say so and stop.
 
@@ -62,6 +66,20 @@ separate architecture question. These are acceptance boundaries, not a restricti
 unit or integration tests through stable interfaces.
 
 ## 4. Write it
+
+Use the document resources supplied through integration. Separate the current
+capability contract from the proposed change: read current requirements, give
+new ones stable IDs, and record explicit add/replace/remove operations pinned to
+their old contents. Keep complete observable scenarios (conditions, action,
+result) and planned check IDs. Preserve existing formats and document paths.
+Do not overwrite current accepted behaviour with an unimplemented proposal.
+
+The short form below remains useful inside a task body; the project adapter
+must export its same required fields. A full form may use separate change and
+design templates; do not require all templates for a small change. Record
+blocking questions explicitly. No-behaviour fixes/refactors reference preserved
+requirements, explain why no contract changes, and add regression checks rather
+than rewriting a correct requirement to fit a defect.
 
 ```markdown
 ## Problem
@@ -105,7 +123,11 @@ verb, keeping what the issue already said that is still true. A decision that
 is hard to reverse, surprising without its context, and the result of a real
 trade-off also gets its own record: use "model-domain".
 
-Run the gate. Then publish through the authorized workflow. Continue with
+Run the backlog gate and the integration's feature document gate; a new product
+also needs its vision/first charter product check. An incomplete draft may be
+retained as draft, but must not be represented as implementation-ready. Only
+required consequential approval is sought, bound to the actual proposal; do not
+manufacture an approval flag. Then publish through the authorized workflow. Continue with
 `to-stages` when the request includes execution or decomposition; otherwise
 return the spec and recommend that next step by name. Keep the reasoning in
 this conversation where useful, without making a fresh session a blocker.

@@ -1,11 +1,11 @@
 # shady2k-skills
 
-Fifteen skills for tracked work, from an idea to an accepted result. They work
+Fifteen skills for exploring ideas and taking tracked work to accepted results. They work
 with a project's chosen tracker and any harness that reads `SKILL.md`.
 The reasoning and history are in [docs/design.md](docs/design.md).
 
-Skills guide decisions; portable checks enforce the backlog's shape and commit
-links. The project owns its tracker adapter and wiring, proved during setup.
+Skills guide dialogue and decisions; portable checks enforce the backlog's shape,
+commit links and document lifecycle. The project owns its adapters and wiring, proved during setup.
 A green backlog is not evidence that the code works.
 
 ## Installation and updates
@@ -128,6 +128,12 @@ instruction, not a claim that every harness runs an automatic update hook.
 
 ## The flow
 
+"Let's imagine" or "just discuss" starts `brainstorming`, not a setup interview.
+The agent contributes ideas, explores other perspectives and tests assumptions.
+It understands your reasoning before independently agreeing or disagreeing.
+Discussion and read-only research may end without a decision, file or task.
+Scratch experiments do not become production work automatically.
+
 Setup establishes the tracker and a usable queue; a milestone charter sets the
 current scope. `take-task` then selects the route from size, risk and unknowns:
 a short behavioural delta for small work, or discussion, research/prototype,
@@ -146,8 +152,9 @@ stage. It is not yet closed. Across stages, prerequisites wait for acceptance.
 
 The assembled stage receives full checks, scoped mutation testing and final
 review, preferably by another model. Corrections receive fresh verification.
-`close-out` closes the tasks and stage only with evidence for the accepted
-revision. A handoff preserves implemented work and unfinished acceptance.
+`close-out` synchronizes the accepted change into current capability specs and
+closes the tasks and stage only with evidence for the accepted revision. A
+handoff preserves implemented work, unfinished acceptance and pending publication.
 
 Every commit belongs to existing leaf tasks, including documentation,
 research, prototypes and setup. The commit-message hook and CI enforce links;
@@ -170,17 +177,53 @@ the separate backlog gate enforces structure.
 | `submitted-without-evidence` | submitted work without a durable result and local-check evidence |
 | `stale-edge` (warning) | absent or long-untouched prerequisites needing review |
 | `check-commits.mjs` | unlinked commits or links to absent issues/containers |
+| `check-docs.mjs` | unfinished required fields, missing scenarios/task links, conflicting or stale deltas, missing coverage, stale/missing receipts and unsynchronized current requirements |
 
 The backlog strength is chosen at setup: `block-new` blocks introduced errors
 and reports old debt, `block` blocks every error, `report` only reports policy
 violations. Invalid input fails in all modes. Commit links are mandatory
 independently of that choice. Project adapters parse messages and select commit
-ranges; setup must prove those parts as well as the shipped checks.
+ranges; setup must prove those parts as well as the shipped checks. Document
+readiness/acceptance checks are also mandatory independently of backlog strength.
+They consume deterministic exports, a separately selected policy and verified
+runner/approval receipts. The checker does not authenticate those inputs itself.
 
 The checks do not prove behavioural correctness, truthful test evidence,
 semantic task relevance or that the right scope was chosen. Session sizing,
 next-milestone decomposition and understandable titles are still instructions,
 not executable checks.
+
+## Documents: direction, current state and changes
+
+For a new repository, begin with vision, the first milestone charter and one
+useful change. Roadmap may start as a section of vision. Create the rest only
+when needed:
+
+```text
+docs/vision.md                       # purpose, audience, exclusions
+docs/roadmap.md                      # outcomes and sequencing, not copied task status
+docs/milestones/<milestone>.md       # agreed scope and acceptance
+docs/system/capabilities/<name>.md   # accepted mainline behaviour
+docs/system/architecture.md          # current boundaries, when useful
+docs/changes/<change>/change.md      # proposed requirement deltas
+docs/changes/<change>/design.md      # optional technical design
+docs/decisions/                      # significant rationale
+docs/explorations/                   # optional retained research
+```
+
+These are defaults, not required paths. Setup maps existing documents in place,
+including projects using Superpowers, Spec Kit or OpenSpec. It does not uninstall
+them, move their files or create a rival task list. Choose one workflow owner and
+one canonical source per artifact. An old plan is intent, not proof of current
+behaviour. Baseline only the legacy capabilities being changed, then grow coverage
+through accepted work. Independent changes do not acquire blanket dependencies.
+
+The [document contract and templates](skills/backlog/setup-shady2k-skills/documents.md)
+define four checkpoints: product intent, feature readiness, stage evidence and
+current-spec synchronization. The project adapter parses its chosen document
+format deterministically; there is no universal Markdown importer. Protected CI
+can block merges; blocking direct tracker closure requires an actual transition
+guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Skills
 
@@ -198,9 +241,9 @@ not executable checks.
 Also directly callable by the user. Availability does not authorize unrelated
 changes, new scope or external publication.
 
-- [brainstorming](skills/productivity/brainstorming/SKILL.md): role-aware
-  recommendations; one unresolved consequential decision at a time.
-- [to-spec](skills/engineering/to-spec/SKILL.md): short or full behavioural spec.
+- [brainstorming](skills/productivity/brainstorming/SKILL.md): exploratory dialogue,
+  evidence and independent judgment; decisions and artifacts are optional.
+- [to-spec](skills/engineering/to-spec/SKILL.md): short/full changes to living specs.
 - [to-stages](skills/backlog/to-stages/SKILL.md): session-sized stages and real dependencies.
 - [to-research](skills/productivity/to-research/SKILL.md): bounded primary-source research.
 - [to-prototype](skills/engineering/to-prototype/SKILL.md): runnable evidence for one design question.
@@ -218,6 +261,9 @@ installation runs informed the protections around proof, isolated staging and
 landing. Harness-specific automatic update/session hooks are not shipped.
 Version 0.7.2 replaces per-setting interviews with role-aware recommendations
 across the set; consequential decisions and explicit authorization remain required.
+Version 0.8.0 adds open-ended dialogue, living-document templates and a portable
+document gate. Its fixture and CLI tests do not replace project adapter/CI proof
+or demonstrate conversational quality; live rollout remains a separate validation.
 
 ## Credits
 
@@ -226,10 +272,16 @@ The original shape and work-skill ideas come from
 [license](docs/third-party/mattpocock-skills.LICENSE). They are rewritten here
 around this set's tracker protocol.
 
+The 0.8 document lifecycle draws on [OpenSpec](https://github.com/Fission-AI/OpenSpec)
+(current specs versus deltas), [Spec Kit](https://github.com/github/spec-kit)
+(scenarios and traceability), and [Superpowers](https://github.com/obra/superpowers)
+(proportional design and evidence before completion). Templates and checks here
+are original implementations, not bundled copies of those tools.
+
 ## Development
 
 ```bash
-npm test                  # backlog/commit fixtures, CLI and package invariants
+npm test                  # backlog/commit/document fixtures, CLI and package invariants
 npm run test:mutation     # deliberately break checks and observe failures
 npm run protocol          # synchronize folder-local protocol copies
 scripts/link-skills.sh    # link into local skill directories

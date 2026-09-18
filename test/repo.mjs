@@ -78,6 +78,8 @@ const rules = (readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/chec
 if (version !== pkg || version !== rules) fail(`versions differ: plugin.json ${version}, package.json ${pkg}, check.mjs ${rules}`);
 const commitRules = (readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/check-commits.mjs'), 'utf8').match(/RULES_VERSION = '([^']+)'/) || [])[1];
 const protocolVersion = (protocol.match(/^Protocol version: (.+)$/m) || [])[1];
+const documentRules = (readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/check-docs.mjs'), 'utf8').match(/RULES_VERSION = '([^']+)'/) || [])[1];
+if (version !== documentRules) fail(`document gate version differs: plugin ${version}, documents ${documentRules}`);
 if (version !== commitRules || version !== protocolVersion)
   fail(`compatibility versions differ: plugin ${version}, commit check ${commitRules}, protocol ${protocolVersion}`);
 

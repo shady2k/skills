@@ -3,10 +3,11 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.7.0 implements the revised skills and portable checks. Live
+Status: version 0.8.0 adds exploratory dialogue, living documents and a document
+gate to the revised execution/setup workflow. Live
 project validation of the new end-to-end workflow remains outstanding. §1 and
 §2 preserve the original conversation; §§3–11 describe the current design;
-§12 records the history through 0.6, and §14 records the 0.7 decisions.
+§12 records the history through 0.6, §14 the 0.7 decisions, and §15 the 0.8 design.
 
 ## 1. The owner's idea, as stated
 
@@ -109,7 +110,7 @@ implement again. Stopping preserves these states and their next action.
 
 ## 4. Ownership and executable guarantees
 
-The set owns the protocol and two portable checks. The project owns the
+The set owns the protocol and three portable checks. The project owns the
 tracker adapter, message parser, configuration, commands and local/CI wiring.
 Tracker usage is documented once in the project's tracker doc, with the
 integration section adding only what this protocol needs.
@@ -126,6 +127,12 @@ Invalid inputs fail in every mode. Block-new uses historical backlog and
 historical config, with the appropriate CI baseline. It does not compare a
 branch with itself. Every rule has fixtures; new checks must be deliberately
 broken to prove that their fixtures fail.
+
+The document gate checks product intent fields, feature task links and readiness,
+requirement/scenario structure, pinned deltas, coverage links, revision/policy-bound
+receipts and replayed current requirements at closure. Its normalized inputs come
+from a deterministic project export, not a model-written assertion. Reference
+Markdown readers ship for the default vision, charter and capability templates.
 
 The gates cannot prove that a message parser is honest, evidence is truthful,
 a requirement is good, or a referenced task really describes the commit.
@@ -353,9 +360,9 @@ summary lists those decisions so any can be overruled. Not taken: the reference'
 
 ## 13. Still open
 
-- Validate the complete 0.7 workflow on real projects and tracker capabilities,
+- Validate the complete 0.8 workflow on real projects and tracker capabilities,
   including a project with no tracker and an older installed integration.
-- Port both checks on a project without Node and run their fixture corpus.
+- Port all three checks on a project without Node and run their fixture corpus.
 - Harness-specific session/update hooks; the current update instruction and
   compatibility guard do not claim to implement them.
 - The historical wiki renderer and how expired deferred review dates should
@@ -379,3 +386,51 @@ or cleanup, and to recheck everything whenever invoked, even if already installe
 After updating the set, setup is requested again; valid answers survive while
 every integration assumption is proved anew. The setup version is stamped only
 after proof and landing, with matching protocol and installed checks.
+
+## 15. Living specifications and exploratory dialogue (0.8)
+
+The owner's next concern was not another mandatory planning ceremony: it was
+keeping a reliable description of the accepted system, starting an empty product
+without a document factory, and adopting existing workflows without a forced
+migration. The reference ideas were current specs versus deltas from OpenSpec,
+scenarios/traceability from Spec Kit, and proportional design/evidence from
+Superpowers. Their processes are not installed as competing workflow owners.
+
+Vision remains direction; roadmap expresses near outcomes and distant hypotheses,
+not a duplicate status database. A charter admits a bounded milestone. Capability
+specifications describe accepted mainline behaviour; change records pin old
+requirements and propose complete replacements/additions/removals. A feature is
+temporary work, a capability is a lasting part of the system. Significant design
+and decision records explain why; optional exploration notes carry hypotheses.
+New projects create only needed documents, with no fictional current features.
+Existing projects adopt usable paths in place and baseline the affected area from
+evidence, not from old plans. Unknown legacy coverage remains explicitly unknown.
+
+The new document check has four phases: product, feature, acceptance and close.
+It checks typed records and explicit references, not prose length as a substitute
+for a good requirement. Closing replays deltas against the actual target baseline
+and compares every requirement in the affected capabilities, including untouched
+ones. Concurrent work on other requirements remains independent; a stale changed
+requirement blocks its own change. Stage-sized changes can advance current docs
+before the rest of a large feature finishes. Bug fixes preserve correct contracts
+and link regression checks; no-behaviour work needs rationale and preserved refs.
+
+Policy and receipts are separate inputs. Revision/policy/proposal digest binding
+detects stale claims, not fraudulent ones: the project wrapper must verify actual
+runner/approval records, full source enumeration and protected policy selection.
+Required protected CI is a merge boundary; direct tracker closure needs a real
+transition guard. No hook, Markdown heading or agent-written passed flag is a
+security boundary. Schema validation, executable tests, mutation checks and
+semantic review have different jobs. The shipped normalized fixtures, CLI tests,
+Markdown reader tests and deliberate rule mutations do not claim a live rollout.
+
+The dialogue change is equally important. Brainstorming now supports exploration,
+investigation and decision without making the user select a mode. The agent
+contributes ideas and different perspectives instead of only asking questions.
+It understands the user's reasoning before giving an independent judgment;
+agreement is not politeness, disagreement is not a performance. Facts, assumptions
+and preferences are distinct. Obvious factual errors may be corrected directly.
+Role changes language/depth, not the allowed range of viewpoints. Exploration
+may stop without a conclusion or artifact; research may stay a cited chat answer,
+and a scratch prototype does not automatically become production work. Gates
+protect commitments, publication and acceptance, not the freedom to think.

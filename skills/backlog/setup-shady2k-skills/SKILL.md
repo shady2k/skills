@@ -115,8 +115,14 @@ questionnaire for the user**:
 - **Review:** prefer another model when available. Choose the documented
   fallback if it is unavailable and whether independent review is required
   for acceptance. Two agents using the same model are not another model.
-- **Documents and commit links:** vision, charters, short/full specs, glossary
-  and decisions, acceptance evidence and where it is retained. Choose the
+- **Documents and commit links:** read [documents.md](documents.md) for the
+  lifecycle, templates, normalized document gate and trust boundary. Map vision,
+  roadmap, charters, current capabilities, changes, optional architecture/decisions
+  and exploration notes onto existing project documents. Recommend defaults only
+  for missing roles, not a mandatory empty directory tree. Choose one workflow
+  owner; do not move other tools' documents or disable their hooks implicitly.
+  Include document policy, verified evidence/approval sources and their practical
+  enforcement limits in the profile. Choose the
   project's task-reference convention for **every commit**, including setup,
   documentation, research and prototypes. Decide how generated merge/revert
   commits retain that link; they are not silent exemptions.
@@ -174,9 +180,9 @@ Submitted results likewise need a durable pending-integration mapping.
 For `block-new`, verify historical export and historical config retrieval;
 otherwise choose an honest supported strength with the owner.
 
-**Rules:** call both shipped scripts in place when they are in the project, or
+**Rules:** call all three shipped checks in place when they are in the project, or
 copy them verbatim. Record provenance in the integration, not inserted into the
-copies. No Node: port both checks and prove the same fixtures. A matching version
+copies. No Node: port all three checks and prove the same fixtures. A matching version
 does not replace byte comparison or port proof.
 
 **Wiring:** the backlog gate runs in the project's local hook and CI. For
@@ -192,6 +198,24 @@ every newly introduced commit and fails if that enumeration unexpectedly yields
 none. Resolve links against all relevant tracker tasks, including closed ones.
 This mandatory check is separate from the backlog's selectable strength.
 Verify project-specific parsing with both linked and unlinked real messages.
+
+**Document gate:** implement the deterministic export and protected wrapper
+described in [documents.md](documents.md). Wire `product` plus `feature` before
+first-product implementation, `feature` for new changes, `acceptance` for stage
+evidence and `close` before accepting synchronized current docs. CI selects the
+actual transition and enumerates all affected documents; neither a weaker phase
+nor an empty export supplied by the author is a bypass. Require it independently
+of backlog strength. Prove actual file parsing, baseline selection, receipt
+verification, policy provenance and tracker closure enforcement or disclose the
+remaining audit-only limitation. No evidence authenticity claim from JSON alone.
+
+**New projects:** conversations may precede setup without files or issues. Once
+retaining work, create the setup task first, then seed only agreed vision/current
+slice and resource locations. The user-invoked `to-milestone` establishes the
+charter when requested. Setup may finish with no admitted implementation, no
+current capabilities and no roadmap beyond a vision section; do not invent a
+product to make its admission gate green. Prove the gate using recoverable
+fixtures, and report product readiness separately from installation readiness.
 
 **Documents:** update the project's own tracker doc using
 [integration.md](integration.md); do not create a rival table of tracker verbs.
@@ -212,10 +236,10 @@ milestone values or commands in that pointer.
 
 An existing setup runs all these proofs too, even when versions match.
 
-1. **Shipped checks:** run both scripts' self-tests beside this skill, where
+1. **Shipped checks:** run all three scripts' self-tests beside this skill, where
    fixtures exist. Compare installed copies byte for byte; ports run the corpus.
    Commands: `node check.mjs --selftest --config <project-config>` and
-   `node check-commits.mjs --selftest`, from this skill's directory. The former
+   `node check-commits.mjs --selftest` and `node check-docs.mjs --selftest`, from this skill's directory. The first
    uses its fixture config for rules and the project config for portability.
 2. **Tracker and adapter:** compare counts per status and ready leaves with
    actual tracker state; explain every difference. On an empty tracker use
@@ -236,6 +260,11 @@ An existing setup runs all these proofs too, even when versions match.
 5. **Current state:** run the gate on the cleaned live backlog. Preserve both
    pre/post cleanup age snapshots and use their bounded correction. Show the
    actual result, unresolved debt, chosen strength and remaining limitations.
+6. **Documents:** run the recoverable real-entry-point proofs in documents.md,
+   including a missing scenario in the actual selected format, stale source
+   requirement, wrong task, stale/missing receipts and unsynchronized closure.
+   Verify independent changes still pass. Adopt only the currently affected
+   legacy scope; do not treat an old plan or a model's summary as verified state.
 
 Keep durable proof evidence with the setup task. A detected tracker outage,
 missing runtime, stale integration or failed hook is a specific repair, not
@@ -244,7 +273,7 @@ a reason to discard every prior answer.
 ## 5. Land and record the verified version
 
 Land through the project's authorized workflow and verify from the checkout
-people use: docs reachable, both checks run, hooks installed in that clone.
+people use: docs reachable, all three checks run, hooks installed in that clone.
 An isolated branch alone is **written and proved, not installed**.
 Ask only for landing actions not already authorized.
 

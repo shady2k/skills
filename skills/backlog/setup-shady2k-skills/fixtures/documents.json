@@ -1,0 +1,972 @@
+{
+  "valid": {
+    "model": {
+      "schemaVersion": 1,
+      "phase": "feature",
+      "revision": "candidate-1",
+      "project": {
+        "mode": "new",
+        "vision": {
+          "audience": "People working with records.",
+          "problem": "Records cannot leave the application.",
+          "outcome": "People can reuse records elsewhere.",
+          "exclusions": "Importing files."
+        },
+        "milestone": {
+          "id": "first-release",
+          "outcomes": [
+            "Export selected records."
+          ],
+          "exclusions": "Importing files."
+        }
+      },
+      "tasks": [
+        {
+          "id": "T1",
+          "kind": "leaf"
+        }
+      ],
+      "baseline": [
+        {
+          "id": "export",
+          "title": "Export",
+          "requirements": [
+            {
+              "id": "export-file",
+              "title": "Export a file",
+              "statement": "A user can export the selected records.",
+              "scenarios": [
+                {
+                  "id": "selected",
+                  "given": "Some records are selected.",
+                  "when": "The user exports them.",
+                  "then": "The file contains the selected records."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "current": [
+        {
+          "id": "export",
+          "title": "Export",
+          "requirements": [
+            {
+              "id": "export-file",
+              "title": "Export a file",
+              "statement": "A user can export the selected records.",
+              "scenarios": [
+                {
+                  "id": "selected",
+                  "given": "Some records are selected.",
+                  "when": "The user exports them.",
+                  "then": "The file contains the selected records."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "change": {
+        "id": "column-names",
+        "title": "Include column names",
+        "taskIds": [
+          "T1"
+        ],
+        "kind": "behavior",
+        "intent": "Make exported columns understandable.",
+        "outOfScope": "Import and other formats.",
+        "rationale": "",
+        "openQuestions": [],
+        "deltas": [
+          {
+            "capability": "export",
+            "requirement": "export-file",
+            "before": {
+              "id": "export-file",
+              "title": "Export a file",
+              "statement": "A user can export the selected records.",
+              "scenarios": [
+                {
+                  "id": "selected",
+                  "given": "Some records are selected.",
+                  "when": "The user exports them.",
+                  "then": "The file contains the selected records."
+                }
+              ]
+            },
+            "after": {
+              "id": "export-file",
+              "title": "Export a file",
+              "statement": "A user can export the selected records with column names.",
+              "scenarios": [
+                {
+                  "id": "selected",
+                  "given": "Some records are selected.",
+                  "when": "The user exports them.",
+                  "then": "The file contains column names and the selected records."
+                }
+              ]
+            }
+          }
+        ],
+        "preserves": [],
+        "coverage": [
+          {
+            "capability": "export",
+            "requirement": "export-file",
+            "checks": [
+              "export-test"
+            ]
+          }
+        ]
+      }
+    },
+    "policy": {
+      "schemaVersion": 1,
+      "requireApproval": true,
+      "requiredChecks": [
+        {
+          "id": "full",
+          "kind": "test"
+        },
+        {
+          "id": "mutation",
+          "kind": "mutation"
+        },
+        {
+          "id": "review",
+          "kind": "review"
+        }
+      ]
+    },
+    "evidence": {
+      "schemaVersion": 1,
+      "revision": "candidate-1",
+      "policyDigest": "",
+      "approvals": [],
+      "checks": [
+        {
+          "id": "full",
+          "status": "passed",
+          "reference": "fixture:full"
+        },
+        {
+          "id": "mutation",
+          "status": "passed",
+          "reference": "fixture:mutation"
+        },
+        {
+          "id": "review",
+          "status": "passed",
+          "reference": "fixture:review"
+        },
+        {
+          "id": "export-test",
+          "status": "passed",
+          "reference": "fixture:export-test"
+        }
+      ]
+    }
+  },
+  "cases": [
+    {
+      "name": "feature",
+      "expected": [],
+      "receipts": true,
+      "patches": []
+    },
+    {
+      "name": "acceptance",
+      "expected": [],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        }
+      ]
+    },
+    {
+      "name": "close",
+      "expected": [],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "close"
+        },
+        {
+          "path": "model/current",
+          "value": [
+            {
+              "id": "export",
+              "title": "Export",
+              "requirements": [
+                {
+                  "id": "export-file",
+                  "title": "Export a file",
+                  "statement": "A user can export the selected records with column names.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains column names and the selected records."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "product-empty-system",
+      "expected": [],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "product"
+        },
+        {
+          "path": "model/baseline",
+          "value": []
+        },
+        {
+          "path": "model/current",
+          "value": []
+        },
+        {
+          "path": "model/change",
+          "value": null
+        }
+      ]
+    },
+    {
+      "name": "missing-outcome",
+      "expected": [
+        "missing-outcome"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "product"
+        },
+        {
+          "path": "model/project/milestone/outcomes",
+          "value": []
+        }
+      ]
+    },
+    {
+      "name": "missing-change",
+      "expected": [
+        "missing-change"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change",
+          "value": null
+        }
+      ]
+    },
+    {
+      "name": "unfinished-content",
+      "expected": [
+        "unfinished-content"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/intent",
+          "value": "TBD"
+        }
+      ]
+    },
+    {
+      "name": "duplicate-id",
+      "expected": [
+        "duplicate-id"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/tasks",
+          "value": [
+            {
+              "id": "T1",
+              "kind": "leaf"
+            },
+            {
+              "id": "T1",
+              "kind": "leaf"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "missing-scenario",
+      "expected": [
+        "missing-scenario"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/deltas/0/after/scenarios",
+          "value": []
+        }
+      ]
+    },
+    {
+      "name": "empty-capability",
+      "expected": [
+        "empty-capability"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "product"
+        },
+        {
+          "path": "model/baseline/0/requirements",
+          "value": []
+        },
+        {
+          "path": "model/current/0/requirements",
+          "value": []
+        }
+      ]
+    },
+    {
+      "name": "empty-policy",
+      "expected": [
+        "empty-policy"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "policy/requiredChecks",
+          "value": []
+        }
+      ]
+    },
+    {
+      "name": "open-question",
+      "expected": [
+        "open-question"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/openQuestions",
+          "value": [
+            "Who can export records?"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "untracked-change",
+      "expected": [
+        "untracked-change"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/taskIds",
+          "value": [
+            "T2"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "container-task",
+      "expected": [
+        "untracked-change"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/tasks/0/kind",
+          "value": "container"
+        }
+      ]
+    },
+    {
+      "name": "change-kind",
+      "expected": [
+        "change-kind"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/kind",
+          "value": "no-behavior"
+        }
+      ]
+    },
+    {
+      "name": "invalid-delta",
+      "expected": [
+        "invalid-delta"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/deltas/0/after",
+          "value": {
+            "id": "export-file",
+            "title": "Export a file",
+            "statement": "A user can export the selected records.",
+            "scenarios": [
+              {
+                "id": "selected",
+                "given": "Some records are selected.",
+                "when": "The user exports them.",
+                "then": "The file contains the selected records."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "stale-base",
+      "expected": [
+        "stale-base"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/deltas/0/before/statement",
+          "value": "Export all records."
+        }
+      ]
+    },
+    {
+      "name": "unknown-requirement",
+      "expected": [
+        "unknown-requirement"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/coverage/1",
+          "value": {
+            "capability": "export",
+            "requirement": "missing",
+            "checks": [
+              "export-test"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "uncovered-requirement",
+      "expected": [
+        "uncovered-requirement"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/coverage",
+          "value": []
+        }
+      ]
+    },
+    {
+      "name": "unsynced-current",
+      "expected": [
+        "unsynced-current"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "close"
+        }
+      ]
+    },
+    {
+      "name": "premature-current",
+      "expected": [
+        "unsynced-current"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/current",
+          "value": [
+            {
+              "id": "export",
+              "title": "Export",
+              "requirements": [
+                {
+                  "id": "export-file",
+                  "title": "Export a file",
+                  "statement": "A user can export the selected records with column names.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains column names and the selected records."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "missing-approval",
+      "expected": [
+        "missing-approval"
+      ],
+      "receipts": false,
+      "patches": []
+    },
+    {
+      "name": "stale-evidence",
+      "expected": [
+        "stale-evidence"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "evidence/revision",
+          "value": "older"
+        }
+      ]
+    },
+    {
+      "name": "unproved-check",
+      "expected": [
+        "unproved-check"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "evidence/checks/0/status",
+          "value": "skipped"
+        }
+      ]
+    },
+    {
+      "name": "missing-receipts",
+      "expected": [
+        "stale-evidence",
+        "unproved-check",
+        "missing-approval"
+      ],
+      "receipts": false,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "evidence",
+          "value": null
+        }
+      ]
+    },
+    {
+      "name": "parallel-unrelated",
+      "expected": [],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/baseline",
+          "value": [
+            {
+              "id": "export",
+              "title": "Export",
+              "requirements": [
+                {
+                  "id": "export-file",
+                  "title": "Export a file",
+                  "statement": "A user can export the selected records.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains the selected records."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "search",
+              "title": "Search",
+              "requirements": [
+                {
+                  "id": "find-records",
+                  "title": "Export a file",
+                  "statement": "A user can export the selected records.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains the selected records."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "path": "model/current",
+          "value": [
+            {
+              "id": "export",
+              "title": "Export",
+              "requirements": [
+                {
+                  "id": "export-file",
+                  "title": "Export a file",
+                  "statement": "A user can export the selected records.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains the selected records."
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "search",
+              "title": "Search",
+              "requirements": [
+                {
+                  "id": "find-records",
+                  "title": "Export a file",
+                  "statement": "A user can export the selected records.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains the selected records."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "parallel-same-capability",
+      "expected": [],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/baseline",
+          "value": [
+            {
+              "id": "export",
+              "title": "Export",
+              "requirements": [
+                {
+                  "id": "export-file",
+                  "title": "Export a file",
+                  "statement": "A user can export the selected records.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains the selected records."
+                    }
+                  ]
+                },
+                {
+                  "id": "export-empty",
+                  "title": "Empty export",
+                  "statement": "A user can export the selected records.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains the selected records."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "path": "model/current",
+          "value": [
+            {
+              "id": "export",
+              "title": "Export",
+              "requirements": [
+                {
+                  "id": "export-file",
+                  "title": "Export a file",
+                  "statement": "A user can export the selected records.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains the selected records."
+                    }
+                  ]
+                },
+                {
+                  "id": "export-empty",
+                  "title": "Empty export",
+                  "statement": "A user can export the selected records.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains the selected records."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lost-unrelated-requirement",
+      "expected": [
+        "unsynced-current"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "close"
+        },
+        {
+          "path": "model/baseline",
+          "value": [
+            {
+              "id": "export",
+              "title": "Export",
+              "requirements": [
+                {
+                  "id": "export-file",
+                  "title": "Export a file",
+                  "statement": "A user can export the selected records.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains the selected records."
+                    }
+                  ]
+                },
+                {
+                  "id": "export-empty",
+                  "title": "Empty export",
+                  "statement": "A user can export the selected records.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains the selected records."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "path": "model/current",
+          "value": [
+            {
+              "id": "export",
+              "title": "Export",
+              "requirements": [
+                {
+                  "id": "export-file",
+                  "title": "Export a file",
+                  "statement": "A user can export the selected records with column names.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains column names and the selected records."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "no-behavior",
+      "expected": [],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/kind",
+          "value": "no-behavior"
+        },
+        {
+          "path": "model/change/rationale",
+          "value": "Refactor without changing the export contract."
+        },
+        {
+          "path": "model/change/deltas",
+          "value": []
+        },
+        {
+          "path": "model/change/preserves",
+          "value": [
+            {
+              "capability": "export",
+              "requirement": "export-file"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "removal",
+      "expected": [],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "close"
+        },
+        {
+          "path": "model/change/deltas/0/after",
+          "value": null
+        },
+        {
+          "path": "model/current",
+          "value": []
+        }
+      ]
+    },
+    {
+      "name": "addition",
+      "expected": [],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "close"
+        },
+        {
+          "path": "model/baseline",
+          "value": []
+        },
+        {
+          "path": "model/current",
+          "value": [
+            {
+              "id": "export",
+              "title": "Export",
+              "requirements": [
+                {
+                  "id": "export-file",
+                  "title": "Export a file",
+                  "statement": "A user can export the selected records with column names.",
+                  "scenarios": [
+                    {
+                      "id": "selected",
+                      "given": "Some records are selected.",
+                      "when": "The user exports them.",
+                      "then": "The file contains column names and the selected records."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "path": "model/change/deltas/0/before",
+          "value": null
+        }
+      ]
+    },
+    {
+      "name": "unknown-phase",
+      "expected": [
+        "invalid-input"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "done"
+        }
+      ]
+    },
+    {
+      "name": "unknown-field",
+      "expected": [
+        "invalid-input"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/approved",
+          "value": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-scenario",
+      "expected": [
+        "invalid-input"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/deltas/0/after/scenarios/0/then",
+          "value": null
+        }
+      ]
+    }
+  ]
+}

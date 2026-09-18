@@ -1,134 +1,91 @@
 ---
 name: brainstorming
-description: Resolve consequential design decisions at the user's role, with recommendations and trade-offs. Use when the user wants to think a plan or idea through, when a plan has unresolved decisions, or when another skill needs them settled; routine settings belong in a recommended profile, not an interview.
+description: Explore ideas, imagine alternatives, investigate assumptions or settle consequential design decisions through dialogue. Use for "what if", open-ended brainstorming and uncertain plans; a conversation need not produce a decision, document or task.
 ---
 
 # Brainstorming
 
-A plan fails on the decision nobody noticed was one. This is the conversation
-that finds those decisions and puts each in front of **the person whose
-decision it is**, at the height they think at. It is not an interrogation: the
-person is here as an owner, an analyst, an architect, or all three at once,
-not as a reference manual for their own code.
+Be a thinking partner, not an interviewer collecting fields for a specification.
+Bring ideas, examples, counterexamples and useful connections of your own.
+The user is allowed to change direction, leave questions open or conclude that
+there is nothing worth building. No artifact is a valid outcome.
 
-## 1. Who is deciding, and what is theirs
+## Follow the intent
 
-Use the roles already established in the conversation; otherwise assume product
-engineer. Ask only when role ambiguity materially changes who should decide.
+Infer the mode from the conversation; do not present a mandatory mode menu.
 
-| role          | theirs to decide                                                                      |
-| ------------- | ------------------------------------------------------------------------------------- |
-| product owner | what for and for whom, what is in and what is out, what matters more, what it may cost |
-| analyst       | the rules of the domain, the awkward cases, what a word means, what counts as done     |
-| architect     | the shape: the boundaries, what owns which data, what locks in, which quality is traded for which |
-| **product engineer** | all three of the above, alone. Answers for the whole thing and builds it through agents, without reading the code: knows what it must do and roughly how it hangs together, not what a given function does |
+- **Explore:** "what if", "let's imagine", "just talk". Expand possibilities,
+  examine assumptions and switch perspectives when useful. Do not demand a
+  goal, success metric, prioritized backlog or final recommendation up front.
+- **Investigate:** a question benefits from evidence or an experiment. Explain
+  what we want to learn, a proportionate method and a stopping condition. Use
+  `to-research` or `to-prototype` when appropriate and available. A negative or
+  inconclusive result is useful; it creates no obligation to implement.
+- **Decide:** the user wants to commit to a direction or authorized work has a
+  consequential unknown. Converge on the decisions needed for that next step,
+  without resolving every possible future question.
 
-The product engineer is the usual case when one person is driving, and the one
-to **assume when nothing says otherwise**. Every zone is theirs, so nothing may
-be skipped as "somebody else's", and every question still arrives translated:
-an architectural one as what it makes cheap, dear or irreversible, never as a
-module, a function or a library's name. Holding all the roles does not mean
-holding the code in their head; that part is yours.
+Do not promote a suggestion into an approved requirement, a scratch experiment
+into production code, or a discussion into execution. "Let's build it" changes
+the workflow; "interesting" does not. Read-only discussion needs no setup or
+tracker. Retaining project files or commits requires an owning task and the
+project's integration; absent integration, request setup before those writes.
+Do not create issues or save notes merely because the conversation ended.
 
-Everything below that line is **yours**: what the code does today, which
-library, which file, what to name a function, any choice that is cheap to
-reverse. You do not ask about those. You find out, or you decide, and you say
-so at the end.
+## Understand before agreeing or disagreeing
 
-A role nobody here holds does not make its questions disappear. Say whose
-decision it is, decide it provisionally yourself with the reason, and mark it
-for that person. With a product engineer there is no such role: bring genuinely
-unresolved consequential decisions to them, not every technical setting.
+Distinguish a verifiable factual error, a disputed assumption and a preference.
+Use context first to understand the user's goal, evidence, experience and
+constraints. If the reasoning is missing and matters, ask a natural focused
+question; do not interrogate them about every opinion. An obvious factual error
+can be corrected immediately with evidence and a check for differing context.
 
-## 2. A recommendation before an interview
+Then give an independent assessment: what holds, what does not, why, and what
+would change your view. Understanding someone's reasoning is not endorsing the
+conclusion. Do not flatter, manufacture agreement, argue for its own sake or
+invent alternatives to a settled fact. Admit uncertainty and revise your own
+position when the evidence warrants it.
 
-Read the existing answers and relevant decisions first. Preserve them unless
-new evidence changes their consequences. For routine setup or configuration,
-show one coherent recommended profile: setting in plain language, retained or
-proposed value, what it controls and why, and what accepting or changing it means.
-Let the user accept it or change named entries only; do not turn it into a form
-they must fill. "Use recommended values" delegates routine choices: disclose
-them and proceed, without another approval for each field. It does not authorize
-undisclosed scope, spending, destructive actions or weaker safety requirements.
+## Keep it a dialogue
 
-Keep the **design tree** in your head: every decision branches into the ones
-that hang off it, and the **frontier** is the set whose prerequisites are
-settled. When a material decision is genuinely unresolved, ask the **one**
-question that unblocks the most, and wait for the answer before the next. This
-rule limits substantive design questions; it does not require serial approval
-of defaults or repeated confirmation of a profile the user already accepted.
+Alternate expanding possibilities and bringing promising threads into focus.
+Consider user experience, domain rules, business value, operations and
+architecture when they reveal something important, not as a compulsory tour.
+Use concrete examples rather than only asking for abstractions. Do not end
+every message with a question or force every exploratory question into choices.
+One question at a time is a limit on decision interviews, not a conversation
+script. Templates organize retained conclusions, not the conversation itself.
 
-## 3. Asked at their height
+Reuse the established role; otherwise assume **product engineer**. Ask about
+role only if ambiguity materially changes who decides.
 
-A question is put in the terms of the role it goes to: what a person will see,
-what it will cost, what becomes hard later. **No file, no function, no
-library** in a question to an owner, an analyst or a product engineer; to an
-architect who works in the code, components and contracts, not lines.
+| Role | Explain consequential choices through |
+| --- | --- |
+| Product owner | purpose, audience, priorities, scope and cost |
+| Analyst | domain rules, exceptions, terms and acceptance |
+| Architect | boundaries, ownership, interfaces and quality trade-offs |
+| Product engineer | all of these through product consequences, without assuming code knowledge |
 
-A technical fork is translated into its consequence before it is asked. Not
-"a queue or a cron job?" but "may this run up to a minute late, or must it be
-immediate? Immediate costs a moving part we will have to watch." If a fork has
-**no consequence visible at their height**, it is not their question: it is
-yours, by the line in step 1.
+Role changes language and depth, not which viewpoints may be explored. Inspect
+available facts yourself. Routine reversible implementation choices are yours;
+disclose relevant assumptions without asking the user to select files or tools.
+Do not spend on services or perform consequential external actions merely to
+answer an interesting question.
 
-## 4. Every question comes with positions
+## When a decision is actually needed
 
-Never a bare question, and never one recommended answer dressed as a choice.
-Two to four **positions a reasonable person could hold**, each with what it
-sets in motion:
+Read existing decisions first; do not reopen them without new evidence. For
+setup or configuration, propose one coherent profile: retained/proposed values,
+purpose, rationale and time/cost/risk consequences. Let the user accept it or
+change named entries. Delegated defaults do not authorize destructive actions,
+expanded scope or weaker acceptance.
 
-```
-<the question, in their terms, and why it has to be decided now>
+For a material unresolved trade-off, explain why it matters now, recommend an
+option and give real alternatives with consequences. Ask the question that
+unblocks the next step, not every question in the design tree. Do not present a
+preferred choice between straw men. Reuse already given approval.
 
-A. <position>. What follows: <for whoever uses it; for cost and time; what it
-   makes easy or hard later>.
-B. <position>. What follows: …
-C. <position>. What follows: …
-
-I would take <one>, because <the one reason that carries it>. <What would
-change my mind.>
-```
-
-The positions are real alternatives, argued as their best advocate would, not
-a preferred one between two straw men. Where the harness can present choices
-to pick from, use it; the free answer always stays open, and "neither,
-because…" is often the most useful reply there is.
-
-## 5. Facts are yours
-
-Never ask for what you could look up: what the code does, what the tool
-supports, what the tracker holds. Find it, with a sub-agent where the harness
-has them, and meanwhile continue independent work; ask only if a consequential
-decision actually needs the user. Bring a fact
-into a question only as far as it bears on the decision: "today a rollback
-takes twenty minutes and three people", not how it is implemented.
-
-## 6. While it runs
-
-- A word doing two jobs, or two words doing one, is settled on the spot: use
-  "model-domain" where the project keeps a glossary.
-- A question only something **runnable** can answer (does this model survive
-  its awkward cases, what should this look like) is not settled by talking.
-  Say so, and tell the user `/to-prototype` answers it; carry on with the
-  branches it does not gate.
-- A question that cannot be settled today and **blocks a build** is work, not a
-  loose end: use "to-backlog", and it goes under the stage
-  it gates.
-
-## 7. Done
-
-When decisions needed for the next stage are settled. Keep unrelated future
-questions open rather than expanding the interview indefinitely. Say it back
-in three short lists:
-
-- **Decided by you**, by the role each was decided in, one line each with the
-  position taken.
-- **Decided by me**, in my own zone, each with its reason: so that any of them
-  can be overruled in a word. This list is not optional; a decision made
-  silently on somebody's behalf is the thing this skill exists to prevent.
-- **Still open**, with whose decision each is.
-
-Confirm consequential new choices before acting; existing approval and routine
-agent-owned decisions do not require another permission round. Keep what follows (a spec,
-stages) in this same conversation: the lists are a summary, and the reasons are
-in the thread.
+In decision mode, summarize the user's decisions, relevant agent-owned choices
+and remaining uncertainties briefly. In exploration mode, a useful observation
+or simply stopping is enough; no obligatory three-list report, spec, next task
+or implementation offer. Keep hypotheses visibly distinct from commitments.

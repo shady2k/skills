@@ -43,6 +43,10 @@ choice. A small irreversible change can need more design than a large routine on
   or `to-prototype` where evidence is needed, followed by `to-spec` and
   `to-stages`. Continue automatically through already authorized decisions;
   ask only about consequences that belong to the owner.
+- **Retained research/setup/docs only:** use the applicable helper without
+  inventing product requirements. Export a `supporting` change with its scope
+  rationale and owning task, using the integration's corresponding check policy.
+  This route cannot disguise production implementation or a current-spec change.
 
 Use installed skills through the harness's available mechanism. If a required
 helper is missing, name it and the installation action; do not pretend it ran.
@@ -52,6 +56,13 @@ expand a request for one task into an entire feature: describe the necessary
 stage boundary and resolve a material scope change with the owner.
 
 ## 2. Coordinate and dispatch
+
+Before implementation dispatch, run the integration's feature document gate
+against the actual baseline; the first product implementation also needs the
+product check. Research/design tasks may establish these prerequisites without
+pretending implementation is ready. Preserve existing paths and scope legacy
+baselines to affected capabilities. Update a stale requirement base only after
+reconciling its meaning; unrelated parallel changes do not invalidate this work.
 
 Read the execution settings from the gate config and commands from the
 integration. One coordinator owns integration and acceptance of each stage;
@@ -132,6 +143,8 @@ evidence tied to the same inputs can be reused.
 
 Record the base and final revision, included tasks, criteria, test and mutation
 results, review findings and their disposition. For non-code work, use the
-project's corresponding evidence and explain inapplicable checks. Then use
+project's corresponding evidence and explain inapplicable checks. Retrieve
+verified runner receipts through the integration and run the acceptance document
+gate with its protected policy. Authored "passed" text is not a receipt. Then use
 `close-out` to close the accepted tasks and stage. Commit links and clean
 backlog are necessary checks, not substitutes for behavioural acceptance.

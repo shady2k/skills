@@ -35,7 +35,8 @@ nothing to install, so that somebody who does not code can drive it.
 
 - The logic itself is a small **pure module** inside it (a reducer, a state
   machine, a few functions over plain data), with no reach into the page. The
-  page is throwaway; this part lifts into the real code once it is right.
+  page is throwaway; possible reuse is a later implementation decision, not
+  automatic promotion of the experiment into production.
 - Buttons to play freely, and a few **guided walks** through the cases that are
   hard to reason about on paper.
 - Every label in the domain's words, not the code's. After every action, the
@@ -63,14 +64,18 @@ screen, switched from a bar at the bottom.
 
 ## 4. Keep the answer, park the code
 
-Fold the validated decision into the spec. Production implementation proceeds
+Report the observed answer, uncertainty and limitations. A negative or
+inconclusive result may end the session; no feature or spec must follow.
+Only fold an actually approved decision into a spec when one is being retained.
+Production implementation proceeds
 through tracked work and its normal checks; lifting a pure module is not an
 exemption. The prototype
-itself is a **primary source**: preserve it as a task-linked artifact, or an
+itself is a **primary source**: if retention is wanted, preserve it as a task-linked artifact, or an
 authorized task-linked commit on a branch of its own, out of the main line.
 Leave a pointer where the work lives. Where the
 project has a backlog integration, that is a comment on the feature issue,
 with the question and the verdict. The main line keeps the decision only.
 
-Then tell the user where the thread goes back: the conversation that raised the
-question, usually `/to-spec`.
+Return to the conversation that raised the question. Leave scratch artifacts
+clearly labelled and disclose their location; keeping or discarding them is not
+permission for production adoption or deleting unrelated files.

@@ -8,6 +8,12 @@ disable-model-invocation: true
 
 Read the state, then answer with the next useful action by name.
 
+First read intent. For free discussion, imagination or read-only exploration,
+recommend `brainstorming` directly, without requiring setup or querying a
+tracker. Evidence-only questions can use `to-research`. No mandatory output,
+task or next implementation step follows. The state ladder below is for users
+asking to manage or carry out retained project work, not permission to think.
+
 This project's **backlog integration** should have been provided to you: how
 its gate is run, how its tracker is driven, where its vision and charters
 live. Follow the project's agent-doc pointer. If it is missing, recommend
@@ -15,7 +21,7 @@ live. Follow the project's agent-doc pointer. If it is missing, recommend
 
 ## 1. Verify compatibility and collect state
 
-Compare the protocol version with config `setupVersion` and both installed
+Compare the protocol version with config `setupVersion` and all three installed
 checks' versions and require `setupStatus: verified`. Missing or mismatched
 versions or a pending/failed setup request setup, even when the
 old gate runs. Matching versions do not bypass a user-requested setup rerun.
@@ -43,6 +49,8 @@ coordinating acceptance from an abandoned hold.
 | submitted results or implemented work await integration/acceptance | resume that stage with `/take-task`; do not reimplement its leaves |
 | accepted work awaits closure | `close-out` with the acceptance record |
 | current outcomes are all accepted | `/to-milestone` |
+| new product lacks direction/first charter | `/to-milestone`; draft from known decisions, not a field-by-field interview |
+| a change fails document readiness | explain the concrete missing contract, stale base or unresolved decision; use `to-spec` |
 | an outcome needs design or decomposition | `/take-task` selects the route, or `to-spec` when the user wants design only |
 | independent ready work exists | `/take-task` for the stage or requested work; mention parallel opportunities |
 | all remaining work is genuinely blocked or held | state the required result/owner; do not widen the milestone or invent work |
@@ -74,9 +82,10 @@ and only material unresolved decisions need questions.
 - `to-milestone`: agree outcomes and scope/budget; independent outcomes may run together.
 - `take-task`: route tracked work through proportional design, parallel local
   implementation where possible, integration and stage acceptance.
-- `brainstorming`: role-aware recommendations; one genuinely unresolved
-  consequential question at a time, not an interview about routine settings.
-- `to-spec`: short behavioural delta or full spec, according to risk and uncertainty.
+- `brainstorming`: explore, investigate or decide through dialogue; offer ideas,
+  understand reasoning before independent disagreement; no mandatory artifact.
+- `to-spec`: short or full proposed change to living capability specs, with
+  scenarios and document readiness checks; not a prerequisite for free discussion.
 - `to-stages`: stages sized for a session including acceptance, with real
   dependencies and parallel-ready leaves.
 - `diagnose-bug`: evidence-based diagnosis; fixing requires an authorized tracked task.
@@ -84,6 +93,7 @@ and only material unresolved decisions need questions.
 - `to-research`: a bounded primary-source investigation with a cited result.
 - `model-domain`: durable domain terms and consequential decision records.
 - `to-backlog`: file work before implementation, preserve findings and agree admission.
-- `close-out`: close accepted work; preserve integration and pending acceptance.
+- `close-out`: synchronize accepted behaviour into current specs before closure;
+  preserve integration, pending acceptance and interrupted publication.
 - `groom-backlog`: snapshot, agree the live slice, clean reversibly and verify.
 - `handoff`: transfer state, revisions, evidence, workers and the next action.

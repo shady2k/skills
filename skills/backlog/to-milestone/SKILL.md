@@ -40,6 +40,13 @@ audience and exclusions from known decisions and show the recommendation.
 Ask only for missing consequential requirements, not for answers already in
 the conversation. Record the agreed vision on one page at the integration's path.
 
+Use the integration's vision/roadmap/charter resources, adapting existing
+equivalents rather than creating duplicates. Vision is direction and deliberate
+exclusions; roadmap explains intended outcomes and sequencing, not task status.
+For a new project a short roadmap section in vision is enough. Future hypotheses
+need no promised dates, detailed specs or tasks. Current capabilities remain
+empty until something has been implemented and accepted.
+
 ## 2. Propose the charter for review
 
 Use the established role, otherwise product engineer: explain what ships,
@@ -96,4 +103,7 @@ Run the gate. Done when it is clean, every outcome has exactly one feature
 issue wearing the milestone's label, and nothing outside the milestone is
 live. Then publish, and tell the owner `take-task` can select the appropriate
 route for an outcome by name, or `to-spec` can be used for design alone. Do not
-impose a sequence on independent outcomes.
+impose a sequence on independent outcomes. Run the product document check for a
+new product before recommending implementation; its first feature also needs
+feature readiness. A charter is not a whole-system design or implementation
+approval for every idea on the roadmap.

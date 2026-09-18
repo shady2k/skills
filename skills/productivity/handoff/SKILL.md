@@ -16,6 +16,11 @@ where everything else already lives.
 If the user passed arguments, they say what the next session is for. Tailor
 everything below to that and leave the rest out.
 
+For an exploratory conversation, preserve its open-ended intent, interesting
+hypotheses and disagreements without inventing decisions, tracked work or an
+implementation next step. The user may only want to continue thinking. Existing
+backlog integration does not turn an unrelated conversation into a cleanup task.
+
 ## 1. Settle what is in flight
 
 Anything left half-done is a trap the next agent cannot see.
@@ -41,6 +46,9 @@ Anything left half-done is a trap the next agent cannot see.
   mutations and review. Name the next coordinator; do not reassign already
   implemented tasks as ready work. Independent workers may continue if their
   owner and collection path remain explicit.
+- **Document lifecycle:** retain proposal and baseline references, verified
+  receipt locations, current-spec sync and archive/publication state. A landed
+  delta must not be reapplied; unfinished sync must not masquerade as closure.
 
 Done when nothing the next agent needs exists only in this session's memory or
 in an unnamed process.

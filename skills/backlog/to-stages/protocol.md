@@ -1,9 +1,9 @@
 # The backlog protocol
 
-Protocol version: 0.7.2
+Protocol version: 0.8.0
 
 **Compatibility before writes.** Compare this version with the project's
-config `setupVersion` and both installed checks' `--version`, and require
+config `setupVersion` and all three installed checks' `--version`, and require
 `setupStatus: verified`. Missing or mismatched versions, or a pending/failed
 setup, mean: ask the user to run `/setup-shady2k-skills` after the
 update, and pause tracker/repository mutations. Read-only investigation may
@@ -98,6 +98,28 @@ setup creates its task through the chosen tracker before a gate exists. A
 read-only discussion or investigation need not create an issue until it produces
 work to retain. Commit links are verified by the separate commit check; a clean
 backlog alone does not prove them.
+
+**Exploration is not admission.** Free discussion, imagination and read-only
+research can end with no result, task or document. Hypotheses are not approved
+requirements. A scratch experiment does not authorize production adoption.
+Product/feature gates begin at commitment to retained implementation, not thought.
+
+**Living documents.** Vision gives direction; roadmap explains intended outcomes
+and sequence without duplicating tracker status or creating blocking edges.
+The charter bounds the current slice. Current capability specs describe accepted
+mainline behaviour; change records describe proposals and pinned requirement
+deltas. Design and decision records explain how and why only where useful.
+Use project-provided paths/templates, adopting existing documents in place.
+
+The document gate runs separately from backlog strength: product intent before
+first implementation, feature readiness before dispatch, revision-bound evidence
+at acceptance and synchronized current specs before closure. An accepted stage
+updates its own requirements without waiting for unrelated features. Correct
+requirements survive bug fixes; regression checks change instead. Independent
+requirements may advance concurrently; a changed prerequisite requires refresh.
+The integration supplies deterministic exports and verified receipts. Structural
+validation cannot establish semantic correctness or authenticate a fabricated
+receipt. CI/wrapper protection and actual tests are distinct responsibilities.
 
 **Names, not identifiers.** Everything a person reads says "Title" (id), the id
 in parentheses and only where somebody must act on it. A title is a sentence

@@ -34,6 +34,22 @@ implementation. State why; for a duplicate, name the surviving issue.
 
 ## 2. Close the accepted stage and walk up
 
+Before successful closure, reconcile the accepted stage's requirement deltas
+into current capability specs through the integration's synchronization workflow.
+Use its actual target baseline, preserving untouched requirements and independent
+accepted changes. Update affected architecture/decision links where necessary;
+do not promote the rest of an unfinished feature to accepted behaviour.
+Supporting research/setup/documentation leaves current requirements unchanged;
+verify its actual scope and corresponding checks instead of inventing a spec.
+Run the close document gate on the final candidate with revision-bound verified
+receipts. Refresh checks whose inputs changed. A no-behaviour fix preserves the
+contract and records regression evidence; a cancelled proposal never updates it.
+
+Publish code/current docs and preserve the change as history through the
+authorized workflow before marking tracker work accepted. If publishing, syncing
+or archiving is incomplete, keep closure pending and resume idempotently. Do not
+reapply a delta already landed, discard its evidence or relabel it as ready work.
+
 After its own DONE WHEN holds on the accepted revision, close the included
 tasks and the stage with references to that evidence. Re-read partial writes
 and finish idempotently if the tracker cannot update them together.
@@ -56,7 +72,7 @@ Transfer or release the coordinator's hold and name who should resume.
 
 ## 4. Publish and prove
 
-Run the backlog gate before publishing and the commit-link check for any
+Run the backlog and applicable document gates before publishing and the commit-link check for any
 commits. Resolve new errors without bypassing the configured strength.
 Publish only through the project's authorized workflow.
 

@@ -21,7 +21,7 @@ is evidence to investigate, not permission to redefine the domain to fit a bug.
 
 ## Where they live
 
-Where the project already keeps them. Otherwise `CONTEXT.md` at the root and
+Use existing paths or the project's supplied document integration. Otherwise `CONTEXT.md` at the root and
 `docs/adr/`, numbered `0001-slug.md`, each created **lazily**: with the first
 term resolved, the first decision worth recording. Not before.
 
@@ -37,7 +37,9 @@ term resolved, the first decision worth recording. Not before.
   the boundary is exact.
 - **Check the code.** When what was said and what the code does disagree, say
   so: one of them is wrong.
-- **Write it down the moment it is settled**, not at the end:
+- **When retaining an agreed definition is in scope, write it down once settled**.
+  Free exploration may leave tentative meanings in conversation; do not turn a
+  hypothetical term into a canonical definition or create files automatically:
 
 ```markdown
 **Order**:
