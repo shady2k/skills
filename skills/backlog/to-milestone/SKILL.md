@@ -49,6 +49,8 @@ Lead each question with your recommended answer.
    and who observes it, with the one check that will watch it happen. An
    outcome you cannot name a check for is an area of work, and it gets split or
    sharpened until you can.
+   Independent outcomes may progress in parallel. A shared charter or order in
+   this list never creates a blocking dependency between their feature issues.
 3. **What is out**, by name. The things somebody will assume are in.
 4. **What carries over** from the ending milestone, and what of it is deferred
    instead. Carrying is a decision, never a default.
@@ -58,19 +60,21 @@ Lead each question with your recommended answer.
    it moves the ship date, and the gate will say so at the moment it happens.
 6. **The next milestone**, as feature titles only. It is not decomposed.
 
-Done when the owner has confirmed each of the six.
+Done when applicable consequential choices are settled; reuse previous answers
+and skip questions already resolved in this conversation.
 
 ## 3. Write it
 
 - The charter, at `<charters directory>/<milestone label>.md`: name, date
-  declared, outcomes with their checks, out, carried over, finding budget, the
+  declared, outcomes with their checks, out, carried over, the finding-budget
+  decision and a pointer to its current value in config, the
   next milestone's titles.
 - One feature issue per outcome. **Search first**: a feature that already
   exists, live in the slice or created deferred by the previous charter, is
   adopted: undeferred, given the milestone's label and its DONE WHEN. Create
   only what is missing, as the type the backlog integration names for
   features, with one area label and a body ending in a `## DONE WHEN` that
-  stops being false exactly once. The next milestone's features are created
+  names observable behaviour. The next milestone's features are created
   **deferred**, under their own label.
 - The gate config: `currentMilestone`, `milestoneLabels`, `findingBudget`.
 - When a milestone is ending: everything still open under it that was not
@@ -80,5 +84,6 @@ Done when the owner has confirmed each of the six.
 
 Run the gate. Done when it is clean, every outcome has exactly one feature
 issue wearing the milestone's label, and nothing outside the milestone is
-live. Then publish, and tell the owner the next command: `/to-spec` for the
-first outcome, by name.
+live. Then publish, and tell the owner `take-task` can select the appropriate
+route for an outcome by name, or `to-spec` can be used for design alone. Do not
+impose a sequence on independent outcomes.

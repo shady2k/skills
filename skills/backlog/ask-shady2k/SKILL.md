@@ -1,102 +1,83 @@
 ---
 name: ask-shady2k
-description: Ask what to do next. Reads the backlog's state and answers with one command, not a map of routes.
+description: Read the current work and recommend the next useful action, including setup revalidation, stage acceptance or independent ready work.
 disable-model-invocation: true
 ---
 
 # Ask shady2k
 
-**Read the state first**, then answer with the one thing to do now.
-
-## 1. Read the state
+Read the state, then answer with the next useful action by name.
 
 This project's **backlog integration** should have been provided to you: how
 its gate is run, how its tracker is driven, where its vision and charters
-live. The project's agent doc points at it; follow the pointer. If there is
-none, the answer is `/setup-shady2k-skills` and you are done. The protocol is
-[`protocol.md`](protocol.md), beside this file.
+live. Follow the project's agent-doc pointer. If it is missing, recommend
+`/setup-shady2k-skills`. Read [`protocol.md`](protocol.md).
 
-**Whether the set is installed is a question for the gate, not for a file.**
-Run the gate from this checkout. If it cannot run, say what failed in its own
-words before answering with rung 1: a script the integration names and this
-checkout lacks usually means an install that never landed, so look at the other
-worktrees and branches and name the one that has it; a missing runtime or a
-tracker that will not answer is a different repair, and neither is a reason to
-interview the owner from the start.
+## 1. Verify compatibility and collect state
 
-Then collect, using the integration's gate command and tracker operations:
+Compare the protocol version with config `setupVersion` and both installed
+checks' versions and require `setupStatus: verified`. Missing or mismatched
+versions or a pending/failed setup request setup, even when the
+old gate runs. Matching versions do not bypass a user-requested setup rerun.
 
-- **The gate's report**, as JSON: `newErrors`, which checks fired, and each
-  violation's own `fix` line.
-- **The current milestone**: the config's `currentMilestone`, whether its
-  charter file exists, its outcomes (the feature issues wearing its label),
-  which of them have a spec and which are done, its finding budget and how
-  many findings it has taken.
-- **Holds**: every active issue, who holds it, and when its tree last moved.
-- **Ready leaves** inside the current milestone, and how many live issues there
-  are in all.
+Run the gate from this checkout. If it fails to run, name the actual cause:
+an unlanded installation, missing runtime, tracker outage or broken wiring.
+Inspect other worktrees when an installation may be stranded there. Do not
+replace an inaccessible tracker or restart the interview without evidence.
 
-## 2. Answer with the first rung that holds
+Collect the gate's JSON report, config values, charter, outcomes, holds,
+submitted/implemented tasks and stage acceptance records, and ready leaves using the
+integration's stage/checkout-aware operation. Distinguish an owner actively
+coordinating acceptance from an abandoned hold.
 
-Walk the ladder top to bottom and stop at the first rung whose condition is
-true. Give that one answer. A second line is allowed only when the first
-cannot be done without it.
+## 2. Answer from the first applicable condition
 
-| #  | condition                                                                            | answer                                                                   |
-| -- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| 1  | the gate cannot run                                                                  | `/setup-shady2k-skills`, with what failed; for an install that never landed, land it instead |
-| 2  | no current milestone, and there are live issues                                      | `/groom-backlog`: it declares the slice and defers the rest              |
-| 3  | no current milestone and nothing live; or the milestone has no charter file; or no feature wears its label | `/to-milestone`                                    |
-| 4  | issues are held and nothing in their trees moved within the hold limit               | release them, by name: the tracker's release verb                        |
-| 5  | the gate reports new errors, 7 or fewer                                              | fix these, by name, each with the gate's own `fix` line                  |
-| 6  | the gate reports more than 7 errors, or there are more than 30 ready leaves          | `/groom-backlog`                                                         |
-| 7  | every outcome of the current milestone is done, and there is at least one            | `/to-milestone`                                                          |
-| 8  | no ready leaf, and an outcome has neither a spec nor stages                          | `/to-spec` for that outcome, by name                                     |
-| 9  | no ready leaf, and an outcome has no stages or its next open stage has no tasks      | `/to-stages` for that outcome, by name                                   |
-| 10 | no ready leaf, and every open leaf is held by somebody else or blocked               | say so; an empty queue is an answer, never widen the query               |
-| 11 | otherwise                                                                            | `/take-task` for the first ready leaf, by name, in a fresh conversation  |
+| condition | next action |
+| --- | --- |
+| tracker/integration absent, setup version absent or incompatible | `/setup-shady2k-skills`: choose/install or reverify, explaining what is missing |
+| checks cannot run | specific repair through setup; land a stranded installation when that is the cause |
+| no current slice and existing live work | `groom-backlog` to agree and clean the slice; setup owns this during initial installation |
+| no milestone or its charter is missing | `/to-milestone` |
+| an abandoned active hold | release the actual abandoned work, preserving implemented results |
+| new gate errors | report their concrete fixes; use `groom-backlog` for a broad cleanup |
+| submitted results or implemented work await integration/acceptance | resume that stage with `/take-task`; do not reimplement its leaves |
+| accepted work awaits closure | `close-out` with the acceptance record |
+| current outcomes are all accepted | `/to-milestone` |
+| an outcome needs design or decomposition | `/take-task` selects the route, or `to-spec` when the user wants design only |
+| independent ready work exists | `/take-task` for the stage or requested work; mention parallel opportunities |
+| all remaining work is genuinely blocked or held | state the required result/owner; do not widen the milestone or invent work |
 
-Say the count beside the limit whenever rung 5 or 6 decides ("9 errors, limit
-7"). A finding beyond the budget needs no rung of its own: the gate reports it as a
-new error, and its `fix` line is the decision to take to the owner.
+For pending acceptance already owned by an active coordinator, recommend
+independent ready work instead of duplicating its acceptance. One stage's
+blocker does not block unrelated stages or features.
 
-Two answers come from what the person just said rather than from the state,
-and they win over rungs 7 to 11: something **arrived** (an idea, a bug, a
-request) means `/to-backlog`; something is **broken and nobody knows why**
-means `/diagnose-bug`; something was **finished** means `/close-out`;
-**stopping** mid-work, or a conversation grown too long to think in, means
-`/handoff`. A plan with decisions still open means `/brainstorming`; a design
-question talking cannot settle means `/to-prototype`; reading that needs doing
-means `/to-research`.
+The user's immediate intent can select a helper: an arrival uses `to-backlog`,
+a diagnosis uses `diagnose-bug`, an unresolved product decision uses
+`brainstorming`, evidence gathering uses `to-research` or `to-prototype`.
+Stopping suggests `/handoff`, with pending acceptance preserved.
 
-## 3. Say it like this
+## 3. Report briefly
 
-Up to three lines of state, each a fact with its number, then the answer:
+Give the few state facts needed to justify the action, then that action.
+Use "Title" (id), never identifiers alone. Explain what releases a real blocker;
+do not present every skill unless the user asks for the map.
 
-```
-> the milestone "Replace the old session manager" was declared 12 days ago; its finding budget is spent (7 of 5)
-> you hold 3 issues whose trees have not moved in over two days
-> the gate reports 2 new errors
->
-> first:  release "Tabs remember their order" (PRJ-212) and two more
-> then:   /groom-backlog, to decide what leaves the slice
-```
+## Routes
 
-Issues are always "Title" (id). Never answer with a list of skills.
-
-## The routes, for when the person asks what exists
-
-- `/setup-shady2k-skills` installs the gate, writes the project's backlog integration and points the agent doc at it. Once per project.
-- `/to-milestone` charters a milestone: outcomes in, what is out, the finding budget.
-- `/brainstorming` thinks a plan through one question at a time, put to the role it belongs to, each with its positions and what they cost. The other skills call it to settle their questions.
-- `/to-spec` writes the spec of one outcome of the current milestone: problem, solution, decisions, where it is checked, what is out.
-- `/to-stages` breaks one outcome of the current milestone into stages and tasks, from its spec.
-- `/take-task` takes one ready task from claim to close: red before green, reviewed against the spec. One task per conversation.
-- `/diagnose-bug` finds the cause of a bug that resists a first look: a command that goes red on it, before any theory. The agent reaches for it unprompted.
-- `/to-prototype` answers one design question with throwaway code.
-- `/to-research` sends a background agent to the primary sources and gets a cited note back.
-- `/model-domain` keeps the glossary and the decision records. The agent reaches for it unprompted.
-- `/to-backlog` files what arrives into its lane: work, a finding, an idea. The agent reaches for it unprompted.
-- `/close-out` closes finished work with evidence and releases what was not finished. The agent reaches for it unprompted.
-- `/groom-backlog` digs out a backlog that has stopped being a queue.
-- `/handoff` passes this conversation to a fresh session: a document outside the repository, and it runs `/close-out` for the backlog's part.
+- `setup-shady2k-skills`: choose/verify the tracker, clean its queue, configure
+  execution and fully prove setup; repeat after updates and whenever requested.
+- `to-milestone`: agree outcomes and scope/budget; independent outcomes may run together.
+- `take-task`: route tracked work through proportional design, parallel local
+  implementation where possible, integration and stage acceptance.
+- `brainstorming`: one consequential question at a time, at the user's role.
+- `to-spec`: short behavioural delta or full spec, according to risk and uncertainty.
+- `to-stages`: stages sized for a session including acceptance, with real
+  dependencies and parallel-ready leaves.
+- `diagnose-bug`: evidence-based diagnosis; fixing requires an authorized tracked task.
+- `to-prototype`: a bounded runnable experiment, retained through its task.
+- `to-research`: a bounded primary-source investigation with a cited result.
+- `model-domain`: durable domain terms and consequential decision records.
+- `to-backlog`: file work before implementation, preserve findings and agree admission.
+- `close-out`: close accepted work; preserve integration and pending acceptance.
+- `groom-backlog`: snapshot, agree the live slice, clean reversibly and verify.
+- `handoff`: transfer state, revisions, evidence, workers and the next action.

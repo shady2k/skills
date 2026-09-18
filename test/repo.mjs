@@ -68,6 +68,10 @@ const version = JSON.parse(readFileSync(join(ROOT, '.claude-plugin/plugin.json')
 const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).version;
 const rules = (readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/check.mjs'), 'utf8').match(/RULES_VERSION = '([^']+)'/) || [])[1];
 if (version !== pkg || version !== rules) fail(`versions differ: plugin.json ${version}, package.json ${pkg}, check.mjs ${rules}`);
+const commitRules = (readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/check-commits.mjs'), 'utf8').match(/RULES_VERSION = '([^']+)'/) || [])[1];
+const protocolVersion = (protocol.match(/^Protocol version: (.+)$/m) || [])[1];
+if (version !== commitRules || version !== protocolVersion)
+  fail(`compatibility versions differ: plugin ${version}, commit check ${commitRules}, protocol ${protocolVersion}`);
 
 console.log(failures ? `\n${failures} failure(s)` : `PASS  ${skills.length} skills, ${files.length} files: no origin words, manifest, invocation and protocol copies in step, version ${version}`);
 process.exit(failures ? 1 : 0);

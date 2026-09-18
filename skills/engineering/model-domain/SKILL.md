@@ -14,6 +14,11 @@ command over the tracker, never a page somebody maintains.
 This is for **changing** them. Reading the glossary before naming something is
 a habit every skill has, not this skill.
 
+Resolve the owning task before retaining repository changes or committing them.
+Where the project has a backlog integration, follow it. Without one, discuss
+terms read-only and request setup before retained work. A code/glossary mismatch
+is evidence to investigate, not permission to redefine the domain to fit a bug.
+
 ## Where they live
 
 Where the project already keeps them. Otherwise `CONTEXT.md` at the root and

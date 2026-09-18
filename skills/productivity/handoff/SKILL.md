@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Hand the current conversation to a fresh session, without committing anything. A short document outside the repository, a note where the work lives, and the first sentence to give the next agent.
+description: Hand the current conversation and pending stage acceptance to a fresh session, without committing by default.
 argument-hint: "What will the next session be used for?"
 disable-model-invocation: true
 ---
@@ -25,14 +25,20 @@ Anything left half-done is a trap the next agent cannot see.
   or hand it over as it is. A fresh session in another checkout or worktree
   will not see it at all, so say where it sits.
 - **The backlog**, if this project's agent doc points at a backlog
-  integration: call the Skill tool with "close-out". It closes what is done on
-  evidence, files what was found, and releases what you hold with a comment on
+  integration: use "close-out". It closes only work covered by stage acceptance,
+  preserves submitted results and implemented work awaiting acceptance, files findings and releases
+  unfinished holds with a comment on
   where it stands. That comment is the handoff for work that lives in an
   issue; do not repeat it in the document, point at it. If it could not
   finish, because the gate or the tracker would not run, the document says
   which holds were left and why: optional does not mean silent.
 - **Running things**: background commands, other agents, open branches or
   worktrees you created. Say which are still running and who is to collect them.
+- **Stage acceptance:** retain submitted result locations, base and assembled revisions, integrated
+  tasks, local check evidence, pending dependencies and remaining full tests,
+  mutations and review. Name the next coordinator; do not reassign already
+  implemented tasks as ready work. Independent workers may continue if their
+  owner and collection path remain explicit.
 
 Done when nothing the next agent needs exists only in this session's memory or
 in an unnamed process.

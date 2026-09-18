@@ -1,6 +1,6 @@
 {
   "name": "shady2k-skills",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "description": "shady2k's agent skills",
   "repository": {
@@ -9,6 +9,7 @@
   },
   "scripts": {
     "protocol": "node test/sync-protocol.mjs",
-    "test": "node skills/backlog/setup-shady2k-skills/check.mjs --selftest --config test/origin-words.json && node test/repo.mjs"
+    "test:mutation": "node test/mutation.mjs",
+    "test": "node skills/backlog/setup-shady2k-skills/check.mjs --selftest --config test/origin-words.json && node skills/backlog/setup-shady2k-skills/check-commits.mjs --selftest && node test/repo.mjs"
   }
 }

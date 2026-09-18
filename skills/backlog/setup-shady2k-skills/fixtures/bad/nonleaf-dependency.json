@@ -1,0 +1,56 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture nonleaf-dependency",
+  "issues": [
+    {
+      "id": "E",
+      "title": "Work E",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [
+        "T"
+      ],
+      "body": "DONE WHEN the outcome is independently observable.",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "T",
+      "title": "Work T",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "C",
+      "title": "Work C",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [
+        "E"
+      ],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    }
+  ],
+  "expectViolations": [
+    "nonleaf-dependency|E|T",
+    "nonleaf-dependency|C|E"
+  ]
+}

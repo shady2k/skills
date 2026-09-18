@@ -2,4 +2,4 @@ interface:
   display_name: "To Research"
   short_description: "A background agent reads the primary sources"
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

@@ -3,10 +3,10 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: the protocol below is decided. The seven backlog skills and `handoff`
-are written; the installer has been run once, in the origin; layer 3, the
-harness hooks, is not built. §1 and §2 are the record of the conversation and
-are left as they were said; from §3 on the document is kept current.
+Status: version 0.7.0 implements the revised skills and portable checks. Live
+project validation of the new end-to-end workflow remains outstanding. §1 and
+§2 preserve the original conversation; §§3–11 describe the current design;
+§12 records the history through 0.6, and §14 records the 0.7 decisions.
 
 ## 1. The owner's idea, as stated
 
@@ -80,295 +80,183 @@ skill cannot fix that, because a skill is advice rather than a gate.
 So the conclusion is not "heavier skills". It is: build the gate, and let the
 skills stay light.
 
-## 3. Four layers, and only one of them is skills
+## 3. Levels, readiness and parallelism
 
-### Layer 1 — the schema: what cannot be created
+The portable protocol is sourced beside the installer and copied into every
+consuming skill folder; tests reject drift.
 
-```
-Vision          a document, not an issue
-Milestone       a slice; a label in a tracker without milestones; has a date and a budget
-Feature         a root epic: what someone can do that they could not before
-Stage           an epic; a few sessions at most; its own DONE WHEN
-Task / Bug      one session
-```
+| Level | Role |
+| --- | --- |
+| Vision | Direction, people served and deliberate exclusions; a document |
+| Milestone | Current slice, outcomes and finding budget |
+| Feature | One observable outcome, possibly several independent stages |
+| Stage | An independently acceptable result sized for one session including acceptance |
+| Task / bug | A leaf within the stage, with observable criteria |
 
-Plus two lanes **outside** the flow:
+Only the current milestone is decomposed below features. Future work stays
+coarse or deferred. This horizon does not serialize current work: independent
+features, stages and tasks can run concurrently. A required result, conflicting
+write or exclusive resource justifies an edge; list order and hierarchy do not.
+Dependencies name the consuming and producing leaves, not entire containers.
 
-- **Ideas** — no parent, no edges, deferred, with a review date. Never in the
-  ready queue. Closed without regret when they stop being interesting.
-- **A budget for findings** — a declared slice of each milestone for bugs and
-  architectural debt. This is the answer to "found work pushes the feature out":
-  work found beyond the budget does not silently go to the front; it goes to the
-  next milestone or displaces something explicitly, and that is the owner's
-  decision rather than a side effect.
+An open unheld leaf is ready when its prerequisites are available in the
+consumer's stage and checkout. A worker's returned result is **submitted**, with
+a durable revision/location and local evidence. The coordinator integrates it,
+checks affected behaviour and records **implemented**. Implemented prerequisites
+may release consumers within that same stage, but cross-stage consumers wait
+for acceptance and closure. Neither submitted nor implemented means ready to
+implement again. Stopping preserves these states and their next action.
 
-### Layer 2 — the gate
+## 4. Ownership and executable guarantees
 
-One check that reads the tracker's export and fails. In pre-commit and in CI.
-**This is what binds.** What it enforces today, each rule with a fixture that
-violates it:
+The set owns the protocol and two portable checks. The project owns the
+tracker adapter, message parser, configuration, commands and local/CI wiring.
+Tracker usage is documented once in the project's tracker doc, with the
+integration section adding only what this protocol needs.
 
-- everything live belongs to the current milestone, and what does not is
-  deferred: that is the **horizon**, and it is also "no orphans";
-- ideas stay deferred and block nothing;
-- findings stay within the milestone's budget;
-- exactly one area label, and no label outside the declared vocabulary;
-- a feature or a stage has a DONE WHEN;
-- nothing is held that nobody is holding;
-- no edge onto a deferred issue, no cycle in the parent chain;
-- and, as a warning only, an edge onto a blocker nobody has touched in weeks or
-  that no longer exists. It measures the blocker and not the edge, because few
-  trackers date an edge.
+The backlog gate checks the horizon, ideas, finding budget, areas/vocabulary,
+holds, criterion markers, parent and live-dependency cycles, edges involving
+containers, and evidence presence for submitted/implemented work. Stale or
+missing blockers produce warnings for review; age alone does not prove a
+dependency invalid. The commit checker rejects missing links and references
+to absent issues or containers, independently of backlog strength.
 
-Designed and **not yet enforced**, so still advice: that the next milestone is
-decomposed no further than features, that no blocking edge sits on a feature or
-a stage, and that a title is a sentence. Each needs a rule and a fixture before
-this document may call it a gate.
+Backlog strength remains an explicit choice: block, block-new or report.
+Invalid inputs fail in every mode. Block-new uses historical backlog and
+historical config, with the appropriate CI baseline. It does not compare a
+branch with itself. Every rule has fixtures; new checks must be deliberately
+broken to prove that their fixtures fail.
 
-### Layer 3 — harness hooks
+The gates cannot prove that a message parser is honest, evidence is truthful,
+a requirement is good, or a referenced task really describes the commit.
+Setup proves the project adapters; acceptance verifies behaviour. Meaningful
+titles, session sizing and decomposition depth are instructions, not executable
+guarantees. No claim of evidence-kind validation beyond implemented checks.
 
-Session start injects the current milestone **by name**, what you are holding,
-how much has gone stale. Stop and pre-compact release holds. This is the
-"remind the user and the model" the owner asked for. **Not built.** Until it
-is, the reminder is a few lines in the project's agent doc pointing at the
-project's backlog integration and naming `/to-backlog` as the way a new issue
-gets in, which the installer adds.
+## 5. Setup starts with the tracker and always reconciles
 
-### Layer 4 — the skills
+An existing tracker is inspected and verified. If absent, the owner chooses a
+suitable tracker, then setup installs and initializes it. The setup task exists
+before repository modifications. Cleanup snapshots native state before any
+bulk change; grooming receives a verified bootstrap context so it can operate
+before the gate/adapter exists, without recursively demanding setup.
 
-Light, each with one entry and one exit:
+Cleanup retains the agreed current slice and independent active work, preserves
+submitted/implemented results, resolves invalid dependencies and defers unrelated
+work. It does not delete a backlog. A field-level before/after journal supports
+rollback without overwriting later work. Paired snapshots correct only timestamps
+still matching the bulk operation; later real work keeps its own age.
 
-| skill                  | in → out                                                                     | invoked by |
-| ---------------------- | ---------------------------------------------------------------------------- | ---------- |
-| `setup-shady2k-skills` | configures a project for the set: installs the gate, then proves it          | the user   |
-| `ask-shady2k`          | state → the one command to run next; absorbs "what do I take"                | the user   |
-| `to-milestone`         | vision and business requirements → a milestone charter with a finding budget | the user   |
-| `to-spec`              | one outcome, talked through → its spec: problem, solution, decisions, seams  | the user   |
-| `to-stages`            | the spec → stages and tasks: vertical slices, assertion-shaped criteria      | the user   |
-| `take-task`            | one ready leaf → closed: red before green, reviewed against the spec         | the user   |
-| `to-backlog`           | incoming → a lane (work / bug under a stage / idea)                          | the model  |
-| `close-out`            | close with evidence, re-parent findings, publish                             | the model  |
-| `groom-backlog`        | dig out a mess                                                               | the user   |
-| `brainstorming`        | a plan → one question at a time, by role, with positions → nothing assumed   | the model  |
-| `diagnose-bug`         | a bug that resists a glance → a command red on it → the cause → a check      | the model  |
-| `to-prototype`         | a design question talking cannot settle → throwaway code → the answer        | the user   |
-| `to-research`          | a question → a background agent → a cited note                               | the user   |
-| `model-domain`         | a fuzzy term or a costly decision → the glossary, a decision record          | the model  |
-| `handoff`              | this conversation → a fresh session, with nothing committed                  | the user   |
+Then setup configures the adapter, workflow, checks, hooks and integration.
+Every invocation runs the entire proof, even with a matching version: prior
+answers survive, but prior assumptions are rechecked. This includes tracker
+readiness semantics, atomic claims or serialized assignment, local/CI entry
+points, message parsing, test commands and review/mutation capabilities.
 
-`handoff` is the one skill outside the backlog: it lives in its own bucket, uses
-the project's backlog integration when the agent doc points at one (it calls
-`close-out`) and works without it.
+After every plugin/skill update, instructions request setup again. Config holds
+the last fully proved and landed setup version; tracker-writing skills compare
+that and installed script versions with their protocol version before mutations.
+A first-use guard is not a universal automatic update hook. Explicit setup
+never short-circuits on the stamp. Pending/failed attempts are recorded separately
+from the last successful version, so a failed rerun cannot look verified.
 
-**The set is `shady2k-skills`** — the owner's own, as `mattpocock-skills` is its
-author's, and that set is the reference for shape: a name says the action or
-names the result (`to-*`), the installer is `setup-<set>`, the router is
-`ask-<set>`. Almost everything is user-invoked and so costs no context; the
-router cures the memory load. Only what an agent must reach unprompted —
-filing a finding, closing work — is model-invoked.
+## 6. Design scales with uncertainty; TDD is independent
 
-The first draft had eight, under bare names (`setup`, `shape`, `spec`, `next`,
-`land`, `triage`, `groom`, a router). `next` went into the router, which already
-reads the state and says what to take. `land` already means merging a branch
-here. `triage` became `to-backlog`: the name says where a thing ends up, and
-sorting is only how it gets there. `to-stages` is written last and only if needed: the gate checks the shape
-of a result whoever produced it.
+Small, understood work records a short behavioural delta and acceptance
+scenarios. A bug normally retains its source requirement and adds regression
+coverage; only a gap or approved behaviour change updates the spec itself.
+Substantial risk or unknowns call for brainstorming, research or a bounded
+prototype before a full spec and stages. A small irreversible change may need
+more design than a large routine one.
 
-Names are English, like everything committed here. `spec` is not "too narrow"
-once `shape` holds the business and the vision and an ADR holds the why: three
-documents with three lifetimes.
+Setup asks for TDD or test-after. Both require tests. TDD runs a relevant
+failing check, minimal implementation and local refactoring under green tests.
+Test-after writes/updates checks after implementation. Acceptance boundaries
+do not prohibit useful local behavioural tests at other stable interfaces.
 
-## 4. The gate is generated, and proved by fixtures
+The product engineer is the usual human role: product, analysis and architecture
+in one person, without needing code details. Questions concern consequences.
+Reversible technical choices belong to the agent; escalate changed requirements,
+material cost/risk, irreversible choices and missing authority. Existing approval
+is not reopened by each helper.
 
-**The owner's decision:** the gate is a skill, because we do not know the user's
-environment. The skill explains what must be validated and the model writes the
-wiring for that project's specifics.
+## 7. Local feedback, integration and final acceptance
 
-**The trap, and it is worse than having no gate:** a generated validator that
-silently passes everything does not merely fail to catch — it certifies. The
-origin has the lesson twice already: a criterion written on `deadcode
--filter` is unfalsifiable, and a gate people learn to skip with `--no-verify`
-protects nothing.
+One coordinator owns a stage; independent stages can have independent
+coordinators. Workers receive bounded tasks, criteria, base revisions, ownership
+and local commands. Use isolated checkouts for concurrent interfering writes
+and explicit coordination of shared generated files or resources. Claim must
+be atomic or assignments serialized; readback of last-write-wins is not a lock.
 
-So the installer ships a **corpus**, not just a spec:
+Workers run static and related tests, including affected neighbouring behaviour.
+They submit results, not accepted tasks. The coordinator integrates incrementally,
+so real same-stage dependants need not wait for the entire batch. Submitted
+results survive a handoff before integration, and implemented results survive
+a handoff before acceptance.
 
-```
-check.mjs         the rules, each with why it exists and the move that clears it
-model.md          the normalized backlog — the only thing the rules know
-fixtures/bad/     backlogs that violate exactly the rule they are named for
-fixtures/good/    backlogs that must pass
-protocol.md       the protocol; copied into every skill that uses it, never into a project
-integration.md    the seed of the project's backlog integration: the gate, the tracker operations
-```
+At the stage boundary: full required tests, mutation testing of changed logic
+within its configured budget, then final review, preferably another model.
+Meaningful surviving mutations require investigation; unsupported tools and
+timeouts are not passes. Setup defines the fallback. Review covers both behaviour
+and maintainability against original requirements and assembled changes, with
+one disposition of findings.
 
-The rules stay in one file rather than one per rule: a project without Node
-ports one file, and the fixtures are what prove the port.
+Corrections invalidate affected evidence. A code change after the full run
+requires full checks on the final revision before acceptance; repeat mutation
+checks/review when their evidence changed. Then close included tasks and the stage.
+A feature still has its own criterion, and unrelated features need not wait.
 
-The last step of installation is not "I wired it in" but **running the fixtures
-and showing the table**. If the generated wiring passes a backlog known to be
-bad, that is visible in the minute of installation rather than in a month.
+## 8. Documents, task links and names
 
-Three layers of ownership, or three projects grow three validators with three
-bugs:
+Vision changes slowly; the charter records scope decisions; specifications record
+behaviour; the glossary and occasional ADRs preserve concepts and rationale.
+Current milestone, budget, vocabulary, execution settings and setup version live
+only in config. An acceptance record identifies the actual base/final revision,
+tasks, commands, results and unresolved limitations.
 
-| layer                                   | written by            | lives          |
-| --------------------------------------- | --------------------- | -------------- |
-| the rules                               | the plugin, identical | update with it |
-| the adapter (tracker → normalized JSON) | the model at setup    | in the project |
-| the wiring (pre-commit, CI, hook, cron) | the model at setup    | in the project |
+Every retained change and every commit belongs to tracked work, including setup,
+research, prototypes and documentation. Read-only discussion can happen without
+setup. Commit-msg and CI verify references; generated merge/revert messages must
+retain links by the chosen convention.
 
-### Gate strength is the user's choice
+A person sees "Title" (id), never identifiers alone. Current status is queried
+from the tracker rather than copied into a hand-maintained roadmap.
 
-The owner's decision: let the user pick. Three values, not two, or "non-blocking"
-becomes "off":
+## 9. Composition and routing
 
-- `block` — a red gate fails the commit;
-- `block-new` — fails only what this commit created or changed; old debt is a
-  report. **Recommended, never defaulted**: the rules refuse to run with no
-  strength chosen.
-- `report` — never fails, but the result is always visible.
+Setup, ask-shady2k, to-milestone, take-task and handoff remain user-invoked.
+Planning/research/prototype helpers and grooming are model-invoked so an
+authorized execution or setup request can compose them. Invocation does not
+authorize unrelated work, a new service commitment or publication.
 
-Two conditions. It is **asked once at setup, with the price of each explained** —
-a setting nobody was asked about is a setting everyone leaves at its default
-without knowing they chose. And `report` never means silent: the gate can be
-switched off, the report cannot, or in a month there is a red gate nobody
-remembers.
+The router verifies compatibility, checks actual tracker state and recommends
+the next useful action. Pending integration/acceptance is resumed, not
+reimplemented. An actively owned stage does not prevent routing independent
+ready work. Missing helpers are reported as installation dependencies.
 
-## 5. The tracker adapter
+## 10. Findings and cleanup
 
-One skill is the **only** place that knows the tracker's verbs — roughly twelve
-capability verbs: create, link, claim, release, close, ready, children, label,
-rollup, search, defer, export. The other skills call only those.
+Registration and admission are separate. Preserve an over-budget discovery as
+deferred while the owner decides whether to admit it. Replacing planned work
+with another finding does not reduce the count of findings: the replacement
+must explicitly update the config budget and record the charter decision.
 
-The abstraction is by **capability**, not by command: the adapter declares what
-the tracker can do — hierarchy? a dependency graph? labels? — and the protocol
-either maps onto it (milestone → a label here, a milestone there, a cycle
-elsewhere) or refuses honestly. Porting is one file.
+A correction necessary to meet an existing criterion remains that work, not
+automatically a budgeted finding. Genuine additional work follows the lane and
+horizon rules. This prevents acceptance fixes from becoming a device for expanding
+the milestone silently.
 
-As built, that place has two halves. Reading is the project's adapter script,
-proved by counting against the tracker's own numbers. Writing is the "tracker
-operations" table of the project's backlog integration, and it was first built
-as a table of commands of our own, which is exactly the looking inside that §1
-ruled out: in the second install it sat beside the project's own tracker doc
-and disagreed with it, and ours was the wrong one. So the table now says what
-the skills ask for, points at the tracker's own doc or skill for how, and
-carries a command only where nothing else does; and every reading verb is run,
-and checked for answering the question asked, before it is written down.
+## 11. Proof and limits
 
-## 6. Domain-agnostic: this is not only for development
+Package tests check fixtures, input handling, portability, versions, invocation
+metadata and identical protocol copies. Mutation tests deliberately disable new
+rules and require the intended fixtures to fail. Independent forward simulation
+checks how instructions handle small bugs, parallel dependencies, repeated setup
+and a stop before acceptance.
 
-The owner wants the same protocol for DevOps backlogs. That costs one renaming:
-
-> **Outcome — what becomes possible or true, and who observes it.**
-
-Development: "a person creates a connection group". Operations: "a rollback is
-one command and one minute", "a disk-full alert reaches the on-call within five
-minutes". The same shape, and it stops being false exactly once just the same.
-Assertion-shaped criteria carry over too: for operations the evidence is a
-runbook that ran, an alert that fired in a drill, a dashboard showing a value.
-
-**What counts as evidence at close is the project's config, not the protocol's
-rule.** Everything project-specific lives in one file:
-
-```yaml
-vocabulary: [...] # area labels — this project's, whatever they are
-evidence: [...] # what may be cited when closing
-horizon: 1 # how many slices ahead may be decomposed
-```
-
-The rules know none of those words. They check "exactly one label from the
-declared set", "evidence of one of the declared kinds".
-
-## 7. The map: three artifacts, three authors, three rates of rot
-
-| what                                | author              | rots      | where         |
-| ----------------------------------- | ------------------- | --------- | ------------- |
-| Vision — where we are going         | human, rarely       | slowly    | a document    |
-| Milestone charter — in, out, budget | human, per slice    | medium    | a document    |
-| **Where we stand, and the front**   | **machine, always** | **never** | **a command** |
-
-A hand-written "what's next" is a lie within a week: 399 stale open items are
-that lie materialised. A purely generated forecast cannot say why. So the
-forecast is **charter (human intent) + rollup (machine truth), rendered by one
-command**. A hand-maintained roadmap file does not exist in any form.
-
-The origin already holds the rule — "where it stands is a command, not a
-paragraph" — as a status script computed from the tracker's edges, and its
-planned status screen is the graphical form of the same command, reading the
-tracker rather than a document.
-
-**No own tracker.** The split is already chosen and half built: the tracker
-stores, the product displays. Building a tracker replaces a protocol with a
-product.
-
-## 8. Names, not identifiers
-
-Not cosmetic: it is an output rule. **Everything a human reads is "Title" (id)**,
-with the id in parentheses and only where someone must act on it. The gate
-rejects a title you cannot understand the task from.
-
-## 9. The router
-
-The owner asked for the equivalent of `ask-matt`: ask which skill fits the
-situation. Ours should be better than its model in one respect — `ask-matt` is
-static prose describing every route. **Ours reads the state first and answers
-with one command:**
-
-```
-> the slice was declared 12 days ago, its finding budget is spent (7 of 5)
-> you are holding 3 issues older than a day
-> the gate reports 2 new errors: two features with no DONE WHEN
->
-> first:  release  — let go of what you are not holding
-> then:   groom    — the budget is blown; decide what leaves the slice
-```
-
-One answer, not a map of routes. It is also where a red gate surfaces: not "here
-are eight skills" but "fix this first".
-
-## 10. Digging out is not a review of 933 issues
-
-Declare the current slice, attach what is actually being worked on, and **defer
-everything else with a review date**. Not close — deferring is not a judgement
-about truth, and a defect nobody reproduced in a fortnight describes a build
-that no longer exists rather than an imaginary defect. What is needed comes back
-by itself, through a bug, a spec, or a question. What has not come back in a
-quarter was not needed.
-
-Executed the same day: ready 773 → 28, open 933 → 71, deferred 23 → 963, zero
-unheld holds, 665 live roots → 4. Nothing closed; every move reversible.
-
-## 11. The rules, each bought by a case
-
-1. **An idea does not block a build.** Five brainstorms were holding live epics;
-   that makes them undecided questions, not ideas.
-2. **An idea does not reach the work queue.** Three arrived there through
-   provenance edges, which gate nothing and so never stopped them.
-3. **A bug rots faster than a feature.** 306 open bugs described a build that no
-   longer existed.
-4. **An edge outlives its reason.** One epic held live work for 45 days while
-   sharing no file with it. Nothing expires edges.
-5. **An edge onto an epic whose remaining children are deferred blocks for ever,
-   silently.**
-6. **A milestone that is not current is deferred, not open**, or the queue
-   offers next quarter's feature as today's work.
-7. **An epic that can absorb any new bug in its area is not an epic.**
-8. **A vocabulary held up by prose drifts.** A closed list was declared in the
-   contract; about seventy labels were in the tree.
-9. **A bulk edit forges its own evidence.** Deferring 802 issues rewrote 802
-   timestamps, and the next analysis reported epics untouched for 45 days as
-   active today. Ages must be read from a snapshot in version control. **This is
-   a rule about the gate itself**: its first bulk operation would otherwise
-   blind the next run.
-10. **Search the behaviour, not your name for it.** A split-panes epic was filed
-    twice because the searches were "split", "pane" and "panes" while the
-    existing issue was titled "Drag one tab onto another and watch both at once".
-
-11. **A finding spends a budget, or it spends the ship date.** Bugs and debt
-    found mid-flight went to the front one at a time, each reasonable, and
-    pushed features out by a week or two that nobody decided on. This one was
-    the owner's from the start; it became a rule when the skills needed it to
-    be checkable.
+These are not a live rollout. The adapter remains project-specific, and the new
+complete setup/execution flow must still be tried in real projects. Harness
+session/update hooks and a historical wiki renderer are not implemented.
 
 ## 12. What was built first, what was wrong with it, and what it became
 
@@ -465,21 +353,29 @@ summary lists those decisions so any can be overruled. Not taken: the reference'
 
 ## 13. Still open
 
-- How agent assignment is expressed in the protocol — the owner named it as a
-  requirement and it has not been designed. The model carries an optional
-  `holder`, the seed asks what happens when two claim at once, and `take-task`
-  claims, escalates and releases; who dispatches it, and to whom an escalation
-  goes when no person is there, is not designed.
-- The wiki of §1. Its two durable parts exist since 0.6, the glossary and the
-  decision records (`model-domain`); "where the system stands" is §7's command
-  and not a page; "the stages it went through, by feature" is the tracker's
-  closed features with their specs and evidence, and nothing renders it yet.
-- A foggy effort too big for one interview. The reference charts it as decision
-  tickets on the tracker; here the nearest thing is "a question that blocks a
-  build is work", and it has not been tried on anything large.
-- What the review date on a deferred idea does when it arrives, given that an
-  automatic return would rebuild the swamp.
-- Layer 3, the harness hooks, and whether the installer can generate them for
-  harnesses other than the one it runs in.
-- The three rules that are still advice (§3, layer 2).
-- A project with no Node: the port has never been attempted.
+- Validate the complete 0.7 workflow on real projects and tracker capabilities,
+  including a project with no tracker and an older installed integration.
+- Port both checks on a project without Node and run their fixture corpus.
+- Harness-specific session/update hooks; the current update instruction and
+  compatibility guard do not claim to implement them.
+- The historical wiki renderer and how expired deferred review dates should
+  surface without automatically rebuilding an oversized queue.
+
+## 14. The 0.7 revision
+
+The owner rejected work outside the tracker and made TDD a project choice.
+They clarified that workers run related tests, while the full suite, mutation
+testing and review belong at the end of a stage. Independent tasks, features
+and stages must remain parallelizable. This required distinguishing submission,
+integration and acceptance, instead of closing each worker's task immediately.
+
+The audit found contradictory autonomous-decision rules, excessive spec/test
+restrictions, an untested commit-link requirement, dependency cycles that passed
+the gate, and a finding-budget remedy that did not change the count. The revised
+skills and checks address those issues together rather than adding more skills.
+
+The owner additionally required setup to start with tracker selection/installation
+or cleanup, and to recheck everything whenever invoked, even if already installed.
+After updating the set, setup is requested again; valid answers survive while
+every integration assumption is proved anew. The setup version is stamped only
+after proof and landing, with matching protocol and installed checks.

@@ -1,0 +1,126 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture parallel-stages",
+  "issues": [
+    {
+      "id": "F1",
+      "title": "Work F1",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN the first outcome is observable.",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "F2",
+      "title": "Work F2",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN the second outcome is observable.",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "S1",
+      "title": "Work S1",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "DONE WHEN the first stage passes acceptance.",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "S2",
+      "title": "Work S2",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": "F2",
+      "blockedBy": [],
+      "body": "DONE WHEN the independent stage passes acceptance.",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "A",
+      "title": "Work A",
+      "type": "task",
+      "status": "implemented",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": "S1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "integration": {
+        "revision": "rev-1",
+        "evidence": "related checks passed at rev-1"
+      }
+    },
+    {
+      "id": "B",
+      "title": "Work B",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": "S1",
+      "blockedBy": [
+        "A"
+      ],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "C",
+      "title": "Work C",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": "S2",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "D",
+      "title": "Work D",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": "S2",
+      "blockedBy": [
+        "B"
+      ],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    }
+  ]
+}

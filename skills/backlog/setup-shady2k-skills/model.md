@@ -31,12 +31,50 @@ An adapter reads whatever the project's tracker holds and prints this:
 | Field       | Values                                     | Notes                                                        |
 | ----------- | ------------------------------------------ | ------------------------------------------------------------ |
 | `type`      | `epic` `task` `bug` `chore` `other`        | Anything the tracker calls something else maps to `other`.   |
-| `status`    | `open` `active` `deferred` `closed`        | `active` is "somebody is holding it now".                    |
+| `status`    | `open` `active` `submitted` `implemented` `deferred` `closed` | `submitted` awaits integration; `implemented` awaits stage acceptance. |
 | `parent`    | an id, or `null`                           | One parent. A tracker with several picks one and says so.     |
-| `blockedBy` | ids that must close first                  | ONLY edges that actually gate work. Provenance edges are not. |
+| `blockedBy` | ids of concrete prerequisite leaves        | Required results or conflicts, never hierarchy or list order. |
 | `body`      | free text, may be empty                    | Read by `epic-without-criterion` and nothing else.            |
 | `createdAt` | a timestamp, optional                      | Orders findings, so the ones over budget are the latest.      |
 | `holder`    | who holds it, `null` for nobody; optional  | Omit the key if the tracker cannot say. `null` on an active issue is a violation. |
+| `integration` | `{ "revision": "...", "evidence": "..." } | Required on implemented leaves under a stage; coordinator records the integrated revision and related-check evidence. |
+| `delivery` | `{ "revision": "...", "evidence": "..." } | Required on submitted leaves; durable result revision/location and local-check evidence, before integration. |
+
+## Execution mapping
+
+A submitted or implemented leaf is live for horizon, label and budget checks,
+but never ready to implement again. Preserve it at handoff without an active
+worker hold. Submitted work resumes at integration and satisfies no prerequisite.
+If the tracker lacks these statuses, store explicit durable metadata and have
+the adapter emit them. The gate checks the presence of recorded evidence, not its
+truth or the success of acceptance; the coordinator verifies those.
+
+Ready selection is context-dependent: unheld open leaves in the requested
+stage and checkout. Closed prerequisites are satisfied everywhere. Implemented
+prerequisites are satisfied only in the same stage after their revision is
+integrated and related checks pass there. Outside that stage, wait for closure
+after acceptance. Missing prerequisites remain blocked. Containers are not
+worker tasks; a coordinator may hold a stage separately from its workers.
+
+## Commit-link input
+
+`check-commits.mjs` reads a separate normalized object:
+
+```json
+{
+  "issues": [{ "id": "T1", "type": "task", "parent": "S1" }],
+  "commits": [{ "id": "pending-message-or-commit-hash", "taskIds": ["T1"] }]
+}
+```
+
+The project adapter parses actual messages by the project's chosen convention;
+the checker verifies nonempty links to existing non-container leaves. Include
+all referenced tasks, even closed ones, and enough hierarchy to identify
+containers. The commit list must not be empty. A local commit-msg hook checks
+the pending message; CI enumerates every introduced commit. Failure to resolve
+the tracker or enumerate the range fails, never supplies an empty success.
+The checker cannot verify a dishonest parser, so setup must prove the parser
+with linked, unlinked and unknown-task messages through the real entry points.
 
 ## What an adapter must get right
 

@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture submitted-without-evidence",
+  "issues": [
+    {
+      "id": "S",
+      "title": "Stage",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN the stage result is independently observable.",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "T",
+      "title": "Submit result",
+      "type": "task",
+      "status": "submitted",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    }
+  ],
+  "expectViolations": [
+    "submitted-without-evidence|T|"
+  ]
+}

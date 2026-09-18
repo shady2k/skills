@@ -1,7 +1,6 @@
 ---
 name: to-research
-description: Hand a question to a background agent that reads the primary sources and leaves a cited note in the repository, while this conversation carries on.
-disable-model-invocation: true
+description: "Investigate a bounded question using primary sources. Use when planning or take-task needs evidence for a decision, or the user asks for research; delegate independent reading when available."
 ---
 
 # To research
@@ -20,6 +19,14 @@ Its brief:
    be established said as plainly as what could.
 4. **Where notes already live** in this repository; if nowhere, somewhere
    sensible, and say where.
+5. **A stopping condition and budget:** what evidence would settle the question,
+   how much investigation is justified, and how to report an unresolved result.
+
+Resolve the owning task before retaining repository changes or committing the
+note. Without backlog integration, research may remain read-only or in scratch
+space; request setup before turning it into retained project work. An unavailable
+source is a limitation, not a citation. Independent questions can be investigated
+in parallel without blocking the rest of the design.
 
 When it comes back, read the note before relying on it: a citation is a claim
 about a source, and the ones a decision rests on are worth opening. The note

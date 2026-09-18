@@ -1,56 +1,71 @@
 ## Backlog integration
 
-Written by `/setup-shady2k-skills` on <date>. What the skills of that set know
-about this project, and all they know: the protocol itself ships with them.
-Edit it freely; re-run the installer only to change the tracker or the gate's
-strength.
+Maintained by `setup-shady2k-skills`. The protocol ships with the skills;
+project facts and verified commands live here. Changing choices, including the
+last verified setup version/time and the current pending/failed/verified status,
+live only in the config.
 
-- **Vision:** <path>
-- **Milestone charters:** <directory>/<milestone label>.md
-- **Specs:** <in the body of the outcome's feature issue | a directory, with the issue pointing at the file>
-- **Glossary and decision records:** <paths, where the project keeps them | none yet>
-- **Evidence that may be cited at close:** <a commit, a test, a file or symbol | a runbook run, an alert fired in a drill, a dashboard value | …>
-- **Features and stages are created as:** <the tracker's type that the adapter maps to `epic`>. The gate looks for a DONE WHEN on that type only.
-- **Labels:** ideas wear `<idea label>`, findings wear `<finding label>`. The area labels, the current milestone and the finding budget are the gate config's, read from there and never copied here.
+- **Config:** <path; read current values there>
+- **Vision and charters:** <paths>
+- **Specs:** <feature body or files; short deltas may live on tasks with a spec pointer>
+- **Glossary and decisions:** <paths or none>
+- **Acceptance records:** <where stage base/final revisions, included tasks,
+  criteria, test/mutation/review evidence and pending limitations are retained>
+- **Features and stages:** <native type mapped to epic; coordinator ownership>
+- **Implemented:** <native status or durable metadata mapping, integration
+  revision and local-check evidence; neither ready nor closed>
+- **Submitted:** <native status or metadata, durable result revision/location
+  and local evidence; pending integration, never ready to reimplement>
+- **Commit task links:** <message convention and exact parsing rules>
+- **Cleanup recovery:** <before/after snapshots, field-level change journal and
+  restore command; preserve later independent changes>
 
-### The gate
+### Checks and execution
 
-- **Config:** <path>
-- **Adapter:** <path>
-- **Rules:** <path of `check.mjs`: called in place, or a verbatim copy of version <version>, never edited>
-- **Strength:** <block | block-new | report>, chosen <date>
-- **Run it:** `<the exact command, as the hook runs it>`, from <the directory it runs in>
-- **Every violation as JSON:** `<the same with --json>`
-- **Hooks in a fresh clone:** `<the command that installs them>`
-- **Ages from before a bulk edit:** add `--ages-from <snapshot>` to the command
-  above. Snapshots so far: <date of the bulk edit, path of the adapter output
-  saved before it>.
+- **Backlog adapter:** <path and export command; historical export when supported>
+- **Rules:** <paths/provenance for check.mjs and check-commits.mjs; verbatim copies or proved ports>
+- **Backlog gate:** <exact command, config and baseline/config-revision selection>
+- **JSON report:** <exact command>
+- **Commit-link input and check:** <message/range parser, tracker resolution,
+  normalized commits input and check-commits.mjs command>
+- **Local entry points:** <pre-commit and commit-msg commands; installation in a fresh clone>
+- **CI:** <backlog baseline selection and introduced-commit enumeration; empty
+  or unreadable required ranges fail>
+- **Bulk-edit age correction:** <paired --ages-from before and --ages-through after snapshots>
+- **Static checks:** <commands>
+- **Related tests:** <how workers select changed and affected behaviour>
+- **Full stage checks:** <commands and required environment>
+- **Mutation checks:** <changed-code selection and command; budget/fallback in config>
+- **Reviewer:** <how to select another available model and detect availability;
+  preference/fallback in config>
+- **Parallel execution:** <isolated checkout mechanism, atomic claims or
+  serialized assignment, integration ownership and shared-resource conflicts>
 
 ### Tracker operations
 
-What the skills ask of this project's tracker. **How the tracker is driven is
-said once**: where this document, or the tracker's own skill, already says how,
-the row names that place and adds only what the protocol needs on top. A row
-carries a command only where nothing else does. Where the tracker cannot do
-one, say so and say what stands in.
+Point to the tracker's own doc/skill instead of copying its commands. Add only
+what this protocol needs. Verify read operations and document unsupported
+capabilities and their substitutes.
 
-| the skills ask for | here                                                    |
-| -------- | ------------------------------------------------------- |
-| create   | <title, type, labels, parent, body>                     |
-| link     | <blocking edge; parent; how provenance is kept apart>   |
-| claim    | <hold an issue: status and holder in one step. What happens when two claim at once: the tracker refuses the second, or last write wins and the claimer re-reads after claiming> |
-| release  | <give it back>                                          |
-| close    | <with a reason>                                         |
-| comment  | <add a note to an issue>                                |
-| edit     | <retitle, rewrite the body, move to another parent>     |
-| unlink   | <remove a blocking edge>                                |
-| defer    | <with a review date, or where the date is recorded>     |
-| undefer  | <bring a deferred issue back>                           |
-| milestone | <put an issue in a milestone: a label, or the native field> |
-| ready    | <ready leaves only; how features and stages are left out> |
-| holds    | <every active issue with who holds it>                  |
-| children | <every child of an issue in every status, not the ready ones only; with a rollup by status if there is one> |
-| label    | <add, remove>                                           |
-| search   | <by phrase; and the listing of one area>                |
-| show     | <one issue whole, with its comments>                    |
-| publish  | <how a backlog write reaches everybody else; after the gate is clean> |
+| operation | project implementation |
+| --- | --- |
+| create | <title, type, labels, parent, criterion> |
+| link / unlink | <required-result or conflict edges on leaves, reason, release condition; provenance separate> |
+| claim | <atomic owner assignment or a serialized coordinator; not last-write-wins readback> |
+| release | <unfinished holds only; preserve implemented work> |
+| implemented | <record integrated revision and local evidence; coordinator only> |
+| submitted | <preserve the worker result and evidence pending integration; clear worker hold> |
+| reopen | <invalidate obsolete integration/acceptance evidence and reassess consumers> |
+| close | <accepted work with stage evidence, or explicit cancellation/duplicate disposition> |
+| comment / edit | <notes, criteria, reparenting, state updates> |
+| defer / undefer | <review date; reversible metadata changes> |
+| milestone / label | <values read from config> |
+| ready | <open unheld leaves in the stage and checkout; implemented prerequisites satisfied only within that same stage after integration, closed ones everywhere> |
+| holds | <active issues and owners, including stage coordinators> |
+| pending integration / acceptance | <submitted/implemented leaves and their stages with recorded revisions> |
+| children | <all children in every status, including submitted, implemented and closed> |
+| search / show | <behaviour search, area listing, complete issue and comments> |
+| publish | <authorized synchronization after checks> |
+
+After updating the skill set, run `setup-shady2k-skills` again. An explicit
+setup invocation rechecks everything even if its recorded version matches.

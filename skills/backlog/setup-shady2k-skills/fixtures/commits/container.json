@@ -1,0 +1,53 @@
+{
+  "input": {
+    "issues": [
+      {
+        "id": "S",
+        "type": "epic",
+        "parent": null
+      },
+      {
+        "id": "T",
+        "type": "task",
+        "parent": "S"
+      },
+      {
+        "id": "B",
+        "type": "bug",
+        "parent": "S",
+        "status": "closed"
+      },
+      {
+        "id": "P",
+        "type": "task"
+      },
+      {
+        "id": "C",
+        "type": "task",
+        "parent": "P"
+      }
+    ],
+    "commits": [
+      {
+        "id": "commit-1",
+        "taskIds": [
+          "S",
+          "P"
+        ]
+      }
+    ]
+  },
+  "exit": 1,
+  "violations": [
+    {
+      "id": "commit-1",
+      "task": "S",
+      "reason": "link must name a leaf task, not a container"
+    },
+    {
+      "id": "commit-1",
+      "task": "P",
+      "reason": "link must name a leaf task, not a container"
+    }
+  ]
+}

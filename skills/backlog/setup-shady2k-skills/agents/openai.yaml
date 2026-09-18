@@ -1,5 +1,5 @@
 interface:
   display_name: "Setup shady2k-skills"
-  short_description: "Install and prove the backlog gate"
+  short_description: "Set up or fully reverify the tracked workflow"
 policy:
   allow_implicit_invocation: false

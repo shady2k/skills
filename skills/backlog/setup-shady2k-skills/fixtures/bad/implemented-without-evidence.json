@@ -1,0 +1,56 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture implemented-without-evidence",
+  "issues": [
+    {
+      "id": "S",
+      "title": "Work S",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN the stage result can be verified.",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "A",
+      "title": "Work A",
+      "type": "task",
+      "status": "implemented",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "B",
+      "title": "Work B",
+      "type": "task",
+      "status": "implemented",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "integration": {
+        "revision": "rev-1",
+        "evidence": ""
+      }
+    }
+  ],
+  "expectViolations": [
+    "implemented-without-evidence|A|",
+    "implemented-without-evidence|B|"
+  ]
+}

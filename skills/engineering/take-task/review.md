@@ -1,55 +1,32 @@
-# The two reviews
+# Final review of a stage
 
-Both read the same change: the diff from where the task started, and the list
-of its commits. Neither sees the other's findings, and their reports are shown
-side by side, not merged or reranked: picking one winner across the two is the
-mistake the separation exists to prevent.
+Review the assembled stage after its tests and mutation checks, not each worker
+in isolation. Give reviewers the base and final revisions, the combined diff,
+task criteria, relevant full or short spec, original bug symptoms, and project
+standards. They must inspect the requirements and change themselves, without
+being led by the implementer's conclusions.
 
-## Standards
+Prefer a different model when the harness and project settings permit it.
+Different agents do not necessarily mean different models. Without an
+independent reviewer, use separate self-review passes and disclose that limit;
+follow the project's acceptance policy rather than claiming independence.
 
-Give the reviewer the diff command, the files in this project that document
-how code is written (a contributing guide, coding standards, the agent doc),
-and the baseline below pasted in full, since it has no other way to see it.
+Cover both axes, with independent reviewers in parallel where useful:
 
-> Report, per file and hunk: (a) every place the change breaks a documented
-> standard, citing the file and the rule; (b) any baseline smell, named, with
-> the hunk quoted. A documented breach can be a hard finding; a smell is always
-> a judgement call, and a documented standard overrides the baseline. Skip
-> whatever tooling already enforces. Under 400 words.
+- **Behaviour and requirements:** missing or incorrect behaviour, unwanted
+  scope, regression risks, task interactions, failure handling and whether
+  the tests would detect the important failures. A bug or short change is
+  reviewed against its criterion and source requirement even without a full spec.
+- **Standards and maintainability:** documented project rules, clear ownership
+  and interfaces, unjustified coupling or duplication, unnecessary complexity
+  and changes that make the next likely change harder. A stylistic preference
+  is not a blocker; do not prescribe an abstraction just because two lines match.
 
-**The baseline**, for a project that documents nothing (Fowler, _Refactoring_,
-ch. 3). Each is what it is, then the way out:
+Each actionable finding names its consequence, severity, location and evidence.
+Keep original reports available, then produce one deduplicated disposition:
+fix now, already addressed, rejected with reason, or additional work filed.
+Separate acceptance blockers from optional improvements.
 
-- **Mysterious name**: a name that does not say what it does or holds. Rename
-  it; if no honest name comes, the design is murky.
-- **Duplicated code**: the same shape of logic in more than one place in the
-  change. Extract it, call it from both.
-- **Feature envy**: a method that reaches into another object's data more than
-  its own. Move it onto the data it envies.
-- **Data clumps**: the same few fields travelling together. Make them one type.
-- **Primitive obsession**: a string or a number standing in for a concept.
-  Give the concept its own small type.
-- **Repeated switches**: the same cascade on the same type, again. One
-  polymorphic seam, or one map both sites share.
-- **Shotgun surgery**: one logical change, edits scattered over many files.
-  Gather what changes together.
-- **Divergent change**: one module edited for several unrelated reasons. Split
-  it so each part changes for one.
-- **Speculative generality**: hooks and parameters for needs the spec does not
-  have. Delete them.
-- **Message chains**: `a.b().c().d()`. Hide the walk behind one method.
-- **Middle man**: a thing that mostly delegates. Cut it out.
-- **Refused bequest**: a subclass ignoring most of what it inherits. Compose
-  instead.
-
-## Spec
-
-Give the reviewer the diff command, the task with its criterion, and the
-feature's spec.
-
-> Report: (a) what the task or the spec asked for that is missing or partial;
-> (b) behaviour in the change that nobody asked for; (c) what looks implemented
-> and looks wrong. Quote the line of the spec for each. Under 400 words.
-
-No spec: skip this review and say so in the report, rather than reviewing
-against a guess.
+Fix within scope, verify the final result and re-review affected areas.
+Do not close on a review of an older revision. Retain evidence that is still
+valid, and state which tests or review checks were repeated after corrections.

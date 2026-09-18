@@ -1,7 +1,6 @@
 ---
 name: to-spec
-description: "Write the spec of one outcome of the current milestone: the problem, the solution as its observer sees it, the decisions, where it will be checked, what is out."
-disable-model-invocation: true
+description: "Write or update the behavioural spec of tracked work. Use when take-task selects a design route, when requirements need recording, or when the user asks for a spec; choose short or full by risk and uncertainty."
 ---
 
 # To spec
@@ -27,9 +26,19 @@ one is stale before its turn comes. Say so and stop.
 
 ## 2. Settle before you write
 
+Resolve the tracked work first. Small, understood work needs a short delta:
+current and intended behaviour, relevant constraints, acceptance scenarios and
+what is out. It may live in the task body, linked to the feature's existing spec.
+A small feature still records its own behaviour; do not require a long template.
+For a bug, retain a correct source requirement and add the regression scenario;
+change the spec only for a gap or an approved change of behaviour.
+
+Use the full form below when risk, uncertainty or scope justifies it. TDD is
+an independent project setting, not a reason to choose a larger document.
+
 A spec records decisions, it does not make them. If the decisions are not
-already in this conversation, call the Skill tool with "brainstorming" and
-come back when nothing is left open. Read the feature issue, the charter and
+already in this conversation, use "brainstorming" and
+come back when decisions blocking this stage are settled. Read the feature issue, the charter and
 the vision first, and the code or system the outcome lands in: the
 conversation is for what they do not say. Use the project's glossary for every term, and respect the
 decisions already recorded in the area.
@@ -39,13 +48,14 @@ decisions already recorded in the area.
 Name the **seams**: the boundaries at which this outcome's behaviour can be
 observed without reaching inside. A public interface, an endpoint, a command;
 for operations, the alert, the dashboard, the runbook's last line. Prefer a
-seam that exists to a new one, and the highest one that still sees the
-behaviour: the fewer seams, the better, and the ideal number is one.
+seam that exists to a new one, at the level that makes the behaviour observable.
+Use enough boundaries to cover the important success and failure scenarios.
 
 This is an architect's decision. Put it to whoever holds that role here, as
 what will be watched and what that leaves unwatched, not as a list of modules;
-where nobody does, choose, and say so in the spec. Every task's check will be
-written at one of them, and nowhere else.
+where nobody does, choose, and say so in the spec. Routine choices of test level
+are the agent's. These are acceptance boundaries, not a restriction on related
+unit or integration tests through stable interfaces.
 
 ## 4. Write it
 
@@ -57,8 +67,9 @@ What is wrong or missing today, as the person who has the problem tells it.
 What they will be able to do, or what will be true, told the same way.
 
 ## Stories
-A long numbered list. "As <who>, I want <what>, so that <why>." Extensive on
-purpose: a story nobody wrote is a behaviour nobody will build or check.
+The distinct behaviours and important boundary cases, without padding. Use
+"As <who>, I want <what>, so that <why>" when it helps; a short delta may need
+only a few concrete examples.
 
 ## Decisions
 What has been decided: the modules or systems touched and their interfaces,
@@ -76,7 +87,7 @@ that the new checks should look like.
 What somebody will assume is in, by name.
 
 ## DONE WHEN
-The outcome's own check, the one that stops being false exactly once.
+The outcome's own observable check; regressions can make it false again.
 ```
 
 `## DONE WHEN` stays last and stays the feature's: it is what the gate looks
@@ -88,8 +99,9 @@ The spec goes where the backlog integration says specs live; where it says
 nothing, into the body of the outcome's feature issue, with the tracker's edit
 verb, keeping what the issue already said that is still true. A decision that
 is hard to reverse, surprising without its context, and the result of a real
-trade-off also gets its own record: call the Skill tool with "model-domain".
+trade-off also gets its own record: use "model-domain".
 
-Run the gate. Done when it is clean. Then publish, and tell the owner the next
-command: `/to-stages` for this outcome, by name, **in this same conversation**,
-so the breakdown is built on the thinking and not on its summary.
+Run the gate. Then publish through the authorized workflow. Continue with
+`to-stages` when the request includes execution or decomposition; otherwise
+return the spec and recommend that next step by name. Keep the reasoning in
+this conversation where useful, without making a fresh session a blocker.

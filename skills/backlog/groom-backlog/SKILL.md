@@ -1,7 +1,6 @@
 ---
 name: groom-backlog
-description: Dig out a backlog that has stopped being a queue, by amnesty rather than review. Declare the slice, keep what is alive, defer the rest.
-disable-model-invocation: true
+description: "Restore a usable backlog by snapshotting it, choosing the live slice and deferring the rest. Use during setup before gate installation, or when the backlog has stopped being a queue."
 ---
 
 # Groom backlog
@@ -21,22 +20,36 @@ write anything. If there is none, tell the user to run
 protocol (levels, lanes, the horizon, what a clean gate is) is
 [`protocol.md`](protocol.md), beside this file.
 
+**Bootstrap exception:** when setup invokes this before the gate exists or while
+migrating it, use setup's verified tracker operations, snapshot location and
+proposed config as the integration. Do not send the user back to setup in a loop.
+Perform the inventory and agreed cleanup first; return to setup to install and
+prove the gate. For an already usable queue, report that fact and make no bulk
+changes. Implemented work waiting for acceptance is live work to preserve.
+
 ## 1. Take the snapshot
 
-Save the adapter's output to a file **before you touch anything**, beside the
+Save the adapter's output (or a native tracker export during bootstrap, before
+the adapter is available) **before you touch anything**, beside the
 gate's config. A bulk edit rewrites every timestamp it touches, and the next
-analysis will read issues untouched for a month as active today. Every age in
-this session and after it is read from that snapshot: `--ages-from <snapshot>`
-on the gate command.
+analysis will read issues untouched for a month as active today. Save a second
+snapshot immediately after the bulk edit. Use `--ages-from <before>` together
+with `--ages-through <after>`: restore an old timestamp only while the current
+timestamp still equals the bulk edit's timestamp. Later real work keeps its
+new timestamp. Revalidate this mechanism for the tracker's timestamp precision.
 
-Done when the snapshot file exists and the gate runs with it.
+Done when the snapshot exists and can be read; during bootstrap, gate proof
+follows cleanup. Outside bootstrap, verify the installed gate can read it.
 
 ## 2. Measure
 
 Show one table, numbers only: open, ready, active, deferred, roots with live
 work, active issues whose trees have not moved within the hold limit, open
 issues untouched past the stale limit, and the gate's violations per check.
-Keep it; step 7 prints it again beside the new numbers.
+Keep it; step 7 prints it again beside the new numbers. During bootstrap, use
+the tracker's own counts and inspect its dependencies directly; mark gate
+counts unavailable until setup builds the adapter and runs the rules. Retain
+native before/after snapshots and normalize both once the adapter is ready.
 
 ## 3. Declare the slice, with the owner
 
@@ -65,27 +78,36 @@ proposal as **counts by kind**, never as a list of issues:
   can never finish;
 - holds nobody is holding: released.
 
-The owner may pull anything back by name. **Nothing is closed.**
+The owner may pull anything back by name. **Nothing is closed or deleted.**
+Do not steal live assignments or defer independent features merely because
+another feature is executing. Get approval for the proposed bulk scope unless
+the user already authorized that exact cleanup.
 
 ## 5. Apply it, reversibly
 
-Write the ids of every issue you are about to change to a file, one list per
-kind, and tell the owner where it is. Then apply with the tracker's verbs, in
-bulk. Rollback is that file: the undefer verb over its lists.
+Record each issue's prior and proposed values for status, labels, parent,
+dependencies, holder and review date, plus config changes. Apply with the
+tracker's verbs, then record resulting values and the after snapshot. Rollback
+restores those changed fields, not just undefer; compare current values with
+the recorded result first so a later person's work is not overwritten. The
+integration must document the restore operation and any non-restorable fields.
 
 ## 6. Mend the edges
 
-Run the gate with `--ages-from` the snapshot. Two checks now matter, and each
+Run the gate with both age snapshots once it is available. Two checks now matter, and each
 violation is a decision of a few words for the owner, taken one at a time: a
 live issue **blocked by a deferred one** (pull the blocker into the slice, or
 defer the blocked one too), and a **stale edge** (unlink it, or move it onto
-the leaf that really collides).
+the leaf that really needs the result or conflicts). Also resolve dependency
+cycles; age alone does not make a genuine prerequisite unnecessary.
 
-Record the bulk edit's date and the snapshot's path under "The gate" in the
+Record the bulk edit's date and both snapshot paths under "The gate" in the
 project's backlog integration.
 
 Done when the gate's report shows no error-severity violation at all, old or
-new: a dig-out that leaves errors behind has only moved the mess. Then publish.
+new: a dig-out that leaves errors behind has only moved the mess. During setup,
+return the cleanup result for gate proof instead of claiming that proof already
+happened. Then publish through the authorized project workflow.
 
 ## 7. Report
 

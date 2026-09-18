@@ -2,4 +2,4 @@ interface:
   display_name: "To Stages"
   short_description: "Break one outcome into stages and tasks"
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

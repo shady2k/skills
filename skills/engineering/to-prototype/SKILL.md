@@ -1,7 +1,6 @@
 ---
 name: to-prototype
-description: Answer one design question with throwaway code, when talking cannot settle it. A state model to push through its hard cases, or several looks of one screen side by side.
-disable-model-invocation: true
+description: "Answer a design question with a bounded throwaway prototype. Use when brainstorming or take-task needs runnable evidence that discussion cannot provide, or the user asks for a prototype."
 ---
 
 # To prototype
@@ -11,6 +10,11 @@ awkward cases, what a screen should look like. A prototype is **throwaway code
 that answers one such question**, and the question decides its shape.
 
 ## 1. Write the question down
+
+Resolve the task that owns retained files and commits before changing the
+repository. Where the project has a backlog integration, use it; if none was
+provided, keep investigation in scratch space and request setup before retained
+work. A scratch experiment is not permission to commit untracked work.
 
 One paragraph, at the top of the prototype where whoever opens it sees it: what
 is being asked, and what answer would change the design. A prototype that
@@ -47,13 +51,18 @@ screen, switched from a bar at the bottom.
 - **One command to run**, or one file to open.
 - **No persistence** unless persistence is the question, and then a scratch
   store with a name that says "wipe me".
-- **No polish**: no tests, no error handling beyond running, no abstractions.
+- **No production polish**: only the controls and checks needed to answer the
+  question, including its hard cases. Record those checks and the observed
+  result; no generic test suite or abstraction project.
 
 ## 4. Keep the answer, park the code
 
-Fold the validated decision into the spec or the real code. The prototype
-itself is a **primary source**: commit it to a branch of its own, out of the
-main line, and leave a pointer to that branch where the work lives. Where the
+Fold the validated decision into the spec. Production implementation proceeds
+through tracked work and its normal checks; lifting a pure module is not an
+exemption. The prototype
+itself is a **primary source**: preserve it as a task-linked artifact, or an
+authorized task-linked commit on a branch of its own, out of the main line.
+Leave a pointer where the work lives. Where the
 project has a backlog integration, that is a comment on the feature issue,
 with the question and the verdict. The main line keeps the decision only.
 

@@ -35,27 +35,30 @@ found the issue that already owns this.
 | an idea, a wish, a "what if"                                       | the **ideas** lane, with a review date                                                   |
 | a bug or debt on the path of the current milestone                | **finding**: under the stage it serves, wearing the finding label and the current milestone's label, and step 3 before it is filed |
 | a bug or debt off that path                                       | deferred, under the feature it belongs to, or with no parent when it belongs to none     |
-| planned work the current milestone's charter already names        | tell the user `/to-stages` owns it. The exception is a task a stage turned out to be missing at close-out: that is a finding |
+| planned work the current milestone's charter already names        | use `to-stages` when decomposition is authorized; otherwise return that route. A correction needed to meet an agreed criterion remains that work, not automatically a budgeted finding |
 | work for a later milestone                                        | deferred, under that milestone's label, as a feature title and nothing finer             |
 | a question that blocks a build                                    | work, under the stage it gates. It was never an idea                                     |
 
-A finding that turns out to be structural becomes a feature of its own, which
-is the owner's decision and the next charter's business.
+A finding that needs its own feature is a scope decision for the owner. It can
+join the current milestone by an explicit scope/budget change, or wait deferred.
+Independent features do not acquire dependencies merely by joining the slice.
 
 ## 3. A finding spends the budget
 
-Count the current milestone's findings against the charter's budget. Within it:
-file and carry on. **At or beyond it, stop and take it to the owner**, by name,
-with the two honest options: it goes to the next milestone, deferred, or it
-displaces something that is named and deferred in the same minute. Never file
-it to the front and mention it later.
+Read the current budget from config and count the milestone's findings. Within
+it, file and carry on. At or beyond it, preserve the discovery as deferred and
+take the admission decision to the owner: leave it for later, or replace named
+planned work and explicitly approve the new finding count. In the latter case,
+update the config budget and record the charter decision together with the
+displacement. Deferring planned work alone does not reduce a count of findings.
+Do not make an unapproved finding ready; registration need not wait for admission.
 
 ## 4. Write it so it can be finished
 
 - A **title that is a sentence**: the work can be understood from it alone.
 - **Exactly one area label**, by the area that owns the behaviour.
-- A criterion that **stops being false exactly once**, and what would show it
-  false. For a bug: what a person does, what happens, what should.
+- An observable criterion and what would falsify it. For a bug: what a person
+  does, what happens, what should, and the source requirement where one exists.
 - For anything larger than a task, **what is deliberately out**.
 
 ## 5. Publish and prove

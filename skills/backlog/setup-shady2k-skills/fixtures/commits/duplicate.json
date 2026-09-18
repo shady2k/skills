@@ -1,0 +1,37 @@
+{
+  "input": {
+    "issues": [
+      {
+        "id": "S",
+        "type": "epic",
+        "parent": null
+      },
+      {
+        "id": "T",
+        "type": "task",
+        "parent": "S"
+      },
+      {
+        "id": "B",
+        "type": "bug",
+        "parent": "S",
+        "status": "closed"
+      }
+    ],
+    "commits": [
+      {
+        "id": "commit-1",
+        "taskIds": [
+          "T"
+        ]
+      },
+      {
+        "id": "commit-1",
+        "taskIds": [
+          "B"
+        ]
+      }
+    ]
+  },
+  "exit": 2
+}

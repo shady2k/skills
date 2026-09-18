@@ -35,6 +35,12 @@ description, and `policy.allow_implicit_invocation: false` in the skill's
 `agents/openai.yaml`; keep the two in step. Model-invoked skills carry a
 model-facing description with their triggers. A user-invoked skill can never be
 called by another skill: where one is a precondition, tell the user to run it.
+The planning helpers (`to-spec`, `to-stages`, `to-prototype`, `to-research`) and
+`groom-backlog` are model-invoked so an authorized `take-task` or setup can
+compose them. That permits the workflow, not unrelated changes or new authority.
+Use the harness's available skill mechanism, not an assumed tool name. If a
+required helper was not installed, report that dependency rather than pretending
+to have run it.
 
 ## A skill knows no project and no tracker
 
@@ -87,6 +93,10 @@ protocol. A skill that merely does better with one (`handoff`, `diagnose-bug`,
 `to-prototype`) says "where the project has a backlog integration" at the one
 step that uses it, and carries neither the sentence nor the protocol. The rest
 (`brainstorming`, `to-research`, `model-domain`) work in an empty directory.
+Research and discussion can be read-only without setup; retained repository
+changes and commits still require a task. Setup provides a verified bootstrap
+context to `groom-backlog` before installing the gate; this is the explicit
+exception to its usual integration prerequisite.
 
 **Whether the set is installed is asked of the gate**, which either runs in
 this checkout or does not; a file's presence proved nothing the one time it was

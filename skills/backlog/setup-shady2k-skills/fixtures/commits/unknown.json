@@ -1,0 +1,39 @@
+{
+  "input": {
+    "issues": [
+      {
+        "id": "S",
+        "type": "epic",
+        "parent": null
+      },
+      {
+        "id": "T",
+        "type": "task",
+        "parent": "S"
+      },
+      {
+        "id": "B",
+        "type": "bug",
+        "parent": "S",
+        "status": "closed"
+      }
+    ],
+    "commits": [
+      {
+        "id": "commit-1",
+        "taskIds": [
+          "T",
+          "MISSING"
+        ]
+      }
+    ]
+  },
+  "exit": 1,
+  "violations": [
+    {
+      "id": "commit-1",
+      "task": "MISSING",
+      "reason": "task does not exist"
+    }
+  ]
+}

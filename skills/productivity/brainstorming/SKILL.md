@@ -13,8 +13,8 @@ not as a reference manual for their own code.
 
 ## 1. Who is deciding, and what is theirs
 
-Settle it first, in one question if the conversation has not already said: in
-which roles is this person here?
+Use the roles already established in the conversation; otherwise assume product
+engineer. Ask only when role ambiguity materially changes who should decide.
 
 | role          | theirs to decide                                                                      |
 | ------------- | ------------------------------------------------------------------------------------- |
@@ -93,19 +93,21 @@ takes twenty minutes and three people", not how it is implemented.
 
 ## 6. While it runs
 
-- A word doing two jobs, or two words doing one, is settled on the spot: call
-  the Skill tool with "model-domain" where the project keeps a glossary.
+- A word doing two jobs, or two words doing one, is settled on the spot: use
+  "model-domain" where the project keeps a glossary.
 - A question only something **runnable** can answer (does this model survive
   its awkward cases, what should this look like) is not settled by talking.
   Say so, and tell the user `/to-prototype` answers it; carry on with the
   branches it does not gate.
 - A question that cannot be settled today and **blocks a build** is work, not a
-  loose end: call the Skill tool with "to-backlog", and it goes under the stage
+  loose end: use "to-backlog", and it goes under the stage
   it gates.
 
 ## 7. Done
 
-When the frontier is empty. Say it back in three short lists:
+When decisions needed for the next stage are settled. Keep unrelated future
+questions open rather than expanding the interview indefinitely. Say it back
+in three short lists:
 
 - **Decided by you**, by the role each was decided in, one line each with the
   position taken.
@@ -114,6 +116,7 @@ When the frontier is empty. Say it back in three short lists:
   silently on somebody's behalf is the thing this skill exists to prevent.
 - **Still open**, with whose decision each is.
 
-**Do not act on any of it until the user confirms.** Keep what follows (a spec,
+Confirm consequential new choices before acting; existing approval and routine
+agent-owned decisions do not require another permission round. Keep what follows (a spec,
 stages) in this same conversation: the lists are a summary, and the reasons are
 in the thread.

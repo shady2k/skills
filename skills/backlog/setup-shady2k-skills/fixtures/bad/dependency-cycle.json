@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture dependency-cycle",
+  "issues": [
+    {
+      "id": "A",
+      "title": "Work A",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [
+        "B"
+      ],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "B",
+      "title": "Work B",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [
+        "A"
+      ],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "C",
+      "title": "Work C",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [
+        "A"
+      ],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "SELF",
+      "title": "Work SELF",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [
+        "SELF"
+      ],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    }
+  ],
+  "expectViolations": [
+    "dependency-cycle|A|",
+    "dependency-cycle|B|",
+    "dependency-cycle|SELF|"
+  ]
+}

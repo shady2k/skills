@@ -2,4 +2,4 @@ interface:
   display_name: "To Prototype"
   short_description: "Answer a design question with throwaway code"
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

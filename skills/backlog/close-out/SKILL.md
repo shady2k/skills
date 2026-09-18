@@ -1,59 +1,64 @@
 ---
 name: close-out
-description: Close finished work with evidence and leave the backlog true. Use when an issue's work is done, when a session is ending with issues still held, or when stopping work on an issue for any reason.
+description: Record accepted work and preserve pending work. Use after stage acceptance, on a session ending, or when work is stopped or handed over.
 ---
 
 # Close out
-
-A backlog goes false at the end of a session, not at the start: work closed on
-a feeling, holds left behind, findings kept in somebody's head. Close out is
-what makes the next "what do I work on" an honest question.
 
 This project's **backlog integration** should have been provided to you: how
 its gate is run, how its tracker is driven, where its vision and charters
 live. The project's agent doc points at it; follow the pointer before you
 write anything. If there is none, tell the user to run
-`/setup-shady2k-skills`, and leave the backlog as it is until then. The
-protocol (levels, lanes, the horizon, what a clean gate is) is
-[`protocol.md`](protocol.md), beside this file.
+`/setup-shady2k-skills`, and leave the backlog as it is until then. Read
+[`protocol.md`](protocol.md), including its setup-version check.
 
-## 1. Evidence first, then the close
+## 1. Distinguish implementation from acceptance
 
-An issue closes on **evidence a stranger can check**, of a kind this project
-declares. Produce it now, do not recall it: run the test, read the file, query
-the dashboard. Then close with a reason that names it. "Done" and "duplicate"
-are not reasons; for a duplicate, name the survivor and what makes the two one
-behaviour.
+For work claimed complete, inspect the stage's acceptance record: the assembled
+revision, included tasks, criteria, full checks, mutation results or the agreed
+fallback, review and resolved findings. Verify that the record covers the
+actual result being accepted. Reuse evidence for that exact result; a remembered
+green run from before later changes is not evidence.
 
-An issue whose criterion is not met stays open, with a comment saying what is
-left, however much of the work is done.
+A worker's local checks justify `submitted`, with the returned revision/location
+and evidence preserved. Only integration verified by the coordinator justifies
+`implemented`; neither means closed. If integration is pending, keep submitted
+work for the next coordinator; if acceptance is pending, keep it implemented.
+Name the next action and coordinator. A task
+that still fails its criterion remains open or active with what is missing.
+If called directly to accept work, produce the missing checks and review
+before closing; do not wait for children to close before checking their stage.
 
-## 2. File what the work found
+Cancellation and duplicate closure are explicit dispositions, not successful
+implementation. State why; for a duplicate, name the surviving issue.
 
-Everything noticed along the way that is still true and not fixed gets filed
-now: call the Skill tool with "to-backlog", once per finding. A blocker
-reported in prose evaporates by the next session; an issue with an edge does
-not.
+## 2. Close the accepted stage and walk up
 
-## 3. Release what you are not holding
+After its own DONE WHEN holds on the accepted revision, close the included
+tasks and the stage with references to that evidence. Re-read partial writes
+and finish idempotently if the tracker cannot update them together.
 
-Every issue you hold and are not going to touch in the next minutes is
-released, with a comment on where it stands.
+Check the feature's criterion once its required stages are accepted. A feature
+never closes solely because its children did. Independent stages and features
+need not wait for this one.
 
-Done when the tracker shows nothing active under your name that you are not
-working on.
+If the criterion fails, correct the existing work or file the missing task.
+A defect against the agreed stage is not automatically new scope or a budgeted
+finding; use `to-backlog` for genuinely additional work.
 
-## 4. Walk up
+## 3. File discoveries and release unfinished holds
 
-When the last child of a stage closes, check the **stage's own DONE WHEN**
-against evidence. If it holds, close the stage the same way; if it does not,
-the stage is missing a task, and that task is a finding. Do the same for the
-feature above it. A parent never closes because its children did.
+File still-relevant discoveries through `to-backlog`, reusing existing issues.
+Release unfinished tasks nobody will continue, with their state and next action.
+Preserve submitted results, implemented tasks, evidence and pending acceptance; never
+make them ready to implement again merely because this session is ending.
+Transfer or release the coordinator's hold and name who should resume.
 
-## 5. Publish and prove
+## 4. Publish and prove
 
-Run the gate. Done when it is clean; a new error is fixed by its own `fix` line
-first. Then publish the backlog writes with the work they describe. Report by
-name what closed and on what evidence, what was filed, what was
-released, and the milestone's standing: outcomes done of total, findings of
-budget.
+Run the backlog gate before publishing and the commit-link check for any
+commits. Resolve new errors without bypassing the configured strength.
+Publish only through the project's authorized workflow.
+
+Report by name what was accepted and on which revision, what remains pending,
+what was filed or released, and the milestone's outcomes and finding budget.

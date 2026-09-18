@@ -1,191 +1,159 @@
 # shady2k-skills
 
-My agent skills. Seven keep a backlog an answer to "what do I work on next";
-seven carry the work itself, from an idea talked through until nothing is assumed to
-a task closed on evidence; one hands a conversation to a fresh session. They
-work in any harness that reads `SKILL.md` files, with any issue tracker, and
-for any engineering backlog, development or operations alike.
+Fifteen skills for tracked work, from an idea to an accepted result. They work
+with a project's chosen tracker and any harness that reads `SKILL.md`.
+The reasoning and history are in [docs/design.md](docs/design.md).
 
-## Why
+Skills guide decisions; portable checks enforce the backlog's shape and commit
+links. The project owns its tracker adapter and wiring, proved during setup.
+A green backlog is not evidence that the code works.
 
-Light skills oblige nothing: they can be invoked at any moment or never, and
-when nobody invokes them no process is followed. Heavy process frameworks fix
-that by owning the workflow. This set takes the third road: **the skills stay
-light, and a gate is what binds.**
+## Installation and updates
 
-The gate is one script that reads the backlog and fails, in the project's own
-pre-commit hook and CI. An agent may forget to call a skill; it cannot commit
-an issue that belongs to no milestone. The rules are the same everywhere and
-ship here. What knows your project (a config of your labels, an adapter for
-your tracker, the hook wiring) is written into your project by the installer,
-and proved on the spot against backlogs known to be bad.
-
-The reasoning, and the case that bought each rule, is in
-[`docs/design.md`](docs/design.md).
-
-## Installation
-
-**Claude Code**, as a plugin from this repository's own marketplace:
+**Claude Code**, as a plugin:
 
 ```
 /plugin marketplace add shady2k/skills
 /plugin install shady2k-skills@shady2k
+/setup-shady2k-skills
 ```
 
-To update later (a third-party marketplace does not update by itself):
+After updating:
 
 ```
 /plugin marketplace update shady2k
 /plugin update shady2k-skills@shady2k
+/setup-shady2k-skills
 ```
 
-**Codex and other agents**, as editable files in your project:
+**Other skill-compatible agents**, as files:
 
 ```bash
 npx skills@latest add shady2k/skills
 ```
 
-Make sure `setup-shady2k-skills` is one of the skills you take.
+Install the complete set for composed workflows, including the installer.
+Run `setup-shady2k-skills` in the harness's skill syntax after installation
+and every update. Individually installed folders remain self-contained, but a
+workflow that needs another skill must have that skill installed too.
 
-Then run **`/setup-shady2k-skills`** once per project. It reads how the project
-tracks work; asks about the label vocabulary, the current milestone and how
-hard the gate should bind; writes the config, the tracker adapter and the
-wiring; adds a "Backlog integration" section to the project's own tracker doc
-and a pointer to it in the agent doc; and proves all of it, and lands it,
-before it says it is done. The protocol itself is not copied into the project:
-it ships inside each skill and updates with the set. The gate needs Node and nothing else. After
-a plugin update, run it again to refresh the project's copy of the rules.
+Every setup invocation rechecks the entire installation, including one whose
+version matches. It selects and initializes a tracker if needed, snapshots and
+cleans an existing queue with the owner, preserves valid prior choices, verifies
+adapters and execution commands, proves local/CI hooks and lands the result.
+New settings are asked; existing answers are not needlessly asked again.
+
+The config records setup status and the last fully verified version. A failed
+rerun remains failed even at the same version. Before writes, the
+skills compare it and the installed checks with their protocol version and
+request setup when they differ. This is a first-use guard and an update
+instruction, not a claim that every harness runs an automatic update hook.
 
 ## The flow
 
-```
-/setup-shady2k-skills    once per project: the gate, and the backlog integration
-        |
-/to-milestone            a charter: outcomes in, what is out, a finding budget
-        |
-/to-spec                 one outcome: /brainstorming until nothing is assumed, then the spec
-        |                   (a question talking cannot settle: /to-prototype)
-/to-stages               the spec -> stages -> one-session tasks, vertical slices
-        |                   (keep spec and stages in one conversation)
-/take-task   ->  /close-out           red before green, reviewed against the spec;
-        ^              |              evidence, release, walk up. One task per conversation
-        +-- /to-backlog               a bug, an idea, a request: into its lane
+Setup establishes the tracker and a usable queue; a milestone charter sets the
+current scope. `take-task` then selects the route from size, risk and unknowns:
+a short behavioural delta for small work, or discussion, research/prototype,
+specification and decomposition where needed. TDD is a separate project choice.
 
-/ask-shady2k             reads the state, answers with the one command to run now
-/groom-backlog           the way in when a backlog exists and is no longer a queue
-/diagnose-bug            something is broken and a glance did not find why
-/to-research             reading that needs doing, done in the background
-/model-domain            a word doing two jobs; a decision whose reason will be lost
-/handoff                 stopping, or the conversation got too long: a fresh session
-```
+A stage has its own observable result and fits one session **including
+acceptance**. Independent tasks, stages and features may execute in parallel.
+Dependencies name required results or conflicts, never list order or hierarchy.
 
-## What the gate enforces
+Workers run static checks and related tests, including affected neighbouring
+behaviour. In TDD mode they work red → green → local refactor; in test-after
+mode checks follow implementation. Workers preserve returned results as
+**submitted**, with their revision/location and evidence. The coordinator integrates each result and
+records it as **implemented**, making it available to dependants in the same
+stage. It is not yet closed. Across stages, prerequisites wait for acceptance.
 
-Every rule has a fixture that violates it, and the self-test fails if a rule
-stops catching its fixture.
+The assembled stage receives full checks, scoped mutation testing and final
+review, preferably by another model. Corrections receive fresh verification.
+`close-out` closes the tasks and stage only with evidence for the accepted
+revision. A handoff preserves implemented work and unfinished acceptance.
 
-| rule                     | what it refuses                                                                                   |
-| ------------------------ | ------------------------------------------------------------------------------------------------- |
-| `off-milestone-open`     | anything live whose root does not belong to the current milestone: the **horizon**, and no orphans |
-| `finding-budget`         | bugs and debt found mid-milestone beyond the number its charter allows                            |
-| `idea-in-queue`          | an idea that is not deferred                                                                      |
-| `idea-blocks-work`       | live work blocked by an idea                                                                      |
-| `blocked-by-deferred`    | live work blocked by something deferred, which blocks for ever and silently                       |
-| `stale-hold`             | an issue marked active that nobody holds, or whose tree has not moved in days                     |
-| `epic-without-criterion` | a feature or a stage with no DONE WHEN, or with the heading and nothing under it                  |
-| `area-label`             | none, or more than one, area label                                                                |
-| `label-vocabulary`       | a label outside the declared vocabulary                                                           |
-| `parent-cycle`           | a cycle in the parent chain                                                                       |
-| `stale-edge` (warning)   | a blocker nobody has touched in weeks, or that does not exist                                     |
+Every commit belongs to existing leaf tasks, including documentation,
+research, prototypes and setup. The commit-message hook and CI enforce links;
+the separate backlog gate enforces structure.
 
-How hard it binds is asked at installation and never defaulted: `block-new`
-fails only what a change introduced and prints the old debt every time, `block`
-fails on any error, `report` fails nothing and still prints.
+## What the checks enforce
+
+| check | rejects |
+| --- | --- |
+| `off-milestone-open` | live work outside the current milestone |
+| `finding-budget` | admitted findings beyond the explicit budget |
+| `idea-in-queue`, `idea-blocks-work` | ideas offered as work or blocking it |
+| `blocked-by-deferred` | live work waiting for deferred work |
+| `stale-hold` | active work unheld or apparently abandoned |
+| `epic-without-criterion` | a live feature/stage without a meaningful DONE WHEN marker |
+| `area-label`, `label-vocabulary` | missing/multiple areas or unknown labels |
+| `parent-cycle`, `dependency-cycle` | cycles in hierarchy or live prerequisites |
+| `nonleaf-dependency` | blanket blocking edges involving containers |
+| `implemented-without-evidence` | implemented work without recorded integration and local-check evidence |
+| `submitted-without-evidence` | submitted work without a durable result and local-check evidence |
+| `stale-edge` (warning) | absent or long-untouched prerequisites needing review |
+| `check-commits.mjs` | unlinked commits or links to absent issues/containers |
+
+The backlog strength is chosen at setup: `block-new` blocks introduced errors
+and reports old debt, `block` blocks every error, `report` only reports policy
+violations. Invalid input fails in all modes. Commit links are mandatory
+independently of that choice. Project adapters parse messages and select commit
+ranges; setup must prove those parts as well as the shipped checks.
+
+The checks do not prove behavioural correctness, truthful test evidence,
+semantic task relevance or that the right scope was chosen. Session sizing,
+next-milestone decomposition and understandable titles are still instructions,
+not executable checks.
 
 ## Skills
 
 ### User-invoked
 
-Reachable only when you type them.
-
-- **[setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md)**:
-  configure a project for the set by installing the backlog gate (config,
-  tracker adapter, wiring) and proving all three. Once per project, and again
-  after a plugin update.
-- **[ask-shady2k](skills/backlog/ask-shady2k/SKILL.md)**: reads the backlog's
-  state and answers with the one command to run next, not a map of routes.
-- **[to-milestone](skills/backlog/to-milestone/SKILL.md)**: the vision and the
-  business requirements into a milestone charter: outcomes, what is out, a
-  budget for findings.
-- **[to-spec](skills/engineering/to-spec/SKILL.md)**: the spec of one outcome:
-  the problem and the solution as their observer sees them, the decisions, the
-  seams it will be checked at, what is out.
-- **[to-stages](skills/backlog/to-stages/SKILL.md)**: one outcome of the current
-  milestone, from its spec, into stages and one-session tasks: vertical slices
-  with assertion-shaped criteria.
-- **[take-task](skills/engineering/take-task/SKILL.md)**: one ready task from
-  claim to close: watch its check fail, make it pass in thin slices, have it
-  reviewed against the standards and the spec, close on evidence. What the spec
-  does not settle goes back as an escalation, never as a guess.
-- **[to-prototype](skills/engineering/to-prototype/SKILL.md)**: answer one design
-  question with throwaway code: a state model to push through its hard cases,
-  or several looks of one screen.
-- **[to-research](skills/productivity/to-research/SKILL.md)**: a background agent
-  reads the primary sources and leaves a cited note.
-- **[groom-backlog](skills/backlog/groom-backlog/SKILL.md)**: dig out a mess by
-  amnesty rather than review: declare the slice, defer the rest, reversibly.
-- **[handoff](skills/productivity/handoff/SKILL.md)**: hand the conversation to a
-  fresh session without committing anything: a document outside the repository,
-  a note where the work lives, the first sentence for the next agent.
+- [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md): install
+  or fully reverify tracker, workflow and checks.
+- [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md): next useful action from actual state.
+- [to-milestone](skills/backlog/to-milestone/SKILL.md): agree outcomes, scope and budget.
+- [take-task](skills/engineering/take-task/SKILL.md): coordinate tracked work to stage acceptance.
+- [handoff](skills/productivity/handoff/SKILL.md): transfer the current work and pending acceptance.
 
 ### Model-invoked
 
-The agent reaches for these unprompted; you can type them too. Unprompted means
-when the model judges the moment has come, which is advice, not a guarantee.
-The guarantee is the gate.
+Also directly callable by the user. Availability does not authorize unrelated
+changes, new scope or external publication.
 
-- **[to-backlog](skills/backlog/to-backlog/SKILL.md)**: an idea, a bug or a
-  finding into the lane it belongs in. A finding beyond the milestone's budget
-  goes to the owner, never silently to the front.
-- **[close-out](skills/backlog/close-out/SKILL.md)**: close finished work with
-  evidence a stranger can check, file what it found, release what is not held.
-- **[brainstorming](skills/productivity/brainstorming/SKILL.md)**: think a plan
-  through one question at a time, each put at the height of the role it
-  belongs to (product owner, analyst, architect, or the product engineer who
-  is all three and does not read the code) with the positions one could take
-  and what each sets in motion. Facts and cheap choices are the agent's,
-  and it says which it made.
-- **[diagnose-bug](skills/engineering/diagnose-bug/SKILL.md)**: for the bug that
-  resists a first look: a command that goes red on it before any theory, then
-  minimise, rank hypotheses, probe, fix behind a check.
-- **[model-domain](skills/engineering/model-domain/SKILL.md)**: the glossary and
-  the decision records, changed the moment a term or a decision is settled.
+- [brainstorming](skills/productivity/brainstorming/SKILL.md): decisions one at
+  a time, at the owner's role; default product engineer.
+- [to-spec](skills/engineering/to-spec/SKILL.md): short or full behavioural spec.
+- [to-stages](skills/backlog/to-stages/SKILL.md): session-sized stages and real dependencies.
+- [to-research](skills/productivity/to-research/SKILL.md): bounded primary-source research.
+- [to-prototype](skills/engineering/to-prototype/SKILL.md): runnable evidence for one design question.
+- [diagnose-bug](skills/engineering/diagnose-bug/SKILL.md): distinguish causes with evidence.
+- [model-domain](skills/engineering/model-domain/SKILL.md): glossary and decision records.
+- [to-backlog](skills/backlog/to-backlog/SKILL.md): register work and discoveries in the right lane.
+- [close-out](skills/backlog/close-out/SKILL.md): close accepted work and preserve pending results.
+- [groom-backlog](skills/backlog/groom-backlog/SKILL.md): reversible queue cleanup, including setup bootstrap.
 
 ## Status
 
-Young. The installer has been run twice, and each run changed it; the backlog
-skills have been reviewed twice by readers who did not write them. The seven
-work skills are new in 0.6 and have not been run in anger at all. Designed and not built: harness hooks that name the
-current milestone at session start and release holds at its end. Three rules
-are still only advice: the next milestone is decomposed no further than
-features, no blocking edge sits on a feature or a stage, a title is a sentence.
+Version 0.7 revises execution and setup. Fixtures and package checks run locally;
+the new complete workflow still needs validation in real projects. Earlier
+installation runs informed the protections around proof, isolated staging and
+landing. Harness-specific automatic update/session hooks are not shipped.
 
 ## Credits
 
-The shape of the set, and the ideas behind the work skills (the design-tree
-interview, the spec, vertical slices, red before green, the two-axis review,
-the diagnosis loop, prototypes, the glossary and decision records) come from
+The original shape and work-skill ideas come from
 [mattpocock/skills](https://github.com/mattpocock/skills), MIT:
-[`docs/third-party/mattpocock-skills.LICENSE`](docs/third-party/mattpocock-skills.LICENSE).
-They are rewritten here, not copied, so they can stand on this set's protocol
-and move with it.
+[license](docs/third-party/mattpocock-skills.LICENSE). They are rewritten here
+around this set's tracker protocol.
 
 ## Development
 
 ```bash
-npm test                  # the gate's fixtures and command line, and the guard over every skill
-scripts/link-skills.sh    # symlink the skills into ~/.claude/skills and ~/.agents/skills
+npm test                  # backlog/commit fixtures, CLI and package invariants
+npm run test:mutation     # deliberately break checks and observe failures
+npm run protocol          # synchronize folder-local protocol copies
+scripts/link-skills.sh    # link into local skill directories
 ```
 
-[`AGENTS.md`](AGENTS.md) holds this repository's rules: layout, names,
-invocation, and that no skill may name a project or a tracker.
+[AGENTS.md](AGENTS.md) defines layout, invocation, portability and versioning.

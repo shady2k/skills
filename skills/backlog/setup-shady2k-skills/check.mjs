@@ -42,8 +42,8 @@
  *     that exist. An epic nobody filed, a stage with no issue, a criterion
  *     that holds but is unwritten: all invisible.
  *   - `epic-without-criterion` IS A TEXT SEARCH for a heading or a phrase. An
- *     epic stating its criterion in prose is reported; an epic with the
- *     heading and nothing under it is not. It reports a missing SIGNAL.
+ *     epic stating its criterion in prose is reported; an empty heading is
+ *     also reported. A few words are a signal, not a proof of a good criterion.
  *   - IT CANNOT FIND A DUPLICATE. That check belongs to whoever is about to
  *     file, because duplicates are rarely near-copies: a split-panes epic was
  *     filed twice because the searches were "split", "pane" and
@@ -75,7 +75,7 @@ const CRITERION_MARKERS = [
   '## acceptance criteria',
 ];
 
-const LIVE = (s) => s === 'open' || s === 'active';
+const LIVE = (s) => ['open', 'active', 'submitted', 'implemented'].includes(s);
 
 // ---------------------------------------------------------------- model
 
@@ -156,8 +156,8 @@ const CHECKS = [
   {
     id: 'stale-edge',
     severity: 'warn',
-    why: 'A blocking edge records a collision — two things touching the same code — never "later", because nothing expires one. One epic held live work for 45 days while sharing no file with it.',
-    fix: 'Remove the edge, or move it onto the leaf that actually collides. If the blocker is real, it belongs in the slice.',
+    why: 'A dependency needs a required result or a conflict, not list order. Its age prompts a review but does not disprove a real prerequisite.',
+    fix: 'Verify the required result or conflict. Remove an obsolete edge, or move it onto the actual consuming and producing leaves.',
     run: (m, cfg, ctx) =>
       m.issues.flatMap((i) =>
         !LIVE(i.status)
@@ -267,7 +267,7 @@ const CHECKS = [
     id: 'finding-budget',
     severity: 'error',
     why: 'Bugs and debt found mid-milestone go to the front one at a time, each reasonable, and push the feature out by a fortnight nobody decided on. The charter declares how many the milestone absorbs.',
-    fix: 'Take it to the owner: it goes to the next milestone, deferred, or it displaces something that is named and deferred with it. Raising the budget is a charter change, made on purpose.',
+    fix: 'Defer the finding, or ask the owner to replace named planned work and explicitly adjust the finding budget in config and the charter decision. Deferring planned work alone does not change this count.',
     run: (m, cfg) => {
       if (cfg.findingBudget == null) return [];
       const marks = cfg.findingLabels || [];
@@ -288,6 +288,57 @@ const CHECKS = [
         .slice(cfg.findingBudget)
         .map((i, n) => ({ id: i.id, note: `finding ${cfg.findingBudget + n + 1} of ${spent.length}, against a budget of ${cfg.findingBudget}` }));
     },
+  },
+  {
+    id: 'dependency-cycle',
+    severity: 'error',
+    why: 'Live tasks that transitively wait for themselves can never become ready, even when the parent tree is valid.',
+    fix: 'Correct the required-result or conflict edges; independent tasks and features must not be chained by list order.',
+    run: (m) => m.issues.filter((i) => LIVE(i.status)).flatMap((i) => {
+      const pending = [...(i.blockedBy || [])];
+      const seen = new Set();
+      while (pending.length) {
+        const id = pending.pop();
+        if (id === i.id) return [{ id: i.id, note: 'live dependencies lead back to this issue' }];
+        if (seen.has(id)) continue;
+        seen.add(id);
+        const blocker = m.by.get(id);
+        if (blocker && LIVE(blocker.status)) pending.push(...(blocker.blockedBy || []));
+      }
+      return [];
+    }),
+  },
+  {
+    id: 'nonleaf-dependency',
+    severity: 'error',
+    why: 'Blocking entire containers hides the concrete prerequisite and serializes unrelated work.',
+    fix: 'Place the dependency on the actual consuming and producing leaves, with the result or conflict it represents.',
+    run: (m) => m.issues.filter((i) => LIVE(i.status)).flatMap((i) =>
+      (i.blockedBy || []).filter((id) => i.type === 'epic' || m.children.has(i.id) ||
+        m.by.get(id)?.type === 'epic' || m.children.has(id))
+        .map((id) => ({ id: i.id, ref: id, note: 'dependency uses a container rather than a leaf' }))),
+  },
+  {
+    id: 'submitted-without-evidence',
+    severity: 'error',
+    why: 'A worker result awaiting integration must remain recoverable without being offered for implementation again.',
+    fix: 'Record the submitted result revision/location and local-check evidence, or keep genuinely unfinished work open.',
+    run: (m) => m.issues.filter((i) => i.status === 'submitted' &&
+      (i.type === 'epic' || m.children.has(i.id) || m.by.get(i.parent)?.type !== 'epic' ||
+       typeof i.delivery?.revision !== 'string' || !i.delivery.revision.trim() ||
+       typeof i.delivery?.evidence !== 'string' || !i.delivery.evidence.trim()))
+      .map((i) => ({ id: i.id, note: 'submitted requires a leaf under a stage, result revision/location and local evidence' })),
+  },
+  {
+    id: 'implemented-without-evidence',
+    severity: 'error',
+    why: 'Implemented work is unavailable to acceptance or downstream tasks without an integrated revision and related-check evidence.',
+    fix: 'Record the integrated revision and local-check evidence under its stage, or reopen work that has not actually been integrated.',
+    run: (m) => m.issues.filter((i) => i.status === 'implemented' &&
+      (i.type === 'epic' || m.children.has(i.id) || m.by.get(i.parent)?.type !== 'epic' ||
+       typeof i.integration?.revision !== 'string' || !i.integration.revision.trim() ||
+       typeof i.integration?.evidence !== 'string' || !i.integration.evidence.trim()))
+      .map((i) => ({ id: i.id, note: 'implemented requires a leaf under a stage, integrated revision and related-check evidence' })),
   },
   {
     id: 'parent-cycle',
@@ -325,7 +376,7 @@ function bulkClusters(m, threshold) {
 
 // The version of the set these rules shipped with. A project holds a COPY of
 // this file, and this is how anybody tells that the copy has fallen behind.
-const RULES_VERSION = '0.6.0';
+const RULES_VERSION = '0.7.0';
 
 const STRENGTHS = ['block', 'block-new', 'report'];
 
@@ -365,7 +416,9 @@ function checkedBacklog(raw, where) {
     if (!i || typeof i.id !== 'string' || !i.id) throw new Misuse(`${where}: an issue has no id`);
     if (seen.has(i.id)) throw new Misuse(`${where}: the id ${i.id} appears twice`);
     seen.add(i.id);
-    if (!['open', 'active', 'deferred', 'closed'].includes(i.status)) throw new Misuse(`${where}: ${i.id} has the status "${i.status}"; see model.md`);
+    if (!['open', 'active', 'submitted', 'implemented', 'deferred', 'closed'].includes(i.status)) throw new Misuse(`${where}: ${i.id} has the status "${i.status}"; see model.md`);
+    if (i.blockedBy != null && (!Array.isArray(i.blockedBy) || i.blockedBy.some((id) => typeof id !== 'string' || !id)))
+      throw new Misuse(`${where}: ${i.id} blockedBy must be a list of ids`);
     // An unreadable date makes every age comparison false, which reads as "fresh".
     if (LIVE(i.status) && !Number.isFinite(Date.parse(i.updatedAt))) throw new Misuse(`${where}: ${i.id} has no readable updatedAt`);
   }
@@ -390,15 +443,18 @@ function readJson(path, what) {
  * A bulk edit rewrites the timestamps it touches, so after one the backlog's
  * own ages describe the edit. `agesFrom` is a normalized backlog saved BEFORE
  * it: statuses, edges and labels are read from the current one, last-modified
- * from the old one wherever the issue already existed.
+ * from the old one only while its timestamp still matches the AFTER snapshot.
+ * Later work keeps its actual timestamp rather than being frozen in the past.
  */
-function withAgesFrom(backlog, agesFrom) {
+function withAgesFrom(backlog, agesFrom, agesThrough) {
   if (!agesFrom) return backlog;
   const old = new Map(agesFrom.issues.map((i) => [i.id, i.updatedAt]));
+  const after = new Map(agesThrough.issues.map((i) => [i.id, i.updatedAt]));
   return {
     ...backlog,
     source: `${backlog.source || '(unnamed)'}; ages from ${agesFrom.source || 'a snapshot'}`,
-    issues: backlog.issues.map((i) => (old.has(i.id) ? { ...i, updatedAt: old.get(i.id) } : i)),
+    issues: backlog.issues.map((i) => (old.has(i.id) && after.get(i.id) === i.updatedAt
+      ? { ...i, updatedAt: old.get(i.id) } : i)),
   };
 }
 
@@ -504,8 +560,8 @@ function portability(projectConfigPath) {
     console.log('SKIP  portability: the project config declares no projectWords or trackerWords');
     return 0;
   }
-  const files = ['check.mjs', 'model.md', 'SKILL.md', 'integration.md', 'protocol.md', 'fixtures/config.json'];
-  for (const kind of ['bad', 'good'])
+  const files = ['check.mjs', 'check-commits.mjs', 'model.md', 'SKILL.md', 'integration.md', 'protocol.md', 'fixtures/config.json'];
+  for (const kind of ['bad', 'good', 'commits'])
     for (const n of readdirSync(join(HERE, 'fixtures', kind))) files.push(`fixtures/${kind}/${n}`);
   let failures = 0;
   for (const f of files) {
@@ -583,7 +639,9 @@ function runSelftest(cfg, projectConfigPath) {
   // hold. Ages from the snapshot taken before it bring the violation back.
   const edited = { ...dirty, issues: dirty.issues.map((i) => ({ ...i, updatedAt: dirty.generatedAt })) };
   const fired = (b) => evaluate(b, cfg, ['stale-hold']).results[0].violations.length;
-  say(fired(edited) === 0 && fired(withAgesFrom(edited, dirty)) > 0, 'ages-from: a stale hold hidden by a bulk edit is seen again through the snapshot');
+  say(fired(edited) === 0 && fired(withAgesFrom(edited, dirty, edited)) > 0, 'ages-from: a stale hold hidden by a bulk edit is seen again through paired snapshots');
+  const resumed = { ...edited, issues: edited.issues.map((i) => ({ ...i, updatedAt: '2026-02-01T00:00:00Z' })) };
+  say(fired(withAgesFrom(resumed, dirty, edited)) === 0, 'ages-from: later real work retains its timestamp');
   // The command line, run for real. A gate that cannot read its input must
   // exit 2 and never 0, and none of these may pass by accident.
   const tmp = mkdtempSync(join(tmpdir(), 'gate-selftest-'));
@@ -602,6 +660,7 @@ function runSelftest(cfg, projectConfigPath) {
     ['a config that is not an object', 2, ['--config', put('cfg.json', '[]'), '--strength', 'block', stale]],
     ['a live issue with an unreadable date', 2, ['--config', fixtureCfg, '--strength', 'block', put('nodate.json', { issues: [{ id: 'A', status: 'active', updatedAt: 'not-a-date' }] })]],
     ['no strength chosen anywhere', 2, ['--config', fixtureCfg, stale]],
+    ['an unpaired age snapshot', 2, ['--config', fixtureCfg, '--strength', 'block', '--ages-from', stale, stale]],
     ['a config with only a strength, on a violating backlog', 1, ['--config', put('min.json', { strength: 'block' }), stale]],
   ]) {
     const got = run(...argv).status;
@@ -621,7 +680,7 @@ function runSelftest(cfg, projectConfigPath) {
 
 function main() {
   const argv = process.argv.slice(2);
-  const args = { json: false, only: null, input: null, selftest: false, config: null, baseline: null, baselineConfig: null, strength: null, agesFrom: null };
+  const args = { json: false, only: null, input: null, selftest: false, config: null, baseline: null, baselineConfig: null, strength: null, agesFrom: null, agesThrough: null };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--json') args.json = true;
     else if (argv[i] === '--only') args.only = argv[++i].split(',');
@@ -630,6 +689,7 @@ function main() {
     else if (argv[i] === '--baseline-config') args.baselineConfig = argv[++i];
     else if (argv[i] === '--strength') args.strength = argv[++i];
     else if (argv[i] === '--ages-from') args.agesFrom = argv[++i];
+    else if (argv[i] === '--ages-through') args.agesThrough = argv[++i];
     else if (argv[i] === '--selftest') args.selftest = true;
     else if (argv[i] === '--help' || argv[i] === '-h') args.help = true;
     else if (argv[i] === '--version') args.version = true;
@@ -643,13 +703,13 @@ function main() {
     console.log(
       'check.mjs --config <project config> [<normalized.json>|-]\n' +
         '          [--baseline <normalized.json> [--baseline-config <config as it was then>]]\n' +
-        '          [--strength block|block-new|report] [--ages-from <normalized.json>]\n' +
+        '          [--strength block|block-new|report] [--ages-from <before.json> --ages-through <after.json>]\n' +
         '          [--only <id,id>] [--json]\n' +
         'check.mjs --selftest [--config <project config>]\n' +
         'check.mjs --version\n\n' +
         'Applies the backlog invariants to the normalized backlog on stdin or at <path>.\n' +
         'Strength comes from the config unless given; block-new needs --baseline.\n' +
-        '--ages-from reads last-modified from a snapshot saved before a bulk edit.\n' +
+        '--ages-from and --ages-through correct only timestamps still matching the bulk edit.\n' +
         '--baseline-config judges the baseline by the rules of its own day, so a\n' +
         'config change that creates violations shows up as new errors.\n' +
         'Exit 0 green, 1 red, 2 misuse.\n\n' +
@@ -677,13 +737,15 @@ function main() {
     throw new Misuse(`--only names no such check: ${unknown.join(', ') || '(nothing)'}. Checks: ${CHECKS.map((c) => c.id).join(', ')}`);
 
   const ages = args.agesFrom ? checkedBacklog(readJson(args.agesFrom, 'the ages snapshot'), 'ages snapshot') : null;
-  const report = evaluate(withAgesFrom(checkedBacklog(readJson(args.input, 'the backlog'), 'backlog'), ages), cfg, args.only);
+  if (Boolean(args.agesFrom) !== Boolean(args.agesThrough)) throw new Misuse('--ages-from and --ages-through must be supplied together');
+  const after = args.agesThrough ? checkedBacklog(readJson(args.agesThrough, 'the after snapshot'), 'after snapshot') : null;
+  const report = evaluate(withAgesFrom(checkedBacklog(readJson(args.input, 'the backlog'), 'backlog'), ages, after), cfg, args.only);
   // The baseline is judged by the config of ITS day when one is given. With
   // the current config, lowering a budget or renaming the milestone creates
   // violations that look like old debt, and block-new waves them through.
   const thenCfg = args.baselineConfig ? checkedConfig(readJson(args.baselineConfig, 'the baseline config'), 'baseline config') : cfg;
   const baseline = args.baseline
-    ? evaluate(withAgesFrom(checkedBacklog(readJson(args.baseline, 'the baseline'), 'baseline'), ages), thenCfg, args.only, report.now)
+    ? evaluate(withAgesFrom(checkedBacklog(readJson(args.baseline, 'the baseline'), 'baseline'), ages, after), thenCfg, args.only, report.now)
     : null;
   judge(report, baseline, strength);
   console.log(args.json ? JSON.stringify(report, null, 2) : render(report));

@@ -2,4 +2,4 @@ interface:
   display_name: "Groom Backlog"
   short_description: "Dig out a backlog by amnesty"
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true
