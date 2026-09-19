@@ -215,3 +215,10 @@ relied on.
 
 Whenever a skill is added, renamed, removed or changes how it fits the flow,
 update `ask-shady2k` in the same commit: its ladder and its list of routes.
+
+## This repository's tracker
+
+Problems and ideas for the set are kept in beads_rust (`br`, prefix `skills`),
+in `.beads/`; `.beads/issues.jsonl` is committed. A problem met in real use is
+filed first, with what happened and in which situation, and fixed after; the
+fixing commit names the issue, so symptom and fix stay linked.
