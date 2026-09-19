@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.22.0 makes every red check the run's own; 0.21 separated
+Status: version 0.23.0 publishes 0.21-0.22.5, which never shipped; 0.22 made
+every red check the run's own; 0.21 separated
 talking from building; 0.20 starts skills on
 the user's word; 0.19 runs a whole
 feature alone to one pull request; 0.18
@@ -415,6 +416,14 @@ and the chain of causes, CI shows the cause on its first screen and keeps its
 logs, and the product carries log levels and request and trace ids by
 conventions the project records once, so diagnosis does not start with
 collecting evidence and rerunning CI.
+
+0.23 is a correction. From 0.21.0 to 0.22.5 every release was bumped by
+replacing an expected old number, but the manifests already held another one,
+so the replacement silently did nothing: the changes were pushed under 0.20.2,
+and installed plugins, which update by version, never received them. The tests
+only compared the manifests with each other, and they agreed. Versions are now
+raised by `npm run bump`, which fails when a number would not rise. 0.23.0 ships
+everything from that span.
 
 ## 10. Findings and cleanup
 

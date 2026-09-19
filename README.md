@@ -151,11 +151,21 @@ Inside Claude Code, `/plugin marketplace add shady2k/skills` and then
 `/plugin install shady2k-skills@shady2k` do the same and ask for the scope.
 
 To replace installations made inside worktrees, install from the main checkout
-as above, then in each worktree that had its own:
+as above, then remove each worktree's own. `claude plugin list` shows where each
+one was made. In each such worktree, with the scope it was installed at:
 
 ```bash
-claude plugin uninstall shady2k-skills@shady2k --scope local
+claude plugin uninstall shady2k-skills@shady2k --scope local     # or --scope project
 ```
+
+Two catches:
+
+- **An installation in a worktree that no longer exists** stays in Claude Code's
+  list. Recreate the empty folder, run the uninstall there, then delete the folder.
+- **Uninstalling at `project` scope inside a worktree rewrites the repository's
+  shared `.claude/settings.json` there.** Restore it afterwards with
+  `git checkout -- .claude/settings.json`, so the repository keeps declaring the
+  plugin for everyone.
 
 Start a new Claude Code session in the target project, then run setup. Set
 aside time for it: see [What setup takes](#what-setup-takes).
@@ -419,6 +429,9 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.23.0 publishes everything described below from 0.21.0 on: those
+releases were pushed but their version number never rose, so no installed plugin
+updated. Bumps now go through a script that fails if the number does not rise.
 Version 0.22.0 treats every red check as the run's own to fix, never "someone
 else's", and asks that failures explain themselves: clear test output, CI causes
 on the first screen, log levels and trace ids by project conventions.

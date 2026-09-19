@@ -27,6 +27,9 @@ configuration changes. See `docs/codex.md`.
 **Two versions.** The **plugin version** (both plugin manifests and `package.json`)
 goes up in every commit that changes what a skill does: an installed plugin
 updates by version, so a change pushed under the old number reaches nobody.
+Bump with `npm run bump -- <plugin-version> [--setup <setup-version>]`, never by
+hand or a text replacement: it fails when a number would not rise, which a
+silent replacement does not (0.21.0 to 0.22.5 all shipped as 0.20.2 that way).
 The **setup version** (the source protocol's `Setup version` line and all three
 checks' `RULES_VERSION`, then `npm run protocol` and `npm run setup-lock`) goes
 up only when projects must redo their installation: changed check rules, a new

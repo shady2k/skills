@@ -140,7 +140,11 @@ questionnaire**.
   scope installed from the main checkout (or `user` if the person wants them
   everywhere); an install made inside one worktree or at `local` leaves the
   others without the skills or on an older version. Recommend removing such
-  stray installs, and restarting sessions after installing or updating.
+  stray installs, and restarting sessions after installing or updating. The
+  harness's plugin list shows where each was made; one left by a deleted
+  worktree is removed from a recreated empty folder; uninstalling at project
+  scope inside a worktree rewrites the committed shared settings there, so
+  restore that file afterwards.
 - **Artifact language:** the language of documents, tasks, commit messages
   and code comments. Always a question on first setup, even inside an accepted
   profile: recommend English and show which language the existing files and
