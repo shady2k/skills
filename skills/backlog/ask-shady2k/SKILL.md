@@ -1,6 +1,6 @@
 ---
 name: ask-shady2k
-description: "Get oriented in the project, read-only: its picture, progress, where it stands now and the ways forward with their consequences. Use when the user asks where the project stands or what to do next, or comes back after a break."
+description: "Get oriented in the project, read-only: its picture, progress, where it stands and the ways forward with their consequences and rough durations. Use when the user asks where the project stands or what to do next, or comes back after a break; when they agree to a recommended action, start that skill."
 ---
 
 # Ask shady2k

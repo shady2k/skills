@@ -1,5 +1,5 @@
 interface:
   display_name: "Setup shady2k-skills"
-  short_description: "Set up or fully reverify the tracked workflow"
+  short_description: "Set up, update or connect the project"
 policy:
   allow_implicit_invocation: true

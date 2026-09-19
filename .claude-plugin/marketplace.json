@@ -9,7 +9,7 @@
     {
       "name": "shady2k-skills",
       "source": "./",
-      "description": "A backlog kept true by a gate that binds, light skills around it, and a handoff that commits nothing.",
+      "description": "Plan a feature together, then let the agent build it on its own up to one pull request, with honest backlog checks and plain-language reports.",
       "category": "productivity",
       "keywords": [
         "backlog",

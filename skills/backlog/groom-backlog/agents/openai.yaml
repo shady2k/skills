@@ -1,5 +1,5 @@
 interface:
   display_name: "Groom Backlog"
-  short_description: "Dig out a backlog by amnesty"
+  short_description: "Clean up a backlog that stopped being a queue"
 policy:
   allow_implicit_invocation: true

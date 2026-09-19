@@ -1,5 +1,5 @@
 interface:
   display_name: "Take Task"
-  short_description: "Coordinate tracked work through stage acceptance"
+  short_description: "Run a planned feature to one pull request"
 policy:
   allow_implicit_invocation: true

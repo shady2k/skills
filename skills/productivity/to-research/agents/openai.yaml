@@ -1,5 +1,5 @@
 interface:
   display_name: "To Research"
-  short_description: "A background agent reads the primary sources"
+  short_description: "Answer a question from primary sources, with citations"
 policy:
   allow_implicit_invocation: true

@@ -1,7 +1,7 @@
 {
   "name": "shady2k-skills",
   "version": "0.20.2",
-  "description": "Skills for tracked work: proportional design, parallel execution and verified stage acceptance.",
+  "description": "Plan a feature with your agent, then let it build the feature on its own up to one pull request, with checks, review and plain-language reports.",
   "author": {
     "name": "shady2k",
     "url": "https://github.com/shady2k"
@@ -10,12 +10,18 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "shady2k skills",
-    "shortDescription": "From an idea to an accepted result",
-    "longDescription": "Sixteen skills for planning, parallel task execution and evidence-based acceptance. Run setup after installation and updates to verify the project's tracker, adapters and checks.",
+    "shortDescription": "From an idea to a merged pull request",
+    "longDescription": "Sixteen skills: plan a feature together, answer one batch of questions, and let the agent build it alone to one pull request that says what was built, how to try it and what it decided without you. Run setup once per project; a skill tells you when an update needs it again.",
     "developerName": "shady2k",
     "category": "Productivity",
-    "capabilities": ["Read", "Write"],
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
     "websiteURL": "https://github.com/shady2k/skills",
-    "defaultPrompt": ["Use $shady2k-skills:setup-shady2k-skills to configure this project."]
+    "defaultPrompt": [
+      "Use $shady2k-skills:ask-shady2k to see where this project stands.",
+      "Use $shady2k-skills:setup-shady2k-skills to configure this project."
+    ]
   }
 }

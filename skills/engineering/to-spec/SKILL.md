@@ -1,6 +1,6 @@
 ---
 name: to-spec
-description: "Write or update the behavioural spec of tracked work. Use when take-task selects a design route, when requirements need recording, or when the user asks for a spec; choose short or full by risk and uncertainty."
+description: "Write or update the behavioural spec of tracked work, with scenarios that will be checked. Use while planning a feature with the user, when take-task needs a design, when requirements need recording, or when the user asks for a spec; choose short or full by risk and uncertainty."
 ---
 
 # To spec

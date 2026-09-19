@@ -1,6 +1,6 @@
 ---
 name: setup-shady2k-skills
-description: "Install or recheck the set in a project: tracker, queue, working settings and checks. Use when the user asks to set up or update the installation, or agrees to it after a skill reported it out of date; never start it unprompted."
+description: "Install or recheck the set in a project, or connect a new clone of it: tracker, queue, working settings and checks. Use when the user asks to set up, update or connect, or agrees to it after a skill reported the installation out of date; never start it unprompted."
 ---
 
 # Setup shady2k-skills

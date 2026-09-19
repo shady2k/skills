@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Explore ideas, imagine alternatives, investigate assumptions or settle consequential design decisions through dialogue. Use for "what if", open-ended brainstorming and uncertain plans; a conversation need not produce a decision, document or task.
+description: "Explore ideas, imagine alternatives, investigate assumptions or settle consequential design decisions through dialogue. Use when the user wants to discuss, asks \"what if\", voices an idea or weighs an uncertain plan; a conversation need not produce a decision, document or task."
 ---
 
 # Brainstorming
