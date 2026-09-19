@@ -86,6 +86,16 @@ hash or "Title" (id) instead. What remains is the note.
   its temporary directory and tell the user the note will not survive a
   restart or reach another machine.
 
+**Lessons that outlive this work.** A trap belongs to the note; a lesson that
+would cost time in other work too (a command that lies, a flaky test and its
+cause, a step the build needs, a way the tools mislead) belongs in the
+project's agent doc, which every agent reads. When the session met such
+lessons, propose them to the user, one line each; when it met none, say
+nothing, never ask "any lessons?" as a ritual. With their agreement, add them
+where the session's tracked work can carry the change; otherwise put them in
+the note under "Lessons for the agent doc", so the next session or
+`close-out` lands them.
+
 If the workspace already holds handoff files that were committed, do not add
 to them. Name them to the user as stale instructions and recommend removing
 them as tracked work.
