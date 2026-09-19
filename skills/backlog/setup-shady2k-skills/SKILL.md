@@ -135,10 +135,12 @@ questionnaire**.
   harness, hooks connected in every clone, and CI enforcing the checks on
   everyone's commits. Team is a decision for the team, not only for this
   person: say so. A rerun keeps the recorded answer. Check the plugin's own
-  installation scope where the harness shows it: personal work wants it
-  installed for the person in every folder (Claude Code's `user` scope), not
-  for one folder only (`local`), which leaves other checkouts and worktrees
-  without it or on an older version.
+  installation scope where the harness shows it: the skills should reach every
+  checkout and worktree of this repository. In Claude Code that is `project`
+  scope installed from the main checkout (or `user` if the person wants them
+  everywhere); an install made inside one worktree or at `local` leaves the
+  others without the skills or on an older version. Recommend removing such
+  stray installs, and restarting sessions after installing or updating.
 - **Artifact language:** the language of documents, tasks, commit messages
   and code comments. Always a question on first setup, even inside an accepted
   profile: recommend English and show which language the existing files and

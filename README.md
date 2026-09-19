@@ -131,23 +131,27 @@ scopes:
 
 | scope | who gets it | where it is recorded | choose it when |
 | --- | --- | --- | --- |
-| **user** | you, in every project and folder | your own settings | you work this way alone; the usual choice |
-| **project** | everyone who opens the repository | the project's shared settings, committed | the whole team works this way; each person still installs it once, after trusting the folder |
-| **local** | you, in this one folder only | a settings file that is not committed | you want to try it in one project first |
+| **project** | this repository and all its worktrees, for whoever opens it | the project's shared settings, committed | the usual choice: you want the skills in this repository, including every worktree |
+| **user** | you, in every repository | your own settings | you want the skills everywhere you work |
+| **local** | you, in this one folder only | a settings file that is not committed | trying it in one folder first |
 
-With many projects or worktrees, `local` leaves some folders without the skills
-or on an older version, so prefer `user`. In a terminal:
+Install `project` **from the main checkout**, not from inside a worktree: then
+every worktree of the repository loads it (Claude Code 2.1.200 or later). An
+install made inside a worktree covers only that worktree, so each new one
+starts without the skills or on an old version. Others who open the repository
+see that it uses the plugin and install it once themselves. In a terminal, from
+the main checkout:
 
 ```bash
 claude plugin marketplace add shady2k/skills
-claude plugin install shady2k-skills@shady2k --scope user     # or --scope project
+claude plugin install shady2k-skills@shady2k --scope project   # or --scope user
 ```
 
 Inside Claude Code, `/plugin marketplace add shady2k/skills` and then
 `/plugin install shady2k-skills@shady2k` do the same and ask for the scope.
 
-To move an existing `local` installation to `user`, install at `user` as above,
-then in each folder where it was local:
+To replace installations made inside worktrees, install from the main checkout
+as above, then in each worktree that had its own:
 
 ```bash
 claude plugin uninstall shady2k-skills@shady2k --scope local
@@ -172,8 +176,9 @@ Inside Claude Code:
 /plugin update shady2k-skills@shady2k
 ```
 
-An update applies to the scope you installed at: once for `user`, per folder
-for `local`.
+An update applies to the scope you installed at: once for `project` (from the
+main checkout) or `user`, per folder for `local`. Restart running sessions after
+installing or updating: a session sees the skills it started with.
 
 Start a new session. If a skill then says the project's installation is out of
 date, run `/shady2k-skills:setup-shady2k-skills` there; most updates need no setup.
