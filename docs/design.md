@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.24.0 keeps CI from testing guesses and estimates in agent
+Status: version 0.24.1 prices every check and reproduces CI failures
+locally; 0.24.0 keeps CI from testing guesses and estimates in agent
 time; 0.23.0 publishes 0.21-0.22.5, which never shipped; 0.22 made
 every red check the run's own; 0.21 separated
 talking from building; 0.20 starts skills on
@@ -437,6 +438,14 @@ flaw from the other side: "about an hour" for ten minutes of writing and half
 an hour per CI run, because the model priced the work as a developer's.
 Estimates now come from the project's own history as agent work plus waits,
 and when work outgrows its estimate the owner hears it once with the new one.
+
+0.24.1 follows the same run further. After being told, it still used CI as its
+test bench: five full runs of ten jobs on one pull request, each push after a
+single fix, one push into a pull request with conflicts (which runs nothing)
+reported as a running check, and a plan to run the full suite locally before
+every push. Checks now cost what they cost: the scope widens from the one
+failing test outward, CI comes last and once, a CI failure is instrumented and
+reproduced locally, and a run is reported only after it is seen to start.
 
 ## 10. Findings and cleanup
 

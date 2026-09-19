@@ -429,6 +429,9 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.24.1 treats CI and end-to-end runs as expensive: tests run from the
+one failing test outward, a CI failure is reproduced and instrumented locally,
+and the branch is pushed once when everything local is green.
 Version 0.24.0 never pushes a guessed fix for CI to judge: a failure seen only
 in CI first gets what makes it explain itself. Waiting on CI is quiet until a
 result matters, and estimates are in agent time (the work plus the waits), said

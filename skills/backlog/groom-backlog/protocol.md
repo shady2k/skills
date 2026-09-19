@@ -336,16 +336,32 @@ conventions once, as a recorded decision, and every change follows them. When
 a diagnosis stalls for lack of logs, adding them comes first, and the gap is a
 finding.
 
-**CI is not where guesses are tested.** Push a fix for a failure only when a
-local reproduction shows the fix removes it. When the failure cannot be
-reproduced here (another operating system, the CI machine's load or timing),
-the first push adds what makes the next failure name its cause: the test's
-view of what happened, the relevant logs, the state it found. Only a failure
-that explains itself gets a fix. Say plainly when a fix is unproven, and never
-call a green run proof that a guess was right.
+**Checks cost; widen them one step at a time.** A CI run, an end-to-end run
+and a full suite are expensive: they cost runner time and money, take the
+owner's wait, and use up limits shared with everyone (runner minutes, image
+downloads, the queue). Every push to a pull request's branch starts all of
+CI again. So a check runs at the smallest scope that answers the question,
+and the scope widens only after it passes: the one failing test, then its file
+or package, then what the change touches, then the project's full local
+check, and CI last. A failure at any step sends the work back to the smallest
+scope that shows it, never to a rerun of the whole.
 
-Before pushing to a branch, check that it is not already merged; a merged
-pull request is never edited or reused.
+**CI is not where failures are diagnosed.** A CI failure is a clue: read its
+log once, then instrument the code and reproduce the failure here, recreating
+what CI has that this machine lacks (its load, timing, parallelism,
+environment). A fix is pushed only when the local reproduction shows it
+removes the failure. Only a failure that needs something truly unavailable here
+(another operating system) may reach CI unproven: then say so, add the
+instrumentation that makes its next failure name its cause, and send it with
+the one push the work needs anyway. Never call a green run proof that a guess
+was right.
+
+**Push once.** Push when the local steps are green and everything meant for
+this run is in it, not after each fix. Before pushing, check that the pull
+request will run: it is open, not merged, and has no conflicts (a pull
+request with conflicts runs no CI, so its push proves nothing). A merged pull
+request is never edited or reused. Report a CI run as started only after
+seeing it start.
 
 **Estimates are agent time.** An agent writes in minutes what takes a
 developer hours; its time goes to waiting (CI runs, reviews, the owner),

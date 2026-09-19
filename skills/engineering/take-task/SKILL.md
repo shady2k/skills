@@ -131,7 +131,9 @@ use a safe rehearsal or isolated environment; never cause a live outage to get
 a failing check.
 
 Workers run static checks and the tests related to their change, including
-neighbouring behaviour it affects. The full suite, mutation testing and final
+neighbouring behaviour it affects, from the narrowest scope outward as the
+protocol's **Checks cost** says; a failing test is rerun alone, not with its
+suite. The full suite, mutation testing and final
 review happen at stage acceptance. A shared change can rightly widen a worker's
 related tests.
 
