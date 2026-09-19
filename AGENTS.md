@@ -19,7 +19,8 @@ Codex uses `.codex-plugin/plugin.json`, with `skills: "./skills/"`, and the same
 `.claude-plugin/marketplace.json` catalog. All bucket folders under `skills/`
 are shipped. Do not add a portable root `plugin.json` without rechecking nested
 discovery: Codex 0.154.0 installs it but discovers no skills in this layout.
-Run `npm run test:codex` (Linux, bubblewrap and Codex CLI) after changing packaging;
+Run `npm run test:codex` (Linux, bubblewrap and Codex CLI) before every push, not only after
+changing packaging;
 it installs and updates an isolated Git marketplace without network or personal
 configuration changes. See `docs/codex.md`.
 

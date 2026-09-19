@@ -14,6 +14,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const temp = mkdtempSync(join(tmpdir(), 'shady2k-codex-test-'));
 const codexState = process.env.CODEX_HOME || join(homedir(), '.codex');
 const version = JSON.parse(readFileSync(join(root, 'package.json'))).version;
+// The checks carry the setup version, which moves only when an installation must change.
+const setupVersion = (readFileSync(join(root, 'skills/backlog/setup-shady2k-skills/protocol.md'), 'utf8').match(/^Setup version: (.+)$/m) || [])[1];
 const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
   e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)]);
 const skillFiles = walk(join(root, 'skills')).map((p) => p.slice(root.length + 1));
@@ -124,7 +126,7 @@ try {
     for (const script of ['check.mjs', 'check-commits.mjs', 'check-docs.mjs']) {
       const result = spawnSync(process.execPath, [join(cache, 'skills/backlog/setup-shady2k-skills', script), '--version'], { encoding: 'utf8' });
       assert.equal(result.status, 0);
-      assert.equal(result.stdout.trim(), version);
+      assert.equal(result.stdout.trim(), setupVersion);
     }
     const loaded = await discovered(state, work, marketplace.installedRoot);
     assert.deepEqual(loaded.map((s) => s.name).sort(), expectedNames, `${format}: every skill discovered exactly once`);
