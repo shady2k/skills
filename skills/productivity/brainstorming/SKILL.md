@@ -10,6 +10,10 @@ ideas, examples, counterexamples and connections. The user may change
 direction, leave questions open or decide nothing is worth building. Ending
 with no decision, document or task is a valid outcome.
 
+Talk in the user's language. Anything kept in the project is written in its
+artifact language: the gate config's `artifactLanguage` where there is one;
+otherwise ask once before the first thing is kept, recommending English.
+
 ## Follow the intent
 
 Tell from the conversation what the user wants; do not offer a menu of modes.

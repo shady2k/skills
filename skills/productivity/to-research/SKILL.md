@@ -9,6 +9,10 @@ Reading does not need this conversation's attention. Hand it to a **background
 agent** where the harness has one and keep working; where it has none, say so
 and read here.
 
+Talk in the user's language. Anything kept in the project is written in its
+artifact language: the gate config's `artifactLanguage` where there is one;
+otherwise ask once before the first thing is kept, recommending English.
+
 Write the brief yourself from the request and earlier decisions. Recommend a
 scope and effort, with the expected benefit and limits; do not ask the user to
 pick sources, file paths or routine settings. Use their known role, otherwise

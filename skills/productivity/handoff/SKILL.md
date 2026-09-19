@@ -12,6 +12,10 @@ handoff: the transcript keeps every wrong turn next to the fix, with nothing to
 tell them apart. Leave a short curated document instead: what is true now, what
 to do first, and where everything else already lives.
 
+Talk in the user's language. Anything kept in the project is written in its
+artifact language: the gate config's `artifactLanguage` where there is one;
+otherwise ask once before the first thing is kept, recommending English.
+
 If the user passed arguments, they say what the next session is for. Tailor
 everything to that and leave the rest out.
 

@@ -109,6 +109,11 @@ given; leave settings unrelated to this setup for later.
 The profile covers the following. It is the agent's checklist, **not a
 questionnaire**.
 
+- **Artifact language:** the language of documents, tasks, commit messages
+  and code comments. Always a question on first setup, even inside an accepted
+  profile: recommend English and show which language the existing files and
+  commits use. A rerun keeps the recorded answer. Conversation always follows
+  the user's own language, whatever this is.
 - **Scope and horizon:** labels, areas, the current milestone and its finding
   budget. Compare documented labels with real ones; never erase live work to
   fit a list. Establish the current slice during cleanup if needed. A missing
@@ -177,6 +182,7 @@ a shared index lets another agent commit your staged files.
   "setupStatus": "pending",
   "setupVersion": null,
   "setupVerifiedAt": null,
+  "artifactLanguage": "en",
   "projectWords": ["<project names>"],
   "trackerWords": ["<tracker names>"]
 }

@@ -98,6 +98,15 @@ When creating or revising a skill, check its dialogue against this rule. A seque
 of technical yes/no questions is not role-aware guidance even if each question
 contains a recommended number.
 
+## Language
+
+Talk to the user in the language of their latest message. Everything kept in a
+project (documents, specs, tasks, commit messages, code comments, handoffs) is
+written in that project's artifact language, which setup asks for explicitly,
+recommending English, and records as the config's `artifactLanguage`. A skill
+that keeps anything without that value asks once, recommending English. The
+skills themselves, and reports to this repository, are written in English.
+
 ## Dialogue is not a requirements interview
 
 Be a thinking partner: contribute ideas, examples, counterexamples and useful

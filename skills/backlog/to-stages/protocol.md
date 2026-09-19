@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Protocol version: 0.11.0
+Protocol version: 0.12.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -164,6 +164,14 @@ Lead with the consequence for the work: what can be done now, what waits, and
 what is needed from the person. Show what changes and what needs a decision;
 what stays as it was takes one line. Diagnostics and proof belong with the
 task that did the work, available on request, not in the message.
+
+**Language.** Talk to the person in the language of their latest message,
+whatever language the project's files use. Everything kept in the project is
+written in its **artifact language**, the config's `artifactLanguage`:
+documents and specs, task titles and bodies, commit messages, code comments,
+handoff notes. Setup asks the owner for it explicitly and recommends English;
+it is never inferred silently. Where none is recorded yet, ask once before the
+first thing is kept, recommending English.
 
 **The gate is clean** when its report says `new errors: 0`. That line means the
 same under every strength, unlike red and green: under `report` nothing is ever

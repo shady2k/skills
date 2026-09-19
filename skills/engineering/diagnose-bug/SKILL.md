@@ -10,6 +10,10 @@ and testable hypotheses, not a plausible story. A request to diagnose permits
 investigation, not a fix or a commit. Fix only when that was asked for or is
 already part of the current tracked task.
 
+Talk in the user's language. Anything kept in the project is written in its
+artifact language: the gate config's `artifactLanguage` where there is one;
+otherwise ask once before the first thing is kept, recommending English.
+
 Hide every secret in anything you show. Read credentials from environment
 variables so none reaches the transcript.
 

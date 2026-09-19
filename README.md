@@ -205,7 +205,9 @@ reason:
 1. **Look around**: reads the project and tracker. No input from you.
 2. **Tidy the queue**: agrees with you what is current, waits or was
    abandoned. Needs you; the long step on a large backlog.
-3. **Agree the settings**: one recommended profile to accept or adjust. Needs you once.
+3. **Agree the settings**: one recommended profile to accept or adjust, and
+   an explicit question about which language documents, tasks, commit messages
+   and code comments are written in (English recommended). Needs you once.
 4. **Connect the checks**: hooks, CI and the tracker adapter. No input from you.
 5. **Prove it works**: makes the checks fire on planted problems. No input from you.
 6. **Finish**: lands the installation; may ask your approval to merge it.
@@ -349,6 +351,8 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.12.0 separates languages: the agent talks in yours, and files are
+written in the project's artifact language, asked at setup (English by default).
 Version 0.11.0 adds `report-to-shady2k` for anonymized reports and ideas.
 Version 0.10.0 no longer holds setup and work until the document gate is wired:
 it becomes its own stage, and documents are checked by reading meanwhile.

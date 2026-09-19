@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.11.0 adds anonymized reports to the author; 0.10 made the
+Status: version 0.12.0 separates chat and artifact languages; 0.11 added
+anonymized reports to the author; 0.10 made the
 document gate a non-blocking stage; 0.9 made
 the router a read-only orientation; 0.8.0 added
 exploratory dialogue, living documents and a document gate to the revised
@@ -275,6 +276,13 @@ looks for the names the checkout and machine reveal and the project's own words
 from its gate config; it knows shapes, not meaning, so the real safeguard is
 that the user reads the exact text and says yes before anything is published.
 It is user-invoked only: nothing is ever published on an agent's initiative.
+
+0.12 separates two languages that had been one. The conversation follows the
+user: whatever language they write in, the agent answers in it. What is kept in
+the project follows the project: documents, tasks, commit messages and code
+comments use its artifact language, recorded as `artifactLanguage`. Setup asks
+for it explicitly, recommending English, because inferring it from the person's
+chat language would write a team's shared files in one member's language.
 
 ## 10. Findings and cleanup
 

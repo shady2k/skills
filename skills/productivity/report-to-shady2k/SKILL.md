@@ -36,8 +36,10 @@ interview. Find out yourself:
 
 ## 2. Write the draft
 
-Write in English, in plain words, to a file in the system's temporary directory,
-never inside the project.
+Write the issue in English whatever the project's language: it goes to the
+set's own repository. Keep talking to the user in their language. Use plain
+words, and write to a file in the system's temporary directory, never inside
+the project.
 
 **Problem:**
 

@@ -9,6 +9,10 @@ Some questions talking does not settle: whether a state model survives its
 awkward cases, what a screen should look like. A prototype is **throwaway code
 that answers one such question**, and the question decides its shape.
 
+Talk in the user's language. Anything kept in the project is written in its
+artifact language: the gate config's `artifactLanguage` where there is one;
+otherwise ask once before the first thing is kept, recommending English.
+
 ## 1. Write the question down
 
 Files kept in the repository and commits need their owning task first. Where

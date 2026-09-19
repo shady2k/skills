@@ -11,6 +11,10 @@ words mean, so a spec, an issue and the code call one thing by one name. The
 "fixes" it a year later. Neither tracks progress: that comes from the tracker,
 never from a page someone maintains.
 
+Talk in the user's language. Anything kept in the project is written in its
+artifact language: the gate config's `artifactLanguage` where there is one;
+otherwise ask once before the first thing is kept, recommending English.
+
 This skill is for **changing** them. Every skill reads the glossary before
 naming things.
 
