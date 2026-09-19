@@ -23,8 +23,8 @@ never from scratch.
 
 Everything the owner reads follows the protocol's **Speaking to the owner**.
 
-Present the recommended route and how it will run as one proposal: what it
-achieves, why it fits, and its effect on time, cost and risk. Keep setup
+Present the recommended route and how it will run as one proposal, with the
+assumptions it rests on: what it achieves, why it fits, and its effect on time, cost and risk. Keep setup
 choices and earlier approvals. The user changes named items; do not ask them to
 pick worker counts, commands or helpers. Delegated choices cover routine
 details, not new scope, spending or weaker acceptance.
@@ -135,7 +135,10 @@ inputs did not change can be reused.
 Record the base and final revisions, included tasks, criteria, test and mutation
 results, and review findings with what was done about each. For non-code work,
 use the project's equivalent evidence and say which checks do not apply. Get
-verified runner receipts through the integration and run the acceptance document
-check under its protected policy; "passed" written by an agent is not a receipt.
+the evidence at the integration's level and run the acceptance document check.
+At the protected level, "passed" written by an agent is not a receipt; at the
+records level, say that records are trusted. Report the accepted stage to the
+owner as the protocol's summary: what users can now do, decisions and
+assumptions made on the way, what review found, and what remains unknown.
 Then close the accepted tasks and stage through `close-out`. Commit links and a
 clean backlog are required but never replace checking the behaviour.

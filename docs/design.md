@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.14.0 assigns tasks to the agents doing them; 0.13 added a
+Status: version 0.15.0 replaces reading assignments with summaries; 0.14
+assigned tasks to the agents doing them; 0.13 added a
 light evidence level to the document gate; 0.12
 separated chat and artifact languages; 0.11 added
 anonymized reports to the author; 0.10 made the
@@ -305,6 +306,16 @@ name, and the person only for decisions, manual checks and approvals. And a
 step ended without saying what next, so every skill that finishes a step now
 names the next action, and recommends a fresh session in time: `/handoff` at a
 natural boundary, the harness's compaction in the middle of the same work.
+
+0.15 stops treating the owner as a reader. The skills assumed a product
+engineer would read specs, charters and change records; there are many, they
+are long, and reading them is not the owner's job. Documents stay the agents'
+memory and the record. The owner gets a summary: substance, decisions, the
+agent's own assumptions and guesses with what happens if they are wrong, risks,
+the strongest case against, and what review found, in plain words without
+code. An approval records the summary that was shown, a reviewer checks that
+summary against the document, and a document too large to summarize fully is
+split rather than approved blind.
 
 ## 10. Findings and cleanup
 

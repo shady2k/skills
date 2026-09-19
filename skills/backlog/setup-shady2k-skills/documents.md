@@ -200,6 +200,8 @@ Evidence: `{schemaVersion: 1, revision, policyDigest, approvals, checks}`.
 Approval: `{changeDigest, reference}`. Check: `{id, status, reference}` where
 status is `passed`, `failed`, `skipped` or `unsupported`. The wrapper retrieves
 and verifies runner/approval records; references identify the actual evidence.
+An approval's reference records the summary the owner was shown, since that is
+what they approved, not the document text they were not asked to read.
 `policyDigest = digest(policy)`, `changeDigest = digest(change)`. Changing the
 proposal invalidates its approval; changing checked inputs invalidates evidence.
 Where approval is required, the same bounded approval is reused, not requested

@@ -121,6 +121,7 @@ Run the backlog gate and the integration's feature document check; a new
 product also needs the product check for its vision and first charter. An
 incomplete draft may be kept as a draft but is never presented as ready to
 implement. Seek only the approvals that are required, bound to this proposal;
-never fake an approval flag. Publish through the authorized workflow. If the
+never fake an approval flag. Ask for approval with the protocol's summary, not
+by sending the owner to read the spec. Publish through the authorized workflow. If the
 request includes execution or decomposition, continue with `to-stages`;
 otherwise return the spec and recommend that step by name.

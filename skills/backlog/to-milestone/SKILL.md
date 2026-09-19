@@ -49,8 +49,9 @@ something is implemented and accepted.
 
 ## 2. Propose the charter
 
-Present one draft charter, with retained decisions and recommended new values,
-in product terms: what ships, for whom, at what cost and risk. For each
+Present one draft charter as the protocol's summary, not as a document to read:
+retained decisions and recommended new values in product terms, what ships, for
+whom, at what cost and risk, and the assumptions it rests on. For each
 meaningful choice say why it is recommended and what changing it would do.
 The user approves it as a whole or changes named items. Ask separately, one at
 a time, only about material unknowns or conflicting priorities. Do not re-ask

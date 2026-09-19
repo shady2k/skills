@@ -351,6 +351,9 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.15.0 never asks you to read documents: the agent tells you the
+substance, its decisions and assumptions, risks, other views and what review
+found, in plain words, and your approval covers what you were shown.
 Version 0.14.0 assigns tasks to the agent doing them, not to you, and every
 step ends with the next action, recommending a handoff or compaction in time.
 Version 0.13.0 adds a light "records" level for the document gate, recommended

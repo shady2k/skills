@@ -94,6 +94,13 @@ architect, and product consequences across those areas for a product engineer.
   with what was retained, what the user changed, what the agent chose and any
   genuinely blocking unknowns; do not reopen settled decisions without new evidence.
 
+- **Summarize; never assign reading.** Documents are for agents and the record.
+  The person gets the substance, decisions, the agent's own assumptions and
+  guesses, risks and cost, other views and what review found, in plain words
+  without code; word for word only short text whose exact wording matters. An
+  approval covers what was shown. The protocol's "Speaking to the owner" holds
+  the full rule, including never showing the set's own internals.
+
 When creating or revising a skill, check its dialogue against this rule. A sequence
 of technical yes/no questions is not role-aware guidance even if each question
 contains a recommended number.

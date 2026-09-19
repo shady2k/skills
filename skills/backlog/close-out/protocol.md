@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Protocol version: 0.14.0
+Protocol version: 0.15.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -177,7 +177,33 @@ the gate, adapter, hooks, receipts, config or integration doc, paths of the
 process tooling, branches and pull requests of the installation, the setup
 task's own id, open questions about how agents split their work. Say only what
 it means for their work and their product. Name such a thing only when the
-person must act on it themselves, and then in plain words.
+person must act on it themselves, and then in plain words. No code either: no
+snippets, function names or file paths; describe the behaviour a user or
+operator would see, and give technical detail only when the person asks.
+
+**Summarize; never assign reading.** Documents are the agents' working memory
+and the record; the person is not expected to read them. When work needs their
+attention or approval, give them, in plain words:
+
+- **the substance:** what changes for users, and what does not;
+- **decisions:** those the agent took itself, and those that need the person;
+- **assumptions:** what the agent took as true without checking, and the
+  guesses it made, each with what happens if it is wrong and how it could be
+  checked. Check what can be checked instead of assuming. List the ones that
+  would change the outcome, not every small one;
+- **risks and cost:** in time, money and reversibility;
+- **other views:** the strongest case against, and the alternatives considered;
+- **review:** what an independent reviewer found, where agents disagreed, and
+  what is still unknown.
+
+Show word for word only short text whose exact words matter: a done criterion,
+text users will see, an irreversible action, anything to be published. Offer
+the document on request; never make reading it a condition to proceed.
+
+An approval covers what was shown. The summary carries every decision, scope
+boundary, assumption and risk of the document; an independent reviewer checks
+it against the document for anything missing. A document that cannot be
+summarized fully holds too many decisions to approve at once: split it.
 
 **Language.** Talk to the person in the language of their latest message,
 whatever language the project's files use. Everything kept in the project is
