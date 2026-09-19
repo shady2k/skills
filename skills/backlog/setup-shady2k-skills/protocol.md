@@ -203,7 +203,12 @@ task's own id, open questions about how agents split their work. Say only what
 it means for their work and their product. Name such a thing only when the
 person must act on it themselves, and then in plain words. The same goes for
 changes to the set's own bookkeeping: where it keeps versions, which fields it
-added or removed. If nothing changes for the person's work, say nothing. No code either: no
+added or removed. If nothing changes for the person's work, say nothing.
+
+Before sending anything to the person, reread it once for three slips that
+happen even when the rules are known: an id without its title (look the title
+up), an internal word from this protocol, the config or the tools (use the
+table above), and a sentence in a language other than theirs. No code either: no
 snippets, function names or file paths; describe the behaviour a user or
 operator would see, and give technical detail only when the person asks.
 
