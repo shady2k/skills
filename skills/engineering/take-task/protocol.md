@@ -209,7 +209,11 @@ task's own id, open questions about how agents split their work. Say only what
 it means for their work and their product. Name such a thing only when the
 person must act on it themselves, and then in plain words. The same goes for
 changes to the set's own bookkeeping: where it keeps versions, which fields it
-added or removed. If nothing changes for the person's work, say nothing.
+added or removed. If nothing changes for the person's work, say nothing. How a
+change will land (a pull request or a direct push, the task it is tracked
+under) is decided from the project's workflow, never asked, and never part of
+what the person approves: approval is about the content. Mention it only when
+the person must act, such as merging, and then after the work exists.
 
 Before sending anything to the person, reread it once for three slips that
 happen even when the rules are known: an id without its title (look the title
