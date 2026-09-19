@@ -1,8 +1,7 @@
 ---
 name: report-to-shady2k
-description: Report a problem with these skills, or an idea for them, as a GitHub issue, anonymized and shown word for word before it is sent.
+description: "Report a problem with these skills, or an idea for them, as a GitHub issue, anonymized and shown word for word before it is sent. Use only when the user asks to report something about these skills; nothing is sent without their explicit yes to the exact text."
 argument-hint: "What went wrong, or what would you like?"
-disable-model-invocation: true
 ---
 
 # Report to shady2k

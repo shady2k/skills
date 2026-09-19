@@ -2,7 +2,7 @@
 
 Skills that keep the queue usable and stage acceptance honest.
 
-## User-invoked
+## Started on the user's request
 
 - [setup-shady2k-skills](./setup-shady2k-skills/SKILL.md): choose/verify the
   tracker, propose a role-aware settings profile, clean the queue and prove
@@ -12,7 +12,7 @@ Skills that keep the queue usable and stage acceptance honest.
   ways forward and the recommended next action.
 - [to-milestone](./to-milestone/SKILL.md): agree independent outcomes and budget.
 
-## Model-invoked
+## Started when the work calls for it
 
 Also available directly to the user.
 

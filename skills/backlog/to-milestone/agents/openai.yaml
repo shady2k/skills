@@ -2,4 +2,4 @@ interface:
   display_name: "To Milestone"
   short_description: "Charter the next milestone"
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

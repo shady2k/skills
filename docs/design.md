@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.19.0 runs a whole feature alone to one pull request; 0.18
+Status: version 0.20.0 starts skills on the user's word; 0.19 runs a whole
+feature alone to one pull request; 0.18
 asked whether the process is personal or for the team;
 0.17 kept installation state out of the repository; 0.16
 asks for setup only when the installation must change;
@@ -372,6 +373,22 @@ costly error, behaviour beyond the spec or a conflict with an earlier decision
 stops the affected work with a ready decision. The pull request report shows
 what was built, how to try it, and every decision and assumption made alone.
 The owner's acceptance is the merge.
+
+0.19.1 bounds the feature. "One feature, one pull request" left a feature's
+size open, and the first real candidate held three large steps and days of
+work in one branch, against the project's rule to merge into the main line
+often. A feature now merges on its own and soon: a run longer than the project
+lets a branch live is split into features that each merge and keep the main
+line working. Every option offered and every preflight also states a rough
+duration and what it rests on, and stages are named by what they deliver, never
+by number.
+
+0.20 lets the agent start any skill when the user asks. User-invoked skills
+could not be called by the model at all, so after the owner said "yes" the
+router told him to run a command and repeat a phrase. The line that matters is
+not the mechanism but the initiative: scope, runs, installation, handoff and
+publication start only on the user's request or agreement, and say so in their
+descriptions; the rest start when the work calls for them.
 
 ## 10. Findings and cleanup
 

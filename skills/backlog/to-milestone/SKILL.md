@@ -1,7 +1,6 @@
 ---
 name: to-milestone
-description: "Turn the vision and the business requirements into the next milestone's charter: the outcomes in it, what is out, and a budget for findings."
-disable-model-invocation: true
+description: "Turn the vision and the business requirements into the next milestone's charter: the outcomes in it, what is out, and a budget for findings. Use when the user asks to plan or change the milestone, or agrees to a proposed change; never start it unprompted."
 ---
 
 # To milestone

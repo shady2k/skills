@@ -2,12 +2,12 @@
 
 Tracked work, proportional design and acceptance of an assembled stage.
 
-## User-invoked
+## Started on the user's request
 
 - [take-task](./take-task/SKILL.md): preflight with the owner, then run a whole
   feature alone to one pull request, stopping only for decisions that need them.
 
-## Model-invoked
+## Started when the work calls for it
 
 Also available directly to the user.
 

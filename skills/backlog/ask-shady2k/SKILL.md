@@ -1,7 +1,6 @@
 ---
 name: ask-shady2k
-description: Get oriented in the project, read-only: its picture, progress, where it stands now and the ways forward with their consequences.
-disable-model-invocation: true
+description: "Get oriented in the project, read-only: its picture, progress, where it stands now and the ways forward with their consequences. Use when the user asks where the project stands or what to do next, or comes back after a break."
 ---
 
 # Ask shady2k
@@ -10,7 +9,11 @@ Give the owner what they need to decide what to do next: what the product is,
 how far it has come, where it stands, and which ways forward exist with what
 each costs and postpones. Then recommend one by name.
 
-**Read-only.** Change no files, tracker items, holds, branches or config, and
+**Read-only** until the user asks for an action. When they agree to a
+recommended action or ask for one, start that skill yourself and carry their
+words into it; never tell them to run a command and repeat a phrase.
+
+Change no files, tracker items, holds, branches or config, and
 commit nothing. Reading the tracker and running the gate's report are reads.
 Run a project check only if it is documented as side-effect-free; otherwise
 report it as not run. Anything that needs a write is named as the skill that
@@ -70,7 +73,8 @@ with the evidence for each.
 
 The recommendation is the first row below that applies; its order makes you
 finish before you start. Then give two or three real alternatives, each with
-what it achieves, its time and budget, what it postpones, its risk and whether
+what it achieves, how long it will roughly take and what that rests on, its
+budget, what it postpones, its risk and whether
 it can be undone. Include stopping (`/handoff`) when that is a real option. An
 alternative outside the current milestone is labelled a scope change and goes
 to `/to-milestone` or `to-backlog`; an open idea goes to `brainstorming`. Do not
@@ -91,7 +95,7 @@ invent work to fill the list.
 | new product without direction or first charter | `/to-milestone`, drafted from known decisions |
 | a change is not ready by the document check | the concrete gap: missing contract, stale base or open decision; `to-spec` |
 | an outcome needs design or breaking down | `/take-task` picks the route, or `to-spec` for design only |
-| a planned feature is ready | `/take-task` to run the whole feature to one pull request; mention what can run in parallel |
+| a planned feature is ready | `/take-task` to run the whole feature to one pull request, if its run fits how long the project lets a branch live; otherwise split it first; mention what can run in parallel |
 | a feature is not yet planned enough to run alone | plan it with the owner (`brainstorming`, `to-spec`, `to-stages`), ending in `/take-task`'s preflight |
 | everything left is blocked or held | the result or owner that would unblock it; do not widen the milestone or invent work |
 

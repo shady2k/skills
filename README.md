@@ -54,11 +54,13 @@ for the full picture. Skip it only when you already know the exact task
 
 ## Skills
 
-Sixteen skills. You start the first group yourself; the agent can also start
-the second group when your request calls for it, and you can call them directly.
+Sixteen skills. You can start any of them by command or just by asking in
+words; when the agent recommends one and you agree, it starts it itself. The
+first group starts only on your request or agreement; the agent starts the
+second group on its own when the work calls for it.
 In Claude Code the plugin prefixes them: `/shady2k-skills:ask-shady2k`.
 
-### User-invoked
+### Started on your request
 
 | skill | what it does | when to use it |
 | --- | --- | --- |
@@ -69,7 +71,7 @@ In Claude Code the plugin prefixes them: `/shady2k-skills:ask-shady2k`.
 | [handoff](skills/productivity/handoff/SKILL.md) | Writes down what is in flight so a fresh session continues without losing anything. | Before you stop, or when a session gets too long. |
 | [report-to-shady2k](skills/productivity/report-to-shady2k/SKILL.md) | Sends a problem or idea about these skills to their author as a GitHub issue, anonymized and shown to you word for word first. | When a skill confused you, did something wrong, or is missing something. |
 
-### Model-invoked
+### Started when the work calls for it
 
 Available to you directly as well. The agent starting one does not authorize
 unrelated changes, new scope or publishing anything.
@@ -365,6 +367,9 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.20.0 starts a skill when you ask in words or agree, instead of asking
+you to type its command; runs are sized to how long your branches may live, and
+every option carries a rough duration.
 Version 0.19.0 runs a whole feature without you: plan it together, answer one
 batch of questions, leave, and come back to one pull request that says what was
 built, how to try it and what the agent decided alone.

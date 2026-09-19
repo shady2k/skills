@@ -1,7 +1,6 @@
 ---
 name: setup-shady2k-skills
-description: Install or recheck the set in a project: tracker, queue, working settings and checks; run again when a skill says the installation is out of date.
-disable-model-invocation: true
+description: "Install or recheck the set in a project: tracker, queue, working settings and checks. Use when the user asks to set up or update the installation, or agrees to it after a skill reported it out of date; never start it unprompted."
 ---
 
 # Setup shady2k-skills
@@ -161,6 +160,9 @@ questionnaire**.
   Explain what each means for leaving: inline and subagents end with the
   session; separate sessions survive while the machine runs; a cloud session
   needs no machine of theirs. The preflight of each feature run confirms it.
+- **How long a branch may live:** read the project's own rule where its docs
+  state one (many prefer merging into the main line often); otherwise recommend
+  a day or two. Feature runs are sized to it.
 - **Execution:** which agents and models may do which work (for example, a
   light model only for low-risk tasks, a strong one for security, data or
   concurrency), how many agents work at once, atomic claims or one-at-a-time
@@ -217,6 +219,7 @@ them and propose it instead.
   "execution": {
     "development": "<tdd | test-after>",
     "runMode": "<inline | subagents | worker-sessions | cloud>",
+    "maxBranchDays": 2,
     "maxWorkers": 1,
     "mutationBudgetMinutes": 10,
     "mutationFallback": "<agreed alternative or escalate>",

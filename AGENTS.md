@@ -11,8 +11,8 @@ Skills live in bucket folders under `skills/` (`backlog/` keeps the queue,
 folder per skill: `skills/<bucket>/<skill-name>/SKILL.md`, with its Codex
 metadata beside it in `agents/openai.yaml`. Every skill has an entry in the top-level
 `README.md`, in its bucket's `README.md`, and in the `skills` array of
-`.claude-plugin/plugin.json`. Both READMEs group entries into **User-invoked**
-and **Model-invoked**. Run `claude plugin validate . --strict` and the same on
+`.claude-plugin/plugin.json`. Both READMEs group entries into **started on the
+user's request** and **started when the work calls for it**. Run `claude plugin validate . --strict` and the same on
 `.claude-plugin/plugin.json` after touching a manifest.
 
 Codex uses `.codex-plugin/plugin.json`, with `skills: "./skills/"`, and the same
@@ -43,12 +43,16 @@ everything, and a harness may have no namespaces.
 
 ## Invocation
 
-A skill is **user-invoked** unless an agent must reach it unprompted. User-invoked
-means `disable-model-invocation: true` in the frontmatter, a one-line human-facing
-description, and `policy.allow_implicit_invocation: false` in the skill's
-`agents/openai.yaml`; keep the two in step. Model-invoked skills carry a
-model-facing description with their triggers. A user-invoked skill can never be
-called by another skill: where one is a precondition, tell the user to run it.
+Every skill can be started by the agent, because a user asks in words as often
+as by command: "yes, do it" must be enough, never "run this command and say
+this phrase". What differs is **who may start it**. Skills that change scope,
+run work, install, hand over or publish (`ask-shady2k`, setup, `to-milestone`,
+`take-task`, `handoff`, `report-to-shady2k`) start **only on the user's request
+or agreement**, and their descriptions say so; the others start when the work
+calls for them. Descriptions are model-facing with their triggers;
+`disable-model-invocation` is not used, and `policy.allow_implicit_invocation`
+in `agents/openai.yaml` stays `true` in step with it. When a skill recommends
+another and the user agrees, start it; do not send them to type it.
 The planning helpers (`to-spec`, `to-stages`, `to-prototype`, `to-research`) and
 `groom-backlog` are model-invoked so an authorized `take-task` or setup can
 compose them. That permits the workflow, not unrelated changes or new authority.

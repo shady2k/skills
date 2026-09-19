@@ -51,6 +51,12 @@ later stages coarse; the coordinator of a feature run breaks them down when it
 reaches them, within the spec. Redesign approved outcomes only when scope
 changes.
 
+**Features.** A feature is built in one run and merges into the main line as
+one pull request, so it must be small enough that its branch lives no longer
+than the project allows. If the stages would not fit, split the outcome into
+features that each merge on their own and keep the main line working, and say
+so to the owner; changing the milestone's outcomes goes through `/to-milestone`.
+
 **Stages.** Each finishes something observable with its own DONE WHEN: a
 checkpoint that full checks, mutation testing and review accept before the
 next stage builds on it. A stage has no session limit; its tasks do. Together they meet the feature's end-to-end

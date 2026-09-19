@@ -2,4 +2,4 @@ interface:
   display_name: "Take Task"
   short_description: "Coordinate tracked work through stage acceptance"
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

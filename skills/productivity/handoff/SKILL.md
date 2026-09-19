@@ -1,8 +1,7 @@
 ---
 name: handoff
-description: Hand the current conversation and pending stage acceptance to a fresh session, without committing by default.
+description: "Hand the current conversation and pending work to a fresh session, without committing by default. Use when the user asks to hand over or stop, or agrees to a proposed handoff."
 argument-hint: "What will the next session be used for?"
-disable-model-invocation: true
 ---
 
 # Handoff

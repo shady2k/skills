@@ -1,7 +1,6 @@
 ---
 name: take-task
-description: Run a planned feature on its own, from preflight to one green pull request, deciding small gaps itself and stopping only for decisions that need you.
-disable-model-invocation: true
+description: "Run a planned feature on its own, from preflight to one green pull request, deciding small gaps itself and stopping only for decisions that need the owner. Use when the user asks to run or take a feature, task or bug, or agrees to a proposed run; never start a run unprompted."
 ---
 
 # Take task
@@ -67,6 +66,10 @@ Before the owner leaves, prepare the run so it needs nobody:
   machine runs; a cloud session needs no machine of theirs. With no setting,
   recommend one and ask here;
 - which agents and models do which tasks, against each task's risk;
+- how long the run will likely take and when the pull request can be expected,
+  with what the estimate rests on. If that is longer than the project lets a
+  branch live, the feature is too big for one run: split it with the owner
+  through `to-stages` (and `/to-milestone` if the outcome changes) first;
 - how to reach the owner when the run stops, if the harness can notify.
 
 Bring all of it as **one batch**, each item with a recommendation and its
