@@ -4,8 +4,9 @@ Skills for decisions, evidence and continuity.
 
 ## Started on the user's request
 
-- [handoff](./handoff/SKILL.md): transfer current state, running workers and
-  unfinished stage acceptance without committing by default.
+- [handoff](./handoff/SKILL.md): keep the work's state in the tracker and leave
+  what only this conversation knows on the feature or outside the repository,
+  without committing by default.
 - [report-to-shady2k](./report-to-shady2k/SKILL.md): send a problem or idea about
   these skills as a GitHub issue, anonymized and shown word for word first.
 

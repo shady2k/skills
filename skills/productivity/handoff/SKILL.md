@@ -8,8 +8,17 @@ argument-hint: "What will the next session be used for?"
 
 The next agent knows only what you leave it. "Continue session X" is the worst
 handoff: the transcript keeps every wrong turn next to the fix, with nothing to
-tell them apart. Leave a short curated document instead: what is true now, what
-to do first, and where everything else already lives.
+tell them apart. Leave it what it cannot find, where it will look.
+
+**The state of the work is not handed over; it is kept.** Tasks, holds,
+results, acceptance and what comes next live in the tracker and in version
+control, where any session, checkout, machine or worker finds them. A handoff
+keeps them true and adds only what exists nowhere else: what this conversation
+learned. If a fresh session could not recover the work from those, that is a
+defect to fix there and to report, not a gap to paper over with a document.
+
+Never write a handoff into the workspace. A committed handoff becomes a stale
+instruction someone later follows.
 
 Talk in the user's language. Anything kept in the project is written in its
 artifact language: the gate config's `artifactLanguage` where there is one;
@@ -56,38 +65,62 @@ Anything left half-done is a trap the next agent cannot see.
 Done when nothing the next agent needs exists only in this session's memory or
 in an unnamed process.
 
-## 2. Write the document, outside the repository
+## 2. Keep what only this conversation knows
 
-Save it in the harness's scratch directory, or else the system's temporary
-directory, as `handoff-<what it is about>.md`. Never in the workspace: a
-committed handoff becomes a stale instruction someone later follows.
+Leave out the story of the session, and anything already in a commit, issue,
+spec, decision record, decision log, pull request or diff: name it by path,
+hash or "Title" (id) instead. What remains is the note.
 
-Reference, do not copy. Anything already in a commit, issue, spec, decision
-record or diff is named by path, hash or "Title" (id).
+**Where it goes:**
+
+- **Work on a tracked feature**, where the project has a backlog integration:
+  a comment on that feature, through the integration's comment operation,
+  headed `Handoff` and dated. One note per feature the session touched, each
+  about that feature. It is visible from every checkout, machine and worker,
+  and it closes with the feature, so it cannot outlive what it describes. A
+  newer note replaces an older one for the next agent; do not edit old ones.
+- **Anything else** (an exploration, a conversation before setup, work with no
+  feature): a file outside the repository that survives a restart, in the
+  user's state directory: `~/.local/state/shady2k-skills/handoff/<project>/`,
+  named `<date>-<what it is about>.md`. If the harness cannot write there, use
+  its temporary directory and tell the user the note will not survive a
+  restart or reach another machine.
+
+If the workspace already holds handoff files that were committed, do not add
+to them. Name them to the user as stale instructions and recommend removing
+them as tracked work.
+
+Include only the sections with something to say; a note may be three lines.
 
 <handoff-template>
 
-# Handoff: <what the next session is for>
+# Handoff: <what the next session is for>, <date>
 
 ## Do this first
 
-The one next action, concrete enough to start without asking. Then the two or
-three after it, if known.
+The one next action, concrete enough to start without asking, if it is not
+already the tracker's next step. Then the two or three after it, if known.
 
-## What is true now
+## Not recorded elsewhere
 
-What exists and **was verified in this session**, each with how: a command and
-its result, a test, a file read. What was only reported, assumed or partly
-checked goes in a separate list headed "not verified".
+What this session verified beyond what the tracker and the pull request say,
+each with how: a command and its result, a test, a file read. What was only
+reported, assumed or partly checked goes in a separate list headed "not
+verified". Uncommitted work: where it sits and how ready it is.
 
 ## Decisions
 
-Decisions made, each with its reason in a clause, so they are not reopened.
-Then the open ones and whose each is; the owner's stay the owner's.
+Decisions made that no decision log or record holds yet, each with its reason
+in a clause, so they are not reopened. Then the open ones and whose each is;
+the owner's stay the owner's.
 
 Keep the user's role, accepted settings, named overrides and any permission to
 use recommendations, with its limits, so the next agent does not ask again. For
 open decisions, give a recommendation and its consequences.
+
+## Open threads
+
+For an exploration: the questions, hypotheses and disagreements still open.
 
 ## Traps
 
@@ -96,29 +129,26 @@ command that lies, the file that is not what its name says. One line each.
 
 ## Where things are
 
-Commits by hash, issues as "Title" (id), files by path, uncommitted work by
-where it sits. The source session's id and transcript path when the harness
-keeps one, for looking up a detail, not for reading whole.
-
-## Skills to reach for
-
-Which skills the next agent should use, by name, and for what.
+What the next agent would not find by itself: a worktree, a running process
+and who collects it, the source session's id and transcript path when the
+harness keeps one, for looking up a detail, not for reading whole.
 
 </handoff-template>
 
-Leave out the story of the session, except where it is a trap.
+**Remove** keys, passwords, tokens and personal data. The note may be read by
+anyone who sees the tracker.
 
-**Remove** keys, passwords, tokens and personal data. The document may be
-pasted anywhere.
-
-Done when a stranger could take the first action from the document alone, and
-every claim in "What is true now" names its evidence.
+Done when a fresh agent, starting from the tracker, version control and this
+note, could take the next action without asking, and every verified claim
+names its evidence.
 
 ## 3. Pass it on
 
-Print the document's path and, in a code block, **one sentence for the next
-session**: read that file and do what it says. A pointer, never the whole
-summary: long pastes get truncated or mangled.
+Give the user, in a code block, **one sentence for the next session**. For
+work on a tracked feature: continue that feature by name; the next agent gets
+oriented with `ask-shady2k`, which reads the note. Otherwise: read the note at
+its path and do what it says. A pointer, never the whole summary: long pastes
+get truncated or mangled.
 
 If this harness can start a session with a prompt (a command-line flag, a new
 terminal pane, a background agent), offer to start it with that sentence in the

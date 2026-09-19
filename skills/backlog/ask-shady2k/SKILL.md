@@ -35,15 +35,18 @@ Do not make the user pick a mode.
 **Always:** README and agent doc; vision, roadmap, charters, current specs,
 glossary and decision records where they exist; the shape of the code, its
 checks and CI; git history, branches, worktrees and uncommitted changes. Git
-history is progress evidence too.
+history is progress evidence too. Handoff notes for this project in
+`~/.local/state/shady2k-skills/handoff/<project>/`, newest first: what an
+earlier session learned, to weigh against current evidence, not to obey.
 
 **Where the project has a backlog integration** (its agent doc points to it):
 read [`protocol.md`](protocol.md) and do its compatibility check. Run the gate
 from this checkout. If it fails, name the real cause: an installation not yet
 landed (check other worktrees), a missing runtime, a tracker outage or broken
 wiring. Collect the gate's report, config, charter, outcomes, holds, submitted
-and implemented tasks, stage acceptance records, and the tasks that can start
-now, using the integration's stage- and checkout-aware operation. Tell an owner actively
+and implemented tasks, stage acceptance records, the newest `Handoff` comment
+on each feature in flight, and the tasks that can start now, using the
+integration's stage- and checkout-aware operation. Tell an owner actively
 running acceptance from abandoned work.
 
 **Without an integration, or with an outdated one:** say so and continue from
@@ -64,7 +67,8 @@ with the evidence for each.
   work, stranded branches or uncommitted results, and each real blocker with
   what would release it.
 - **Health and risk:** failing, missing or unrun checks; specs or docs out of
-  step with the code; deferred findings piling up; setup out of date. Say what
+  step with the code; handoff files committed to the repository, which read as
+  instructions long after they stopped being true; deferred findings piling up; setup out of date. Say what
   each risks for the product.
 - **Beyond the horizon:** deferred work and ideas worth a thought, marked as
   hypotheses. They are not tasks and do not widen the milestone.
@@ -138,6 +142,7 @@ start the recommended action.
 - `close-out`: update current specs from accepted work, then close; keep
   pending work.
 - `groom-backlog`: snapshot, agree the slice, clean up reversibly, verify.
-- `handoff`: pass on state, results, evidence and the next action.
+- `handoff`: keep the work's state true and leave what only this conversation
+  knows where the next session will look.
 - `report-to-shady2k`: a skill of this set misbehaved or lacks something; send
   its author an anonymized issue after the user reads it word for word.

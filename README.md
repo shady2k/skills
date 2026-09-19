@@ -92,7 +92,7 @@ In Claude Code the plugin prefixes them: `/shady2k-skills:ask-shady2k`.
 | [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md) | Connects the project's tracker, cleans its queue with you, proposes settings as one profile and proves the checks work. | Once per project, and again when a skill says the installation is out of date. |
 | [to-milestone](skills/backlog/to-milestone/SKILL.md) | Agrees what the next version delivers, what is left out and how many new bugs it can absorb. | When the current version is done, or a project has no agreed next step. |
 | [take-task](skills/engineering/take-task/SKILL.md) | Before you leave, gathers every decision a planned feature will need in one list; then builds the whole feature without you up to one pull request, deciding small gaps itself and stopping only for decisions that need you. | When a feature is planned and you want it built while you are away. |
-| [handoff](skills/productivity/handoff/SKILL.md) | Writes down what is in flight so a fresh session continues without losing anything. | Before you stop, or when a session gets too long. |
+| [handoff](skills/productivity/handoff/SKILL.md) | Keeps the work's state in the tracker and leaves what only this conversation knows where a fresh session will look. | Before you stop, or when a session gets too long. |
 | [report-to-shady2k](skills/productivity/report-to-shady2k/SKILL.md) | Sends a problem or idea about these skills to their author as a GitHub issue, anonymized and shown to you word for word first. | When a skill confused you, did something wrong, or is missing something. |
 
 ### Started when the work calls for it
@@ -429,6 +429,10 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.25.0 keeps a handoff out of the repository and out of temporary
+files: the work's state stays in the tracker, and what only the conversation
+knows goes on the feature, or to the user's state directory, where
+`ask-shady2k` reads it.
 Version 0.24.4 answers each question with the cheapest check that can: a local
 unit test before an end-to-end run, this machine before CI, one test before the
 suite.

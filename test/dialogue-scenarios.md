@@ -90,8 +90,11 @@ Facts: there is uncommitted work in a named checkout, an accepted settings profi
 one override and delegation of routine defaults. Stage acceptance is pending.
 
 Expected: preserve all of that in the handoff, explain checkout accessibility,
-recommend how to resume and do not ask to commit. The next session must not
-reopen the settings interview or claim pending acceptance was completed.
+recommend how to resume and do not ask to commit. The note goes on the feature
+in the tracker, never into the workspace, and does not repeat what the tracker
+or pull request already hold. The next session, started with `ask-shady2k`,
+must find the note, not reopen the settings interview and not claim pending
+acceptance was completed.
 
 ## 7. Recommendations do not waive evidence
 
