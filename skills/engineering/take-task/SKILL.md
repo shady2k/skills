@@ -67,7 +67,8 @@ Before the owner leaves, prepare the run so it needs nobody:
   recommend one and ask here;
 - which agents and models do which tasks, against each task's risk;
 - how long the run will likely take and when the pull request can be expected,
-  with what the estimate rests on. If that is longer than the project lets a
+  in agent time with what the estimate rests on (the protocol's **Estimates**:
+  the agents' work plus CI and review waits, from this project's history). If that is longer than the project lets a
   branch live, the feature is too big for one run: split it with the owner
   through `to-stages` (and `/to-milestone` if the outcome changes) first;
 - how to reach the owner when the run stops, if the harness can notify.

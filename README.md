@@ -429,6 +429,10 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.24.0 never pushes a guessed fix for CI to judge: a failure seen only
+in CI first gets what makes it explain itself. Waiting on CI is quiet until a
+result matters, and estimates are in agent time (the work plus the waits), said
+again once when the work outgrows them.
 Version 0.23.0 publishes everything described below from 0.21.0 on: those
 releases were pushed but their version number never rose, so no installed plugin
 updated. Bumps now go through a script that fails if the number does not rise.

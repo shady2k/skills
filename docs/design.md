@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.23.0 publishes 0.21-0.22.5, which never shipped; 0.22 made
+Status: version 0.24.0 keeps CI from testing guesses and estimates in agent
+time; 0.23.0 publishes 0.21-0.22.5, which never shipped; 0.22 made
 every red check the run's own; 0.21 separated
 talking from building; 0.20 starts skills on
 the user's word; 0.19 runs a whole
@@ -424,6 +425,18 @@ and installed plugins, which update by version, never received them. The tests
 only compared the manifests with each other, and they agreed. Versions are now
 raised by `npm run bump`, which fails when a number would not rise. 0.23.0 ships
 everything from that span.
+
+0.24 comes from a run where a one-hour fix to CI grew into two hours of flaky
+tests. The diagnosis was sound where the failure reproduced locally; where it
+did not (macOS), the agent rewrote the test on a guess and pushed it for CI to
+judge, and reported every passing CI job as a separate message. Now a fix is
+pushed only when a local reproduction shows it works, and a failure seen only
+in CI first gets instrumentation so its next run names the cause. Waiting on
+background work is quiet until a result matters. Estimates had the same
+flaw from the other side: "about an hour" for ten minutes of writing and half
+an hour per CI run, because the model priced the work as a developer's.
+Estimates now come from the project's own history as agent work plus waits,
+and when work outgrows its estimate the owner hears it once with the new one.
 
 ## 10. Findings and cleanup
 

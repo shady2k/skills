@@ -218,6 +218,12 @@ table above), and a sentence in a language other than theirs. No code either: no
 snippets, function names or file paths; describe the behaviour a user or
 operator would see, and give technical detail only when the person asks.
 
+Waiting is quiet. While background work runs (CI, other agents, long
+commands), do not report each event as it arrives: one line when the wait
+starts, with what it waits for and roughly how long, then speak when a result
+changes what happens next, when everything has finished, or when the wait
+stalls. A passing step on the way is not news.
+
 **Summarize; never assign reading.** Documents are the agents' working memory
 and the record; the person is not expected to read them. When work needs their
 attention or approval, give them, in plain words:
@@ -330,15 +336,40 @@ conventions once, as a recorded decision, and every change follows them. When
 a diagnosis stalls for lack of logs, adding them comes first, and the gap is a
 finding.
 
+**CI is not where guesses are tested.** Push a fix for a failure only when a
+local reproduction shows the fix removes it. When the failure cannot be
+reproduced here (another operating system, the CI machine's load or timing),
+the first push adds what makes the next failure name its cause: the test's
+view of what happened, the relevant logs, the state it found. Only a failure
+that explains itself gets a fix. Say plainly when a fix is unproven, and never
+call a green run proof that a guess was right.
+
 Before pushing to a branch, check that it is not already merged; a merged
 pull request is never edited or reused.
+
+**Estimates are agent time.** An agent writes in minutes what takes a
+developer hours; its time goes to waiting (CI runs, reviews, the owner),
+rework after a red check, and diagnosis. Estimate from this project's own
+history: how long similar work took from start to merge (the tracker's and
+git's timestamps) and how long a CI run takes. Give the number as the agent's
+work plus the waits ("about twenty minutes of work, then two CI runs of half an
+hour"). Never estimate by how long a developer would take; with no history,
+say the number is a guess and what it rests on.
+
+When work grows well past the
+time given for it, or turns into different work (a small fix that uncovers
+four failing tests), tell the person once: what grew and why, what was
+already done, the new estimate, and whether the work continues. Continue on
+the same authority when it still serves what they agreed to; stop for them
+when the new cost could change their decision.
 
 **End with the next step.** Every skill that finishes a step ends by naming the
 next useful action and the skill that does it, so the person never has to ask
 what now. Offer work at the level the owner runs it: a feature to plan or to
 run, not a single task. Every option offered carries a rough duration and what
-it rests on (how many tasks, their size, the pace the history shows); say that
-it is an estimate. When the session has grown long, recommend a fresh one: at a natural
+it rests on (how many tasks, their size, the pace the history shows), in
+agent time as **Estimates** says; say that it is an estimate. When the
+session has grown long, recommend a fresh one: at a natural
 boundary (a stage accepted, a switch to unrelated work) through `/handoff`;
 in the middle of the same work, through the harness's context compaction (for
 example `/compact`), saying what must survive it. Recommend it before the

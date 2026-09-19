@@ -73,8 +73,8 @@ with the evidence for each.
 
 The recommendation is the first row below that applies; its order makes you
 finish before you start. Then give two or three real alternatives, each with
-what it achieves, how long it will roughly take and what that rests on, its
-budget, what it postpones, its risk and whether
+what it achieves, how long it will roughly take in agent time and what that
+rests on (the protocol's **Estimates**), its budget, what it postpones, its risk and whether
 it can be undone. Include stopping (`/handoff`) when that is a real option. An
 alternative outside the current milestone is labelled a scope change and goes
 to `/to-milestone` or `to-backlog`; an open idea goes to `brainstorming`. Do not

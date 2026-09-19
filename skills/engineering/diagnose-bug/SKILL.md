@@ -56,6 +56,11 @@ diagnose; the gap itself is a finding. Whether the bug predates the current
 work changes nothing: it is diagnosed and fixed the same way, and a CI job is
 never rerun hoping for green.
 
+When the failure happens only in CI, CI is not the loop: a pushed guess costs
+a full run and proves nothing when it passes. Push instrumentation first, so
+the next failure names its cause, or build the loop by recreating CI's
+conditions here (its load, its timing, its platform's behaviour).
+
 Ask the user only for evidence you cannot get yourself. Use their known role,
 otherwise product engineer: say what the observation will tell apart, recommend
 the least disruptive way to get it, and its effort and risk. Do not make them
