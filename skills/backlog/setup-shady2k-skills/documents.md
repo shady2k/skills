@@ -91,8 +91,9 @@ Markdown parser or an automatic converter for other workflows.
 
 ## Executable contract
 
-`check-docs.mjs` is a third portable check, mandatory at admission/acceptance
-boundaries independently of backlog strength. Exit 0 means no violations, 1
+`check-docs.mjs` is a third portable check. Once the project has wired it, it is
+mandatory at admission/acceptance boundaries independently of backlog strength;
+until then the protocol's reading fallback applies. Exit 0 means no violations, 1
 means violations, 2 means invalid input or invocation. Unknown fields/options,
 unsupported versions and malformed records fail closed. It makes no writes.
 

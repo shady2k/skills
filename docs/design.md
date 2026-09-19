@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.9.0 makes the router a read-only orientation; 0.8.0 added
+Status: version 0.10.0 makes the document gate a non-blocking stage; 0.9 made
+the router a read-only orientation; 0.8.0 added
 exploratory dialogue, living documents and a document gate to the revised
 execution/setup workflow. Live
 project validation of the new end-to-end workflow remains outstanding. §1 and
@@ -252,6 +253,18 @@ from the ladder, whose order protects finishing before starting; alternatives
 outside the milestone are labelled as scope changes and ideas as hypotheses.
 Without setup it still reads the repository and says what it cannot know,
 instead of answering only "run setup".
+
+In 0.10 the document gate stops blocking. Required for a verified setup in 0.8,
+its wiring took several sessions, and until it was done the skills that change
+tasks refused to run: an update stopped work for days. Now setup completes on
+the backlog and commit checks; the document gate is its own stage in the
+current milestone, recorded as not installed in the integration. Meanwhile a
+skill that would run it checks the same readiness by reading and records that
+the automatic check did not run. Migration rules for older installations were
+dropped at the same time: the set has no installations to migrate.
+For the same reason grooming no longer demands a backlog with no errors at all:
+it is done when the gate is clean and the current slice has no errors, and older
+debt outside the slice stays listed with a plan.
 
 ## 10. Findings and cleanup
 

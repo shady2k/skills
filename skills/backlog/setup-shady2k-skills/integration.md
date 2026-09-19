@@ -28,7 +28,7 @@ live only in the config.
 
 - **Backlog adapter:** <path and export command; historical export when supported>
 - **Rules:** <paths/provenance for check.mjs, check-commits.mjs and check-docs.mjs; verbatim copies or proved ports>
-- **Document adapter and gate:** <deterministic export from real docs/tasks; product/feature/acceptance/close commands>
+- **Document adapter and gate:** <deterministic export from real docs/tasks; product/feature/acceptance/close commands; or "not installed yet" and the "Title" (id) of its task>
 - **Document policy:** <config source for approval and required checks; protected policy selection>
 - **Document baseline/scope:** <actual target revision, full affected capabilities and complete changed-file enumeration>
 - **Verified receipts:** <runner/approval API verification, revision and digest binding; no author-asserted passes>

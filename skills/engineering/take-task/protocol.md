@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Protocol version: 0.9.2
+Protocol version: 0.10.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -123,6 +123,11 @@ regression check instead. Independent requirements may move at once; a changed
 prerequisite needs a refresh. The integration supplies deterministic exports
 and verified receipts. A structural check cannot prove a requirement is right
 or that a receipt is genuine; CI protection and real tests are separate jobs.
+
+The document gate is installed as its own stage and never holds up setup or
+work. Until it is installed, the integration says so and names its task. A
+skill that would run it checks the same readiness by reading the documents,
+records that the automatic check did not run, and never reports it as passed.
 
 **Names, not identifiers.** Everything a person reads says "Title" (id), with
 the id in parentheses and only where somebody must act on it. A title is a

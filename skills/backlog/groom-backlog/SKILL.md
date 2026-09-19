@@ -18,7 +18,7 @@ write anything. If there is none, tell the user to run
 protocol (levels, lanes, the horizon, what a clean gate is) is
 [`protocol.md`](protocol.md), beside this file.
 
-**When setup calls this** before the gate exists or while migrating it, use
+**When setup calls this** before the gate exists or while reinstalling it, use
 the tracker operations, snapshot location and proposed config that setup has
 verified, instead of the integration. Do not send the user back to setup. Do
 the inventory and the agreed cleanup, then return to setup, which installs and
@@ -115,8 +115,10 @@ to the owner, one at a time, with a recommendation and real alternatives.
 Record the bulk edit's date and both snapshot paths under "The gate" in the
 project's backlog integration.
 
-Done when the gate reports no errors at all, old or new: a cleanup that leaves
-errors has only moved the mess. During setup, hand the result back for gate
+Done when the gate is clean (`new errors: 0`) and the agreed slice, the current
+milestone's live work, has no errors. Older errors outside the slice may remain:
+list them by kind with a plan (fixed when their work enters a milestone, or
+closed with it), so they stay visible without holding up work. During setup, hand the result back for gate
 proof rather than claiming the proof. Then publish through the project's
 authorized workflow.
 

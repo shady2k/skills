@@ -117,6 +117,9 @@ questionnaire**.
   tree. Pick one workflow owner; do not move other tools' documents or disable
   their hooks without saying so. The profile states document policy, where
   evidence and approvals come from, and what enforcement cannot guarantee.
+  Wiring the document gate is often several sessions of work. Recommend doing
+  it in this setup only if it fits; otherwise it becomes its own stage, and
+  work continues meanwhile with documents checked by reading.
   Choose how **every commit** names its task, setup, documentation, research
   and prototypes included, and how merge and revert commits keep that link;
   they are not silent exemptions.
@@ -197,6 +200,9 @@ weaker phase nor an empty export supplied by the author gets through. It is
 required whatever the backlog's strength. Prove real file parsing, baseline
 choice, receipt verification, policy origin and enforcement at tracker closure,
 or disclose what remains audit-only. JSON alone proves no evidence is genuine.
+If it is not wired in this setup, file its task in the current milestone and
+record in the integration that the gate is not installed yet, naming that
+task. Setup still completes; wiring the gate later reruns proof 6.
 
 **New projects:** conversation may come before setup with no files or issues.
 Once work is to be kept, create the setup task first, then seed only the agreed
@@ -249,7 +255,8 @@ An existing setup runs all of these too, even when versions match.
 5. **Current state:** run the gate on the cleaned live backlog. Keep the age
    snapshots from before and after cleanup and use their bounded correction.
    Show the result, remaining debt, the strength and any limits.
-6. **Documents:** run the recoverable entry-point proofs in documents.md: a
+6. **Documents**, once the document gate is wired: run the recoverable
+   entry-point proofs in documents.md: a
    missing scenario in the real format, a stale source requirement, a wrong
    task, stale or missing receipts and an unsynchronized closure. Check that
    independent changes still pass. Adopt only the legacy scope affected now;
@@ -270,7 +277,8 @@ Shared hooks may already run in checkouts without the new files. Let through,
 visibly, only a tree that never had this installation; a missing or broken
 gate in a configured tree is an error, not a bypass.
 
-Only after all proofs and the target-checkout check, write the protocol version
+Only after all required proofs (proof 6 only when the document gate is wired)
+and the target-checkout check, write the protocol version
 to `setupVersion`, the proof time to `setupVerifiedAt` and
 `setupStatus: verified`, linked to the setup task. Land that stamp the same way
 and recheck the target; until it is there, setup is pending. The stamp itself
@@ -284,7 +292,7 @@ the setup task, summarized in one line. On failure keep the last successful
 version and time, set `setupStatus: failed`, say what failed and never report
 the project as reverified.
 
-## Updating and migration
+## Updating
 
 Run this skill again after **every plugin or skills update**. The install
 instructions and the agent-doc pointer ask for it; no automatic update hook is
@@ -292,10 +300,6 @@ assumed. Skills that write to the tracker compare the protocol version with
 `setupVersion` and the installed checks' versions and ask for setup when they
 differ. Matching versions never skip a setup the user asked for.
 
-For old installations, migrate config, adapter statuses, commands, hooks and
-documents as part of the reconciliation. Keep earlier answers; put new settings
-into the recommended profile instead of restarting an interview. A pre-0.5
-standalone backlog document is merged into the project's tracker doc, with
-references updated and duplicated protocol removed. Stay compatible until other
-harnesses on the old installation can migrate. Never claim the 0.7 execution
-rules work on an adapter that has not been proved.
+An update reconciles config, adapter statuses, commands, hooks and documents
+like any other run. Keep earlier answers; put new settings into the recommended
+profile instead of restarting an interview.
