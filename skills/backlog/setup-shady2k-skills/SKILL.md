@@ -72,6 +72,12 @@ for example, mutation testing deliberately breaks changed logic to check whether
 tests catch it; its budget trades extra confidence against acceptance time.
 Put commands and config keys in implementation details, not in the user's quiz.
 
+Everything the user reads follows **Speaking to the owner** in the protocol.
+Open with what the update means for their work now, including what waits until
+it finishes. The table holds only entries that change or need a decision, each
+in plain words; retained settings are one line, detailed on request. Tasks in a
+cleanup proposal are listed by title, grouped by what will happen to them.
+
 Invite the user to accept the profile or name only the entries to change.
 Approval of the displayed profile settles its choices together; do not confirm
 each row again. If the user delegates remaining routine choices with "use the
@@ -288,8 +294,11 @@ the same authorized workflow and recheck the target. Until it is present there,
 report setup as pending. This final metadata write does not invalidate proofs
 whose checked inputs did not change; any other intervening change does.
 
-Report what was retained, repaired, newly chosen, cleaned and proved, and any
-limitation. On failure keep the previous successful version/time but set
+Report to the owner by the protocol's **Speaking to the owner**: first whether
+work can continue and through which skill; then what changed for them, what was
+cleaned (tasks by title), and any limitation with its practical consequence.
+What was retained and the proof details go to the setup task, summarized in a
+line. On failure keep the previous successful version/time but set
 `setupStatus: failed`, state what failed, and never report the project reverified.
 
 ## Updating and migration

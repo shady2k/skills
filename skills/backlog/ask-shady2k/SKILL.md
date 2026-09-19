@@ -108,6 +108,8 @@ a diagnosis uses `diagnose-bug`, an unresolved product decision uses
 
 ## 5. Report
 
+Speak as the protocol's **Speaking to the owner** says, also without a
+backlog integration: plain words, tasks by title, numbers with their meaning.
 Lead with the headline: one or two sentences on where the project stands. Then
 the picture, compact, then the ways forward with the recommendation first. Use
 "Title" (id), never identifiers alone. Use the established role, otherwise

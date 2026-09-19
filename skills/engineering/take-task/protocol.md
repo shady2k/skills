@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Protocol version: 0.9.0
+Protocol version: 0.9.1
 
 **Compatibility before writes.** Compare this version with the project's
 config `setupVersion` and all three installed checks' `--version`, and require
@@ -123,7 +123,36 @@ receipt. CI/wrapper protection and actual tests are distinct responsibilities.
 
 **Names, not identifiers.** Everything a person reads says "Title" (id), the id
 in parentheses and only where somebody must act on it. A title is a sentence
-the work can be understood from.
+the work can be understood from. A bare id, or a list of ids, is never an item
+of a report: look the title up first. If the title does not explain the work,
+say in a few words what it is about.
+
+**Speaking to the owner.** The words of this protocol, the config, the tracker
+and the tools are for the agent. The person reads what they mean for the work,
+in their own language. Say instead:
+
+| internal | what the person reads |
+| --- | --- |
+| an abandoned hold or claim | a task listed as taken, which nobody has touched for days |
+| released | returned to the queue so anyone can take it |
+| ready leaf / ready queue | tasks that can be started now |
+| submitted | done by an agent, waiting to be merged into the stage |
+| implemented | merged into the stage, waiting for the stage to be accepted |
+| setup pending or failed, version mismatch | the update is not finished: skills that change tasks wait until it is |
+| gate strength `block-new` | a commit may not add new backlog problems; old ones are listed but do not block |
+| new errors: 0 | the backlog is in order: nothing broken was added |
+| finding budget | how many new bugs and debts the current version takes in before the rest waits for the next |
+| deferred | moved out of the current version, not lost |
+| mutation testing | deliberately breaking changed code to check that the tests notice |
+
+Terms outside the table get the same treatment: a plain phrase, or one clause
+of definition the first time. Config keys, status values, labels, commands,
+tool names, commit hashes and branch names do not appear unless the person must
+type or find them. A number comes with what it means and whether to act on it.
+Lead with the consequence for the work: what can be done now, what waits, and
+what is needed from the person. Show what changes and what needs a decision;
+what stays as it was takes one line. Diagnostics and proof belong with the
+task that did the work, available on request, not in the message.
 
 **The gate is clean** when its report says `new errors: 0`. That line means the
 same under every strength, which red and green do not: under `report` nothing
