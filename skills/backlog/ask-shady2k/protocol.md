@@ -356,18 +356,22 @@ instrumentation that makes its next failure name its cause, and send it with
 the one push the work needs anyway. Never call a green run proof that a guess
 was right.
 
-**Draft until ready.** A pull request is opened as a draft and stays one while
-work goes on, so pushes to it start no CI; where the project's CI still runs
-on drafts, that is a setup finding. It is marked ready once, when the local
-steps are green and everything meant for it is in: that starts the one CI run.
-A red run turns it back into a draft until the fix is proven locally. A pull
-request opened ready by mistake is turned into a draft before the next push.
+**Know what a push starts.** Before the first push of a run, read the
+repository's CI configuration, not a remembered habit: what starts a run
+(a push to which branches, a pull request, its draft state, a label, changed
+paths, a manual trigger), which jobs each start runs and how long they take.
+Then meet the criteria with what this repository offers: work in progress
+starts no expensive run, a run starts once when the work is ready, and a red
+run returns the work to in progress until the fix is proven locally. Where
+drafts skip CI, that means a draft until ready; where every push runs
+everything, it means not pushing until ready. Where the repository offers no
+way to keep unfinished work from a full run, say so to the owner once, as a
+finding.
 
-**Push once.** Push to a ready pull request only when the local steps are green
-and everything meant for this run is in it, not after each fix. Before marking
-it ready or pushing, check that it will run: it is open, not merged, and has
-no conflicts (a pull request with conflicts runs no CI, so its push proves
-nothing). A merged pull
+**Push once.** Start the run only when the local steps are green and
+everything meant for it is in, not after each fix. Before starting it, check
+that it will run: the pull request is open, not merged and has no conflicts (a
+pull request with conflicts runs no CI, so its push proves nothing). A merged pull
 request is never edited or reused. Report a CI run as started only after
 seeing it start.
 

@@ -175,10 +175,10 @@ questionnaire**.
   Found by looking, recorded, never asked again. Where a protected main line runs
   a long CI even for changes to documents and the tracker alone, recommend,
   as a separate task, letting CI skip product checks for such changes.
-  Where CI runs its product checks on draft pull requests, recommend, as a
-  separate task, skipping drafts and running on the switch to ready: agents
-  keep a pull request in draft until it is ready, and each push to it
-  otherwise costs a full run.
+  Where CI gives no way to keep unfinished work from a full run (it runs on
+  every push, or on draft pull requests too), recommend, as a separate task,
+  one that fits the project, such as skipping drafts: otherwise each push of
+  work in progress costs a full run.
 - **Diagnosability:** whether the project has recorded conventions for log
   levels, request and trace ids and error causes, and whether its CI shows a
   failure's cause on the first screen and keeps logs and artifacts. Where not,

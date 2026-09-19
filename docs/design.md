@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.24.2 keeps pull requests in draft until ready; 0.24.1 prices every check and reproduces CI failures
+Status: version 0.24.3 reads what starts CI from the repository; 0.24.2 kept
+pull requests in draft; 0.24.1 prices every check and reproduces CI failures
 locally; 0.24.0 keeps CI from testing guesses and estimates in agent
 time; 0.23.0 publishes 0.21-0.22.5, which never shipped; 0.22 made
 every red check the run's own; 0.21 separated
@@ -451,6 +452,13 @@ reproduced locally, and a run is reported only after it is seen to start.
 but the pull request was opened ready, so every push paid for a full run. A
 pull request now stays a draft until the local steps are green, goes back to
 draft after a red run, and setup recommends skipping drafts where CI does not.
+
+0.24.3 takes the mechanism back out. Drafts are how one repository's CI tells
+work in progress from ready work; another runs on every push, another on a
+label, another has no CI. The skills now carry the criteria (unfinished work
+starts no expensive run, a ready one starts it once, a red run returns to
+work) and the agent reads the repository's CI configuration for how to meet
+them.
 
 ## 10. Findings and cleanup
 
