@@ -190,12 +190,14 @@ builds on an accepted one; the owner is not asked between stages.
 ## 7. Open the pull request
 
 When every stage is accepted, run the full checks and the feature's end-to-end
-criterion once more on the final branch and open **one pull request** for the
-feature through the project's authorized workflow. Write its report as the
+criterion once more on the final branch and mark the feature's **one pull
+request** ready through the project's authorized workflow; if it was opened
+earlier, it was opened as a draft (the protocol's **Draft until ready**). Write its report as the
 protocol's **Autonomy** describes: what users can now do, how to check it
 yourself, every decision and assumption made alone, departures from the spec,
 review findings, what is not done and the risks left. Wait for its checks to go
-green; fix a red one as part of the run.
+green; fix a red one as part of the run, back in draft until the fix is proven
+locally.
 
 The owner's acceptance is the merge. After it, close the tasks, stages and
 feature through `close-out`, and remove the checkouts and branches this run

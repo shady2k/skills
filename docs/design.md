@@ -3,7 +3,7 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.24.1 prices every check and reproduces CI failures
+Status: version 0.24.2 keeps pull requests in draft until ready; 0.24.1 prices every check and reproduces CI failures
 locally; 0.24.0 keeps CI from testing guesses and estimates in agent
 time; 0.23.0 publishes 0.21-0.22.5, which never shipped; 0.22 made
 every red check the run's own; 0.21 separated
@@ -446,6 +446,11 @@ reported as a running check, and a plan to run the full suite locally before
 every push. Checks now cost what they cost: the scope widens from the one
 failing test outward, CI comes last and once, a CI failure is instrumented and
 reproduced locally, and a run is reported only after it is seen to start.
+
+0.24.2 closes the obvious gap left: the project's CI already skipped drafts,
+but the pull request was opened ready, so every push paid for a full run. A
+pull request now stays a draft until the local steps are green, goes back to
+draft after a red run, and setup recommends skipping drafts where CI does not.
 
 ## 10. Findings and cleanup
 
