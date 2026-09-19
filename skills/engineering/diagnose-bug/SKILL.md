@@ -62,9 +62,10 @@ then instrument the code and build the loop locally by recreating what CI has
 (its load, timing, parallelism, environment). Only when the failure needs what
 this machine cannot have (another operating system) does its instrumentation
 travel with the work's next push, said plainly as unproven. Run the one
-failing test in the loop, never the whole suite; once the fix holds, widen one
-step at a time (its package, what the change touches, the full local check)
-and push once, when all of it is green.
+failing test in the loop, never the whole suite, and prefer the cheapest loop
+that shows the failure: a unit test over an end-to-end run, this machine over
+CI. Once the fix holds, widen one step at a time (its package, what the change
+touches, the full local check) and push once, when all of it is green.
 
 Ask the user only for evidence you cannot get yourself. Use their known role,
 otherwise product engineer: say what the observation will tell apart, recommend

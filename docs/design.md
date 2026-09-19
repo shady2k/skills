@@ -3,7 +3,7 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.24.3 reads what starts CI from the repository; 0.24.2 kept
+Status: version 0.24.4 answers each question with the cheapest check; 0.24.3 reads what starts CI from the repository; 0.24.2 kept
 pull requests in draft; 0.24.1 prices every check and reproduces CI failures
 locally; 0.24.0 keeps CI from testing guesses and estimates in agent
 time; 0.23.0 publishes 0.21-0.22.5, which never shipped; 0.22 made
@@ -459,6 +459,12 @@ label, another has no CI. The skills now carry the criteria (unfinished work
 starts no expensive run, a ready one starts it once, a red run returns to
 work) and the agent reads the repository's CI configuration for how to meet
 them.
+
+0.24.4 states the principle under all of it: each question gets the cheapest
+check that can answer it, by kind (static, unit, local end-to-end, CI), by
+breadth (one test outward) and by place (this machine before a remote one).
+A behaviour a unit test can prove is proved by one, and a missing unit test is
+written before an end-to-end run is reached for.
 
 ## 10. Findings and cleanup
 

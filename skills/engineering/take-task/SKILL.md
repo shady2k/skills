@@ -132,7 +132,7 @@ a failing check.
 
 Workers run static checks and the tests related to their change, including
 neighbouring behaviour it affects, from the narrowest scope outward as the
-protocol's **Checks cost** says; a failing test is rerun alone, not with its
+protocol's **Cheapest check first** says; a failing test is rerun alone, not with its
 suite. The full suite, mutation testing and final
 review happen at stage acceptance. A shared change can rightly widen a worker's
 related tests.

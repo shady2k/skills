@@ -336,15 +336,24 @@ conventions once, as a recorded decision, and every change follows them. When
 a diagnosis stalls for lack of logs, adding them comes first, and the gap is a
 finding.
 
-**Checks cost; widen them one step at a time.** A CI run, an end-to-end run
-and a full suite are expensive: they cost runner time and money, take the
-owner's wait, and use up limits shared with everyone (runner minutes, image
-downloads, the queue). Every push to a pull request's branch starts all of
-CI again. So a check runs at the smallest scope that answers the question,
-and the scope widens only after it passes: the one failing test, then its file
-or package, then what the change touches, then the project's full local
-check, and CI last. A failure at any step sends the work back to the smallest
-scope that shows it, never to a rerun of the whole.
+**Cheapest check first.** Checks cost: CI and end-to-end runs take runner
+time, money and the owner's wait, and use up limits shared with everyone
+(runner minutes, image downloads, the queue). So each question gets the
+cheapest check that can answer it, and a dearer one only for what the cheaper
+cannot show:
+
+- by kind: reading and static checks, then a local unit test, then a local
+  integration or end-to-end run, and CI only for what nothing local can show
+  (another platform, the real pipeline). What a unit test can prove is proved
+  by one, and where the behaviour has no unit test that could catch it, writing
+  one comes before reaching for an end-to-end run;
+- by breadth: the one failing test, then its file or package, then what the
+  change touches, then the project's full local check;
+- by place: this machine before a remote one.
+
+A failure at any step sends the work back to the cheapest check that shows it,
+never to a rerun of the whole. Use the machine well: run independent checks in
+parallel, within what it can carry while other agents share it.
 
 **CI is not where failures are diagnosed.** A CI failure is a clue: read its
 log once, then instrument the code and reproduce the failure here, recreating

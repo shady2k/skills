@@ -429,6 +429,9 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.24.4 answers each question with the cheapest check that can: a local
+unit test before an end-to-end run, this machine before CI, one test before the
+suite.
 Version 0.24.3 reads what starts CI from the repository itself: unfinished work
 starts no expensive run, and ready work starts it once, by whatever means that
 repository offers (a draft pull request, holding the push, a label).
