@@ -155,7 +155,9 @@ questionnaire**.
 - **Development:** test-first (`tdd`) or `test-after`, whatever the size of the
   work. Both need related worker tests and final stage acceptance. For
   non-code work name equivalent checks; never force a disruptive live drill.
-- **Execution:** how many agents work at once, atomic claims or one-at-a-time
+- **Execution:** which agents and models may do which work (for example, a
+  light model only for low-risk tasks, a strong one for security, data or
+  concurrency), how many agents work at once, atomic claims or one-at-a-time
   assignment, how an agent's claim names that agent instead of the person, separate checkouts, who merges, and how the tracker stores
   `submitted` and `implemented` work. No artificial chains between features,
   stages or tasks; record only real conflicts and prerequisites.

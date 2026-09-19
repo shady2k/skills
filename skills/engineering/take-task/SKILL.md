@@ -79,6 +79,14 @@ revision, owned scope, local check commands, the TDD setting and the return
 format. Use isolated checkouts where concurrent writes could collide, and
 coordinate shared generated files, migrations and dependency locks.
 
+Before any worker starts, check which agent and model will actually run it
+against the task's risk and the agreed execution settings; a harness may pick
+its own default. If it is weaker than the task needs (security, data, money,
+concurrency), switch it before starting, or tell the owner and let them choose;
+never find out after the worker is already writing. When the owner asked to
+"take everything" of some kind, name in one line which tasks that includes
+before dispatching, then proceed.
+
 ## 3. Implement with local checks
 
 **TDD:** watch a behaviour check fail for the intended reason, write the least
