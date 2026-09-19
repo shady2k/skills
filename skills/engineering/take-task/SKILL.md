@@ -13,138 +13,128 @@ write anything. If there is none, tell the user to run
 `/setup-shady2k-skills`, and leave the backlog as it is until then. Read
 [`protocol.md`](protocol.md), including its setup-version check.
 
-## 1. Establish the work and choose its route
+## 1. Find the work and choose its route
 
-Resolve the task, list, stage or outcome the user named; otherwise inspect the
-current milestone and propose a ready stage by name. Resolve or file the task
-before implementation. Read its requirements, existing spec, charter and code.
-Resume submitted results at integration and implemented stages at acceptance,
-not from scratch.
+Take the task, list, stage or outcome the user named; otherwise propose a ready
+stage of the current milestone by name. Find or file the task before any
+implementation. Read its requirements, spec, charter and code. Work already
+`submitted` resumes at integration and an `implemented` stage at acceptance,
+never from scratch.
 
-Use the user's established role, otherwise product engineer. Present the
-recommended route and execution profile together, explaining what they achieve,
-why they fit, and effects on time, cost and risk. Preserve setup choices and
-prior approvals; let the user change named entries without asking them to
-select worker counts, commands or every helper. Delegated recommendations cover
-routine choices, not new scope, spending or weaker acceptance requirements.
+Everything the owner reads follows the protocol's **Speaking to the owner**.
 
-Assess **size, uncertainty and risk**, independently of the project's TDD
-choice. A small irreversible change can need more design than a large routine one.
+Present the recommended route and how it will run as one proposal: what it
+achieves, why it fits, and its effect on time, cost and risk. Keep setup
+choices and earlier approvals. The user changes named items; do not ask them to
+pick worker counts, commands or helpers. Delegated choices cover routine
+details, not new scope, spending or weaker acceptance.
 
-- **Small, understood change:** use `to-spec` for a short behavioural delta and
-  `to-stages` for a single stage with just the necessary leaves. Reuse existing
-  approved criteria rather than manufacturing documents or another interview.
-- **Bug:** use the existing requirement and a regression scenario. Update the
-  spec only for a discovered gap or an approved behaviour change. Use
-  `diagnose-bug` when the cause needs investigation. Reuse its acceptance stage,
-  or use `to-stages` to attach even a root-level bug to a minimal stage before
-  dispatch; a small bug does not need a full feature-spec interview.
-- **Uncertain or substantial work:** use `brainstorming`, then `to-research`
-  or `to-prototype` where evidence is needed, followed by `to-spec` and
-  `to-stages`. Continue automatically through already authorized decisions;
-  ask only about consequences that belong to the owner.
-- **Retained research/setup/docs only:** use the applicable helper without
-  inventing product requirements. Export a `supporting` change with its scope
-  rationale and owning task, using the integration's corresponding check policy.
-  This route cannot disguise production implementation or a current-spec change.
+Size the design by **size, uncertainty and risk**, not by the TDD setting. A
+small irreversible change can need more design than a large routine one.
 
-Use installed skills through the harness's available mechanism. If a required
-helper is missing, name it and the installation action; do not pretend it ran.
-A stage includes implementation, integration, review and corrections in its
-session budget. Split an oversized stage before dispatch. Do not quietly
-expand a request for one task into an entire feature: describe the necessary
-stage boundary and resolve a material scope change with the owner.
+- **Small, understood change:** a short delta through `to-spec`, and one stage
+  with only the needed tasks through `to-stages`. Reuse approved criteria.
+- **Bug:** the existing requirement plus a regression scenario; change the spec
+  only for a gap or an approved behaviour change. Use `diagnose-bug` when the
+  cause is unclear. Attach the bug to its stage, or through `to-stages` to a
+  minimal one, before dispatch. A small bug needs no full spec.
+- **Uncertain or substantial work:** `brainstorming`, then `to-research` or
+  `to-prototype` where evidence is needed, then `to-spec` and `to-stages`.
+  Continue through decisions already authorized; ask only about the owner's.
+- **Research, setup or docs only:** the matching helper, with no invented
+  product requirements. Export a `supporting` change with its scope reason and
+  task, under the integration's check policy. This route never hides
+  production code or a change to current specs.
+
+If a required helper is not installed, name it and how to install it; never
+pretend it ran. A stage's session includes implementation, integration, review
+and fixes; split one that will not fit before dispatch. Do not quietly grow one
+task into a whole feature: name the stage it needs and settle a real scope
+change with the owner.
 
 ## 2. Coordinate and dispatch
 
-Before implementation dispatch, run the integration's feature document gate
+Before dispatching implementation, run the integration's feature document check
 against the actual baseline; the first product implementation also needs the
-product check. Research/design tasks may establish these prerequisites without
-pretending implementation is ready. Preserve existing paths and scope legacy
-baselines to affected capabilities. Update a stale requirement base only after
-reconciling its meaning; unrelated parallel changes do not invalidate this work.
+product check. Research and design tasks may prepare these without claiming
+implementation is ready. Keep existing paths, and limit legacy baselines to the
+affected capabilities. Refresh a stale requirement only after reconciling its
+meaning; unrelated parallel changes do not invalidate this work.
 
-Read the execution settings from the gate config and commands from the
-integration. One coordinator owns integration and acceptance of each stage;
-it may implement too. Claim leaves atomically, or serialize assignment through
-the coordinator if the tracker has no atomic claim.
+Read execution settings from the gate config and commands from the integration.
+Each stage has one coordinator, who owns its integration and acceptance and may
+also implement. Claim tasks atomically, or have the coordinator assign them one
+at a time if the tracker cannot.
 
-Dispatch independent ready tasks in parallel where resources and tools permit.
-Independent stages and features may also proceed in parallel, with distinct
-coordinators and acceptance records. Do not add dependencies because of list
-order, hierarchy or a shared milestone. Use the protocol's required-result and
-conflict rules; if parallel execution is unavailable, use the same dependency
-graph sequentially without rewriting it into a chain.
+Dispatch independent ready tasks in parallel where resources allow; independent
+stages and features may run in parallel with their own coordinators and
+acceptance. Add dependencies only by the protocol's rules, never from list
+order, hierarchy or a shared milestone. Without parallel execution, follow the
+same dependencies one at a time.
 
-Each worker receives its task and criterion, the relevant spec, dependencies,
-base revision, owned scope, local check commands, TDD choice and return format.
-Use isolated checkouts for concurrent writes that could interfere. Coordinate
-shared generated files, migrations and dependency locks explicitly.
+Give each worker its task and criterion, the relevant spec, dependencies, base
+revision, owned scope, local check commands, the TDD setting and the return
+format. Use isolated checkouts where concurrent writes could collide, and
+coordinate shared generated files, migrations and dependency locks.
 
-## 3. Implement with local feedback
+## 3. Implement with local checks
 
-In **TDD** mode, watch a behaviour check fail for the intended reason, write
-the least that passes it, then refactor locally while it stays green. Repeat
-one slice at a time. In **test-after** mode, implement and add or update the
-relevant checks before returning the work. Both modes require verification.
+**TDD:** watch a behaviour check fail for the intended reason, write the least
+code that passes it, refactor while it stays green; one slice at a time.
+**Test-after:** implement, then add or update the checks before returning.
 
-The spec's observable seams define acceptance, not a ban on local tests.
-Choose stable behavioural interfaces at an appropriate level; expected values
-come from the requirement or an independent example, not a copy of the algorithm.
-For operations, use a safe rehearsal or isolated environment; do not cause a
-live outage merely to manufacture a failing check.
+The spec's seams define acceptance, not a ban on local tests. Test through
+stable behaviour at a sensible level; take expected values from the requirement
+or an independent example, not from a copy of the algorithm. For operations,
+use a safe rehearsal or isolated environment; never cause a live outage to get
+a failing check.
 
-Workers run static checks and tests related to their change, including affected
-neighbouring behaviour. They do not each run the full suite, mutation campaign
-or final review. A shared change can legitimately widen their related tests.
+Workers run static checks and the tests related to their change, including
+neighbouring behaviour it affects. The full suite, mutation testing and final
+review happen once, at stage acceptance. A
+shared change can rightly widen a worker's related tests.
 
-Return the task, commits linked to it, changed behaviour, check commands and
-results, remaining uncertainty and integration notes. Record `submitted` with
-the durable result revision/location and evidence before releasing the worker
-hold. A worker's "done" means ready to integrate, not accepted or closed.
+A worker returns the task, its linked commits, the changed behaviour, check
+commands and results, open doubts and integration notes. Record `submitted`
+with the result's revision or location and evidence before releasing the
+worker's claim. A worker's "done" means ready to integrate, not accepted.
 
 ## 4. Integrate and handle discoveries
 
-Integrate each completed result into the stage checkout, resolve conflicts and
-run related checks again when integration changes the result. Record the
-integrated revision and evidence before marking the task `implemented`.
-Its dependants within this stage may now start against that result; dependants
-in other stages wait for acceptance. Never release implemented work into ready.
+Merge each result into the stage checkout, resolve conflicts and rerun related
+checks if merging changed it. Record the merged revision and evidence, then mark
+the task `implemented`. Its dependants in this stage can start now; dependants
+in other stages wait for acceptance. Implemented work never goes back to ready.
 
-- Decide reversible implementation details yourself. Escalate changed product
-  behaviour, material cost/risk, irreversible choices or missing authority.
-  Pause the affected branch, recommend an option with its reason and explain
-  alternatives in the user's terms, and continue
-  independent authorized work.
-- File unrelated bugs, debt and blocked questions through `to-backlog`.
-  Fixing this stage's failure to meet its agreed criterion is still this work;
-  it does not automatically consume the finding budget.
-- A stubborn failure uses `diagnose-bug` within the current task.
-- If the session will not fit, preserve the assembled revision and pending
-  acceptance and recommend the user-invoked `/handoff`; never call a partly
-  checked stage accepted.
+- Decide reversible implementation details yourself. Stop the affected work and
+  bring to the owner a change of product behaviour, a material cost or risk, an
+  irreversible choice or missing authority, with a recommendation and its
+  alternatives. Continue independent authorized work meanwhile.
+- File unrelated bugs, debt and blocked questions through `to-backlog`. Making
+  this stage meet its own criterion is part of this work, not a finding.
+- A stubborn failure goes to `diagnose-bug` within the current task.
+- If the session will not fit, keep the merged revision and the pending
+  acceptance and recommend `/handoff`. A partly checked stage is never accepted.
 
 ## 5. Accept the assembled stage
 
-Once its results are integrated, run the project's full required checks and
-the stage's own DONE WHEN on the assembled revision. Then run mutation testing
-on changed logic under the configured time budget. Investigate meaningful
-survivors; distinguish equivalent mutations, missing tests and tool failures.
-Unsupported tooling, timeouts and skipped checks are reported as such, never
-as passed. Use the project's agreed fallback; if none exists, resolve the
-acceptance limitation before closing.
+With all results merged, run the project's full required checks and the stage's
+DONE WHEN on the assembled revision. Then run mutation testing on changed logic
+within the configured time budget. Investigate survivors that matter, telling
+apart equivalent mutations, missing tests and tool failures. Unsupported tools,
+timeouts and skipped checks are reported as such, never as passed. Use the
+project's agreed fallback; without one, resolve the gap before closing.
 
-Obtain final review using [`review.md`](review.md), preferably with another
-model when available. Fix valid findings within scope and repeat the affected
-checks. If a correction changes the assembled code after its full run, rerun
-the required full checks on the final revision before acceptance. Repeat
-mutation checks and review where their evidence was invalidated; unchanged
-evidence tied to the same inputs can be reused.
+Get a final review following [`review.md`](review.md), preferably from another
+model. Fix valid findings within scope and repeat the affected checks. If a fix
+changes code after the full run, rerun the full checks on the final revision.
+Repeat mutation testing and review where a fix invalidated them; evidence whose
+inputs did not change can be reused.
 
-Record the base and final revision, included tasks, criteria, test and mutation
-results, review findings and their disposition. For non-code work, use the
-project's corresponding evidence and explain inapplicable checks. Retrieve
+Record the base and final revisions, included tasks, criteria, test and mutation
+results, and review findings with what was done about each. For non-code work,
+use the project's equivalent evidence and say which checks do not apply. Get
 verified runner receipts through the integration and run the acceptance document
-gate with its protected policy. Authored "passed" text is not a receipt. Then use
-`close-out` to close the accepted tasks and stage. Commit links and clean
-backlog are necessary checks, not substitutes for behavioural acceptance.
+check under its protected policy; "passed" written by an agent is not a receipt.
+Then close the accepted tasks and stage through `close-out`. Commit links and a
+clean backlog are required but never replace checking the behaviour.

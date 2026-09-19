@@ -5,77 +5,75 @@ description: "Answer a design question with a bounded throwaway prototype. Use w
 
 # To prototype
 
-Some questions are not settled by talking: whether a state model survives its
+Some questions talking does not settle: whether a state model survives its
 awkward cases, what a screen should look like. A prototype is **throwaway code
 that answers one such question**, and the question decides its shape.
 
 ## 1. Write the question down
 
-Resolve the task that owns retained files and commits before changing the
-repository. Where the project has a backlog integration, use it; if none was
-provided, keep investigation in scratch space and request setup before retained
-work. A scratch experiment is not permission to commit untracked work.
+Files kept in the repository and commits need their owning task first. Where
+the project has a backlog integration, use it; without one, experiment in
+scratch space and ask for setup before kept work. A scratch experiment is not
+permission to commit untracked work.
 
-One paragraph, at the top of the prototype where whoever opens it sees it: what
-is being asked, and what answer would change the design. A prototype that
-answers the wrong question is pure waste. Genuinely ambiguous and nobody to
-ask: take the shape the surrounding code suggests and state that assumption in
-the same place.
+Put one paragraph at the top of the prototype: what is being asked, and which
+answer would change the design. A prototype that answers the wrong question is
+wasted. If it is genuinely unclear and nobody can be asked, follow the shape
+the surrounding code suggests and state that assumption there.
 
-Reuse the established role, otherwise product engineer. Recommend the question,
-experiment shape and bounded effort together, explaining what they will teach,
-why and what they cannot prove. Let the user correct named assumptions; ask only
-when a missing requirement or material cost/risk changes the experiment, not
-which tool or file to use.
+Reuse the known role, otherwise product engineer. Recommend the question, the
+shape of the experiment and its effort together: what it will teach, why, and
+what it cannot prove. The user may correct named assumptions; ask only when a
+missing requirement or a real cost or risk changes the experiment, not which
+tool or file to use.
 
 ## 2. Pick the shape
 
 **Does this logic hold?** One self-contained file that opens by double-click,
-nothing to install, so that somebody who does not code can drive it.
+with nothing to install, so someone who does not code can use it.
 
-- The logic itself is a small **pure module** inside it (a reducer, a state
-  machine, a few functions over plain data), with no reach into the page. The
-  page is throwaway; possible reuse is a later implementation decision, not
-  automatic promotion of the experiment into production.
+- The logic is a small **pure module** inside it (a reducer, a state machine,
+  a few functions over plain data) that does not touch the page. The page is
+  throwaway; reusing the module later is a separate implementation decision.
 - Buttons to play freely, and a few **guided walks** through the cases that are
   hard to reason about on paper.
 - Every label in the domain's words, not the code's. After every action, the
-  whole relevant state, visible.
+  whole relevant state is visible.
 
-**What should this look like?** Several **radically different** variants of one
+**What should this look like?** Several **very different** variants of one
 screen, switched from a bar at the bottom.
 
-- **Inside the real page** wherever one exists: real header, real data, real
-  density, the variants swapped by a parameter in the address. A variant on an
-  empty route looks fine whatever it is.
-- A route of its own only when there is truly no page to live in, following the
-  project's routing, and named so that nobody takes it for production.
+- **Inside the real page** wherever one exists: real header, data and density,
+  variants switched by a URL parameter. On an empty page any variant looks
+  fine.
+- Its own route only when there is no page to put it in, following the
+  project's routing and named so nobody mistakes it for production.
 
 ## 3. Rules for both
 
-- **Throwaway from the first line**, and named so. It sits near what it
-  prototypes for, so the context is obvious.
+- **Throwaway from the first line**, and named so. Keep it near what it is
+  for, so the context is obvious.
 - **One command to run**, or one file to open.
-- **No persistence** unless persistence is the question, and then a scratch
-  store with a name that says "wipe me".
-- **No production polish**: only the controls and checks needed to answer the
-  question, including its hard cases. Record those checks and the observed
-  result; no generic test suite or abstraction project.
+- **No saved data** unless that is the question; then a scratch store whose
+  name says "wipe me".
+- **No production polish:** only the controls and checks needed to answer the
+  question, including its hard cases. Record those checks and what you saw; no
+  general test suite or abstractions.
 
 ## 4. Keep the answer, park the code
 
-Report the observed answer, uncertainty and limitations. A negative or
-inconclusive result may end the session; no feature or spec must follow.
-Only fold an actually approved decision into a spec when one is being retained.
-Production implementation proceeds
-through tracked work and its normal checks; lifting a pure module is not an
-exemption. The prototype
-itself is a **primary source**: if retention is wanted, preserve it as a task-linked artifact, or an
-authorized task-linked commit on a branch of its own, out of the main line.
-Leave a pointer where the work lives. Where the
-project has a backlog integration, that is a comment on the feature issue,
-with the question and the verdict. The main line keeps the decision only.
+Report the answer you observed, its uncertainty and limits. A negative or
+unclear result may end the session; no feature or spec has to follow. Put a
+decision into a spec only when it was actually approved and a spec is being
+kept. Production code goes through tracked work and its normal checks; lifting
+the pure module is no exception.
 
-Return to the conversation that raised the question. Leave scratch artifacts
-clearly labelled and disclose their location; keeping or discarding them is not
-permission for production adoption or deleting unrelated files.
+The prototype itself is **evidence**. To keep it, store it as an artifact
+linked to its task, or as an approved, task-linked commit on its own branch,
+off the main line. Leave a pointer to it: where the project has a backlog
+integration, a comment on the feature issue with the question and the verdict.
+The main line keeps only the decision.
+
+Return to the conversation that raised the question. Label scratch files
+clearly and say where they are. Keeping or discarding them does not permit
+production use or deleting unrelated files.

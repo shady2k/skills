@@ -5,98 +5,98 @@ description: "Investigate a bug or slowdown through reproducible symptoms and di
 
 # Diagnose bug
 
-For the bug that did not yield to a glance. Seek a reproducible symptom and
-testable hypotheses rather than a plausible story. A diagnosis request permits
-investigation, not an automatic fix or commit. Implement a fix only when that
-was requested or is already part of the current tracked task.
+For the bug that a quick look did not solve. Look for a reproducible symptom
+and testable hypotheses, not a plausible story. A request to diagnose permits
+investigation, not a fix or a commit. Fix only when that was asked for or is
+already part of the current tracked task.
 
-Redact every secret in anything you show, and build the loop against the
-environment's variables so a credential never reaches the transcript.
+Hide every secret in anything you show. Read credentials from environment
+variables so none reaches the transcript.
 
 ## 1. Build the loop
 
 One command, already run once, that is:
 
-- **red on this bug**: it drives the real path and asserts the **user's exact
+- **red on this bug**: it drives the real path and checks the **user's exact
   symptom**, not "does not crash";
-- **deterministic**, or for a flake, red at a pinned rate high enough to work
-  against;
+- **deterministic**, or for a flaky bug, failing at a known rate high enough to
+  work with;
 - **fast**: seconds;
 - **runnable by you alone**.
 
-Ways to get one, roughly in this order: a failing test at whatever seam reaches
-the bug; a script against a running instance; a command line with a fixture
-input, diffed against a known-good output; a headless browser; a **replayed
-capture** (a saved request, payload or event log pushed through the path in
-isolation); a throwaway harness around the one module; a loop of a thousand
-random inputs for "sometimes wrong"; a bisection between two known states; the
-same input through the old and the new version, diffed. A person clicking is
-the last resort, and then a script drives the person.
+Ways to get one, roughly in this order: a failing test wherever the bug can be
+reached; a script against a running instance; a command with a fixed input,
+compared with a known-good output; a headless browser; a **replayed capture**
+(a saved request, payload or event log pushed through that path alone); a
+throwaway harness around one module; a thousand random inputs for "sometimes
+wrong"; bisection between a good and a bad state; the same input through the
+old and new version, compared. A person clicking is the last resort, and then
+a script tells them what to click.
 
-Then **tighten** it: faster (skip unrelated setup), sharper (assert the
-symptom), steadier (pin the clock, seed the randomness, isolate the
-filesystem). For a flake the aim is not a clean repro but a **higher rate**:
-loop it, parallelise it, add load, narrow the window. One in two is workable;
-one in a hundred is not.
+Then **tighten** it: faster (skip unrelated setup), sharper (check the
+symptom), steadier (fix the clock, seed randomness, isolate the filesystem).
+For a flaky bug, aim for a **higher failure rate**, not a clean repro: loop it,
+run it in parallel, add load, narrow the timing. One in two is workable; one in
+a hundred is not.
 
-Cannot build one: say what is missing and use existing logs, captures, code
-inspection or bounded experiments to narrow the possibilities. Separate facts
-from hypotheses and do not claim a cause is proved without distinguishing
-evidence. Request the missing artifact or access when necessary; instrumenting
-production requires appropriate authorization. A slow or rare failure need
-not be abandoned just because it cannot be reduced to a seconds-long loop.
+If you cannot build one, say what is missing and narrow the options with
+existing logs, captures, code reading or small experiments. Keep facts apart
+from hypotheses; do not call a cause proved without evidence that rules out
+the others. Ask for a missing artifact or access when needed; adding
+instrumentation to production needs permission. A slow or rare failure is
+still worth pursuing even if it never fits a seconds-long loop.
 
-Ask only for evidence you cannot obtain yourself. Use the user's established
-role, otherwise product engineer: explain what the requested observation will
-distinguish, recommend the least disruptive way to obtain it, and state its
-effort and risk. Do not make them select debugging tools or re-enter known facts.
+Ask the user only for evidence you cannot get yourself. Use their known role,
+otherwise product engineer: say what the observation will tell apart, recommend
+the least disruptive way to get it, and its effort and risk. Do not make them
+pick debugging tools or repeat known facts.
 
 ## 2. Reproduce, then minimise
 
-Watch it go red, on the failure the **user** described and not a neighbour of
-it. Then cut inputs, callers, config and steps **one at a time**, re-running
-after each, until removing anything more turns it green. What is left is the
-hypothesis space, and later the regression check.
+See it fail on the failure the **user** described, not a similar one. Then
+remove inputs, callers, config and steps **one at a time**, re-running after
+each, until removing anything more makes it pass. What is left is where the
+cause hides, and later becomes the regression check.
 
-## 3. Hypotheses, plural
+## 3. Several hypotheses
 
-Rank the plausible alternatives before committing to one; do not invent extra
-hypotheses to meet a quota. Each states its prediction: "if X is the cause, changing Y
-makes it disappear". No prediction, no hypothesis. Show the ranked explanation
-in terms the user can assess, with the recommended next probe and why. Invite
-correction of facts, not approval of every technical hypothesis; continue safe
-authorized investigation without waiting for that optional feedback.
+Rank the plausible explanations before choosing one; do not invent extras to
+fill a quota. Each makes a prediction: "if X is the cause, changing Y makes it
+disappear". No prediction, no hypothesis. Show the ranking in terms the user
+can judge, with the next probe you recommend and why. Invite corrections of
+fact, not approval of each hypothesis, and keep investigating safely without
+waiting for it.
 
 ## 4. Probe
 
-One variable at a time, each probe tied to one prediction. A debugger before
-logs; logs only at the boundaries that tell hypotheses apart; never everything.
-Tag every temporary line with one unique prefix, so removing them is one
-search. For a slowdown, measure first: a baseline, then bisect.
+Change one thing at a time, each probe testing one prediction. Prefer a
+debugger to logs; log only where it tells hypotheses apart, never everywhere.
+Mark every temporary line with one unique prefix so one search removes them
+all. For a slowdown, measure first: a baseline, then bisect.
 
 ## 5. Fix, behind a check
 
-For diagnosis only, return the cause or remaining hypotheses, evidence and the
-proposed repair here. For an authorized fix, resolve or file the owning task
-through the backlog integration **before** implementation; without integration,
-request setup before retained changes. Keep the original symptom as its criterion.
+For diagnosis only, return the cause or the remaining hypotheses, the evidence
+and the proposed fix. For an approved fix, find or file its task through the
+backlog integration **before** implementing; without an integration, ask for
+setup before keeping changes. The original symptom stays the fix's criterion.
 
-Turn the minimised repro into a failing check **at a seam where the bug really
-occurs**, watch it fail, fix, watch it pass, then run the loop of step 1 on the
-original, un-minimised case.
+Turn the minimised repro into a failing check **at the boundary where the bug
+really happens** (a public interface, endpoint or command where the behaviour
+can be observed). See it fail, fix, see it pass, then run the step 1 loop on
+the original, full case.
 
-If no seam can hold the real pattern, a check at a shallower one is false
-comfort. **That there is no seam is itself the finding**: say so.
+If no such boundary can reproduce the real pattern, a check at a shallower one
+gives false comfort. **The missing boundary is itself the finding**: say so.
 
 ## 6. Leave nothing behind
 
-- The original loop is green; the regression check exists, or its absence is
+- The original loop passes; the regression check exists, or why it does not is
   explained.
-- Every tagged line is gone; throwaway harnesses are deleted.
-- Any authorized commit links the task and says which hypothesis was supported.
-- Local regression checks do not close the task: return the result to the
-  stage's integration and final acceptance workflow.
-- Where the project has a backlog integration, what this found goes through
-  it: use "to-backlog" for additional findings such as a missing seam.
-  The original bug was resolved before implementing its fix. Its criterion is
-  written: the command of step 1.
+- Every marked line is gone; throwaway harnesses are deleted.
+- Any approved commit names its task and says which hypothesis was confirmed.
+- Passing local checks do not close the task: hand the result to the stage's
+  merge and final acceptance.
+- Where the project has a backlog integration, file other findings, such as a
+  missing boundary, through `to-backlog`. The original bug's task existed
+  before the fix; its criterion is the step 1 command.

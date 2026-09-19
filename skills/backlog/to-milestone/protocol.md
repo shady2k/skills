@@ -1,135 +1,141 @@
 # The backlog protocol
 
-Protocol version: 0.9.1
+Protocol version: 0.9.2
 
-**Compatibility before writes.** Compare this version with the project's
-config `setupVersion` and all three installed checks' `--version`, and require
-`setupStatus: verified`. Missing or mismatched versions, or a pending/failed
-setup, mean: ask the user to run `/setup-shady2k-skills` after the
-update, and pause tracker/repository mutations. Read-only investigation may
-continue. Setup itself and its explicitly supplied bootstrap context are exempt
-while installing or migrating. No universal plugin-update hook is assumed.
+These rules are the same in every project and ship with every skill that uses
+them, so they update with the set. If a project's own document restates them,
+this file wins. What differs per project (tracker, labels, gate command,
+documents) is the project's **backlog integration**; its agent doc points to it.
 
-The same in every project, and shipped with every skill of the set that uses
-it, so that it updates when the set does. Where a project's own document
-restates any of this, this file is the one that holds. What differs per project
-(its tracker, its labels, its gate command, its documents) is not here: that is
-the project's **backlog integration**, which its agent doc points at.
+**Compatibility before writes.** Before changing the tracker or the repository,
+compare this version with the config's `setupVersion` and with the `--version`
+of all three installed checks, and require `setupStatus: verified`. If a value
+is missing or different, or setup is pending or failed, stop changing things
+and ask the user to run `/setup-shady2k-skills`. Reading and investigating may
+continue. Setup itself, and the bootstrap context it hands over, are exempt
+while installing or migrating. No automatic update hook is assumed.
 
 **Levels.** Each has one size and one author.
 
 | level     | what it is                                                        | size              |
 | --------- | ----------------------------------------------------------------- | ----------------- |
-| Vision    | where this is going; a document, never an issue                   | rarely rewritten  |
-| Milestone | a slice with a charter: what is in, what is out, a finding budget | what ships next   |
+| Vision    | where the product is going; a document, never an issue           | rarely rewritten  |
+| Milestone | the next slice, with a charter: what is in, what is out, a finding budget | what ships next   |
 | Feature   | a root issue holding one **outcome**                              | one or more stages |
 | Stage     | an issue under a feature, with its own DONE WHEN                  | one session, including acceptance |
-| Task, bug | a leaf within an independently acceptable stage                   | part of that session |
+| Task, bug | a leaf: an issue with no children, inside one stage               | part of that session |
 
 An **outcome** is what becomes possible or true, and who observes it: "a person
-creates a connection group", "a rollback is one command and one minute". Its
-DONE WHEN names observable behaviour and the check that watches it. Regressions
-can make it false again. A stage that will not fit is split before dispatch;
-an unexpected overrun is handed off with its acceptance still pending.
+creates a connection group", "a rollback takes one command and one minute". Its
+DONE WHEN names the observable behaviour and the check that watches it; a
+regression can make it false again. A stage that will not fit one session is
+split before work starts; one that overruns is handed off with acceptance
+still pending.
 
-**The horizon.** Only the current milestone is decomposed below features. The
-next one exists as feature titles; anything further is the vision's business.
-**Everything live belongs to the current milestone**: its root wears the
-milestone's label. Whatever does not is deferred. The current milestone is
-whatever the gate's config says it is, read from there each time.
+**The horizon.** Only the current milestone is broken down below features. The
+next milestone exists as feature titles; anything further lives in the vision.
+**Everything live belongs to the current milestone**, whose label its root
+wears; everything else is deferred. The current milestone is read from the
+gate's config each time.
 
-**Ready** means an open **leaf**, unheld, whose required results are available.
-A closed prerequisite is satisfied. An `implemented` prerequisite is satisfied
-only within the same stage, after its recorded revision is integrated into the
-consumer's checkout and its related checks pass. Across stages it must be
-accepted and closed. The adapter's ready operation takes the stage and checkout
-revision; it must not merely ask which blockers are closed.
+**Ready** means an open leaf that nobody holds and whose required results are
+available. A closed prerequisite counts. An `implemented` prerequisite counts
+only inside the same stage, once its revision is merged into the consumer's
+checkout and its related checks pass; across stages it must be accepted and
+closed. So the adapter's ready operation takes the stage and checkout revision,
+not just "are the blockers closed".
 
-**Execution and acceptance.** A worker claims a leaf, verifies its change and
-records it as `submitted`, with a durable result revision/location and local
-evidence, for the stage coordinator. Submitted work is neither ready to
-reimplement nor available as a dependency. Only the coordinator marks it
-`implemented`, with an integration revision and local-check evidence. It is
-not ready to take again and not yet closed. A stage has one coordinator; workers
-have distinct owners and an atomic claim or serialized assignment. Reading back
-a last-write-wins claim is not a lock. If integration changes or fails, reopen
-affected work and reassess consumers. The stage's full tests, scoped mutation
-checks and final review run on the assembled result. Close its tasks and stage
-only after acceptance on that revision; a parent has its own criterion too.
+**Execution and acceptance.** A worker claims a leaf (takes a hold on it),
+checks its change and records it as `submitted`, with where the result lives
+and its local evidence. Submitted work is neither taken again nor used by
+dependants yet. The stage's single coordinator merges it and marks it
+`implemented`, with the merge revision and check evidence; it is not taken again
+and not yet closed.
+Workers have distinct owners and an atomic claim or a serialized assignment:
+reading back a field that anyone can overwrite is not a lock. If a merge
+changes or fails, reopen the affected work and recheck what depends on it. The
+assembled stage gets full tests, mutation checks of changed logic and a final
+review. Its tasks and the stage close only after acceptance on that revision; a
+parent has its own criterion too.
 
-**Parallelism.** Independent leaves, stages and features may run concurrently.
-Hierarchy, list order and a shared milestone never imply a blocking edge. Each
-stage has its own integration and acceptance boundary; it need not wait for an
-unrelated feature. Within one stage, integrate completed results as they arrive
-so their dependants can start. Serialize only a real prerequisite, a conflicting
-write or an exclusive resource. Use isolated checkouts where changes can collide;
-shared files such as generated files and dependency locks count as conflicts.
+**Parallelism.** Independent leaves, stages and features may run at once.
+Hierarchy, list order or a shared milestone never make one wait for another.
+Each stage has its own merge and acceptance and does not wait for unrelated
+features. Inside a stage, merge results as they arrive so dependants can start.
+Serialize only for a real prerequisite, a conflicting write or an exclusive
+resource. Use separate checkouts where changes can collide; generated files and
+dependency locks count as collisions.
 
 **Two lanes outside the flow.**
 
-- **Ideas**: deferred, no parent, no edges, a review date. Never in the ready
-  queue, closed without regret.
-- **Findings**: bugs and debt found mid-milestone. Each wears the finding label
-  **and the label of the milestone it was filed in**, so a feature carried into
-  the next milestone does not bring its old findings to the new budget. The
-  charter declares that budget. A finding beyond the budget goes to the next milestone or displaces
-  something by the owner's explicit decision; it never goes silently to the
-  front.
+- **Ideas**: deferred, no parent, no dependencies, a review date. Never ready,
+  closed without regret.
+- **Findings**: bugs and debt found during a milestone. Each wears the finding
+  label **and the label of the milestone it was filed in**, so a feature
+  carried forward does not bring old findings into the new budget. The charter
+  sets that budget. A finding over budget goes to the next milestone, or
+  displaces something only by the owner's explicit decision; it never jumps to
+  the front silently.
 
 **Labels.** Every live issue, features and stages included, wears exactly one
-area label, by the area that owns the behaviour.
+area label: the area that owns the behaviour.
 
 **Edges.** A blocking edge records a required result or a conflict, with its
-reason and what releases it, on the consuming leaf. Point cross-stage edges at
-the concrete producer leaf; its stage must accept before it releases outside
-consumers. Never chain entire features or stages merely because they were listed
-in order. Importance is priority; "later" is a milestone. Provenance is never a
-blocker. Cycles in either hierarchy or live dependencies are invalid.
+reason and what releases it, on the leaf that needs it. A cross-stage edge
+points at the concrete leaf that produces the result; that stage must be
+accepted before outside consumers are released. Never chain features or
+stages just because they were listed in order. Importance is priority; "later"
+is a milestone; where an issue came from is never a blocker. Cycles, in the
+hierarchy or in live dependencies, are invalid.
 
-**Status is true.** Active means somebody is working on it now. Stopping means
-releasing unfinished holds, preserving `submitted` and `implemented` work and
-their evidence. Submitted results resume at integration, not implementation.
-Acceptance pending is not abandonment. Handoffs name who owns the next action.
+**Status is true.** Active means somebody is working on it now. Stopping
+releases unfinished holds and keeps `submitted` and `implemented` work with its
+evidence; submitted results resume at merging, not implementation. Pending
+acceptance is not abandonment. A handoff names who owns the next action.
 
-**Tracked work.** Before implementation or a repository change, resolve or file
-its task. Every commit names one or more existing leaf tasks by the project's
-convention, including research, documentation, prototypes and setup. Initial
-setup creates its task through the chosen tracker before a gate exists. A
-read-only discussion or investigation need not create an issue until it produces
-work to retain. Commit links are verified by the separate commit check; a clean
-backlog alone does not prove them.
+**Tracked work.** Before implementing or changing the repository, find or file
+the task. Every commit names one or more existing leaf tasks by the project's
+convention, including research, documentation, prototypes and setup; initial
+setup files its own task before any gate exists. Read-only discussion needs no
+issue until it produces work to keep. The commit check verifies links; a clean
+backlog does not.
 
-**Exploration is not admission.** Free discussion, imagination and read-only
-research can end with no result, task or document. Hypotheses are not approved
-requirements. A scratch experiment does not authorize production adoption.
-Product/feature gates begin at commitment to retained implementation, not thought.
+**Exploration is not admission.** Discussion, imagination and read-only
+research may end with no result, task or document. A hypothesis is not an
+approved requirement, and a scratch experiment does not authorize production
+use. Product and feature gates start at the commitment to keep an
+implementation, not at thinking.
 
-**Living documents.** Vision gives direction; roadmap explains intended outcomes
-and sequence without duplicating tracker status or creating blocking edges.
-The charter bounds the current slice. Current capability specs describe accepted
-mainline behaviour; change records describe proposals and pinned requirement
-deltas. Design and decision records explain how and why only where useful.
-Use project-provided paths/templates, adopting existing documents in place.
+**Living documents.** The vision gives direction. The roadmap explains intended
+outcomes and order, without copying tracker status or creating dependencies.
+The charter bounds the current slice. Current capability specs describe
+accepted behaviour on the main line; change records describe proposals as
+pinned requirement deltas. Design and decision records explain how and why,
+only where useful. Use the project's paths and templates and adopt existing
+documents where they are.
 
-The document gate runs separately from backlog strength: product intent before
-first implementation, feature readiness before dispatch, revision-bound evidence
-at acceptance and synchronized current specs before closure. An accepted stage
-updates its own requirements without waiting for unrelated features. Correct
-requirements survive bug fixes; regression checks change instead. Independent
-requirements may advance concurrently; a changed prerequisite requires refresh.
-The integration supplies deterministic exports and verified receipts. Structural
-validation cannot establish semantic correctness or authenticate a fabricated
-receipt. CI/wrapper protection and actual tests are distinct responsibilities.
+The document gate runs separately from the backlog's strength. It checks
+product intent before the first implementation, feature readiness before work
+starts, evidence tied to the revision at acceptance, and updated current specs
+before closure. An accepted stage updates its own requirements without waiting
+for unrelated features. A bug fix keeps correct requirements and changes the
+regression check instead. Independent requirements may move at once; a changed
+prerequisite needs a refresh. The integration supplies deterministic exports
+and verified receipts. A structural check cannot prove a requirement is right
+or that a receipt is genuine; CI protection and real tests are separate jobs.
 
-**Names, not identifiers.** Everything a person reads says "Title" (id), the id
-in parentheses and only where somebody must act on it. A title is a sentence
-the work can be understood from. A bare id, or a list of ids, is never an item
-of a report: look the title up first. If the title does not explain the work,
-say in a few words what it is about.
+**Names, not identifiers.** Everything a person reads says "Title" (id), with
+the id in parentheses and only where somebody must act on it. A title is a
+sentence the work can be understood from. A bare id, or a list of ids, is never
+an item of a report: look the title up first. If the title does not explain the
+work, say in a few words what it is about.
 
 **Speaking to the owner.** The words of this protocol, the config, the tracker
 and the tools are for the agent. The person reads what they mean for the work,
-in their own language. Say instead:
+in their own language. Use the person's established role, otherwise **product
+engineer**: someone who owns the product and its trade-offs and builds through
+agents, without holding the code or tool settings in their head. Explain in
+consequences for users, time, cost and risk. Say instead:
 
 | internal | what the person reads |
 | --- | --- |
@@ -155,7 +161,7 @@ what stays as it was takes one line. Diagnostics and proof belong with the
 task that did the work, available on request, not in the message.
 
 **The gate is clean** when its report says `new errors: 0`. That line means the
-same under every strength, which red and green do not: under `report` nothing
-is ever red, and under `block` old debt is always red. Every skill that writes
-to the backlog runs the gate **before** publishing, and a new error is fixed by
-its own `fix` line before anything leaves this machine.
+same under every strength, unlike red and green: under `report` nothing is ever
+red, and under `block` old debt is always red. Every skill that writes to the
+backlog runs the gate **before** publishing, and fixes a new error by its own
+`fix` line before anything leaves this machine.

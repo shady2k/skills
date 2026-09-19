@@ -6,8 +6,8 @@ description: File a bug, an idea, a piece of debt or an outside request into the
 # To backlog
 
 Everything that arrives goes into exactly one **lane**, and the lane decides
-whether it may touch today's queue. Filing straight to the front is how a
-feature slips a fortnight without anybody deciding that it should.
+whether it may touch the current queue. Filing straight to the front is how a
+feature slips by weeks without anyone deciding it should.
 
 This project's **backlog integration** should have been provided to you: how
 its gate is run, how its tracker is driven, where its vision and charters
@@ -17,60 +17,57 @@ write anything. If there is none, tell the user to run
 protocol (levels, lanes, the horizon, what a clean gate is) is
 [`protocol.md`](protocol.md), beside this file.
 
-## 1. Search the behaviour
+## 1. Look for it first
 
-Duplicates are rarely near-copies: the same thing gets filed twice in two
-paraphrases by somebody who did search. Search for the **behaviour** in two
-different phrasings, then for the words. When you cannot phrase it two ways,
-read the whole listing of its area. A hit is worked or extended, never
-shadowed by a second issue.
+Duplicates are usually paraphrases, not copies. Search for the **behaviour** in
+two different phrasings, then for the words. If you cannot phrase it two ways,
+read the whole list for its area. If it exists, work on it or extend it; never
+file a second issue beside it.
 
-Done when two phrasings and the area listing have come back empty, or you have
-found the issue that already owns this.
+Done when both searches and the area list come back empty, or you found the
+issue that already covers it.
 
 ## 2. Pick the lane
 
-| what arrived                                                      | lane                                                                                     |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| an idea, a wish, a "what if"                                       | the **ideas** lane, with a review date                                                   |
-| a bug or debt on the path of the current milestone                | **finding**: under the stage it serves, wearing the finding label and the current milestone's label, and step 3 before it is filed |
-| a bug or debt off that path                                       | deferred, under the feature it belongs to, or with no parent when it belongs to none     |
-| planned work the current milestone's charter already names        | use `to-stages` when decomposition is authorized; otherwise return that route. A correction needed to meet an agreed criterion remains that work, not automatically a budgeted finding |
-| work for a later milestone                                        | deferred, under that milestone's label, as a feature title and nothing finer             |
-| a question that blocks a build                                    | work, under the stage it gates. It was never an idea                                     |
+| what arrived | lane |
+| --- | --- |
+| an idea, a wish, a "what if" | the **ideas** lane, with a review date |
+| a bug or debt on the current milestone's path | **finding**: under the stage it serves, with the finding label and the current milestone's label; step 3 first |
+| a bug or debt off that path | deferred, under its feature, or with no parent if it has none |
+| planned work the charter already names | `to-stages` when breaking it down is authorized; otherwise send it that way. A fix needed to meet an agreed criterion is part of that work, not a finding |
+| work for a later milestone | deferred, with that milestone's label, as a feature title only |
+| a question that blocks building | work, under the stage it blocks; it is not an idea |
 
-A finding that needs its own feature is a scope decision for the owner. It can
-join the current milestone by an explicit scope/budget change, or wait deferred.
-Independent features do not acquire dependencies merely by joining the slice.
+A finding that needs its own feature is a scope decision for the owner: join
+the current milestone by an explicit scope and budget change, or wait deferred.
+Joining the slice gives a feature no dependencies on other features.
 
 ## 3. A finding spends the budget
 
-Read the current budget from config and count the milestone's findings. Within
-it, file and carry on. At or beyond it, preserve the discovery as deferred and
-take the admission decision to the owner: leave it for later, or replace named
-planned work and explicitly approve the new finding count. In the latter case,
-update the config budget and record the charter decision together with the
-displacement. Deferring planned work alone does not reduce a count of findings.
-Do not make an unapproved finding ready; registration need not wait for admission.
+Read the finding budget from the config and count the milestone's findings.
+Within budget, file it and carry on. At or over budget, file it as deferred and
+bring the decision to the owner: leave it for later, or replace named planned
+work and approve the new count. If they replace, update the budget in the
+config and record the decision in the charter with what was displaced.
+Deferring planned work does not lower the count of findings. Do not make an
+unapproved finding ready; filing it need not wait for the decision.
 
-Recommend a disposition in the user's established role (otherwise product
-engineer), naming what would ship later or what risk remains if deferred.
-Explain what the budget protects and why the recommendation fits prior scope.
-Group related admission trade-offs where possible; do not ask about routine
-labels, fields or already authorized filing. "Use defaults" is not permission
-to increase the finding budget or expand the milestone.
+Recommend what to do: what would ship later, or what risk remains if it waits,
+and how that fits the agreed scope. Group related decisions. Do not ask about
+routine labels or fields. "Use defaults" does not allow raising the budget or
+widening the milestone. Speak as the protocol's **Speaking to the owner** says.
 
 ## 4. Write it so it can be finished
 
-- A **title that is a sentence**: the work can be understood from it alone.
-- **Exactly one area label**, by the area that owns the behaviour.
-- An observable criterion and what would falsify it. For a bug: what a person
-  does, what happens, what should, and the source requirement where one exists.
-- For anything larger than a task, **what is deliberately out**.
+- A **title that is a sentence**: the work is clear from it alone.
+- **Exactly one area label**, for the area that owns the behaviour.
+- An observable criterion and what would disprove it. For a bug: what a person
+  does, what happens, what should happen, and the requirement it breaks, if any.
+- For anything larger than a task, **what is deliberately left out**.
 
 ## 5. Publish and prove
 
-Create it with the tracker's verbs and run the gate. Done when the gate is
-clean; a new error is fixed by its own `fix` line, and a `finding-budget` error
-means step 3 was skipped. Then publish. Report it as "Title" (id) with its
-lane, and for a finding, the budget after it: "finding 4 of 5".
+Create it with the tracker's operations and run the gate. Done when the gate is
+clean; fix a new error with its own `fix` line. A `finding-budget` error means
+step 3 was skipped. Then publish. Report "Title" (id) with its lane and, for a
+finding, the budget after it: "finding 4 of 5".

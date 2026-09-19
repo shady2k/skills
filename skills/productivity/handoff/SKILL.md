@@ -7,61 +7,60 @@ disable-model-invocation: true
 
 # Handoff
 
-The next agent starts with nothing but what you leave it, and the cheapest
-thing to leave, "continue session X", is the worst: a whole transcript carries
-every wrong turn as faithfully as the fix, with nothing to tell them apart. A
-handoff is the **curated** version: what is true now, what to do first, and
-where everything else already lives.
+The next agent knows only what you leave it. "Continue session X" is the worst
+handoff: the transcript keeps every wrong turn next to the fix, with nothing to
+tell them apart. Leave a short curated document instead: what is true now, what
+to do first, and where everything else already lives.
 
 If the user passed arguments, they say what the next session is for. Tailor
-everything below to that and leave the rest out.
+everything to that and leave the rest out.
 
-For an exploratory conversation, preserve its open-ended intent, interesting
-hypotheses and disagreements without inventing decisions, tracked work or an
-implementation next step. The user may only want to continue thinking. Existing
-backlog integration does not turn an unrelated conversation into a cleanup task.
+For an exploratory conversation, keep its open questions, hypotheses and
+disagreements. Do not invent decisions, tasks or an implementation step: the
+user may just want to keep thinking. A backlog integration does not turn an
+unrelated conversation into a cleanup task.
 
 ## 1. Settle what is in flight
 
 Anything left half-done is a trap the next agent cannot see.
 
-- **Uncommitted work.** List it (the version control's own status), its readiness
-  and location. By default hand it over without committing; do not ask a commit
-  question for each piece. Explain that another checkout will not see it and
-  recommend a continuation path that preserves access. If transfer genuinely
-  needs a commit or other new authority, ask once for that bounded action with
-  alternatives and consequences, at the user's role (otherwise product engineer).
-- **The backlog**, if this project's agent doc points at a backlog
-  integration: use "close-out". It closes only work covered by stage acceptance,
-  preserves submitted results and implemented work awaiting acceptance, files findings and releases
-  unfinished holds with a comment on
-  where it stands. That comment is the handoff for work that lives in an
-  issue; do not repeat it in the document, point at it. If it could not
-  finish, because the gate or the tracker would not run, the document says
-  which holds were left and why: optional does not mean silent.
-- **Running things**: background commands, other agents, open branches or
-  worktrees you created. Say which are still running and who is to collect them.
-- **Stage acceptance:** retain submitted result locations, base and assembled revisions, integrated
-  tasks, local check evidence, pending dependencies and remaining full tests,
-  mutations and review. Name the next coordinator; do not reassign already
-  implemented tasks as ready work. Independent workers may continue if their
-  owner and collection path remain explicit.
-- **Document lifecycle:** retain proposal and baseline references, verified
-  receipt locations, current-spec sync and archive/publication state. A landed
-  delta must not be reapplied; unfinished sync must not masquerade as closure.
+- **Uncommitted work:** list it (from version control's status), how ready it
+  is and where it sits. By default hand it over uncommitted; do not ask about
+  committing each piece. Say that another checkout will not see it and
+  recommend a way to continue that keeps access. If the handoff really needs a
+  commit or other new permission, ask once for that one action, with
+  alternatives and consequences, in terms of the user's role (otherwise
+  product engineer).
+- **The backlog**, where the project's agent doc points at a backlog
+  integration: use `close-out`. It closes only work whose stage was accepted,
+  keeps agent results waiting to be merged or accepted, files findings, and
+  returns unfinished tasks to the queue with a comment on where each stands.
+  That comment is the handoff for work in an issue; point at it, do not repeat
+  it. If `close-out` could not finish because the gate or tracker would not
+  run, the document says which tasks were left taken and why.
+- **Running things:** background commands, other agents, branches or worktrees
+  you created. Say which still run and who collects them.
+- **Stage acceptance:** keep where submitted results are, the base and merged
+  revisions, merged tasks, local check results, open dependencies, and the full
+  tests, mutation checks and review still to run. Name the next coordinator; do
+  not offer already merged tasks as ready work. Independent workers may go on
+  if their owner and how to collect them stay explicit.
+- **Documents:** keep the proposal and baseline references, where verified
+  receipts are, and whether current specs were synced and the change archived
+  or published. A change already landed must not be applied twice; an
+  unfinished sync must not look like closure.
 
 Done when nothing the next agent needs exists only in this session's memory or
 in an unnamed process.
 
 ## 2. Write the document, outside the repository
 
-Save it to the harness's scratch directory if it has one, otherwise to the
-operating system's temporary directory, as `handoff-<what it is about>.md`.
-Never inside the workspace: a handoff is for one reader, once, and a committed
-one becomes a stale instruction that the agent after next will follow.
+Save it in the harness's scratch directory, or else the system's temporary
+directory, as `handoff-<what it is about>.md`. Never in the workspace: a
+committed handoff becomes a stale instruction someone later follows.
 
-Reference, do not restate. Whatever already lives in a commit, an issue, a
-spec, an ADR or a diff is named by path, hash or "Title" (id), and not copied.
+Reference, do not copy. Anything already in a commit, issue, spec, decision
+record or diff is named by path, hash or "Title" (id).
 
 <handoff-template>
 
@@ -70,59 +69,55 @@ spec, an ADR or a diff is named by path, hash or "Title" (id), and not copied.
 ## Do this first
 
 The one next action, concrete enough to start without asking. Then the two or
-three after it, if they are known.
+three after it, if known.
 
 ## What is true now
 
 What exists and **was verified in this session**, each with how: a command and
-its result, a test, a file read. Keep what was only reported, assumed or
-half-checked in a separate list under the words "not verified".
+its result, a test, a file read. What was only reported, assumed or partly
+checked goes in a separate list headed "not verified".
 
 ## Decisions
 
-Made, with the reason in a clause, so they are not re-opened. Then the ones
-still open, and whose each is: the owner's are named as the owner's, never
-quietly decided here.
+Decisions made, each with its reason in a clause, so they are not reopened.
+Then the open ones and whose each is; the owner's stay the owner's.
 
-Preserve the user's role, accepted profile, named overrides and any delegation
-to use recommendations, with its limits, so the next agent does not repeat the
-interview. For real open decisions, include a recommendation and its consequences.
+Keep the user's role, accepted settings, named overrides and any permission to
+use recommendations, with its limits, so the next agent does not ask again. For
+open decisions, give a recommendation and its consequences.
 
 ## Traps
 
 What cost time here and would again: the wrong turn that looked right, the
-command that lies, the file that is not what its name says. One line each. This
-is the part no other artifact holds.
+command that lies, the file that is not what its name says. One line each.
 
 ## Where things are
 
 Commits by hash, issues as "Title" (id), files by path, uncommitted work by
-where it sits. The source session's id, and its transcript's path when the
-harness keeps one: for digging out a detail, not for reading whole.
+where it sits. The source session's id and transcript path when the harness
+keeps one, for looking up a detail, not for reading whole.
 
 ## Skills to reach for
 
-Which skills the next agent should call, by name, and for what.
+Which skills the next agent should use, by name, and for what.
 
 </handoff-template>
 
-Leave out the story of the session. The next agent needs the state, not how you
-got there, except where how you got there is a trap.
+Leave out the story of the session, except where it is a trap.
 
-**Redact** keys, passwords, tokens and personal data. The document leaves this
-session's permissions behind and may be pasted anywhere.
+**Remove** keys, passwords, tokens and personal data. The document may be
+pasted anywhere.
 
 Done when a stranger could take the first action from the document alone, and
 every claim in "What is true now" names its evidence.
 
 ## 3. Pass it on
 
-Print the document's path and, in a code block, the **first sentence for the
-next session**: one line telling it to read that file and do what it says. A
-pointer, never the whole summary: a long paste into a prompt is where text
-gets truncated or mangled.
+Print the document's path and, in a code block, **one sentence for the next
+session**: read that file and do what it says. A pointer, never the whole
+summary: long pastes get truncated or mangled.
 
-Then, if this harness can start a session seeded with a prompt (a command-line
-flag, a new pane in a terminal multiplexer, a background agent), offer to start
-it with that sentence, in the directory the work is in. Start it only when the
-user says so, and name it for what it will do.
+If this harness can start a session with a prompt (a command-line flag, a new
+terminal pane, a background agent), offer to start it with that sentence in the
+work's directory. Start it only when the user agrees, and name it for what it
+will do.

@@ -5,12 +5,10 @@ description: "Restore a usable backlog by snapshotting it, choosing the live sli
 
 # Groom backlog
 
-A backlog with hundreds of ready issues is a dump with an index. Reviewing it
-issue by issue is a project of its own that ends with a stale review. This is
-an **amnesty**: declare what is being worked on, keep that, and defer
-everything else in one pass. Deferring is no judgement about truth, so it needs
-no review: what matters comes back by itself through a bug, a spec or a
-question, and what has not come back in a quarter was not needed.
+Reviewing a dumped backlog issue by issue never finishes. Instead, agree what
+is being built now, keep that, and defer everything else in one pass. Deferring
+is not a verdict, so it needs no review: what matters comes back through a bug,
+a spec or a question.
 
 This project's **backlog integration** should have been provided to you: how
 its gate is run, how its tracker is driven, where its vision and charters
@@ -20,107 +18,110 @@ write anything. If there is none, tell the user to run
 protocol (levels, lanes, the horizon, what a clean gate is) is
 [`protocol.md`](protocol.md), beside this file.
 
-**Bootstrap exception:** when setup invokes this before the gate exists or while
-migrating it, use setup's verified tracker operations, snapshot location and
-proposed config as the integration. Do not send the user back to setup in a loop.
-Perform the inventory and agreed cleanup first; return to setup to install and
-prove the gate. For an already usable queue, report that fact and make no bulk
-changes. Implemented work waiting for acceptance is live work to preserve.
+**When setup calls this** before the gate exists or while migrating it, use
+the tracker operations, snapshot location and proposed config that setup has
+verified, instead of the integration. Do not send the user back to setup. Do
+the inventory and the agreed cleanup, then return to setup, which installs and
+proves the gate. If the queue is already usable, say so and change nothing in
+bulk. Work waiting for acceptance is live: keep it.
+
+Everything the owner reads follows the protocol's **Speaking to the owner**.
 
 ## 1. Take the snapshot
 
-Save the adapter's output (or a native tracker export during bootstrap, before
-the adapter is available) **before you touch anything**, beside the
-gate's config. A bulk edit rewrites every timestamp it touches, and the next
-analysis will read issues untouched for a month as active today. Save a second
-snapshot immediately after the bulk edit. Use `--ages-from <before>` together
-with `--ages-through <after>`: restore an old timestamp only while the current
-timestamp still equals the bulk edit's timestamp. Later real work keeps its
-new timestamp. Revalidate this mechanism for the tracker's timestamp precision.
+**Before you change anything**, save the adapter's export beside the gate's
+config (during setup, before the adapter exists, a native tracker export).
+A bulk edit resets every timestamp it touches, and later analysis would read
+month-old issues as active today. Save a second snapshot right after the bulk
+edit. Run the gate with `--ages-from <before>` and `--ages-through <after>`: it
+restores an old timestamp only while the current one still equals the bulk
+edit's, so later real work keeps its new timestamp. Check that this holds for
+the tracker's timestamp precision.
 
-Done when the snapshot exists and can be read; during bootstrap, gate proof
-follows cleanup. Outside bootstrap, verify the installed gate can read it.
+Done when the snapshot exists and can be read. Outside setup, check that the
+installed gate reads it.
 
 ## 2. Measure
 
-Show one table, numbers only: open, ready, active, deferred, roots with live
-work, active issues whose trees have not moved within the hold limit, open
-issues untouched past the stale limit, and the gate's violations per check.
-Keep it; step 7 prints it again beside the new numbers. During bootstrap, use
-the tracker's own counts and inspect its dependencies directly; mark gate
-counts unavailable until setup builds the adapter and runs the rules. Retain
-native before/after snapshots and normalize both once the adapter is ready.
+One table of numbers: open, ready, active, deferred, roots with live work,
+active issues with no movement within the hold limit, open issues untouched
+past the stale limit, and gate violations per check. Step 7 repeats it beside
+the new numbers. During setup, use the tracker's own counts and read its
+dependencies directly; mark gate counts unavailable until the adapter and rules
+exist. Keep both native snapshots and normalize them once the adapter is ready.
 
-## 3. Declare the slice, with the owner
+## 3. Agree the slice with the owner
 
-The slice is the current milestone: what is actually being built now. Find the
-evidence before asking: issues whose trees moved recently (ages from the
-snapshot), what recent commits name, what is genuinely held. Present the
-features that evidence points at and reuse a still-valid agreed slice. If it
-needs a decision, recommend it by **name**, explaining what stays live and what
-would wait. Use the established role, otherwise product engineer; do not ask
-the user to choose tracker labels or interpret raw dependency identifiers.
-The slice can be confirmed together with the cleanup proposal in step 4 or
-setup's profile; do not ask again if that exact choice is already approved.
-No current milestone in the config means this step declares one: a
-label named for what ships, written to the config's `currentMilestone` and
-`milestoneLabels`, and put on the root of every feature in the slice with the
-tracker's milestone verb. Its charter is `/to-milestone`'s job, afterwards.
+The slice is the current milestone: what is actually being built now. Gather
+the evidence first: recently moved issue trees, tasks named in recent commits,
+work genuinely in progress. Propose the features it points to, by name, and
+reuse an agreed slice that still fits. Say what stays live and what waits. Do
+not ask the owner to pick tracker labels or read dependency ids. The slice can
+be confirmed together with step 4's proposal or setup's profile; do not ask
+again for a choice already approved.
 
-Done when the owner has confirmed the slice by name, the config carries the
-milestone, and every root in the slice wears its label.
+If the config has no current milestone, this step creates one: a label named
+for what ships, written to `currentMilestone` and `milestoneLabels`, and put on
+the root of every feature in the slice. Its charter comes later, from
+`/to-milestone`.
 
-## 4. Propose the amnesty
+Done when the owner has confirmed the slice by name, the config names the
+milestone, and every root in the slice carries its label.
+
+## 4. Propose the cleanup
 
 Everything live outside the slice is deferred with a review date. Show the
-proposal as **counts by kind**, never as a list of issues:
+proposal as **counts by kind**, not a list of issues:
 
-- features and their whole trees belonging to a later milestone: deferred with
-  that milestone's label intact, so they come back whole;
-- bugs not touched past the stale limit: deferred;
-- brainstorms and proposals: into the ideas lane;
-- catch-all issues that can absorb any new bug of their area: deferred; they
+- later-milestone features with their whole trees: deferred, keeping that
+  milestone's label so they come back whole;
+- bugs untouched past the stale limit: deferred;
+- brainstorms and proposals: moved to the ideas lane;
+- catch-all issues that absorb any new bug in their area: deferred, since they
   can never finish;
-- holds nobody is holding: released.
+- tasks marked as taken that nobody is working on: returned to the queue.
 
-Explain what each proposed action means, why it is recommended, how it affects
-current work and how to reverse it. Let the owner accept the proposal together
-or pull anything back by name. **Nothing is closed or deleted.**
-Do not steal live assignments or defer independent features merely because
-another feature is executing. Get approval for the proposed bulk scope unless
-the user already authorized that exact cleanup.
+For each kind, say what it means, why, how it affects current work and how to
+undo it. The owner accepts the whole proposal or pulls items back by name.
+**Nothing is closed or deleted.** Do not take work away from someone active,
+and do not defer an independent feature because another one is running. Get
+approval for the bulk scope unless the user already authorized exactly this
+cleanup.
 
-## 5. Apply it, reversibly
+## 5. Apply it reversibly
 
-Record each issue's prior and proposed values for status, labels, parent,
+For each issue, record prior and new values of status, labels, parent,
 dependencies, holder and review date, plus config changes. Apply with the
-tracker's verbs, then record resulting values and the after snapshot. Rollback
-restores those changed fields, not just undefer; compare current values with
-the recorded result first so a later person's work is not overwritten. The
-integration must document the restore operation and any non-restorable fields.
+tracker's operations, then record the results and the after snapshot. Rollback
+restores exactly those fields; before restoring, compare current values with
+the recorded results so later work by someone else is not overwritten. The
+integration documents the restore operation and any field it cannot restore.
 
-## 6. Mend the edges
+## 6. Mend the dependencies
 
-Run the gate with both age snapshots once it is available. Two checks now matter: a
-live issue **blocked by a deferred one** (pull the blocker into the slice, or
-defer the blocked one too), and a **stale edge** (unlink it, or move it onto
-the leaf that really needs the result or conflicts). Also resolve dependency
-cycles; age alone does not make a genuine prerequisite unnecessary. Investigate
-the required results yourself and group evidence-backed repairs into a proposal
-with their consequences. Routine metadata repairs within approved cleanup need
-no per-edge question. Only an unresolved scope or priority trade-off goes back
+Run the gate with both snapshots once it exists. Fix:
+
+- a live issue **blocked by a deferred one**: bring the blocker into the slice,
+  or defer the blocked issue too;
+- a **stale dependency**: remove it, or move it to the task that really needs
+  that result or conflicts with it;
+- dependency cycles. Age alone does not make a real prerequisite unnecessary.
+
+Investigate what each dependency really needs yourself and propose the repairs
+as a group, with their consequences. Routine repairs within the approved
+cleanup need no question each. Only an open scope or priority trade-off goes
 to the owner, one at a time, with a recommendation and real alternatives.
 
 Record the bulk edit's date and both snapshot paths under "The gate" in the
 project's backlog integration.
 
-Done when the gate's report shows no error-severity violation at all, old or
-new: a dig-out that leaves errors behind has only moved the mess. During setup,
-return the cleanup result for gate proof instead of claiming that proof already
-happened. Then publish through the authorized project workflow.
+Done when the gate reports no errors at all, old or new: a cleanup that leaves
+errors has only moved the mess. During setup, hand the result back for gate
+proof rather than claiming the proof. Then publish through the project's
+authorized workflow.
 
 ## 7. Report
 
-The table from step 2 with a second column, the rollback file, and the slice by
-name with its ready queue. Then one line: what the owner runs next, which is
+Step 2's table with an "after" column, the rollback file, and the slice by name
+with the tasks that can start now. Then one line: what to run next, which is
 `/to-milestone` if the slice has no charter.

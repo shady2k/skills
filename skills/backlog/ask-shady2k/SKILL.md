@@ -6,138 +6,128 @@ disable-model-invocation: true
 
 # Ask shady2k
 
-Read the project and give its owner what they need to decide what to do next:
-what the product is, how far it has come, where it stands now, and which ways
-forward exist with what each costs and postpones. Then recommend one by name.
+Give the owner what they need to decide what to do next: what the product is,
+how far it has come, where it stands, and which ways forward exist with what
+each costs and postpones. Then recommend one by name.
 
-**This skill is read-only.** It changes no files, tracker items, claims, holds,
-branches or configuration, and it commits nothing. Reading the tracker and
-running the gate's report are reads. Run a project check only when it is
-documented as side-effect-free; otherwise report it as not run. Anything that
-needs a write is named as the skill that would do it.
+**Read-only.** Change no files, tracker items, holds, branches or config, and
+commit nothing. Reading the tracker and running the gate's report are reads.
+Run a project check only if it is documented as side-effect-free; otherwise
+report it as not run. Anything that needs a write is named as the skill that
+would do it.
 
-## 1. Read intent and choose depth
+## 1. Choose the depth from the request
 
-Infer depth from the request; do not make the user pick a mode.
+Do not make the user pick a mode.
 
-- **"What next?"** from someone in the flow: the few facts that justify one
-  action, then that action.
-- **Orientation**: returning after a break, a new or unfamiliar project, "where
-  are we", "what are our options": the full picture of sections 3 and 4.
-- **Free discussion or imagination**: `brainstorming` directly, without setup
-  or a tracker. Evidence-only questions can use `to-research`. No task,
-  document or implementation step follows from thinking.
+- **"What next?"** from someone in the flow: the few facts behind one action,
+  then the action.
+- **Orientation** (back after a break, a new or unfamiliar project, "where are
+  we", "what are our options"): the full picture of sections 3 and 4.
+- **Free discussion**: `brainstorming`, with no setup or tracker needed.
+  Evidence-only questions: `to-research`. Thinking commits to nothing.
 
 ## 2. Collect evidence
 
-**Always, with or without setup:** the README and agent doc; vision, roadmap,
-charters, current specs, glossary and decision records where they exist; the
-code's shape and its checks and CI; git history, branches, worktrees and
-uncommitted changes. Recent history is progress evidence, not only the tracker.
+**Always:** README and agent doc; vision, roadmap, charters, current specs,
+glossary and decision records where they exist; the shape of the code, its
+checks and CI; git history, branches, worktrees and uncommitted changes. Git
+history is progress evidence too.
 
-**Where the project has a backlog integration** (the project's agent doc points
-at it): read [`protocol.md`](protocol.md). Compare the protocol version with
-config `setupVersion` and all three installed checks' versions and require
-`setupStatus: verified`. Run the gate from this checkout; if it fails, name the
-actual cause: an unlanded installation, missing runtime, tracker outage or
-broken wiring, inspecting other worktrees when an installation may be stranded
-there. Collect the gate's JSON report, config values, charter, outcomes, holds,
-submitted/implemented tasks and stage acceptance records, and ready leaves
-using the integration's stage/checkout-aware operation. Distinguish an owner
-actively coordinating acceptance from an abandoned hold.
+**Where the project has a backlog integration** (its agent doc points to it):
+read [`protocol.md`](protocol.md) and do its compatibility check. Run the gate
+from this checkout. If it fails, name the real cause: an installation not yet
+landed (check other worktrees), a missing runtime, a tracker outage or broken
+wiring. Collect the gate's report, config, charter, outcomes, holds, submitted
+and implemented tasks, stage acceptance records, and the tasks that can start
+now, using the integration's stage- and checkout-aware operation. Tell an owner actively
+running acceptance from abandoned work.
 
-**Without an integration, or with an incompatible one:** state that as a fact
-and continue from the repository. Mark what cannot be known without it, such as
-task states and acceptance, instead of guessing. Do not replace an inaccessible
-tracker or restart an interview without evidence.
+**Without an integration, or with an outdated one:** say so and continue from
+the repository. Mark what you cannot know without it, such as task states and
+acceptance; do not guess. Do not replace an unreachable tracker.
 
 ## 3. Build the picture
 
-Write only sections that have something to say. Speak in product terms: what a
+Include only sections with something to say. Speak in product terms: what a
 user can do, not which files changed. Separate facts, inferences and unknowns,
-and say what evidence each rests on.
+with the evidence for each.
 
-- **Product:** what it is for and for whom; what users can already do; the
-  distance to the vision.
+- **Product:** what it is for and for whom; what users can already do; how far
+  it is from the vision.
 - **Progress:** the milestone's outcomes as accepted, in work, not started or
   stalled; what recent work changed for users; the pace, where history shows it.
-- **Where we are now:** active and pending work, what awaits integration or
-  acceptance, holds, stranded branches or uncommitted results, and each real
-  blocker with what releases it.
-- **Health and risk:** failing, missing or unrun checks; specs or docs drifting
-  from the code; deferred findings accumulating; setup out of date. Say what
-  each risks for the product, not only that it exists.
-- **Beyond the horizon:** deferred work and ideas worth thinking about, marked
-  as hypotheses. They are not tasks and do not widen the milestone.
+- **Now:** work in progress, what waits for merging or acceptance, abandoned
+  work, stranded branches or uncommitted results, and each real blocker with
+  what would release it.
+- **Health and risk:** failing, missing or unrun checks; specs or docs out of
+  step with the code; deferred findings piling up; setup out of date. Say what
+  each risks for the product.
+- **Beyond the horizon:** deferred work and ideas worth a thought, marked as
+  hypotheses. They are not tasks and do not widen the milestone.
 
 ## 4. Ways forward
 
-The recommendation comes from the first applicable condition below; the
-ladder's order protects finishing before starting. Then give two or three real
-alternatives. For each: what it achieves, what it costs in time and budget,
-what it postpones, its risk and whether it is reversible. Include stopping
-(`/handoff`) when that is a real option. An alternative outside the current
-milestone is a scope change and is labelled as one, routed to `/to-milestone`
-or `to-backlog`; an open idea goes to `brainstorming`. Do not invent work to
-fill the list or present every skill.
+The recommendation is the first row below that applies; its order makes you
+finish before you start. Then give two or three real alternatives, each with
+what it achieves, its time and budget, what it postpones, its risk and whether
+it can be undone. Include stopping (`/handoff`) when that is a real option. An
+alternative outside the current milestone is labelled a scope change and goes
+to `/to-milestone` or `to-backlog`; an open idea goes to `brainstorming`. Do not
+invent work to fill the list.
 
 | condition | next action |
 | --- | --- |
-| tracker/integration absent, setup version absent or incompatible | `/setup-shady2k-skills` before managed work: choose/install or reverify, explaining what is missing; the picture is still given |
-| checks cannot run | specific repair through setup; land a stranded installation when that is the cause |
-| no current slice and existing live work | `groom-backlog` to agree and clean the slice; setup owns this during initial installation |
-| no milestone or its charter is missing | `/to-milestone` |
-| an abandoned active hold | release the actual abandoned work, preserving implemented results |
-| new gate errors | report their concrete fixes; use `groom-backlog` for a broad cleanup |
-| submitted results or implemented work await integration/acceptance | resume that stage with `/take-task`; do not reimplement its leaves |
+| no tracker or integration, or setup missing or outdated | `/setup-shady2k-skills` before managed work, saying what is missing; still give the picture |
+| checks cannot run | the specific repair through setup; land a stranded installation if that is the cause |
+| no current slice but live work exists | `groom-backlog` to agree and clean the slice (setup does this on first install) |
+| no milestone, or no charter | `/to-milestone` |
+| work marked as taken but abandoned | return it to the queue, keeping implemented results |
+| new gate errors | their concrete fixes; `groom-backlog` for a broad cleanup |
+| results await merging or acceptance | resume that stage with `/take-task`; do not redo its tasks |
 | accepted work awaits closure | `close-out` with the acceptance record |
-| current outcomes are all accepted | `/to-milestone` |
-| new product lacks direction/first charter | `/to-milestone`; draft from known decisions, not a field-by-field interview |
-| a change fails document readiness | explain the concrete missing contract, stale base or unresolved decision; use `to-spec` |
-| an outcome needs design or decomposition | `/take-task` selects the route, or `to-spec` when the user wants design only |
-| independent ready work exists | `/take-task` for the stage or requested work; mention parallel opportunities |
-| all remaining work is genuinely blocked or held | state the required result/owner; do not widen the milestone or invent work |
+| all current outcomes accepted | `/to-milestone` |
+| new product without direction or first charter | `/to-milestone`, drafted from known decisions |
+| a change is not ready by the document check | the concrete gap: missing contract, stale base or open decision; `to-spec` |
+| an outcome needs design or breaking down | `/take-task` picks the route, or `to-spec` for design only |
+| independent work can start | `/take-task` for that stage or the requested work; mention what can run in parallel |
+| everything left is blocked or held | the result or owner that would unblock it; do not widen the milestone or invent work |
 
-For pending acceptance already owned by an active coordinator, recommend
-independent ready work instead of duplicating its acceptance. One stage's
-blocker does not block unrelated stages or features.
+If someone is already running a stage's acceptance, recommend other ready work
+rather than duplicating it. A blocker in one stage does not block unrelated
+stages or features.
 
-The user's immediate intent can select a helper: an arrival uses `to-backlog`,
-a diagnosis uses `diagnose-bug`, an unresolved product decision uses
-`brainstorming`, evidence gathering uses `to-research` or `to-prototype`.
+The request itself can pick a helper: something new arriving is `to-backlog`, a
+diagnosis is `diagnose-bug`, an open product decision is `brainstorming`,
+gathering evidence is `to-research` or `to-prototype`.
 
 ## 5. Report
 
-Speak as the protocol's **Speaking to the owner** says, also without a
-backlog integration: plain words, tasks by title, numbers with their meaning.
-Lead with the headline: one or two sentences on where the project stands. Then
-the picture, compact, then the ways forward with the recommendation first. Use
-"Title" (id), never identifiers alone. Use the established role, otherwise
-product engineer: consequences for the product across scope, time, cost and
-risk. End with the recommended action and, only if one exists, the single
-material decision it needs. This is orientation, not a questionnaire: do not
-ask about each finding, and do not start the recommended action.
+Follow the protocol's **Speaking to the owner**, with or without an
+integration: plain words, tasks by title, numbers with their meaning. Open with
+one or two sentences on where the project stands. Then the picture, compact,
+then the ways forward, recommendation first, as consequences for the product:
+scope, time, cost, risk. End with the recommended action and, only if there is
+one, the single decision it needs. Do not ask about each finding, and do not
+start the recommended action.
 
 ## Routes
 
-- `setup-shady2k-skills`: choose/verify the tracker, clean its queue, configure
-  execution through a role-aware recommended profile and fully prove setup;
-  repeat after updates and whenever requested, preserving prior decisions.
-- `to-milestone`: agree outcomes and scope/budget; independent outcomes may run together.
-- `take-task`: route tracked work through proportional design, parallel local
-  implementation where possible, integration and stage acceptance.
-- `brainstorming`: explore, investigate or decide through dialogue; offer ideas,
-  understand reasoning before independent disagreement; no mandatory artifact.
-- `to-spec`: short or full proposed change to living capability specs, with
-  scenarios and document readiness checks; not a prerequisite for free discussion.
-- `to-stages`: stages sized for a session including acceptance, with real
-  dependencies and parallel-ready leaves.
-- `diagnose-bug`: evidence-based diagnosis; fixing requires an authorized tracked task.
-- `to-prototype`: a bounded runnable experiment, retained through its task.
-- `to-research`: a bounded primary-source investigation with a cited result.
-- `model-domain`: durable domain terms and consequential decision records.
-- `to-backlog`: file work before implementation, preserve findings and agree admission.
-- `close-out`: synchronize accepted behaviour into current specs before closure;
-  preserve integration, pending acceptance and interrupted publication.
-- `groom-backlog`: snapshot, agree the live slice, clean reversibly and verify.
-- `handoff`: transfer state, revisions, evidence, workers and the next action.
+- `setup-shady2k-skills`: choose or check the tracker, clean its queue, agree a
+  recommended profile, prove the installation; rerun after updates.
+- `to-milestone`: agree outcomes, scope and budget.
+- `take-task`: take tracked work through proportional design, parallel
+  implementation, merging and stage acceptance.
+- `brainstorming`: explore, investigate or decide in conversation; no required
+  result.
+- `to-spec`: a short or full change to the living specs, with scenarios.
+- `to-stages`: session-sized stages with real dependencies and parallel tasks.
+- `diagnose-bug`: find a cause with evidence; fixing needs a tracked task.
+- `to-prototype`: a bounded runnable experiment.
+- `to-research`: a bounded investigation of primary sources, with citations.
+- `model-domain`: domain terms and records of consequential decisions.
+- `to-backlog`: file new work and findings in the right lane.
+- `close-out`: update current specs from accepted work, then close; keep
+  pending work.
+- `groom-backlog`: snapshot, agree the slice, clean up reversibly, verify.
+- `handoff`: pass on state, results, evidence and the next action.
