@@ -160,6 +160,11 @@ questionnaire**.
   Explain what each means for leaving: inline and subagents end with the
   session; separate sessions survive while the machine runs; a cloud session
   needs no machine of theirs. The preflight of each feature run confirms it.
+- **How changes reach the main line:** whether it accepts a direct push or
+  requires a pull request, which checks it requires and how long they take.
+  Found by looking, recorded, never asked again. Where a protected main line runs
+  a long CI even for changes to documents and the tracker alone, recommend,
+  as a separate task, letting CI skip product checks for such changes.
 - **How long a branch may live:** read the project's own rule where its docs
   state one (many prefer merging into the main line often); otherwise recommend
   a day or two. Feature runs are sized to it.
@@ -220,6 +225,7 @@ them and propose it instead.
     "development": "<tdd | test-after>",
     "runMode": "<inline | subagents | worker-sessions | cloud>",
     "maxBranchDays": 2,
+    "landing": "<push | pull-request>",
     "maxWorkers": 1,
     "mutationBudgetMinutes": 10,
     "mutationFallback": "<agreed alternative or escalate>",

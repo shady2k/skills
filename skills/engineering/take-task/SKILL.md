@@ -80,6 +80,10 @@ not new scope, spending or weaker acceptance.
 
 ## 3. Run the feature
 
+On "run", land the conversation's general plan once and start the feature on
+its own branch, named after it, as the protocol's **Sessions and landing**
+says; do not wait for the owner to create or rename anything.
+
 Before dispatching implementation, run the integration's feature document check
 against the actual baseline; the first product implementation also needs the
 product check. Keep existing paths, and limit legacy baselines to the affected
@@ -188,5 +192,6 @@ review findings, what is not done and the risks left. Wait for its checks to go
 green; fix a red one as part of the run.
 
 The owner's acceptance is the merge. After it, close the tasks, stages and
-feature through `close-out`. Commit links and a clean backlog are required but
+feature through `close-out`, and remove the checkouts and branches this run
+created. Commit links and a clean backlog are required but
 never replace checking the behaviour.

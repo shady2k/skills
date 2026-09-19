@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.20.0 starts skills on the user's word; 0.19 runs a whole
+Status: version 0.21.0 separates talking from building; 0.20 starts skills on
+the user's word; 0.19 runs a whole
 feature alone to one pull request; 0.18
 asked whether the process is personal or for the team;
 0.17 kept installation state out of the repository; 0.16
@@ -389,6 +390,19 @@ router told him to run a command and repeat a phrase. The line that matters is
 not the mechanism but the initiative: scope, runs, installation, handoff and
 publication start only on the user's request or agreement, and say so in their
 descriptions; the rest start when the work calls for them.
+
+0.21 separates the conversation from the build. The owner used to open a
+worktree before knowing what it was for, talk, then rename the branch and build
+in it; plans for several features then sat in one feature's branch, other
+checkouts saw a stale backlog, and conversations that led nowhere left
+worktrees behind. Now talking in the main checkout changes nothing; the agent
+moves into a separate checkout when something is to be kept. On "run" it lands
+the conversation's general plan once (a push, or one pull request where the
+main line is protected), starts the feature on a branch named after it, and
+nobody re-briefs it because the preflight put everything agreed into the spec,
+stages and decision log. Product code lands only through the feature's pull
+request; there is never a merge per small change, and how a change lands is
+decided from what setup recorded, never asked.
 
 ## 10. Findings and cleanup
 

@@ -285,6 +285,32 @@ review found; what is not done; and the risks left. It follows **Speaking to
 the owner**. The owner's acceptance is the merge; the tracker is closed after
 it.
 
+**Sessions and landing.** The owner opens the agent in the main checkout and
+talks; talking changes nothing, and a conversation that keeps nothing leaves
+no branch behind. When the first thing is to be kept (a task, a spec, a
+charter change), the agent moves itself into a separate checkout on a plan
+branch, saying so in one line; where the harness cannot, it asks the owner to
+open one and says how. The main checkout stays clean.
+
+A feature run starts on its own branch, named after the feature from the
+start and created by the agent. Nobody re-briefs it: everything agreed is in
+the spec, the stages and the decision log, which is what the preflight checks
+("could a fresh agent run this without our conversation?").
+
+Product code reaches the main line only through its feature's one pull
+request. Plans land with as few merges as possible: what belongs to one
+feature rides in that feature's branch; the rest of a conversation's plan
+(charter, backlog, other features' tasks) lands once, at its end, by a direct
+push where the main line accepts one and otherwise by one pull request.
+Tracker records kept in the repository ride with the branch where the work
+happens. Never a merge per small change. How the main line accepts changes is
+recorded at setup; if the plan's pull request is not merged yet, the feature
+branch starts from the plan branch instead of waiting. How a change lands is
+decided this way, never asked, and never part of what the person approves;
+mention it only when they must act, such as merging, after the work exists.
+After the owner merges, the agent closes the work and removes the checkouts
+and branches it created.
+
 **End with the next step.** Every skill that finishes a step ends by naming the
 next useful action and the skill that does it, so the person never has to ask
 what now. Offer work at the level the owner runs it: a feature to plan or to

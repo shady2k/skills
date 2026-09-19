@@ -52,6 +52,30 @@ sure what comes next. Ask "what next?" for a short answer, or "where are we?"
 for the full picture. Skip it only when you already know the exact task
 (`take-task`) or just want to think something through (`brainstorming`).
 
+### How a day with it looks
+
+**In the evening, planning.** Open the agent in the project's main folder and
+just talk: "what next?" or "I have an idea". Talking changes nothing; if it
+leads nowhere, close the session and nothing is left behind. When something is
+worth keeping, the agent moves into a separate working copy by itself, so your
+main branch stays clean. You shape the idea, the spec and the stages together.
+Before you leave, the agent brings every decision the work will need as one
+list with recommendations, and says roughly how long the run will take and
+when to expect the pull request. You answer, say "run", and go.
+
+**While you are away.** The agent builds the whole feature on its own branch.
+Small gaps it decides itself and writes down; a real fork (architecture,
+expensive mistakes, behaviour beyond the spec) stops that part of the work and
+reaches you with a ready decision to make.
+
+**The next day, acceptance.** A green pull request says what was built, how to
+try it yourself and what the agent decided without you. You try it; merging is
+your acceptance, and the agent closes the tasks and cleans up.
+
+You never create or rename branches, merge a pull request for every small
+change of plan, or explain the context again: it lives in the spec, the stages
+and the decision log.
+
 ## Skills
 
 Sixteen skills. You can start any of them by command or just by asking in
@@ -367,6 +391,9 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.21.0 separates talking from building: the agent opens a working copy
+only when something is kept, lands plans with as few merges as possible, and
+starts each feature on its own branch without you.
 Version 0.20.0 starts a skill when you ask in words or agree, instead of asking
 you to type its command; runs are sized to how long your branches may live, and
 every option carries a rough duration.

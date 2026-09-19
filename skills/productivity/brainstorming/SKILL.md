@@ -14,6 +14,10 @@ Talk in the user's language. Anything kept in the project is written in its
 artifact language: the gate config's `artifactLanguage` where there is one;
 otherwise ask once before the first thing is kept, recommending English.
 
+Talking changes nothing. When something from the conversation is to be kept,
+first move into a separate checkout rather than writing into the main one; where
+the project has a backlog integration, its rules say how it lands.
+
 ## Follow the intent
 
 Tell from the conversation what the user wants; do not offer a menu of modes.
