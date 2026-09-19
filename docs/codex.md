@@ -47,7 +47,7 @@ Inspect the previous installation before removing it and preserve local edits.
 
 Codex CLI **0.154.0** was tested with this repository's bucket layout:
 
-- `.codex-plugin/plugin.json` with `skills: "./skills/"` discovers all 15 skills
+- `.codex-plugin/plugin.json` with `skills: "./skills/"` discovers all 16 skills
   recursively, including their `agents/openai.yaml` metadata.
 - The existing `.claude-plugin/marketplace.json` is accepted. Its `source: "./"`
   points to the repository root, so no second catalog or copied skill tree is needed.

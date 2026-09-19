@@ -1,6 +1,6 @@
 # shady2k-skills
 
-Fifteen skills for exploring ideas and taking tracked work to accepted results. They work
+Sixteen skills for exploring ideas and taking tracked work to accepted results. They work
 with a project's chosen tracker and any harness that reads `SKILL.md`.
 The reasoning and history are in [docs/design.md](docs/design.md).
 
@@ -52,6 +52,41 @@ sure what comes next. Ask "what next?" for a short answer, or "where are we?"
 for the full picture. Skip it only when you already know the exact task
 (`take-task`) or just want to think something through (`brainstorming`).
 
+## Skills
+
+Sixteen skills. You start the first group yourself; the agent can also start
+the second group when your request calls for it, and you can call them directly.
+In Claude Code the plugin prefixes them: `/shady2k-skills:ask-shady2k`.
+
+### User-invoked
+
+| skill | what it does | when to use it |
+| --- | --- | --- |
+| [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md) | Reads the project and tells you where it stands, how far it has come, what is stuck and which ways forward exist, with one recommendation. Changes nothing. | At the start of a session, after a break, in an unfamiliar project, whenever you are unsure what comes next. |
+| [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md) | Connects the project's tracker, cleans its queue with you, proposes settings as one profile and proves the checks work. | Once per project, and again after every update of the skills. |
+| [to-milestone](skills/backlog/to-milestone/SKILL.md) | Agrees what the next version delivers, what is left out and how many new bugs it can absorb. | When the current version is done, or a project has no agreed next step. |
+| [take-task](skills/engineering/take-task/SKILL.md) | Takes a task or stage from design through parallel work by agents to checks, review and acceptance. | When you want work done, not just planned. |
+| [handoff](skills/productivity/handoff/SKILL.md) | Writes down what is in flight so a fresh session continues without losing anything. | Before you stop, or when a session gets too long. |
+| [report-to-shady2k](skills/productivity/report-to-shady2k/SKILL.md) | Sends a problem or idea about these skills to their author as a GitHub issue, anonymized and shown to you word for word first. | When a skill confused you, did something wrong, or is missing something. |
+
+### Model-invoked
+
+Available to you directly as well. The agent starting one does not authorize
+unrelated changes, new scope or publishing anything.
+
+| skill | what it does | when to use it |
+| --- | --- | --- |
+| [brainstorming](skills/productivity/brainstorming/SKILL.md) | Thinks an idea through with you: offers its own ideas and counterexamples, disagrees with reasons. Nothing has to come out of it. | "Let's discuss", "what if", an open product decision. |
+| [to-research](skills/productivity/to-research/SKILL.md) | Answers a question from primary sources, with citations. | When a decision depends on facts nobody has checked. |
+| [to-prototype](skills/engineering/to-prototype/SKILL.md) | Builds a small throwaway experiment that answers one design question. | When arguing takes longer than trying. |
+| [to-spec](skills/engineering/to-spec/SKILL.md) | Writes down what exactly is being built, as the user will see it, with scenarios that will be checked. | Before building something whose behaviour is not yet agreed. |
+| [to-stages](skills/backlog/to-stages/SKILL.md) | Splits a feature into stages that each fit one session, with only real dependencies. | When a feature is too big to finish and accept in one go. |
+| [diagnose-bug](skills/engineering/diagnose-bug/SKILL.md) | Finds the cause of a bug with evidence: reproduces it, tests hypotheses one at a time. | When a bug did not yield to a quick look. |
+| [model-domain](skills/engineering/model-domain/SKILL.md) | Keeps the glossary of domain terms and records of hard-to-reverse decisions. | When words start meaning different things, or a decision needs its reason kept. |
+| [to-backlog](skills/backlog/to-backlog/SKILL.md) | Files new work, bugs and ideas in the right place, without pushing them to the front. | When something new turns up in the middle of other work. |
+| [close-out](skills/backlog/close-out/SKILL.md) | Updates the current specs from accepted work, then closes its tasks. | After a stage is accepted. |
+| [groom-backlog](skills/backlog/groom-backlog/SKILL.md) | Cleans up the queue reversibly with you: what is current, what waits, what was abandoned. | When the tracker has become a dump, and during setup. |
+
 ## Installation and updates
 
 Choose your agent: [Claude Code](#claude-code) · [Codex](#codex) ·
@@ -72,7 +107,8 @@ Run these commands inside Claude Code:
 /plugin install shady2k-skills@shady2k
 ```
 
-Start a new Claude Code session in the target project, then run setup:
+Start a new Claude Code session in the target project, then run setup. Set
+aside time for it: see [What setup takes](#what-setup-takes).
 
 ```text
 /shady2k-skills:setup-shady2k-skills
@@ -104,7 +140,8 @@ codex plugin marketplace add shady2k/skills
 codex plugin add shady2k-skills@shady2k
 ```
 
-Start a new Codex session in the target project, then run setup in the chat:
+Start a new Codex session in the target project, then run setup in the chat.
+Set aside time for it: see [What setup takes](#what-setup-takes).
 
 ```text
 $shady2k-skills:setup-shady2k-skills
@@ -151,6 +188,36 @@ Then rerun setup. Individually installed folders remain self-contained, but a
 workflow that needs another skill must have that skill installed too.
 When switching installation methods, inspect and remove only the previous
 installation of this set; preserve any locally edited skill files.
+
+### What setup takes
+
+The first setup is not a five-minute step. It reads the project, connects or
+chooses a tracker, goes through the existing queue with you, agrees the working
+settings and then proves that every check really fires: it plants a violation,
+watches the hook reject it and undoes it. The agent does the work, but it needs
+you for the decisions: which work is current, what waits, what was abandoned,
+which settings to change.
+
+Setup shows its progress as six steps, telling you at each one where it is,
+what comes next, whether it needs you, and a rough time estimate with its
+reason:
+
+1. **Look around**: reads the project and tracker. No input from you.
+2. **Tidy the queue**: agrees with you what is current, waits or was
+   abandoned. Needs you; the long step on a large backlog.
+3. **Agree the settings**: one recommended profile to accept or adjust. Needs you once.
+4. **Connect the checks**: hooks, CI and the tracker adapter. No input from you.
+5. **Prove it works**: makes the checks fire on planted problems. No input from you.
+6. **Finish**: lands the installation; may ask your approval to merge it.
+
+How long depends on the project. A new project with an empty tracker usually
+fits into one session. An existing project with a large, neglected backlog can
+take several: the cleanup is agreed with you step by step and is reversible,
+and nothing is deleted in bulk. The document check is often its own stage
+after setup; work does not wait for it.
+
+A rerun after an update is shorter: earlier answers are kept, and only new
+settings and the proofs are redone.
 
 ### What setup verifies
 
@@ -269,35 +336,6 @@ format deterministically; there is no universal Markdown importer. Protected CI
 can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
-## Skills
-
-### User-invoked
-
-- [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md): install
-  or fully reverify tracker, workflow and checks with a recommended settings profile.
-- [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md): read-only orientation: picture, progress,
-  ways forward and the recommended next action.
-- [to-milestone](skills/backlog/to-milestone/SKILL.md): agree outcomes, scope and budget.
-- [take-task](skills/engineering/take-task/SKILL.md): coordinate tracked work to stage acceptance.
-- [handoff](skills/productivity/handoff/SKILL.md): transfer the current work and pending acceptance.
-
-### Model-invoked
-
-Also directly callable by the user. Availability does not authorize unrelated
-changes, new scope or external publication.
-
-- [brainstorming](skills/productivity/brainstorming/SKILL.md): exploratory dialogue,
-  evidence and independent judgment; decisions and artifacts are optional.
-- [to-spec](skills/engineering/to-spec/SKILL.md): short/full changes to living specs.
-- [to-stages](skills/backlog/to-stages/SKILL.md): session-sized stages and real dependencies.
-- [to-research](skills/productivity/to-research/SKILL.md): bounded primary-source research.
-- [to-prototype](skills/engineering/to-prototype/SKILL.md): runnable evidence for one design question.
-- [diagnose-bug](skills/engineering/diagnose-bug/SKILL.md): distinguish causes with evidence.
-- [model-domain](skills/engineering/model-domain/SKILL.md): glossary and decision records.
-- [to-backlog](skills/backlog/to-backlog/SKILL.md): register work and discoveries in the right lane.
-- [close-out](skills/backlog/close-out/SKILL.md): close accepted work and preserve pending results.
-- [groom-backlog](skills/backlog/groom-backlog/SKILL.md): reversible queue cleanup, including setup bootstrap.
-
 ## Status
 
 Version 0.7 revises execution and setup. Fixtures and package checks run locally;
@@ -311,6 +349,7 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.11.0 adds `report-to-shady2k` for anonymized reports and ideas.
 Version 0.10.0 no longer holds setup and work until the document gate is wired:
 it becomes its own stage, and documents are checked by reading meanwhile.
 

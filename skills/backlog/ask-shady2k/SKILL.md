@@ -99,7 +99,8 @@ stages or features.
 
 The request itself can pick a helper: something new arriving is `to-backlog`, a
 diagnosis is `diagnose-bug`, an open product decision is `brainstorming`,
-gathering evidence is `to-research` or `to-prototype`.
+gathering evidence is `to-research` or `to-prototype`, and a complaint about
+these skills themselves is `/report-to-shady2k`.
 
 ## 5. Report
 
@@ -131,3 +132,5 @@ start the recommended action.
   pending work.
 - `groom-backlog`: snapshot, agree the slice, clean up reversibly, verify.
 - `handoff`: pass on state, results, evidence and the next action.
+- `report-to-shady2k`: a skill of this set misbehaved or lacks something; send
+  its author an anonymized issue after the user reads it word for word.

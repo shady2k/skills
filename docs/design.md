@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.10.0 makes the document gate a non-blocking stage; 0.9 made
+Status: version 0.11.0 adds anonymized reports to the author; 0.10 made the
+document gate a non-blocking stage; 0.9 made
 the router a read-only orientation; 0.8.0 added
 exploratory dialogue, living documents and a document gate to the revised
 execution/setup workflow. Live
@@ -265,6 +266,15 @@ dropped at the same time: the set has no installations to migrate.
 For the same reason grooming no longer demands a backlog with no errors at all:
 it is done when the gate is clean and the current slice has no errors, and older
 debt outside the slice stays listed with a plan.
+
+0.11 adds `report-to-shady2k`, because the fixes of this round all came from
+reading real sessions where a skill went wrong. A user can now send that
+evidence as a GitHub issue. The report describes the situation's shape, not the
+project: no names, paths, issue numbers, hashes, code or quotes. A shipped scan
+looks for the names the checkout and machine reveal and the project's own words
+from its gate config; it knows shapes, not meaning, so the real safeguard is
+that the user reads the exact text and says yes before anything is published.
+It is user-invoked only: nothing is ever published on an agent's initiative.
 
 ## 10. Findings and cleanup
 

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Report to shady2k"
+  short_description: "Send a problem or idea about these skills, anonymized"
+policy:
+  allow_implicit_invocation: false

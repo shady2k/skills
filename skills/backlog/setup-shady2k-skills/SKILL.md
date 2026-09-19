@@ -20,6 +20,31 @@ The set owns [the protocol](protocol.md), [the backlog rules](check.mjs),
 [the commit check](check-commits.mjs) and [the normalized model](model.md).
 The project owns its config, tracker adapter, check commands and wiring.
 
+## Show progress
+
+Setup is long, so the user always sees where it is. After reading the project,
+before changing anything, show the plan as these six steps, each with what it
+does, whether the user is needed, and a rough duration judged from what you
+found, with its basis ("about 900 open issues: the cleanup is the long part,
+likely more than one session"). Ranges are estimates; say so, and revise them
+when they turn out wrong. A rerun marks steps that only recheck as short.
+
+1. **Look around**: read the project, tracker and existing installation. Agent only.
+2. **Tidy the queue**: agree with the user what is current, what waits and what
+   was abandoned, then clean up reversibly. Needs the user; the long step for a
+   large backlog, short for an empty one.
+3. **Agree the settings**: one recommended profile. Needs the user once.
+4. **Connect the checks**: config, adapter, hooks and CI. Agent only.
+5. **Prove it works**: plant violations, watch them rejected, undo. Agent only.
+6. **Finish**: land the installation and record it verified. May need the
+   user's approval to land.
+
+At every step boundary, and when a step runs long, give one line: the step
+number and name, what just finished, what comes next, and whether the user is
+needed now. When a session has to end, say which step is next, so a later run
+resumes there. Where the harness shows a task or plan list, keep these steps
+in it. Progress lines follow the same plain-words rule as everything else.
+
 ## 1. Get a working tracker and a usable queue
 
 Read the agent docs and their tracker references, any existing installation,

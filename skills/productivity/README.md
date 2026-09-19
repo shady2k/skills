@@ -6,6 +6,8 @@ Skills for decisions, evidence and continuity.
 
 - [handoff](./handoff/SKILL.md): transfer current state, running workers and
   unfinished stage acceptance without committing by default.
+- [report-to-shady2k](./report-to-shady2k/SKILL.md): send a problem or idea about
+  these skills as a GitHub issue, anonymized and shown word for word first.
 
 ## Model-invoked
 
