@@ -23,10 +23,16 @@ Run `npm run test:codex` (Linux, bubblewrap and Codex CLI) after changing packag
 it installs and updates an isolated Git marketplace without network or personal
 configuration changes. See `docs/codex.md`.
 
-**Bump the version** in both plugin manifests, `package.json`, all three checks'
-`RULES_VERSION` and the source protocol (then `npm run protocol`) in every commit that
-changes what a skill does. An installed plugin updates by version, so a change
-pushed under the old number reaches nobody.
+**Two versions.** The **plugin version** (both plugin manifests and `package.json`)
+goes up in every commit that changes what a skill does: an installed plugin
+updates by version, so a change pushed under the old number reaches nobody.
+The **setup version** (the source protocol's `Setup version` line and all three
+checks' `RULES_VERSION`, then `npm run protocol` and `npm run setup-lock`) goes
+up only when projects must redo their installation: changed check rules, a new
+config setting, a new adapter duty or proof. Every setup version bump makes
+every project stop and rerun setup, so a change to wording, reasoning or
+dialogue never bumps it. `npm test` fails when a file setup installs changed
+under the same setup version; decide the rest by that question.
 
 ## Names
 

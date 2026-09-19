@@ -22,7 +22,7 @@ the set should do). If the problem itself is unclear, ask one question; do not
 interview. Find out yourself:
 
 - which skill and which of its steps; the set's version (the plugin's installed
-  version, or the `Protocol version` line beside the skill); the agent and its
+  version, and the `Setup version` line beside the skill); the agent and its
   version;
 - what the skill did, and what the user expected instead;
 - the settings that shaped it, from the project's gate config where there is

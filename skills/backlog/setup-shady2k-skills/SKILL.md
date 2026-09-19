@@ -1,6 +1,6 @@
 ---
 name: setup-shady2k-skills
-description: Install or recheck the set in a project: tracker, queue, working settings and checks; run again after every plugin update.
+description: Install or recheck the set in a project: tracker, queue, working settings and checks; run again when a skill says the installation is out of date.
 disable-model-invocation: true
 ---
 
@@ -272,8 +272,8 @@ Point every harness's loaded agent doc at the integration with:
 
 > All retained work and commits belong to tracked tasks. File discoveries through
 > `to-backlog`; implement through `take-task`; close only after stage acceptance
-> through `close-out`. Read Backlog integration in <path> before writes. After
-> updating the skill set, run `setup-shady2k-skills` to reverify this project.
+> through `close-out`. Read Backlog integration in <path> before writes. When a
+> skill reports the installation is out of date, run `setup-shady2k-skills`.
 
 Use the real path and invocation syntax. Do not copy settings, milestone values
 or commands into the pointer.
@@ -334,7 +334,7 @@ visibly, only a tree that never had this installation; a missing or broken
 gate in a configured tree is an error, not a bypass.
 
 Only after all required proofs (proof 6 only when the document gate is wired)
-and the target-checkout check, write the protocol version
+and the target-checkout check, write the protocol's setup version
 to `setupVersion`, the proof time to `setupVerifiedAt` and
 `setupStatus: verified`, linked to the setup task. Land that stamp the same way
 and recheck the target; until it is there, setup is pending. The stamp itself
@@ -350,11 +350,11 @@ the project as reverified.
 
 ## Updating
 
-Run this skill again after **every plugin or skills update**. The install
-instructions and the agent-doc pointer ask for it; no automatic update hook is
-assumed. Skills that write to the tracker compare the protocol version with
-`setupVersion` and the installed checks' versions and ask for setup when they
-differ. Matching versions never skip a setup the user asked for.
+Run this skill again when a skill reports the installation is out of date,
+that is, when the protocol's setup version differs from `setupVersion` or the
+installed checks' versions. A plugin update that leaves the setup version alone
+needs no setup. Matching versions never skip a setup the user asked for, and
+a rerun redoes only what the new setup version needs plus the proofs.
 
 An update reconciles config, adapter statuses, commands, hooks and documents
 like any other run. Keep earlier answers; put new settings into the recommended

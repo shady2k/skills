@@ -74,14 +74,17 @@ for (const s of skills) {
 
 const version = JSON.parse(readFileSync(join(ROOT, '.claude-plugin/plugin.json'), 'utf8')).version;
 const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).version;
-const rules = (readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/check.mjs'), 'utf8').match(/RULES_VERSION = '([^']+)'/) || [])[1];
-if (version !== pkg || version !== rules) fail(`versions differ: plugin.json ${version}, package.json ${pkg}, check.mjs ${rules}`);
-const commitRules = (readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/check-commits.mjs'), 'utf8').match(/RULES_VERSION = '([^']+)'/) || [])[1];
-const protocolVersion = (protocol.match(/^Protocol version: (.+)$/m) || [])[1];
-const documentRules = (readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/check-docs.mjs'), 'utf8').match(/RULES_VERSION = '([^']+)'/) || [])[1];
-if (version !== documentRules) fail(`document gate version differs: plugin ${version}, documents ${documentRules}`);
-if (version !== commitRules || version !== protocolVersion)
-  fail(`compatibility versions differ: plugin ${version}, commit check ${commitRules}, protocol ${protocolVersion}`);
+if (version !== pkg) fail(`plugin versions differ: plugin.json ${version}, package.json ${pkg}`);
+// The plugin version moves with every change; the setup version only when a
+// project's installation must be redone. The checks carry the setup version.
+const setupVersion = (protocol.match(/^Setup version: (.+)$/m) || [])[1];
+const rulesOf = (f) => (readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills', f), 'utf8').match(/RULES_VERSION = '([^']+)'/) || [])[1];
+for (const f of ['check.mjs', 'check-commits.mjs', 'check-docs.mjs'])
+  if (rulesOf(f) !== setupVersion) fail(`${f} is version ${rulesOf(f)}, the protocol's setup version is ${setupVersion}`);
+const semver = (v) => (v || '').split('.').map(Number);
+const [a, b] = [semver(setupVersion), semver(version)];
+if (!setupVersion || a.some(Number.isNaN) || a[0] > b[0] || (a[0] === b[0] && (a[1] > b[1] || (a[1] === b[1] && a[2] > b[2]))))
+  fail(`setup version ${setupVersion} must be a version no later than the plugin's ${version}`);
 
-console.log(failures ? `\n${failures} failure(s)` : `PASS  ${skills.length} skills, ${files.length} files: no origin words, manifest, invocation and protocol copies in step, version ${version}`);
+console.log(failures ? `\n${failures} failure(s)` : `PASS  ${skills.length} skills, ${files.length} files: no origin words, manifest, invocation and protocol copies in step, plugin ${version}, setup ${setupVersion}`);
 process.exit(failures ? 1 : 0);

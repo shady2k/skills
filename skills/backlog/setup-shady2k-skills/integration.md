@@ -77,5 +77,5 @@ capabilities and their substitutes.
 | search / show | <behaviour search, area listing, complete issue and comments> |
 | publish | <authorized synchronization after checks> |
 
-After updating the skill set, run `setup-shady2k-skills` again. An explicit
+When a skill reports the installation is out of date, run `setup-shady2k-skills`. An explicit
 setup invocation rechecks everything even if its recorded version matches.

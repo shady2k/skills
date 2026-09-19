@@ -63,7 +63,7 @@ In Claude Code the plugin prefixes them: `/shady2k-skills:ask-shady2k`.
 | skill | what it does | when to use it |
 | --- | --- | --- |
 | [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md) | Reads the project and tells you where it stands, how far it has come, what is stuck and which ways forward exist, with one recommendation. Changes nothing. | At the start of a session, after a break, in an unfamiliar project, whenever you are unsure what comes next. |
-| [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md) | Connects the project's tracker, cleans its queue with you, proposes settings as one profile and proves the checks work. | Once per project, and again after every update of the skills. |
+| [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md) | Connects the project's tracker, cleans its queue with you, proposes settings as one profile and proves the checks work. | Once per project, and again when a skill says the installation is out of date. |
 | [to-milestone](skills/backlog/to-milestone/SKILL.md) | Agrees what the next version delivers, what is left out and how many new bugs it can absorb. | When the current version is done, or a project has no agreed next step. |
 | [take-task](skills/engineering/take-task/SKILL.md) | Takes a task or stage from design through parallel work by agents to checks, review and acceptance. | When you want work done, not just planned. |
 | [handoff](skills/productivity/handoff/SKILL.md) | Writes down what is in flight so a fresh session continues without losing anything. | Before you stop, or when a session gets too long. |
@@ -126,8 +126,8 @@ Inside Claude Code:
 /plugin update shady2k-skills@shady2k
 ```
 
-Start a new session and rerun `/shady2k-skills:setup-shady2k-skills`
-in each project that uses the set.
+Start a new session. If a skill then says the project's installation is out of
+date, run `/shady2k-skills:setup-shady2k-skills` there; most updates need no setup.
 
 ### Codex
 
@@ -159,8 +159,8 @@ codex plugin marketplace upgrade shady2k
 codex plugin add shady2k-skills@shady2k
 ```
 
-Start a new session and rerun `$shady2k-skills:setup-shady2k-skills`
-in each project that uses the set.
+Start a new session. If a skill then says the project's installation is out of
+date, run `$shady2k-skills:setup-shady2k-skills` there; most updates need no setup.
 
 See [Codex installation details](docs/codex.md) for local checkouts,
 compatibility notes and isolated installation tests.
@@ -184,7 +184,8 @@ To update:
 npx skills update
 ```
 
-Then rerun setup. Individually installed folders remain self-contained, but a
+Run setup again only when a skill says the installation is out of date.
+Individually installed folders remain self-contained, but a
 workflow that needs another skill must have that skill installed too.
 When switching installation methods, inspect and remove only the previous
 installation of this set; preserve any locally edited skill files.
@@ -233,10 +234,11 @@ change only named entries. Explanations match your role (product engineer by
 default); only material unresolved decisions need separate questions. Existing
 answers and delegated routine choices are not needlessly asked again.
 
-The config records setup status and the last fully verified version. A failed
-rerun remains failed even at the same version. Before writes, the
-skills compare it and the installed checks with their protocol version and
-request setup when they differ. This is a first-use guard and an update
+The config records setup status and the last fully verified setup version. A
+failed rerun remains failed even at the same version. Before writes, the skills
+compare it and the installed checks with their protocol's setup version and
+request setup when they differ. That version changes only when an installation
+must be redone, so most updates of the plugin need no setup. This is a first-use guard and an update
 instruction, not a claim that every harness runs an automatic update hook.
 
 ## The flow
@@ -351,6 +353,8 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.16.0 stops asking for setup after every update: only a change that
+needs the installation redone does.
 Version 0.15.0 never asks you to read documents: the agent tells you the
 substance, its decisions and assumptions, risks, other views and what review
 found, in plain words, and your approval covers what you were shown.

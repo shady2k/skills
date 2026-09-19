@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Protocol version: 0.15.0
+Setup version: 0.16.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -8,12 +8,16 @@ this file wins. What differs per project (tracker, labels, gate command,
 documents) is the project's **backlog integration**; its agent doc points to it.
 
 **Compatibility before writes.** Before changing the tracker or the repository,
-compare this version with the config's `setupVersion` and with the `--version`
-of all three installed checks, and require `setupStatus: verified`. If a value
+compare this setup version with the config's `setupVersion` and with the
+`--version` of all three installed checks, and require `setupStatus: verified`. If a value
 is missing or different, or setup is pending or failed, stop changing things
 and ask the user to run `/setup-shady2k-skills`. Reading and investigating may
 continue. Setup itself, and the bootstrap context it hands over, are exempt
 while installing or migrating. No automatic update hook is assumed.
+The setup version changes only when a project's installation must be redone:
+new rules in the checks, a new config setting, a new adapter duty or proof. An
+update that changes only how skills talk, reason or plan needs no setup; never
+ask for one merely because the plugin was updated.
 
 **Levels.** Each has one size and one author.
 

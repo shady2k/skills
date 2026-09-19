@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.15.0 replaces reading assignments with summaries; 0.14
+Status: version 0.16.0 asks for setup only when the installation must change;
+0.15 replaced reading assignments with summaries; 0.14
 assigned tasks to the agents doing them; 0.13 added a
 light evidence level to the document gate; 0.12
 separated chat and artifact languages; 0.11 added
@@ -167,9 +168,10 @@ answers survive, but prior assumptions are rechecked. This includes tracker
 readiness semantics, atomic claims or serialized assignment, local/CI entry
 points, message parsing, test commands and review/mutation capabilities.
 
-After every plugin/skill update, instructions request setup again. Config holds
-the last fully proved and landed setup version; tracker-writing skills compare
-that and installed script versions with their protocol version before mutations.
+When an update changes what setup installs, the skills request setup again
+(see 0.16 below). Config holds the last fully proved and landed setup version;
+tracker-writing skills compare that and installed script versions with their
+protocol's setup version before mutations.
 A first-use guard is not a universal automatic update hook. Explicit setup
 never short-circuits on the stamp. Pending/failed attempts are recorded separately
 from the last successful version, so a failed rerun cannot look verified.
@@ -316,6 +318,15 @@ the strongest case against, and what review found, in plain words without
 code. An approval records the summary that was shown, a reviewer checks that
 summary against the document, and a document too large to summarize fully is
 split rather than approved blind.
+
+0.16 separates two versions. One version had gated everything, and it rose
+with every change to a skill's wording; after a day of about ten releases every
+project stopped for setup again and again, though most releases changed nothing
+installed. Now the plugin version rises with every change, and the setup
+version, which the skills compare with the project, only when an installation
+must be redone. A test records the files setup installs and fails when they
+change under the same setup version, so the cheaper path cannot silently leave
+projects on old checks.
 
 ## 10. Findings and cleanup
 

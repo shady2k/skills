@@ -1,6 +1,6 @@
 {
   "name": "shady2k-skills",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "description": "Skills for tracked work: proportional design, parallel execution, configurable TDD and final stage acceptance. Setup selects or verifies the tracker, cleans its queue and fully rechecks adapters, commit links and gates on every invocation, including after updates.",
   "author": {
     "name": "shady2k",
