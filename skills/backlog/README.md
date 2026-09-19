@@ -8,7 +8,8 @@ Skills that keep the queue usable and stage acceptance honest.
   tracker, propose a role-aware settings profile, clean the queue and prove
   setup; adopt existing document layouts, install templates and document gates;
   fully recheck on every invocation without repeating settled questions.
-- [ask-shady2k](./ask-shady2k/SKILL.md): next useful action from actual state.
+- [ask-shady2k](./ask-shady2k/SKILL.md): read-only orientation: picture, progress,
+  ways forward and the recommended next action.
 - [to-milestone](./to-milestone/SKILL.md): agree independent outcomes and budget.
 
 ## Model-invoked

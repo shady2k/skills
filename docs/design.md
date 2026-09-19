@@ -3,8 +3,9 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.8.0 adds exploratory dialogue, living documents and a document
-gate to the revised execution/setup workflow. Live
+Status: version 0.9.0 makes the router a read-only orientation; 0.8.0 added
+exploratory dialogue, living documents and a document gate to the revised
+execution/setup workflow. Live
 project validation of the new end-to-end workflow remains outstanding. §1 and
 §2 preserve the original conversation; §§3–11 describe the current design;
 §12 records the history through 0.6, §14 the 0.7 decisions, and §15 the 0.8 design.
@@ -240,6 +241,17 @@ The router verifies compatibility, checks actual tracker state and recommends
 the next useful action. Pending integration/acceptance is resumed, not
 reimplemented. An actively owned stage does not prevent routing independent
 ready work. Missing helpers are reported as installation dependencies.
+
+Since 0.9 the router is also where the owner gets oriented, and it is strictly
+read-only. One next action was enough for someone in the flow and too little
+for someone returning after a break or opening an unfamiliar project. By the
+depth of the request it gives the product, progress, the current state,
+health and risk, and what lies beyond the horizon, then the ways forward with
+what each achieves, costs, postpones and risks. The recommendation still comes
+from the ladder, whose order protects finishing before starting; alternatives
+outside the milestone are labelled as scope changes and ideas as hypotheses.
+Without setup it still reads the repository and says what it cannot know,
+instead of answering only "run setup".
 
 ## 10. Findings and cleanup
 

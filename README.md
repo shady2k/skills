@@ -8,6 +8,50 @@ Skills guide dialogue and decisions; portable checks enforce the backlog's shape
 commit links and document lifecycle. The project owns its adapters and wiring, proved during setup.
 A green backlog is not evidence that the code works.
 
+## Why it exists
+
+The set grew out of the owner's own project, built through agents, and the
+problems it had there.
+
+- **Light skills oblige nothing.** A skill can be invoked at any moment or
+  never, and when nobody invokes it no process is followed. Heavier frameworks
+  did not fix that; they only made each step more expensive.
+- **The tracker became a dump.** Most open issues were marked ready, and most
+  of those "in progress" had not been touched for days. A status that is false
+  almost every time is not a status, and a queue where nearly everything is
+  ready cannot tell anyone what to do next.
+- **Work planned too far ahead went stale.** Many epics were created in advance
+  and lost their point before their turn came. Epics did not fit a session and
+  ran for days.
+- **Findings jumped the queue.** Bugs and architectural gaps found mid-feature
+  were put at the front and pushed the feature out by weeks.
+- **Names, not identifiers.** A person does not remember issue numbers; agents
+  kept talking as if they did.
+- **Losing the thread.** After a break, or in an unfamiliar project, nobody
+  could say at a glance what the product already does, how far the milestone has
+  come, what is stuck and what the sensible next step is. The tracker holds the
+  facts but not that picture.
+
+So the set keeps the skills light and puts the obligations in checks: a gate
+that fails on a broken backlog, commits that must name their task, documents
+that must be ready before work starts. The details and the history of each
+decision are in [docs/design.md](docs/design.md).
+
+### Start with `ask-shady2k`, almost every time
+
+`ask-shady2k` answers the question behind the last problem: where are we, and
+what now? It reads the project, the tracker when there is one and the git
+history, then gives the product's picture, progress, the current state, risks
+and the ways forward with their consequences, and recommends one action by
+name. It is read-only, so running it costs nothing but a moment and never
+changes anything.
+
+Run it at the start of a session, after a break, after a stage is accepted,
+when you open a project you have not seen in a while, and whenever you are not
+sure what comes next. Ask "what next?" for a short answer, or "where are we?"
+for the full picture. Skip it only when you already know the exact task
+(`take-task`) or just want to think something through (`brainstorming`).
+
 ## Installation and updates
 
 Choose your agent: [Claude Code](#claude-code) · [Codex](#codex) ·
@@ -231,7 +275,8 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 - [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md): install
   or fully reverify tracker, workflow and checks with a recommended settings profile.
-- [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md): next useful action from actual state.
+- [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md): read-only orientation: picture, progress,
+  ways forward and the recommended next action.
 - [to-milestone](skills/backlog/to-milestone/SKILL.md): agree outcomes, scope and budget.
 - [take-task](skills/engineering/take-task/SKILL.md): coordinate tracked work to stage acceptance.
 - [handoff](skills/productivity/handoff/SKILL.md): transfer the current work and pending acceptance.
@@ -264,6 +309,8 @@ across the set; consequential decisions and explicit authorization remain requir
 Version 0.8.0 adds open-ended dialogue, living-document templates and a portable
 document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
+Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
+picture, progress and ways forward with consequences, also before setup.
 
 ## Credits
 

@@ -1,5 +1,5 @@
 interface:
   display_name: "Ask shady2k"
-  short_description: "The one command to run next"
+  short_description: "Where the project stands and what to do next"
 policy:
   allow_implicit_invocation: false
