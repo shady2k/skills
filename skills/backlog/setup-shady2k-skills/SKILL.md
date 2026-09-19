@@ -330,6 +330,14 @@ how to install it. That install line is the one command the pointer carries.
 Use the real path and invocation syntax. Do not copy settings, milestone values
 or commands into the pointer.
 
+Put the pointer near the top of the agent doc, where it is read first, not at
+the end of a long file. Then look through the agent doc for instructions that
+compete with the skills, such as creating issues or committing directly with
+the tracker's or version control's commands ("no issue? just create one"). An
+always-loaded project doc beats a skill's description, so such a line quietly
+bypasses the skill. Propose replacing each with a pointer to the skill that
+does it, and change them with the owner's agreement.
+
 ## 4. Prove the whole installation, every time
 
 An existing setup runs all of these too, even when versions match.
