@@ -348,6 +348,13 @@ rest, hooks in every clone, CI for everyone). Claude Code's project scope makes
 the plugin's source known to anyone who trusts the folder, but each person
 still installs it once; Codex has only personal installation.
 
+0.18.1 makes a holder's name findable. "claude:coordinator" named nobody:
+several coordinators run at once on different machines and branches, for
+different people. A holder now reads `<harness>-<role>:<person>@<machine>:<branch>#<session>`,
+so anyone can tell whose work it is, where to find it and whether it is still
+alive. It changes nothing installed, so it is the first release under the
+split versions that asks no project for setup.
+
 ## 10. Findings and cleanup
 
 Registration and admission are separate. Preserve an over-budget discovery as

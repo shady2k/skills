@@ -314,7 +314,8 @@ An existing setup runs all of these too, even when versions match.
    portability). Compare installed copies byte for byte; ports run the corpus.
 2. **Tracker and adapter:** compare counts per status and ready leaves with the
    tracker; explain every difference. On an empty tracker use recoverable
-   proof issues. Exercise claim (the holder must be the agent, not the person),
+   proof issues. Exercise claim (the holder must be the agent in the protocol's
+   full name, not the person or a bare role),
    release, `implemented`, readiness of a
    dependant in the same stage, acceptance across stages and independent ready
    work. Check that `submitted` results survive a handoff without being redone.

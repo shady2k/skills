@@ -68,10 +68,17 @@ dependants yet. The stage's single coordinator merges it and marks it
 `implemented`, with the merge revision and check evidence; it is not taken again
 and not yet closed.
 **The holder is whoever does the work.** A task an agent works on is held by
-that agent under its own name (its harness and role, such as a stage's
-coordinator or a numbered worker), never by the person by default, even when
-the tracker would fill in the person's name. The person holds only work they do
-themselves: a decision, a manual check, an approval.
+that agent, never by the person by default, even when the tracker would fill
+in the person's name. The person holds only work they do themselves: a
+decision, a manual check, an approval. An agent's name says who can find it:
+its harness and role, the person it works for, the machine, the branch and its
+session, as `<harness>-<role>:<person>@<machine>:<branch>#<session>`, for
+example `claude-worker-2:alex@laptop:fix/login#528e03ed`. The claim's comment
+adds when it started and the checkout's path. A role alone ("coordinator")
+names nobody: several run at once on different machines and branches. Where
+the tracker assigns only people's accounts, the person's account holds the task
+and the claim's comment carries the agent's full name. This file wins over an
+older integration doc that describes holders differently.
 Workers have distinct owners and an atomic claim or a serialized assignment:
 reading back a field that anyone can overwrite is not a lock. If a merge
 changes or fails, reopen the affected work and recheck what depends on it. The
