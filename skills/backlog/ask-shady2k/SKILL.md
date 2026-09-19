@@ -46,7 +46,10 @@ landed (check other worktrees), a missing runtime, a tracker outage or broken
 wiring. Collect the gate's report, config, charter, outcomes, holds, submitted
 and implemented tasks, stage acceptance records, the newest `Handoff` comment
 on each feature in flight, and the tasks that can start now, using the
-integration's stage- and checkout-aware operation. Tell an owner actively
+integration's stage- and checkout-aware operation. Where runs were recorded,
+the run journal's `report` and `pace` ([`runs.mjs`](runs.mjs), run with `node`
+from this skill's folder): how past runs went and how long work really takes
+here. Tell an owner actively
 running acceptance from abandoned work.
 
 **Without an integration, or with an outdated one:** say so and continue from
@@ -63,6 +66,9 @@ with the evidence for each.
   it is from the vision.
 - **Progress:** the milestone's outcomes as accepted, in work, not started or
   stalled; what recent work changed for users; the pace, where history shows it.
+  Where runs were recorded, how they went in the owner's terms: how many were
+  taken as they were, how often the owner had to step in, and how much of
+  their time a feature cost.
 - **Now:** work in progress, what waits for merging or acceptance, abandoned
   work, stranded branches or uncommitted results, and each real blocker with
   what would release it.

@@ -24,7 +24,12 @@ Take the feature, stage, task or bug the user named; otherwise propose a ready
 feature of the current milestone by name. Find or file the tracked work before
 any implementation. Read its requirements, spec, charter and code. Work already
 `submitted` resumes at integration and an `implemented` stage at acceptance,
-never from scratch.
+never from scratch. A run already under way continues its record in the run
+journal (`node runs.mjs list`) rather than starting a new one. When the owner
+is testing recovery (they stopped a session on purpose and ask this one to
+continue), ask them afterwards for a grade and record it with `recovery`:
+R3 continued correctly, R2 recovered but redid work, R1 needed explanations,
+R0 did not understand where the work stood.
 
 Everything the owner reads follows the protocol's **Speaking to the owner**.
 
@@ -68,7 +73,11 @@ Before the owner leaves, prepare the run so it needs nobody:
 - which agents and models do which tasks, against each task's risk;
 - how long the run will likely take and when the pull request can be expected,
   in agent time with what the estimate rests on (the protocol's **Estimates**:
-  the agents' work plus CI and review waits, from this project's history). If that is longer than the project lets a
+  the agents' work plus CI and review waits). Start from the measured pace:
+  `node runs.mjs pace --tasks <n>`, run from this skill's folder, gives the
+  range similar runs took here and how far past estimates were off; quote it
+  and correct your estimate by it. If it says there is too little history, say
+  the number is a guess. If that is longer than the project lets a
   branch live, the feature is too big for one run: split it with the owner
   through `to-stages` (and `/to-milestone` if the outcome changes) first;
 - how to reach the owner when the run stops, if the harness can notify.
@@ -84,6 +93,26 @@ not new scope, spending or weaker acceptance.
 On "run", land the conversation's general plan once and start the feature on
 its own branch, named after it, as the protocol's **Sessions and landing**
 says; do not wait for the owner to create or rename anything.
+
+**Keep the run's record** in the run journal, [`runs.mjs`](runs.mjs), which
+writes outside the repository. It is how the owner learns whether runs get
+cheaper, faster and safer, so write it as things happen, not from memory at
+the end:
+
+- on "run": `start` with the feature's title, the preflight's estimate as work
+  and wait minutes, and the numbers of tasks and stages;
+- every session that coordinates the run, a fresh coordinator or a resumed
+  run: `session`; the current one is recorded by itself where the harness
+  names it;
+- every stop: `event --kind stop --reason owner` for a decision the owner
+  must make, `--reason missing` for information the project did not have;
+  every decision made alone: `event --kind decision`; every CI run:
+  `event --kind ci`; each with a one-line note;
+- when the pull request is ready or the run ends without one: `finish`.
+
+Run it with `node` from this skill's folder; `--help` lists the commands. The
+record is for measuring, not reading, and is never shown to the owner as such.
+If it cannot be written, the run goes on and its report says so.
 
 Before dispatching implementation, run the integration's feature document check
 against the actual baseline; the first product implementation also needs the
@@ -200,7 +229,8 @@ review findings, what is not done and the risks left. Wait for its checks to go
 green; fix a red one as part of the run, back in progress until the fix is
 proven locally.
 
-The owner's acceptance is the merge. After it, close the tasks, stages and
-feature through `close-out`, and remove the checkouts and branches this run
-created. Commit links and a clean backlog are required but
+Finish the run's record with the pull request. The owner's acceptance is the
+merge. After it, close the tasks, stages and feature through `close-out`, which
+also asks the owner how the run went, and remove the checkouts and branches
+this run created. Commit links and a clean backlog are required but
 never replace checking the behaviour.

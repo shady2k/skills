@@ -429,6 +429,13 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.26.0 measures runs instead of guessing: `take-task` keeps a run
+journal outside the repository, estimates from the pace it measures, and
+`close-out` asks the owner once how each run went (taken as is, questions it
+need not have asked, decisions it should have, corrections), with owner
+attention and cost counted from the session transcripts. Memory and code
+indexes are leads to confirm, and lessons that outlive a feature go to the
+project's agent doc.
 Version 0.25.0 keeps a handoff out of the repository and out of temporary
 files: the work's state stays in the tracker, and what only the conversation
 knows goes on the feature, or to the user's state directory, where

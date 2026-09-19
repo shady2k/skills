@@ -7,14 +7,15 @@
  *     bought and so the words most likely to leak;
  *   - every skill is listed in the plugin manifest, and nothing else is;
  *   - a skill is user-invoked in both harnesses or in neither;
- *   - a skill that links to the protocol has it in its own folder, word for
- *     word the source's (test/sync-protocol.mjs writes the copies), and no
- *     copy lies in a folder that does not link to it.
+ *   - a skill that links to the protocol or the run journal has it in its own
+ *     folder, word for word the source's (test/sync-protocol.mjs writes the
+ *     copies), and no copy lies in a folder that does not link to it.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pluginContract } from './plugin-contract.mjs';
+import { SHARED } from './sync-protocol.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const walk = (d) =>
@@ -61,15 +62,19 @@ for (const s of skills) {
 }
 
 const protocol = readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/protocol.md'), 'utf8');
-for (const s of skills) {
-  const links = readFileSync(join(s, 'SKILL.md'), 'utf8').includes('](protocol.md)');
-  let copy = null;
-  try {
-    copy = readFileSync(join(s, 'protocol.md'), 'utf8');
-  } catch {}
-  if (links && copy === null) fail(`${relative(ROOT, s)} links to protocol.md and has none: npm run protocol`);
-  else if (links && copy !== protocol) fail(`${relative(ROOT, s)}/protocol.md differs from the source: npm run protocol`);
-  else if (!links && copy !== null) fail(`${relative(ROOT, s)} has a protocol.md its SKILL.md never links to`);
+for (const [name, owner] of Object.entries(SHARED)) {
+  const source = readFileSync(join(ROOT, owner, name), 'utf8');
+  for (const s of skills) {
+    if (s === join(ROOT, owner)) continue;
+    const links = readFileSync(join(s, 'SKILL.md'), 'utf8').includes(`](${name})`);
+    let copy = null;
+    try {
+      copy = readFileSync(join(s, name), 'utf8');
+    } catch {}
+    if (links && copy === null) fail(`${relative(ROOT, s)} links to ${name} and has none: npm run protocol`);
+    else if (links && copy !== source) fail(`${relative(ROOT, s)}/${name} differs from the source: npm run protocol`);
+    else if (!links && copy !== null) fail(`${relative(ROOT, s)} has a ${name} its SKILL.md never links to`);
+  }
 }
 
 const version = JSON.parse(readFileSync(join(ROOT, '.claude-plugin/plugin.json'), 'utf8')).version;

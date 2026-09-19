@@ -71,7 +71,30 @@ state and next action. Keep submitted results, implemented tasks, evidence and
 pending acceptance; a session ending never makes them ready to redo. Hand over
 or release the coordinator's hold and name who resumes.
 
-## 4. Publish and prove
+## 4. Ask how the run went, and keep its lessons
+
+When a feature closes whose run left a record in the run journal
+([`runs.mjs`](runs.mjs), run with `node` from this skill's folder; `list` shows
+the records), ask the owner once, in one message, in plain words:
+
+- did they take the result as it was, after changes of their own, or not at all;
+- was there a question the agent could have answered itself from the project;
+- was there a decision the agent took alone that it should have asked about;
+- did they have to correct the agent, or finish the work for it.
+
+Record the answer with `verdict`, as counts and a short note. Only the owner
+can judge these; never fill them in yourself. If they skip it, record nothing
+and do not ask again for this feature.
+
+Then look for **lessons that outlive the feature**: the traps in its handoff
+notes, run notes and review findings that would cost time again in other work,
+such as a command that lies, a flaky test and its cause, or a step the build
+needs. A trap that only this feature could meet closes with it. Propose the
+lasting ones, one line each, for the project's agent doc; with the owner's
+agreement they land in the closing commit. Where the harness has its own
+memory, it may keep them too, but the agent doc is what every agent reads.
+
+## 5. Publish and prove
 
 Before publishing, run the backlog gate, the applicable document gates, and the
 commit-link check for any commits. Fix new errors without weakening the
