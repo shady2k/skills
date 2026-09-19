@@ -60,6 +60,12 @@ left unwatched. Only a real coverage or risk trade-off needs the owner; the test
 level is the agent's choice. Seams bound acceptance; they do not forbid unit or
 integration tests through other stable interfaces.
 
+Include how failures will be seen, as the protocol's **Failures explain
+themselves** asks: which errors reach which log level, what carries the request
+and trace ids, what a failing check will print. Follow the project's recorded
+conventions; where none exist, record that gap as a finding instead of
+inventing conventions for one feature.
+
 ## 4. Write it
 
 Use the document locations and templates from the integration, keeping existing

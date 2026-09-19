@@ -156,6 +156,9 @@ never goes back to ready.
 - Unrelated bugs, debt and questions go through `to-backlog`. Making this
   feature meet its own criteria is part of the work, not a finding.
 - A stubborn failure goes to `diagnose-bug` within the current task.
+- A red check, including one that looks older than this work, follows the
+  protocol's **A red check is this run's work**: diagnose and fix it; never
+  rerun it hoping for green.
 
 ## 6. Accept each stage
 

@@ -165,6 +165,10 @@ questionnaire**.
   Found by looking, recorded, never asked again. Where a protected main line runs
   a long CI even for changes to documents and the tracker alone, recommend,
   as a separate task, letting CI skip product checks for such changes.
+- **Diagnosability:** whether the project has recorded conventions for log
+  levels, request and trace ids and error causes, and whether its CI shows a
+  failure's cause on the first screen and keeps logs and artifacts. Where not,
+  recommend recording them, as separate tasks.
 - **How long a branch may live:** read the project's own rule where its docs
   state one (many prefer merging into the main line often); otherwise recommend
   a day or two. Feature runs are sized to it.

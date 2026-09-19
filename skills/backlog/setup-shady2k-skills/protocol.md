@@ -307,6 +307,32 @@ mention it only when they must act, such as merging, after the work exists.
 After the owner merges, the agent closes the work and removes the checkouts
 and branches it created.
 
+**A red check is this run's work.** Every failure on the way to a merge is
+diagnosed and fixed by the run, whoever wrote the code: all of it is written by
+agents, and the branch cannot merge while it is red. "It was already broken"
+and "our change does not touch that" are never reasons to stop; when a failure
+appeared matters only as a clue to its cause. A failure that also breaks the
+main line is fixed there by its own small pull request, since it blocks
+everyone, and the report names it as a fixed earlier failure. Never rerun a
+check hoping it passes: a flaky check is a bug and is diagnosed. Only a fix
+that needs an architectural change or other decision the **Autonomy** rules
+reserve for the owner stops for them.
+
+**Failures explain themselves.** Time spent collecting diagnostics or rerunning
+CI is a defect of the product and its checks. A failing test states what it
+expected, what it got and the chain of causes. A failing CI job puts its cause
+on the first screen of its log and keeps the logs and artifacts diagnosis
+needs. The product is instrumented to its nature: log levels (detailed in
+development, concise in operation), and where requests cross components, a
+request and trace id carried through the chain, with errors wrapped in their
+causes; secrets and personal data never reach a log. The project decides these
+conventions once, as a recorded decision, and every change follows them. When
+a diagnosis stalls for lack of logs, adding them comes first, and the gap is a
+finding.
+
+Before pushing to a branch, check that it is not already merged; a merged
+pull request is never edited or reused.
+
 **End with the next step.** Every skill that finishes a step ends by naming the
 next useful action and the skill that does it, so the person never has to ask
 what now. Offer work at the level the owner runs it: a feature to plan or to

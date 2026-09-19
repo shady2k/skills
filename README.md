@@ -391,6 +391,9 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.22.0 treats every red check as the run's own to fix, never "someone
+else's", and asks that failures explain themselves: clear test output, CI causes
+on the first screen, log levels and trace ids by project conventions.
 Version 0.21.0 separates talking from building: the agent opens a working copy
 only when something is kept, lands plans with as few merges as possible, and
 starts each feature on its own branch without you.

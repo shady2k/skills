@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.21.0 separates talking from building; 0.20 starts skills on
+Status: version 0.22.0 makes every red check the run's own; 0.21 separated
+talking from building; 0.20 starts skills on
 the user's word; 0.19 runs a whole
 feature alone to one pull request; 0.18
 asked whether the process is personal or for the team;
@@ -403,6 +404,17 @@ nobody re-briefs it because the preflight put everything agreed into the spec,
 stages and decision log. Product code lands only through the feature's pull
 request; there is never a merge per small change, and how a change lands is
 decided from what setup recorded, never asked.
+
+0.22 makes every red check the run's own. Agents kept saying a failure "was
+there before us" and waiting; but all the code is written by agents, and the
+branch cannot merge while it is red. A failure on the way to a merge is now
+diagnosed and fixed by the run; its age is only a clue, a flaky check is a bug,
+and a failure that also breaks the main line gets its own small fix there.
+Alongside it, failures must explain themselves: tests state expected, actual
+and the chain of causes, CI shows the cause on its first screen and keeps its
+logs, and the product carries log levels and request and trace ids by
+conventions the project records once, so diagnosis does not start with
+collecting evidence and rerunning CI.
 
 ## 10. Findings and cleanup
 

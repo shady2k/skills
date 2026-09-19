@@ -50,6 +50,12 @@ the others. Ask for a missing artifact or access when needed; adding
 instrumentation to production needs permission. A slow or rare failure is
 still worth pursuing even if it never fits a seconds-long loop.
 
+When the evidence is missing because the product or its checks do not say what
+happened, add the missing logs, error causes or test output first, then
+diagnose; the gap itself is a finding. Whether the bug predates the current
+work changes nothing: it is diagnosed and fixed the same way, and a CI job is
+never rerun hoping for green.
+
 Ask the user only for evidence you cannot get yourself. Use their known role,
 otherwise product engineer: say what the observation will tell apart, recommend
 the least disruptive way to get it, and its effort and risk. Do not make them

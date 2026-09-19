@@ -16,6 +16,10 @@ Cover both sides, with parallel reviewers where useful:
   regression risk, interactions between tasks, failure handling, and whether
   the tests would catch the important failures. A bug or short change is
   reviewed against its criterion and source requirement.
+- **Diagnosability:** whether failures explain themselves: errors carry their
+  causes, logs follow the project's levels and carry request and trace ids
+  where requests cross components, no secrets or personal data are logged, and
+  a failing test or CI job would say why without a rerun.
 - **Standards and maintainability:** the project's documented rules, clear
   ownership and interfaces, unjustified coupling or duplication, needless
   complexity, and changes that make the next likely change harder. A style
