@@ -155,6 +155,12 @@ questionnaire**.
 - **Development:** test-first (`tdd`) or `test-after`, whatever the size of the
   work. Both need related worker tests and final stage acceptance. For
   non-code work name equivalent checks; never force a disruptive live drill.
+- **How work runs:** inline in the owner's session, subagents of that session,
+  separate worker sessions (a terminal multiplexer or similar), or a cloud
+  session, as the harness offers, and how a stopped run reaches the owner.
+  Explain what each means for leaving: inline and subagents end with the
+  session; separate sessions survive while the machine runs; a cloud session
+  needs no machine of theirs. The preflight of each feature run confirms it.
 - **Execution:** which agents and models may do which work (for example, a
   light model only for low-risk tasks, a strong one for security, data or
   concurrency), how many agents work at once, atomic claims or one-at-a-time
@@ -210,6 +216,7 @@ them and propose it instead.
   "staleDays": 14, "holdDays": 2, "bulkCluster": 20,
   "execution": {
     "development": "<tdd | test-after>",
+    "runMode": "<inline | subagents | worker-sessions | cloud>",
     "maxWorkers": 1,
     "mutationBudgetMinutes": 10,
     "mutationFallback": "<agreed alternative or escalate>",

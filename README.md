@@ -65,7 +65,7 @@ In Claude Code the plugin prefixes them: `/shady2k-skills:ask-shady2k`.
 | [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md) | Reads the project and tells you where it stands, how far it has come, what is stuck and which ways forward exist, with one recommendation. Changes nothing. | At the start of a session, after a break, in an unfamiliar project, whenever you are unsure what comes next. |
 | [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md) | Connects the project's tracker, cleans its queue with you, proposes settings as one profile and proves the checks work. | Once per project, and again when a skill says the installation is out of date. |
 | [to-milestone](skills/backlog/to-milestone/SKILL.md) | Agrees what the next version delivers, what is left out and how many new bugs it can absorb. | When the current version is done, or a project has no agreed next step. |
-| [take-task](skills/engineering/take-task/SKILL.md) | Takes a task or stage from design through parallel work by agents to checks, review and acceptance. | When you want work done, not just planned. |
+| [take-task](skills/engineering/take-task/SKILL.md) | Before you leave, gathers every decision a planned feature will need in one list; then builds the whole feature without you up to one pull request, deciding small gaps itself and stopping only for decisions that need you. | When a feature is planned and you want it built while you are away. |
 | [handoff](skills/productivity/handoff/SKILL.md) | Writes down what is in flight so a fresh session continues without losing anything. | Before you stop, or when a session gets too long. |
 | [report-to-shady2k](skills/productivity/report-to-shady2k/SKILL.md) | Sends a problem or idea about these skills to their author as a GitHub issue, anonymized and shown to you word for word first. | When a skill confused you, did something wrong, or is missing something. |
 
@@ -80,11 +80,11 @@ unrelated changes, new scope or publishing anything.
 | [to-research](skills/productivity/to-research/SKILL.md) | Answers a question from primary sources, with citations. | When a decision depends on facts nobody has checked. |
 | [to-prototype](skills/engineering/to-prototype/SKILL.md) | Builds a small throwaway experiment that answers one design question. | When arguing takes longer than trying. |
 | [to-spec](skills/engineering/to-spec/SKILL.md) | Writes down what exactly is being built, as the user will see it, with scenarios that will be checked. | Before building something whose behaviour is not yet agreed. |
-| [to-stages](skills/backlog/to-stages/SKILL.md) | Splits a feature into stages that each fit one session, with only real dependencies. | When a feature is too big to finish and accept in one go. |
+| [to-stages](skills/backlog/to-stages/SKILL.md) | Splits a feature into stages, checkpoints that are each checked before the next builds on them, and tasks small enough for one agent. | When planning a feature before it runs. |
 | [diagnose-bug](skills/engineering/diagnose-bug/SKILL.md) | Finds the cause of a bug with evidence: reproduces it, tests hypotheses one at a time. | When a bug did not yield to a quick look. |
 | [model-domain](skills/engineering/model-domain/SKILL.md) | Keeps the glossary of domain terms and records of hard-to-reverse decisions. | When words start meaning different things, or a decision needs its reason kept. |
 | [to-backlog](skills/backlog/to-backlog/SKILL.md) | Files new work, bugs and ideas in the right place, without pushing them to the front. | When something new turns up in the middle of other work. |
-| [close-out](skills/backlog/close-out/SKILL.md) | Updates the current specs from accepted work, then closes its tasks. | After a stage is accepted. |
+| [close-out](skills/backlog/close-out/SKILL.md) | Updates the current specs from accepted work, then closes its tasks. | After you merge a feature's pull request. |
 | [groom-backlog](skills/backlog/groom-backlog/SKILL.md) | Cleans up the queue reversibly with you: what is current, what waits, what was abandoned. | When the tracker has become a dump, and during setup. |
 
 ## Installation and updates
@@ -365,6 +365,9 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.19.0 runs a whole feature without you: plan it together, answer one
+batch of questions, leave, and come back to one pull request that says what was
+built, how to try it and what the agent decided alone.
 Version 0.18.0 asks whether the process is for you alone or the whole team,
 and tells contributors how to get the plugin.
 Version 0.17.0 keeps installation state out of the repository: setup lands

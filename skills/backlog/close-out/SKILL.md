@@ -1,6 +1,6 @@
 ---
 name: close-out
-description: Record accepted work and preserve pending work. Use after stage acceptance, on a session ending, or when work is stopped or handed over.
+description: Record accepted work and preserve pending work. Use after a feature's pull request is merged, on a session ending, or when work is stopped or handed over.
 ---
 
 # Close out

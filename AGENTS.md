@@ -92,6 +92,9 @@ architect, and product consequences across those areas for a product engineer.
   trade-off may need the user. Explain why it needs a decision now, recommend an
   option and give real alternatives with their consequences. Ask one such question
   at a time; this is not a reason to turn every configuration field into an interview.
+  The one exception is a feature run's preflight: before the owner leaves, every
+  decision the run will need comes as one batch with recommendations, because
+  asking later means stopping the run.
 - **Keep consent meaningful and bounded.** Confirm consequential new choices
   together with the proposed profile where possible. Do not treat silence or a
   preselected value as approval, repeat an approval already given, or infer that

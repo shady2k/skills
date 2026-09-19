@@ -16,8 +16,8 @@ Skills that keep the queue usable and stage acceptance honest.
 
 Also available directly to the user.
 
-- [to-stages](./to-stages/SKILL.md): session-sized stages and tasks that can run
-  in parallel except for concrete prerequisites or conflicts.
+- [to-stages](./to-stages/SKILL.md): stages as checkpoints and tasks sized for one
+  worker, parallel except for concrete prerequisites or conflicts.
 - [groom-backlog](./groom-backlog/SKILL.md): reversible cleanup, including setup bootstrap.
 - [to-backlog](./to-backlog/SKILL.md): register work and discoveries; separate filing from admission.
 - [close-out](./close-out/SKILL.md): synchronize accepted current specifications

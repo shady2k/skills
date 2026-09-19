@@ -37,16 +37,17 @@ ask for one merely because the plugin was updated.
 | --------- | ----------------------------------------------------------------- | ----------------- |
 | Vision    | where the product is going; a document, never an issue           | rarely rewritten  |
 | Milestone | the next slice, with a charter: what is in, what is out, a finding budget | what ships next   |
-| Feature   | a root issue holding one **outcome**                              | one or more stages |
-| Stage     | an issue under a feature, with its own DONE WHEN                  | one session, including acceptance |
-| Task, bug | a leaf: an issue with no children, inside one stage               | part of that session |
+| Feature   | a root issue holding one **outcome**                              | one run, one branch, one PR |
+| Stage     | an issue under a feature, with its own DONE WHEN                  | a checkpoint accepted inside the run |
+| Task, bug | a leaf: an issue with no children, inside one stage               | one worker's session |
 
 An **outcome** is what becomes possible or true, and who observes it: "a person
 creates a connection group", "a rollback takes one command and one minute". Its
 DONE WHEN names the observable behaviour and the check that watches it; a
-regression can make it false again. A stage that will not fit one session is
-split before work starts; one that overruns is handed off with acceptance
-still pending.
+regression can make it false again. A task that will not fit one worker's
+session is split before it starts. A stage has no session limit: it groups
+tasks toward a checkpoint that is accepted by checks and review before the
+next stage builds on it.
 
 **The horizon.** Only the current milestone is broken down below features. The
 next milestone exists as feature titles; anything further lives in the vision.
@@ -245,9 +246,38 @@ handoff notes. Setup asks the owner for it explicitly and recommends English;
 it is never inferred silently. Where none is recorded yet, ask once before the
 first thing is kept, recommending English.
 
+**Autonomy.** A feature is planned with the owner and then built without
+them, up to one pull request for the whole feature. Planning ends with a
+**preflight**: the agent reads the spec, the stages and the code, and brings
+every decision the run will need at once, each with a recommendation, for the
+owner to accept as a whole or change by item. This is the one place where
+questions come as a batch: gathering them while the owner is present is cheaper
+than stopping later. The preflight ends by saying the feature is ready to run
+alone, or what it still lacks.
+
+During the run, a gap the spec did not foresee is decided by the agent when it
+knows what to do; the decision and its assumptions go into the feature's
+decision log and later into the pull request. The agent **stops** instead when
+the choice is hard to reverse (an architectural fork), costly if wrong
+(security, data, money, public interfaces, migrations), changes product
+behaviour beyond the spec, or conflicts with an earlier decision. It then
+pauses only the affected work, continues the independent rest, reaches the
+owner the way the harness allows, and sends a ready decision: the problem and
+where it came from, what is blocked and what continues, the options compared
+from the product, technical, risk, cost and reversibility sides, its
+recommendation and why, and what happens if the answer comes later.
+
+The pull request is where the owner looks. Its report says what users can now
+do; how to check it yourself (what to open, what to try); every decision and
+assumption the agent made alone, and where it departed from the spec; what
+review found; what is not done; and the risks left. It follows **Speaking to
+the owner**. The owner's acceptance is the merge; the tracker is closed after
+it.
+
 **End with the next step.** Every skill that finishes a step ends by naming the
 next useful action and the skill that does it, so the person never has to ask
-what now. When the session has grown long, recommend a fresh one: at a natural
+what now. Offer work at the level the owner runs it: a feature to plan or to
+run, not a single task. When the session has grown long, recommend a fresh one: at a natural
 boundary (a stage accepted, a switch to unrelated work) through `/handoff`;
 in the middle of the same work, through the harness's context compaction (for
 example `/compact`), saying what must survive it. Recommend it before the

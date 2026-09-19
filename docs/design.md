@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.18.0 asks whether the process is personal or for the team;
+Status: version 0.19.0 runs a whole feature alone to one pull request; 0.18
+asked whether the process is personal or for the team;
 0.17 kept installation state out of the repository; 0.16
 asks for setup only when the installation must change;
 0.15 replaced reading assignments with summaries; 0.14
@@ -354,6 +355,23 @@ different people. A holder now reads `<harness>-<role>:<person>@<machine>:<branc
 so anyone can tell whose work it is, where to find it and whether it is still
 alive. It changes nothing installed, so it is the first release under the
 split versions that asks no project for setup.
+
+0.19 changes the unit of work from a stage to a feature. The owner plans in the
+evening (ideas, specs, stages) and wants the rest to run without him up to one
+pull request, which he then tries himself. take-task sized everything to one
+session and stopped after each stage, so it kept offering one task at a time.
+Now the session limit belongs to a worker's task; a stage is a checkpoint that
+checks and review accept inside the run, and the coordinator carries the whole
+feature on one branch, keeping its state in the tracker and a decision log so
+it can hand itself over when its context grows. Planning ends with a preflight
+that brings every decision as one batch, the one exception to asking one
+question at a time, and confirms how the work runs (inline, subagents, worker
+sessions or cloud), since that decides whether the owner may leave. During the
+run a gap the agent can close is decided and logged; an architectural fork, a
+costly error, behaviour beyond the spec or a conflict with an earlier decision
+stops the affected work with a ready decision. The pull request report shows
+what was built, how to try it, and every decision and assumption made alone.
+The owner's acceptance is the merge.
 
 ## 10. Findings and cleanup
 

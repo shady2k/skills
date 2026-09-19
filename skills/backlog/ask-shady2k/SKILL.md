@@ -91,7 +91,8 @@ invent work to fill the list.
 | new product without direction or first charter | `/to-milestone`, drafted from known decisions |
 | a change is not ready by the document check | the concrete gap: missing contract, stale base or open decision; `to-spec` |
 | an outcome needs design or breaking down | `/take-task` picks the route, or `to-spec` for design only |
-| independent work can start | `/take-task` for that stage or the requested work; mention what can run in parallel |
+| a planned feature is ready | `/take-task` to run the whole feature to one pull request; mention what can run in parallel |
+| a feature is not yet planned enough to run alone | plan it with the owner (`brainstorming`, `to-spec`, `to-stages`), ending in `/take-task`'s preflight |
 | everything left is blocked or held | the result or owner that would unblock it; do not widen the milestone or invent work |
 
 If someone is already running a stage's acceptance, recommend other ready work
@@ -118,12 +119,13 @@ start the recommended action.
 - `setup-shady2k-skills`: choose or check the tracker, clean its queue, agree a
   recommended profile, prove the installation; rerun after updates.
 - `to-milestone`: agree outcomes, scope and budget.
-- `take-task`: take tracked work through proportional design, parallel
-  implementation, merging and stage acceptance.
+- `take-task`: preflight with the owner, then run a whole feature alone to one
+  pull request, stopping only for decisions that need the owner.
 - `brainstorming`: explore, investigate or decide in conversation; no required
   result.
 - `to-spec`: a short or full change to the living specs, with scenarios.
-- `to-stages`: session-sized stages with real dependencies and parallel tasks.
+- `to-stages`: stages as checkpoints, tasks sized for one worker, real
+  dependencies and parallel tasks.
 - `diagnose-bug`: find a cause with evidence; fixing needs a tracked task.
 - `to-prototype`: a bounded runnable experiment.
 - `to-research`: a bounded investigation of primary sources, with citations.

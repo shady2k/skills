@@ -1,6 +1,6 @@
 ---
 name: to-stages
-description: "Decompose tracked work into independently acceptable stages and dependent or parallel tasks. Use after a short or full spec, or when take-task needs a stage sized for one session."
+description: "Decompose tracked work into independently acceptable stages and dependent or parallel tasks, each task sized for one worker's session. Use after a short or full spec, or when take-task needs stages for a feature run."
 ---
 
 # To stages
@@ -47,19 +47,20 @@ Look for the **prefactor**: the change that, made first, makes the rest easy.
 
 An outcome that already has stages keeps them. Decompose only the **stages
 starting now**, including independent ones that will run in parallel; leave
-later stages coarse. Redesign approved outcomes only when scope changes, not to
-fit a session.
+later stages coarse; the coordinator of a feature run breaks them down when it
+reaches them, within the spec. Redesign approved outcomes only when scope
+changes.
 
-**Stages.** Each finishes something observable with its own DONE WHEN and fits
-one session including integration, full checks, mutation testing and review.
-Split one that does not fit. Together they meet the feature's end-to-end
+**Stages.** Each finishes something observable with its own DONE WHEN: a
+checkpoint that full checks, mutation testing and review accept before the
+next stage builds on it. A stage has no session limit; its tasks do. Together they meet the feature's end-to-end
 criterion; they need not form a sequence, and independent stages and features
 run concurrently. Add a dependency only for a real required result,
 conflicting write or exclusive resource, on the affected task.
 
 **Tasks**, for the stages starting now only:
 
-- Small enough that the stage's tasks and acceptance fit its session.
+- Small enough for one worker's session, including its local checks.
 - A **vertical slice**: a narrow, complete path through every layer the outcome
   touches, never one layer across. Finished, it can be shown or checked alone.
 - Prefactoring first, as its own tasks.

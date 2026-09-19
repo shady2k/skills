@@ -4,8 +4,8 @@ Tracked work, proportional design and acceptance of an assembled stage.
 
 ## User-invoked
 
-- [take-task](./take-task/SKILL.md): select the design route, coordinate
-  independent workers, integrate results and accept the stage.
+- [take-task](./take-task/SKILL.md): preflight with the owner, then run a whole
+  feature alone to one pull request, stopping only for decisions that need them.
 
 ## Model-invoked
 
