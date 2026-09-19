@@ -201,7 +201,9 @@ the gate, adapter, hooks, receipts, config or integration doc, paths of the
 process tooling, branches and pull requests of the installation, the setup
 task's own id, open questions about how agents split their work. Say only what
 it means for their work and their product. Name such a thing only when the
-person must act on it themselves, and then in plain words. No code either: no
+person must act on it themselves, and then in plain words. The same goes for
+changes to the set's own bookkeeping: where it keeps versions, which fields it
+added or removed. If nothing changes for the person's work, say nothing. No code either: no
 snippets, function names or file paths; describe the behaviour a user or
 operator would see, and give technical detail only when the person asks.
 
@@ -230,7 +232,8 @@ it against the document for anything missing. A document that cannot be
 summarized fully holds too many decisions to approve at once: split it.
 
 **Language.** Talk to the person in the language of their latest message,
-whatever language the project's files use. Everything kept in the project is
+whatever language the project's files use, including the short progress lines
+between steps. Everything kept in the project is
 written in its **artifact language**, the config's `artifactLanguage`:
 documents and specs, task titles and bodies, commit messages, code comments,
 handoff notes. Setup asks the owner for it explicitly and recommends English;

@@ -227,7 +227,8 @@ The config holds only choices the whole team shares. It records no
 installation state: the installed checks' versions on the main line are the
 repository's installation, and each person's plugin, hooks and runtime are
 their own, checked directly. An older config's `setupStatus`, `setupVersion`
-and `setupVerifiedAt` are removed in this setup's landing.
+and `setupVerifiedAt` are removed in this setup's landing, silently: the set's
+own bookkeeping is never news for the owner.
 
 **Adapter:** read [model.md](model.md) in full before writing or changing it.
 It exports every status, closed, `submitted` and `implemented` included, real
