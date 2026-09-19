@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Protocol version: 0.13.1
+Protocol version: 0.13.2
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -165,6 +165,14 @@ Lead with the consequence for the work: what can be done now, what waits, and
 what is needed from the person. Show what changes and what needs a decision;
 what stays as it was takes one line. Diagnostics and proof belong with the
 task that did the work, available on request, not in the message.
+
+Never show the kitchen: how this set works inside is not the person's
+concern: versions of the set or its checks, what changed inside the skills,
+the gate, adapter, hooks, receipts, config or integration doc, paths of the
+process tooling, branches and pull requests of the installation, the setup
+task's own id, open questions about how agents split their work. Say only what
+it means for their work and their product. Name such a thing only when the
+person must act on it themselves, and then in plain words.
 
 **Language.** Talk to the person in the language of their latest message,
 whatever language the project's files use. Everything kept in the project is

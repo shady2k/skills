@@ -26,8 +26,9 @@ The user always knows how long this takes and when they are needed. After
 reading the project, before changing anything, size the announcement to the run:
 
 - **A short run**, typically a rerun after an update, where the user is needed
-  only for the settings and the landing: say it in one or two sentences, with
-  what changed, roughly how long, and at which moments they are needed. No
+  only for the settings and the landing: say it in one or two sentences: what
+  changes for their work, roughly how long, and at which moments they are
+  needed. Not what changed inside the set. No
   step list: a table where most rows say "not needed, a few minutes" is noise.
 - **A long run**, such as a first setup or a large cleanup: show the plan as the
   six steps below, each with what it does, whether the user is needed, and a
@@ -41,10 +42,10 @@ Durations are estimates; say so once, and revise them when they turn out wrong.
    was abandoned, then clean up reversibly. Needs the user; the long step for a
    large backlog, short for an empty one.
 3. **Agree the settings**: one recommended profile. Needs the user once.
-4. **Connect the checks**: config, adapter, hooks and CI. Agent only.
+4. **Connect the checks**: so that they run on every commit. Agent only.
 5. **Prove it works**: plant violations, watch them rejected, undo. Agent only.
-6. **Finish**: land the installation and record it verified. May need the
-   user's approval to land.
+6. **Finish**: bring the installation into the main line. May need the user's
+   approval to merge.
 
 Give a progress line only where it tells the user something: when a step that
 takes a while finishes or runs long, and when they are needed now. One line:
