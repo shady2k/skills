@@ -61,7 +61,7 @@ capabilities and their substitutes.
 | --- | --- |
 | create | <title, type, labels, parent, criterion> |
 | link / unlink | <required-result or conflict edges on leaves, reason, release condition; provenance separate> |
-| claim | <atomic owner assignment or a serialized coordinator; not last-write-wins readback> |
+| claim | <atomic owner assignment or a serialized coordinator; not last-write-wins readback; the holder is the agent doing the work (coordinator or numbered worker), never the person by default> |
 | release | <unfinished holds only; preserve implemented work> |
 | implemented | <record integrated revision and local evidence; coordinator only> |
 | submitted | <preserve the worker result and evidence pending integration; clear worker hold> |

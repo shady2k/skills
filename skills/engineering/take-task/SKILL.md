@@ -64,7 +64,8 @@ meaning; unrelated parallel changes do not invalidate this work.
 Read execution settings from the gate config and commands from the integration.
 Each stage has one coordinator, who owns its integration and acceptance and may
 also implement. Claim tasks atomically, or have the coordinator assign them one
-at a time if the tracker cannot.
+at a time if the tracker cannot. Every claim names the agent that does the work
+(the coordinator, or the worker by its number), never the person.
 
 Dispatch independent ready tasks in parallel where resources allow; independent
 stages and features may run in parallel with their own coordinators and

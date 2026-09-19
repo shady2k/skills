@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.13.0 adds a light evidence level to the document gate; 0.12
+Status: version 0.14.0 assigns tasks to the agents doing them; 0.13 added a
+light evidence level to the document gate; 0.12
 separated chat and artifact languages; 0.11 added
 anonymized reports to the author; 0.10 made the
 document gate a non-blocking stage; 0.9 made
@@ -296,6 +297,14 @@ record; protected keeps verified receipts for projects whose CI can enforce
 them. Required checks can be scoped to change kinds (`appliesTo`), a setup
 proves commands the cheapest way and reruns a full suite only when it was never
 proved or changed, and it never deletes branches it did not create.
+
+0.14 fixes two things the owner saw in use. Every task was assigned to him,
+because the tracker fills in the local user; but he does not do the tasks, the
+agents do. The holder is now whoever does the work, the agent under its own
+name, and the person only for decisions, manual checks and approvals. And a
+step ended without saying what next, so every skill that finishes a step now
+names the next action, and recommends a fresh session in time: `/handoff` at a
+natural boundary, the harness's compaction in the middle of the same work.
 
 ## 10. Findings and cleanup
 

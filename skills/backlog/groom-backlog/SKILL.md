@@ -79,7 +79,9 @@ proposal as **counts by kind**, not a list of issues:
 - brainstorms and proposals: moved to the ideas lane;
 - catch-all issues that absorb any new bug in their area: deferred, since they
   can never finish;
-- tasks marked as taken that nobody is working on: returned to the queue.
+- tasks marked as taken that nobody is working on: returned to the queue;
+- tasks held under the person's name that an agent is actually doing: moved
+  to that agent, since the holder is whoever does the work.
 
 For each kind, say what it means, why, how it affects current work and how to
 undo it. The owner accepts the whole proposal or pulls items back by name.

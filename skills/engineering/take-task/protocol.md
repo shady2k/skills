@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Protocol version: 0.13.2
+Protocol version: 0.14.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -51,6 +51,11 @@ and its local evidence. Submitted work is neither taken again nor used by
 dependants yet. The stage's single coordinator merges it and marks it
 `implemented`, with the merge revision and check evidence; it is not taken again
 and not yet closed.
+**The holder is whoever does the work.** A task an agent works on is held by
+that agent under its own name (its harness and role, such as a stage's
+coordinator or a numbered worker), never by the person by default, even when
+the tracker would fill in the person's name. The person holds only work they do
+themselves: a decision, a manual check, an approval.
 Workers have distinct owners and an atomic claim or a serialized assignment:
 reading back a field that anyone can overwrite is not a lock. If a merge
 changes or fails, reopen the affected work and recheck what depends on it. The
@@ -181,6 +186,14 @@ documents and specs, task titles and bodies, commit messages, code comments,
 handoff notes. Setup asks the owner for it explicitly and recommends English;
 it is never inferred silently. Where none is recorded yet, ask once before the
 first thing is kept, recommending English.
+
+**End with the next step.** Every skill that finishes a step ends by naming the
+next useful action and the skill that does it, so the person never has to ask
+what now. When the session has grown long, recommend a fresh one: at a natural
+boundary (a stage accepted, a switch to unrelated work) through `/handoff`;
+in the middle of the same work, through the harness's context compaction (for
+example `/compact`), saying what must survive it. Recommend it before the
+context is exhausted, not after.
 
 **The gate is clean** when its report says `new errors: 0`. That line means the
 same under every strength, unlike red and green: under `report` nothing is ever

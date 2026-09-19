@@ -139,7 +139,7 @@ questionnaire**.
   work. Both need related worker tests and final stage acceptance. For
   non-code work name equivalent checks; never force a disruptive live drill.
 - **Execution:** how many agents work at once, atomic claims or one-at-a-time
-  assignment, separate checkouts, who merges, and how the tracker stores
+  assignment, how an agent's claim names that agent instead of the person, separate checkouts, who merges, and how the tracker stores
   `submitted` and `implemented` work. No artificial chains between features,
   stages or tasks; record only real conflicts and prerequisites.
 - **Verification:** commands for static checks, related tests and full checks;
@@ -289,7 +289,8 @@ An existing setup runs all of these too, even when versions match.
    portability). Compare installed copies byte for byte; ports run the corpus.
 2. **Tracker and adapter:** compare counts per status and ready leaves with the
    tracker; explain every difference. On an empty tracker use recoverable
-   proof issues. Exercise claim, release, `implemented`, readiness of a
+   proof issues. Exercise claim (the holder must be the agent, not the person),
+   release, `implemented`, readiness of a
    dependant in the same stage, acceptance across stages and independent ready
    work. Check that `submitted` results survive a handoff without being redone.
    Check dependency cycles and the exact task-reference parser.
