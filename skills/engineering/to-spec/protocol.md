@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Protocol version: 0.13.0
+Protocol version: 0.13.1
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,

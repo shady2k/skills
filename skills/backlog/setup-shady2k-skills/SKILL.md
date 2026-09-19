@@ -22,12 +22,19 @@ The project owns its config, tracker adapter, check commands and wiring.
 
 ## Show progress
 
-Setup is long, so the user always sees where it is. After reading the project,
-before changing anything, show the plan as these six steps, each with what it
-does, whether the user is needed, and a rough duration judged from what you
-found, with its basis ("about 900 open issues: the cleanup is the long part,
-likely more than one session"). Ranges are estimates; say so, and revise them
-when they turn out wrong. A rerun marks steps that only recheck as short.
+The user always knows how long this takes and when they are needed. After
+reading the project, before changing anything, size the announcement to the run:
+
+- **A short run**, typically a rerun after an update, where the user is needed
+  only for the settings and the landing: say it in one or two sentences, with
+  what changed, roughly how long, and at which moments they are needed. No
+  step list: a table where most rows say "not needed, a few minutes" is noise.
+- **A long run**, such as a first setup or a large cleanup: show the plan as the
+  six steps below, each with what it does, whether the user is needed, and a
+  rough duration with its basis ("about 900 open issues: the cleanup is the
+  long part, likely more than one session").
+
+Durations are estimates; say so once, and revise them when they turn out wrong.
 
 1. **Look around**: read the project, tracker and existing installation. Agent only.
 2. **Tidy the queue**: agree with the user what is current, what waits and what
@@ -39,9 +46,9 @@ when they turn out wrong. A rerun marks steps that only recheck as short.
 6. **Finish**: land the installation and record it verified. May need the
    user's approval to land.
 
-At every step boundary, and when a step runs long, give one line: the step
-number and name, what just finished, what comes next, and whether the user is
-needed now. When a session has to end, say which step is next, so a later run
+Give a progress line only where it tells the user something: when a step that
+takes a while finishes or runs long, and when they are needed now. One line:
+what finished, what comes next, whether they are needed. When a session has to end, say which step is next, so a later run
 resumes there. Where the harness shows a task or plan list, keep these steps
 in it. Progress lines follow the same plain-words rule as everything else.
 
@@ -90,7 +97,9 @@ the update means for the user's work now, including what waits until it
 finishes. Then a compact table of only the entries that change or need a
 decision: a plain name, the current and recommended value, what it controls,
 and what accepting or changing it means in behaviour, time, cost and risk.
-Retained settings take one line, detailed on request. Cleanup lists tasks by
+Retained settings take one line, detailed on request, saying what they mean in
+plain words ("new backlog problems block a commit, old ones do not"), never
+their values or labels. Cleanup lists tasks by
 title, grouped by what will happen to them.
 
 The user accepts the profile or names the entries to change. Approval settles
