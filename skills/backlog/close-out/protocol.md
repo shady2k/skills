@@ -44,8 +44,12 @@ ask for one merely because the plugin was updated.
 An **outcome** is what becomes possible or true, and who observes it: "a person
 creates a connection group", "a rollback takes one command and one minute". Its
 DONE WHEN names the observable behaviour and the check that watches it; a
-regression can make it false again. A task that will not fit one worker's
-session is split before it starts. A stage has no session limit: it groups
+regression can make it false again. A feature merges into the main line on its
+own and soon: when its run would keep a branch open longer than the project
+allows, it is split into features that each merge separately and leave the main
+line working (expand, then migrate, then contract; behind a switch where the
+project allows one). A task that will not fit one worker's session is split
+before it starts. A stage has no session limit: it groups
 tasks toward a checkpoint that is accepted by checks and review before the
 next stage builds on it.
 
@@ -186,6 +190,7 @@ consequences for users, time, cost and risk. Say instead:
 | finding budget | how many new bugs and debts the current version takes in before the rest waits for the next |
 | deferred | moved out of the current version, not lost |
 | mutation testing | deliberately breaking changed code to check that the tests notice |
+| stage 2, the second stage | the stage's name, by what it delivers ("the backend keeps command output") |
 
 Terms outside the table get the same treatment: a plain phrase, or one clause
 of definition the first time. Config keys, status values, labels, commands,
@@ -252,8 +257,10 @@ them, up to one pull request for the whole feature. Planning ends with a
 every decision the run will need at once, each with a recommendation, for the
 owner to accept as a whole or change by item. This is the one place where
 questions come as a batch: gathering them while the owner is present is cheaper
-than stopping later. The preflight ends by saying the feature is ready to run
-alone, or what it still lacks.
+than stopping later. The preflight also says how long the run will likely take
+and when to expect the pull request, with what the estimate rests on; a run
+longer than the project lets a branch live is split first. It ends by saying
+the feature is ready to run alone, or what it still lacks.
 
 During the run, a gap the spec did not foresee is decided by the agent when it
 knows what to do; the decision and its assumptions go into the feature's
@@ -277,7 +284,9 @@ it.
 **End with the next step.** Every skill that finishes a step ends by naming the
 next useful action and the skill that does it, so the person never has to ask
 what now. Offer work at the level the owner runs it: a feature to plan or to
-run, not a single task. When the session has grown long, recommend a fresh one: at a natural
+run, not a single task. Every option offered carries a rough duration and what
+it rests on (how many tasks, their size, the pace the history shows); say that
+it is an estimate. When the session has grown long, recommend a fresh one: at a natural
 boundary (a stage accepted, a switch to unrelated work) through `/handoff`;
 in the middle of the same work, through the harness's context compaction (for
 example `/compact`), saying what must survive it. Recommend it before the
