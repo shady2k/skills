@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.16.0
+Setup version: 0.17.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -8,12 +8,24 @@ this file wins. What differs per project (tracker, labels, gate command,
 documents) is the project's **backlog integration**; its agent doc points to it.
 
 **Compatibility before writes.** Before changing the tracker or the repository,
-compare this setup version with the config's `setupVersion` and with the
-`--version` of all three installed checks, and require `setupStatus: verified`. If a value
-is missing or different, or setup is pending or failed, stop changing things
-and ask the user to run `/setup-shady2k-skills`. Reading and investigating may
-continue. Setup itself, and the bootstrap context it hands over, are exempt
-while installing or migrating. No automatic update hook is assumed.
+compare this setup version with the repository's installation: the `--version`
+of its three installed checks, which must agree with each other.
+
+- **Equal:** go on, once this clone is connected (its hooks active, its runtime
+  present). If it is not, ask the user to run `/setup-shady2k-skills`, which in
+  an installed repository only connects the clone.
+- **This one newer:** the repository's installation is out of date. Ask the
+  user to run setup, which updates it for everyone through the project's normal
+  review and merge; where others work in the repository, say it is a team change.
+- **This one older:** someone already updated the installation. Ask the person
+  to update their plugin; never run setup, which would roll it back for all.
+- **No installed checks, or they disagree:** not installed or broken; setup.
+
+Reading and investigating may continue meanwhile. Setup itself, and the
+bootstrap context it hands over, are exempt while installing. Not landed means
+not installed: an attempt that has not reached the main line leaves the
+repository at its previous installation, whatever its branch holds. Nothing
+about one person's machine or plugin is committed.
 The setup version changes only when a project's installation must be redone:
 new rules in the checks, a new config setting, a new adapter duty or proof. An
 update that changes only how skills talk, reason or plan needs no setup; never
@@ -159,7 +171,8 @@ consequences for users, time, cost and risk. Say instead:
 | ready leaf / ready queue | tasks that can be started now |
 | submitted | done by an agent, waiting to be merged into the stage |
 | implemented | merged into the stage, waiting for the stage to be accepted |
-| setup pending or failed, version mismatch | the update is not finished: skills that change tasks wait until it is |
+| the repository's installation is older than the plugin | the project's setup needs updating: skills that change tasks wait until it is |
+| the plugin is older than the repository's installation | your copy of the skills is out of date: update the plugin |
 | gate strength `block-new` | a commit may not add new backlog problems; old ones are listed but do not block |
 | new errors: 0 | the backlog is in order: nothing broken was added |
 | finding budget | how many new bugs and debts the current version takes in before the rest waits for the next |

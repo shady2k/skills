@@ -1,9 +1,9 @@
 ## Backlog integration
 
 Maintained by `setup-shady2k-skills`. The protocol ships with the skills;
-project facts and verified commands live here. Changing choices, including the
-last verified setup version/time and the current pending/failed/verified status,
-live only in the config.
+project facts and verified commands live here. Changing choices live only in
+the config. No installation state is recorded: the installed checks' versions
+are the repository's installation, and each person's plugin and hooks are theirs.
 
 - **Config:** <path; read current values there>
 - **Vision, roadmap and charters:** <paths; roadmap may be a vision section; status comes from the tracker>

@@ -79,6 +79,7 @@ invent work to fill the list.
 | condition | next action |
 | --- | --- |
 | no tracker or integration, or setup missing or outdated | `/setup-shady2k-skills` before managed work, saying what is missing; still give the picture |
+| the person's plugin is older than the repository's installation | update the plugin, not setup, which would roll the installation back |
 | checks cannot run | the specific repair through setup; land a stranded installation if that is the cause |
 | no current slice but live work exists | `groom-backlog` to agree and clean the slice (setup does this on first install) |
 | no milestone, or no charter | `/to-milestone` |

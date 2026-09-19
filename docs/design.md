@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.16.0 asks for setup only when the installation must change;
+Status: version 0.17.0 keeps installation state out of the repository; 0.16
+asks for setup only when the installation must change;
 0.15 replaced reading assignments with summaries; 0.14
 assigned tasks to the agents doing them; 0.13 added a
 light evidence level to the document gate; 0.12
@@ -327,6 +328,15 @@ version, which the skills compare with the project, only when an installation
 must be redone. A test records the files setup installs and fails when they
 change under the same setup version, so the cheaper path cannot silently leave
 projects on old checks.
+
+0.17 takes installation state out of the repository. Setup ended by writing a
+verified stamp into the committed config, which needed a second merge after
+the first; and a stamp in the repository cannot describe several contributors,
+each with their own plugin version, hooks and runtime. The repository's
+installation is now what landed, its version read from the installed checks;
+not landed means not installed. Each person's plugin is compared with it: equal
+works (after connecting the clone), newer updates the repository through setup,
+older updates the plugin instead of rolling the repository back.
 
 ## 10. Findings and cleanup
 

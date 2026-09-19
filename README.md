@@ -234,11 +234,14 @@ change only named entries. Explanations match your role (product engineer by
 default); only material unresolved decisions need separate questions. Existing
 answers and delegated routine choices are not needlessly asked again.
 
-The config records setup status and the last fully verified setup version. A
-failed rerun remains failed even at the same version. Before writes, the skills
-compare it and the installed checks with their protocol's setup version and
-request setup when they differ. That version changes only when an installation
-must be redone, so most updates of the plugin need no setup. This is a first-use guard and an update
+The repository's installation is what landed: the checks, the shared settings
+and the integration doc. Setup lands it with one merge and commits nothing after
+it; a failed or unfinished attempt stays on its branch. Your plugin, hooks and
+runtime are yours and never committed. Before changing anything, a skill
+compares your plugin's setup version with the repository's: equal means work
+on (connecting your clone first if needed, a few minutes); newer means the
+repository's installation needs updating through setup; older means you update
+your plugin. Most plugin updates change no setup version and need nothing. This is a first-use guard and an update
 instruction, not a claim that every harness runs an automatic update hook.
 
 ## The flow
@@ -353,6 +356,8 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.17.0 keeps installation state out of the repository: setup lands
+with one merge, and each contributor's plugin and hooks stay their own.
 Version 0.16.0 stops asking for setup after every update: only a change that
 needs the installation redone does.
 Version 0.15.0 never asks you to read documents: the agent tells you the

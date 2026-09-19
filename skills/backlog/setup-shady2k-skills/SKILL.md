@@ -71,10 +71,15 @@ without a decision.
 
 **The setup task comes first.** Before any repository change, find or create
 the setup task in the tracker; it owns installation, cleanup and their commits
-even before the gate exists. For an existing config, set
-`setupStatus: pending` before cleanup or proof, so an interrupted run cannot
-pass for verified. If tracker access fails even for this task, stop, report the
-failure and say setup must be rerun; the old stamp is not current proof.
+even before the gate exists. An interrupted or failed run leaves its work on
+its branch and its task; the main line keeps its previous installation until
+landing. If tracker access fails even for this task, stop, report the failure
+and say setup must be rerun.
+
+**A repository already installed at this setup version** needs only this clone
+connected: hooks active, runtime present, the person's plugin at the same
+setup version. Do that, prove the hooks fire, and stop: no queue cleanup, no
+profile, nothing committed. Announce it as the short run it is.
 
 **Clean the queue with the owner.** Inventory statuses, labels, milestones,
 dependencies and holders. Save a snapshot **before any cleanup**. Hand
@@ -138,6 +143,9 @@ questionnaire**.
 - **Development:** test-first (`tdd`) or `test-after`, whatever the size of the
   work. Both need related worker tests and final stage acceptance. For
   non-code work name equivalent checks; never force a disruptive live drill.
+- **Team:** where several people work in the repository, recommend pinning the
+  plugin's version in the project's shared harness settings where the harness
+  supports it, so everyone runs the same setup version; say what it costs.
 - **Execution:** how many agents work at once, atomic claims or one-at-a-time
   assignment, how an agent's claim names that agent instead of the person, separate checkouts, who merges, and how the tracker stores
   `submitted` and `implemented` work. No artificial chains between features,
@@ -197,9 +205,6 @@ them and propose it instead.
     "reviewPreference": "different-model",
     "reviewFallback": "<same-model independent reviewer | disclosed self-review | escalate>"
   },
-  "setupStatus": "pending",
-  "setupVersion": null,
-  "setupVerifiedAt": null,
   "artifactLanguage": "en",
   "projectWords": ["<project names>"],
   "trackerWords": ["<tracker names>"]
@@ -208,10 +213,11 @@ them and propose it instead.
 
 The execution numbers are examples, not choices. `findingBudget` and
 `currentMilestone` stay null only while no live slice is admitted.
-`setupVersion` is the version last fully proved and landed, not the one being
-attempted. `setupStatus` is `pending` while a run is in progress and `failed`
-if it cannot finish; the last successful version and time stay as history, so
-a failed rerun never looks verified.
+The config holds only choices the whole team shares. It records no
+installation state: the installed checks' versions on the main line are the
+repository's installation, and each person's plugin, hooks and runtime are
+their own, checked directly. An older config's `setupStatus`, `setupVersion`
+and `setupVerifiedAt` are removed in this setup's landing.
 
 **Adapter:** read [model.md](model.md) in full before writing or changing it.
 It exports every status, closed, `submitted` and `implemented` included, real
@@ -333,27 +339,24 @@ Shared hooks may already run in checkouts without the new files. Let through,
 visibly, only a tree that never had this installation; a missing or broken
 gate in a configured tree is an error, not a bypass.
 
-Only after all required proofs (proof 6 only when the document gate is wired)
-and the target-checkout check, write the protocol's setup version
-to `setupVersion`, the proof time to `setupVerifiedAt` and
-`setupStatus: verified`, linked to the setup task. Land that stamp the same way
-and recheck the target; until it is there, setup is pending. The stamp itself
-does not invalidate proofs whose inputs did not change; any other change in
-between does.
+Land once, only after all required proofs (proof 6 only when the document
+gate is wired). The landed checks carry the setup version, so nothing is
+committed after landing: check the target checkout, record the proof on the
+setup task, and the installation is done.
 
 Report first whether work can continue and through which skill; then what
 changed for the user, what was cleaned (tasks by title), and each limitation
 with its practical consequence. What was retained and the proof details go to
-the setup task, summarized in one line. On failure keep the last successful
-version and time, set `setupStatus: failed`, say what failed and never report
-the project as reverified.
+the setup task, summarized in one line. On failure leave the main line as it
+was, keep the work on its branch and task, say what failed and never report the
+project as reverified.
 
 ## Updating
 
-Run this skill again when a skill reports the installation is out of date,
-that is, when the protocol's setup version differs from `setupVersion` or the
-installed checks' versions. A plugin update that leaves the setup version alone
-needs no setup. Matching versions never skip a setup the user asked for, and
+Run this skill again when a skill reports the repository's installation is out
+of date, that is, when the plugin's setup version is newer than the installed
+checks'. When the plugin's is older, the person updates their plugin instead.
+A plugin update that leaves the setup version alone needs no setup. Matching versions never skip a setup the user asked for, and
 a rerun redoes only what the new setup version needs plus the proofs.
 
 An update reconciles config, adapter statuses, commands, hooks and documents
