@@ -31,7 +31,7 @@ live only in the config.
 - **Document adapter and gate:** <deterministic export from real docs/tasks; product/feature/acceptance/close commands; or "not installed yet" and the "Title" (id) of its task>
 - **Document policy:** <config source for approval and required checks; protected policy selection>
 - **Document baseline/scope:** <actual target revision, full affected capabilities and complete changed-file enumeration>
-- **Verified receipts:** <runner/approval API verification, revision and digest binding; no author-asserted passes>
+- **Evidence level:** <records (acceptance record, trusted not verified) or protected (runner/API receipts, revision and digest binding)>
 - **Document synchronization:** <prepare delta replay, verify final tree, publish, archive and close idempotently>
 - **Enforcement boundary:** <protected required CI and tracker transition guard, or explicitly audit-only limits>
 - **Backlog gate:** <exact command, config and baseline/config-revision selection>

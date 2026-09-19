@@ -573,6 +573,71 @@
       ]
     },
     {
+      "name": "check-for-other-kind",
+      "expected": [],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "policy/requiredChecks/3",
+          "value": {
+            "id": "e2e",
+            "kind": "test",
+            "appliesTo": [
+              "no-behavior"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "check-for-this-kind",
+      "expected": [
+        "unproved-check"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "policy/requiredChecks/3",
+          "value": {
+            "id": "e2e",
+            "kind": "test",
+            "appliesTo": [
+              "behavior"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "no-check-for-this-kind",
+      "expected": [
+        "empty-policy"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "policy/requiredChecks",
+          "value": [
+            {
+              "id": "review",
+              "kind": "review",
+              "appliesTo": [
+                "supporting"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "missing-receipts",
       "expected": [
         "stale-evidence",

@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Protocol version: 0.12.0
+Protocol version: 0.13.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -121,7 +121,8 @@ before closure. An accepted stage updates its own requirements without waiting
 for unrelated features. A bug fix keeps correct requirements and changes the
 regression check instead. Independent requirements may move at once; a changed
 prerequisite needs a refresh. The integration supplies deterministic exports
-and verified receipts. A structural check cannot prove a requirement is right
+and evidence at the level setup chose: honest records, or verified receipts
+where protected CI can enforce them. A structural check cannot prove a requirement is right
 or that a receipt is genuine; CI protection and real tests are separate jobs.
 
 The document gate is installed as its own stage and never holds up setup or

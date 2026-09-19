@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.12.0 separates chat and artifact languages; 0.11 added
+Status: version 0.13.0 adds a light evidence level to the document gate; 0.12
+separated chat and artifact languages; 0.11 added
 anonymized reports to the author; 0.10 made the
 document gate a non-blocking stage; 0.9 made
 the router a read-only orientation; 0.8.0 added
@@ -283,6 +284,18 @@ the project follows the project: documents, tasks, commit messages and code
 comments use its artifact language, recorded as `artifactLanguage`. Setup asks
 for it explicitly, recommending English, because inferring it from the person's
 chat language would write a team's shared files in one member's language.
+
+0.13 comes from the first live update of a real project. Setup spent an hour
+and a half building the document gate as tamper-proof: a runner, receipts and
+three rounds of adversarial review closing forgery holes, in a project with no
+server CI, where the agent itself called the result an audit. It also ran the
+end-to-end suite "for completeness" and required the product's tests for a
+change to process documents. So the gate now has two evidence levels: records,
+the default without protected CI, check structure and trust the acceptance
+record; protected keeps verified receipts for projects whose CI can enforce
+them. Required checks can be scoped to change kinds (`appliesTo`), a setup
+proves commands the cheapest way and reruns a full suite only when it was never
+proved or changed, and it never deletes branches it did not create.
 
 ## 10. Findings and cleanup
 

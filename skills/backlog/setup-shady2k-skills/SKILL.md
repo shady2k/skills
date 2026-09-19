@@ -136,6 +136,9 @@ questionnaire**.
   mutation testing of changed logic, its time budget and what to do with a
   meaningful survivor. Without tooling, agree an explicit alternative or an
   escalation at acceptance; a skipped mutation check is never "passed".
+  Required checks follow what a change can touch: a change that cannot touch
+  product code (documents, process tooling) does not run the product's test
+  suites. Show the cost of each long check, so the owner sees what it buys.
 - **Review:** another model where available, a stated fallback otherwise, and
   whether independent review is required for acceptance. Two agents on the
   same model are not another model.
@@ -147,9 +150,12 @@ questionnaire**.
   tree. Pick one workflow owner; do not move other tools' documents or disable
   their hooks without saying so. The profile states document policy, where
   evidence and approvals come from, and what enforcement cannot guarantee.
-  Wiring the document gate is often several sessions of work. Recommend doing
-  it in this setup only if it fits; otherwise it becomes its own stage, and
-  work continues meanwhile with documents checked by reading.
+  Recommend the gate's evidence level from [documents.md](documents.md):
+  **records** where no protected CI or tracker guard exists, which keeps the
+  gate to a structural check and honest acceptance records; **protected** only
+  where CI can really block a merge. Recommend wiring it in this setup only if
+  it fits; otherwise it becomes its own stage, and work continues meanwhile
+  with documents checked by reading.
   Choose how **every commit** names its task, setup, documentation, research
   and prototypes included, and how merge and revert commits keep that link;
   they are not silent exemptions.
@@ -157,7 +163,9 @@ questionnaire**.
 ## 3. Write or repair the integration
 
 Where other agents share a checkout, install on a separate branch or worktree:
-a shared index lets another agent commit your staged files.
+a shared index lets another agent commit your staged files. Never delete
+branches, worktrees or files this run did not create, even merged ones; list
+them and propose it instead.
 
 **Config:** one project JSON file holds the changing choices. A starting shape:
 
@@ -222,15 +230,17 @@ and fails if it unexpectedly finds none. Links resolve against all relevant
 tasks, closed ones included. This check is mandatory whatever the backlog's
 strength. Test the parsing on real linked and unlinked messages.
 
-**Wiring the document gate:** build the deterministic export and protected
-wrapper described in [documents.md](documents.md). Run `product` and `feature`
+**Wiring the document gate:** build the deterministic export and the wrapper
+for the agreed evidence level, described in [documents.md](documents.md). Run `product` and `feature`
 before the first product implementation, `feature` for new changes,
 `acceptance` for stage evidence and `close` before current docs are accepted.
 CI picks the actual transition and lists every affected document; neither a
 weaker phase nor an empty export supplied by the author gets through. It is
 required whatever the backlog's strength. Prove real file parsing, baseline
-choice, receipt verification, policy origin and enforcement at tracker closure,
-or disclose what remains audit-only. JSON alone proves no evidence is genuine.
+choice and that each phase rejects its planted violations. At the protected
+level also prove receipt verification, policy origin and enforcement at tracker
+closure; at the records level disclose that records are trusted, and build no
+forgery defences. JSON alone proves no evidence is genuine.
 If it is not wired in this setup, file its task in the current milestone and
 record in the integration that the gate is not installed yet, naming that
 task. Setup still completes; wiring the gate later reruns proof 6.
@@ -278,11 +288,15 @@ An existing setup runs all of these too, even when versions match.
    the real commit-message entry point with a missing task, an unknown task and
    a valid leaf. Verify both CI range calculations on representative
    revisions. Never publish test commits.
-4. **Execution commands:** each configured command exists and works in the
-   declared environment. Run static, related and full checks, a bounded
-   mutation sample, and check the reviewer or its fallback. Report every proof
-   not performed. A failure needs a repair or an agreed, supported change of
-   settings, not a success stamp.
+4. **Execution commands:** each configured command exists and starts in the
+   declared environment, proved the cheapest way that shows it works. Run a
+   full suite only when that command has never been proved here, or it or its
+   environment changed since; otherwise the earlier proof stands. Before any
+   run longer than a few minutes, say what it proves and how long it takes.
+   Never run anything only "for completeness". Check a bounded mutation sample
+   and the reviewer or its fallback. Report every proof not performed. A
+   failure needs a repair or an agreed, supported change of settings, not a
+   success stamp.
 5. **Current state:** run the gate on the cleaned live backlog. Keep the age
    snapshots from before and after cleanup and use their bounded correction.
    Show the result, remaining debt, the strength and any limits.

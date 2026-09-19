@@ -34,6 +34,8 @@ const mutations = [
     name: `documents-${id}`, file: 'check-docs.mjs', failure: `FAIL  documents/${id}:`,
     change: (code) => code.replace('if (condition) violations.push', `if (condition && id !== '${id}') violations.push`),
   })),
+  { name: 'documents-applies-to', file: 'check-docs.mjs', failure: 'FAIL  documents/check-for-other-kind:',
+    change: (code) => code.replace('!c.appliesTo || c.appliesTo.includes(change.kind)', 'true') },
   { name: 'documents-schema', file: 'check-docs.mjs', failure: 'FAIL  documents/unknown-field:',
     change: (code) => code.replace("schema(model, modelSchema, 'model');", '// model schema deliberately disabled') },
 ];

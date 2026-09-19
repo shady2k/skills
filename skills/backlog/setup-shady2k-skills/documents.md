@@ -163,13 +163,38 @@ or silently skip unreadable sources. Unrelated legacy capabilities need not be
 exported. At feature/acceptance phases, current equals baseline; at close it must
 equal the replayed deltas, preserving every untouched requirement in that scope.
 
+### Two levels of evidence
+
+Setup recommends one, and it is recorded in the integration.
+
+- **Records** (recommended where no protected CI or tracker guard exists, as on
+  most solo projects): the gate checks structure exactly as below, and evidence
+  comes from the stage's acceptance record: each check's status with a reference
+  to where its output is kept, and the owner's approval as their recorded words.
+  The wrapper assembles that evidence deterministically; nothing hardens it
+  against forgery, because without protected CI nothing could. Say so: the
+  records are trusted, not verified. Building a runner, receipt signing or
+  tamper defences here is effort without a guarantee.
+- **Protected** (only where protected required CI can block a merge): the
+  receipts come from a trusted runner or API as described below, and the
+  wrapper, policy and baseline selection are protected from the author.
+
+Both levels use the same checker, export and phases, so a project can move from
+records to protected when it gains CI, without rewriting its documents.
+
 ### Policy and receipts (separate trust domains)
 
-Policy: `{schemaVersion: 1, requireApproval, requiredChecks: [{id, kind}]}`.
+Policy: `{schemaVersion: 1, requireApproval, requiredChecks: [{id, kind, appliesTo?}]}`.
 Kinds: `static`, `test`, `mutation`, `review`, `manual`. The configured list must
 not be empty; setup establishes actual full checks, mutation/review requirements
 and approved fallbacks. Kind labels are descriptive, not proof of what ran.
 Non-code work uses its corresponding checks; skipped/unsupported is never passed.
+
+`appliesTo` lists the change kinds a check is required for; without it, every
+kind. Required checks follow what a change can touch: a `supporting` change,
+which may not touch product code, does not owe the product's test suites; it
+owes review and the checks of what it does change (for example the tooling's
+own tests). Every kind must still owe at least one check (`empty-policy`).
 
 Evidence: `{schemaVersion: 1, revision, policyDigest, approvals, checks}`.
 Approval: `{changeDigest, reference}`. Check: `{id, status, reference}` where
@@ -215,4 +240,5 @@ direct tracker writes. A skill cannot prevent somebody starting to type code.
 Setup proves real entry points using recoverable failures: missing vision on a
 new product, missing scenario, invalid task, stale requirement, missing/stale
 receipt, unmerged delta and unrelated parallel change. Verify the clean case
-after restoring each violation. No `verified` setup stamp before this proof.
+after restoring each violation. The integration records the gate as installed
+only after this proof; at the records level, receipt forgery is not a proof case.
