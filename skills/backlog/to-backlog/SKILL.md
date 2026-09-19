@@ -1,6 +1,6 @@
 ---
 name: to-backlog
-description: File a bug, an idea, a piece of debt or an outside request into the backlog lane it belongs in. Use when the user reports a bug or asks to create an issue, when a bug or debt turns up in the middle of other work, when the user voices an idea or a wish, or before creating any issue by hand.
+description: "File a bug, an idea, a piece of debt or an outside request into the backlog lane it belongs in. Use as soon as the user reports a problem in any words (\"I think I found a bug\", \"X does not work\", \"make dev fails\"), before investigating it; when they ask to create an issue; when a bug or debt turns up during other work; when they voice an idea or a wish; and before creating any issue by hand."
 ---
 
 # To backlog

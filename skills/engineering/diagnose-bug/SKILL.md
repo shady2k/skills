@@ -1,6 +1,6 @@
 ---
 name: diagnose-bug
-description: "Investigate a bug or slowdown through reproducible symptoms and distinguishing evidence. Use for diagnosis, stubborn failures or flaky behaviour; fixing requires an authorized tracked task."
+description: "Investigate a bug or slowdown through reproducible symptoms and distinguishing evidence. Use whenever the cause of a reported or observed failure is not yet known, simple-looking ones included, and for stubborn or flaky failures and red CI; fixing requires a tracked task."
 ---
 
 # Diagnose bug
