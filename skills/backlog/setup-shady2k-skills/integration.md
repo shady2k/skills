@@ -6,6 +6,7 @@ the config. No installation state is recorded: the installed checks' versions
 are the repository's installation, and each person's plugin and hooks are theirs.
 
 - **Config:** <path; read current values there>
+- **Scope:** <personal or team, from the config; how others get the plugin in team scope>
 - **Vision, roadmap and charters:** <paths; roadmap may be a vision section; status comes from the tracker>
 - **Current specifications:** <canonical capability docs for accepted mainline behaviour; coverage limits>
 - **Changes:** <proposals/deltas and archive; short deltas may live on tasks with a spec pointer>

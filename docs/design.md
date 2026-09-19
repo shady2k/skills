@@ -3,7 +3,8 @@
 **2026-09-17. Design conversation with the owner, recorded after the fact.** It
 took place in nocx, the owner's terminal project, whose backlog is the evidence
 throughout; "the origin" below means that repository.
-Status: version 0.17.0 keeps installation state out of the repository; 0.16
+Status: version 0.18.0 asks whether the process is personal or for the team;
+0.17 kept installation state out of the repository; 0.16
 asks for setup only when the installation must change;
 0.15 replaced reading assignments with summaries; 0.14
 assigned tasks to the agents doing them; 0.13 added a
@@ -337,6 +338,15 @@ installation is now what landed, its version read from the installed checks;
 not landed means not installed. Each person's plugin is compared with it: equal
 works (after connecting the clone), newer updates the repository through setup,
 older updates the plugin instead of rolling the repository back.
+
+0.18 asks who the process is for. The rules bind people: a commit-link check in
+CI rejects colleagues' commits too, so installing for the whole repository is a
+team decision, not one person's. Setup now asks first: personal (plugin for
+one person, hooks in their clone, no CI) or team (plugin offered at project
+level where the harness has one, an install line in the agent doc for the
+rest, hooks in every clone, CI for everyone). Claude Code's project scope makes
+the plugin's source known to anyone who trusts the folder, but each person
+still installs it once; Codex has only personal installation.
 
 ## 10. Findings and cleanup
 

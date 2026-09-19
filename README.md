@@ -190,6 +190,14 @@ workflow that needs another skill must have that skill installed too.
 When switching installation methods, inspect and remove only the previous
 installation of this set; preserve any locally edited skill files.
 
+### Joining a repository that already uses the set
+
+If the repository works this way for the whole team, its agent doc says so and
+gives the install line. In Claude Code the plugin's source is already known once
+you trust the folder; install the plugin once, then run setup, which only
+connects your clone (a few minutes). Without the plugin you can still commit:
+the hooks tell you in plain words what a commit is missing.
+
 ### What setup takes
 
 The first setup is not a five-minute step. It reads the project, connects or
@@ -206,7 +214,8 @@ reason:
 1. **Look around**: reads the project and tracker. No input from you.
 2. **Tidy the queue**: agrees with you what is current, waits or was
    abandoned. Needs you; the long step on a large backlog.
-3. **Agree the settings**: one recommended profile to accept or adjust, and
+3. **Agree the settings**: first, whether the process is for you alone or for
+   everyone in the repository; then one recommended profile to accept or adjust, and
    an explicit question about which language documents, tasks, commit messages
    and code comments are written in (English recommended). Needs you once.
 4. **Connect the checks**: hooks, CI and the tracker adapter. No input from you.
@@ -356,6 +365,8 @@ document gate. Its fixture and CLI tests do not replace project adapter/CI proof
 or demonstrate conversational quality; live rollout remains a separate validation.
 Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
 picture, progress and ways forward with consequences, also before setup.
+Version 0.18.0 asks whether the process is for you alone or the whole team,
+and tells contributors how to get the plugin.
 Version 0.17.0 keeps installation state out of the repository: setup lands
 with one merge, and each contributor's plugin and hooks stay their own.
 Version 0.16.0 stops asking for setup after every update: only a change that

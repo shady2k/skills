@@ -124,6 +124,18 @@ given; leave settings unrelated to this setup for later.
 The profile covers the following. It is the agent's checklist, **not a
 questionnaire**.
 
+- **Who works this way:** only the person running setup, or everyone who works
+  in the repository. Always a question on first setup, asked before the rest,
+  because it decides what binds other people; show who else committed recently.
+  **Personal:** the plugin for this person only, the hooks active only in their
+  clone, no CI enforcement; the shared files are committed but bind nobody
+  else, and the tracker changes stay visible to all. **Team:** the plugin also
+  offered at the project level where the harness has one (in Claude Code the
+  plugin's source becomes known to anyone who trusts the folder; each person
+  still installs it once), the install line in the agent doc for every other
+  harness, hooks connected in every clone, and CI enforcing the checks on
+  everyone's commits. Team is a decision for the team, not only for this
+  person: say so. A rerun keeps the recorded answer.
 - **Artifact language:** the language of documents, tasks, commit messages
   and code comments. Always a question on first setup, even inside an accepted
   profile: recommend English and show which language the existing files and
@@ -143,9 +155,6 @@ questionnaire**.
 - **Development:** test-first (`tdd`) or `test-after`, whatever the size of the
   work. Both need related worker tests and final stage acceptance. For
   non-code work name equivalent checks; never force a disruptive live drill.
-- **Team:** where several people work in the repository, recommend pinning the
-  plugin's version in the project's shared harness settings where the harness
-  supports it, so everyone runs the same setup version; say what it costs.
 - **Execution:** how many agents work at once, atomic claims or one-at-a-time
   assignment, how an agent's claim names that agent instead of the person, separate checkouts, who merges, and how the tracker stores
   `submitted` and `implemented` work. No artificial chains between features,
@@ -205,6 +214,7 @@ them and propose it instead.
     "reviewPreference": "different-model",
     "reviewFallback": "<same-model independent reviewer | disclosed self-review | escalate>"
   },
+  "scope": "<personal | team>",
   "artifactLanguage": "en",
   "projectWords": ["<project names>"],
   "trackerWords": ["<tracker names>"]
@@ -232,6 +242,11 @@ project, or copy them unchanged, and record where they came from in the
 integration, not inside the copies. Without Node, port all three and prove the
 same fixtures. A matching version does not replace a byte comparison or port
 proof.
+
+Wiring follows the agreed scope: in personal scope the hooks run only in the
+owner's clone and nothing is added to CI; in team scope every clone connects the
+hooks and CI enforces them. Every rejection says in plain words what is wrong
+and how to fix it, readable by a contributor who has never heard of the set.
 
 **Wiring the backlog gate:** it runs in the project's local hook and in CI.
 For `block-new`, compare the working export with the last committed revision and
@@ -280,6 +295,10 @@ Point every harness's loaded agent doc at the integration with:
 > `to-backlog`; implement through `take-task`; close only after stage acceptance
 > through `close-out`. Read Backlog integration in <path> before writes. When a
 > skill reports the installation is out of date, run `setup-shady2k-skills`.
+
+In team scope add one line for people who do not have the skills yet, in their
+harness's syntax: this repository works through the shady2k-skills plugin, and
+how to install it. That install line is the one command the pointer carries.
 
 Use the real path and invocation syntax. Do not copy settings, milestone values
 or commands into the pointer.
