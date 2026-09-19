@@ -126,11 +126,31 @@ development symlinks), not both: otherwise the same skills appear twice.
 
 #### Install
 
-Run these commands inside Claude Code:
+First choose who gets the skills. Claude Code installs a plugin at one of three
+scopes:
 
-```text
-/plugin marketplace add shady2k/skills
-/plugin install shady2k-skills@shady2k
+| scope | who gets it | where it is recorded | choose it when |
+| --- | --- | --- | --- |
+| **user** | you, in every project and folder | your own settings | you work this way alone; the usual choice |
+| **project** | everyone who opens the repository | the project's shared settings, committed | the whole team works this way; each person still installs it once, after trusting the folder |
+| **local** | you, in this one folder only | a settings file that is not committed | you want to try it in one project first |
+
+With many projects or worktrees, `local` leaves some folders without the skills
+or on an older version, so prefer `user`. In a terminal:
+
+```bash
+claude plugin marketplace add shady2k/skills
+claude plugin install shady2k-skills@shady2k --scope user     # or --scope project
+```
+
+Inside Claude Code, `/plugin marketplace add shady2k/skills` and then
+`/plugin install shady2k-skills@shady2k` do the same and ask for the scope.
+
+To move an existing `local` installation to `user`, install at `user` as above,
+then in each folder where it was local:
+
+```bash
+claude plugin uninstall shady2k-skills@shady2k --scope local
 ```
 
 Start a new Claude Code session in the target project, then run setup. Set
@@ -151,6 +171,9 @@ Inside Claude Code:
 /plugin marketplace update shady2k
 /plugin update shady2k-skills@shady2k
 ```
+
+An update applies to the scope you installed at: once for `user`, per folder
+for `local`.
 
 Start a new session. If a skill then says the project's installation is out of
 date, run `/shady2k-skills:setup-shady2k-skills` there; most updates need no setup.
