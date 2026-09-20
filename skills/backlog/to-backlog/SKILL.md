@@ -80,7 +80,10 @@ widening the milestone. Speak as the protocol's **Speaking to the owner** says.
 Create it with the tracker's operations and run the gate. Done when the gate is
 clean; fix a new error with its own `fix` line. A `finding-budget` error means
 step 3 was skipped: satisfy it by step 3's decision, never by taking the item
-out of what the check counts. Then publish. Report "Title" (id) with its lane,
+out of what the check counts. Then publish: the record joins the session's
+landing branch and waits with the rest for its one merge, since filing is not
+work the owner merges on its own (the protocol's **Sessions and landing**).
+Report "Title" (id) with its lane,
 read back from the tracker rather than from what you meant to file, and, for a
 finding, the budget after it: "finding 4 of 5". A finding held for the owner's
 decision says so and what it is waiting on.

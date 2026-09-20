@@ -110,6 +110,13 @@ configured strength. Publish only through the project's authorized workflow.
 Never satisfy a count the gate keeps, such as the finding budget, by taking an
 item out of what it counts.
 
+What a closing leaves is a record of what already happened, so it never asks
+for a merge of its own: the records, the lessons and the closing commit go on
+the session's landing branch and wait there for its one merge, with everything
+else the session kept (the protocol's **Sessions and landing**). A closing
+that follows a merge and finds work left on the merged branch moves it there
+too, rather than opening a second request for the remainder.
+
 Report by name, following the protocol's **Speaking to the owner**: what was
 accepted and on which revision, what now works, what remains pending or
 unproven, what was filed or returned — each by name with the lane it landed in,

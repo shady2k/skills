@@ -400,13 +400,21 @@ the spec, the stages and the decision log, which is what the preflight checks
 ("could a fresh agent run this without our conversation?").
 
 Product code reaches the main line only through its feature's one pull
-request. Plans land with as few merges as possible: what belongs to one
-feature rides in that feature's branch; the rest of a conversation's plan
-(charter, backlog, other features' tasks) lands once, at its end, by a direct
-push where the main line accepts one and otherwise by one pull request.
-Tracker records kept in the repository ride with the branch where the work
-happens, unless that branch is already submitted. Never a merge per small
-change. How the main line accepts changes is
+request. Everything else a session keeps lands **once, at its end, and all of
+it together**: the charter, the backlog, other features' tasks, a lesson
+written into a document, the records a closing leaves. What belongs to one
+feature rides in that feature's branch, unless that branch is already
+submitted; everything else, and everything the freeze sends off a submitted
+branch, goes on the session's one landing branch, which lands by a direct push
+where the main line accepts one and otherwise by one pull request. Each record
+is committed there as it is made, so nothing is held in a working tree and a
+session that dies loses none of it; only the merge waits. Never a merge per
+small change, and **never a merge for bookkeeping alone**: every merge costs
+the owner a round of attention and the repository a full run of its checks,
+which is more than a record of what already happened is worth. The exception
+is what something else needs before the end — a task the next run must read,
+a fix the main line is waiting on — and that lands when it is needed. How the
+main line accepts changes is
 recorded at setup; if the plan's pull request is not merged yet, the feature
 branch starts from the plan branch instead of waiting. How a change lands is
 decided this way, never asked, and never part of what the person approves;
@@ -557,7 +565,9 @@ seeing it start.
 has started, a branch carries only what review sends back to it: the fix for
 a red check, or the change a reviewer asked for. Everything else the run makes
 meanwhile — a tracker record, a document, the next stage's plan, another
-feature's work — waits for the merge or goes on its own branch. A push there
+feature's work — waits for the merge or joins the session's landing branch,
+which asks for one merge at the end and not one apiece (**Sessions and
+landing**). A push there
 restarts every job, so it costs the owner a whole round on the merge they are
 waiting for, and the check evidence an acceptance names is then a different
 commit's than the one that merges. When the run is submitted, the working

@@ -287,7 +287,9 @@ authorized workflow, starting its CI once in the way this repository's CI
 allows (the protocol's **Know what a push starts**). Move the coordinator's own
 checkout off that branch as soon as the run is submitted, so that the tracker
 records, plans and documents the wait produces cannot land on it and restart
-every job (the protocol's **A submitted branch is frozen**). Write its report as the
+every job (the protocol's **A submitted branch is frozen**). They go on the
+session's landing branch and wait there for one merge at the end, never a
+request apiece. Write its report as the
 protocol's **Autonomy** describes: what users can now do, how to check it
 yourself as the few steps of the walk you made, every decision and assumption
 made alone, departures from the spec,
