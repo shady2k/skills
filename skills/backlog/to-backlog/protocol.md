@@ -331,6 +331,20 @@ check hoping it passes: a flaky check is a bug and is diagnosed. Only a fix
 that needs an architectural change or other decision the **Autonomy** rules
 reserve for the owner stops for them.
 
+**A gate that refuses is not routed around.** A check that says no has named
+what this run still owes, and that debt is this run's work like any red check.
+The hook is not skipped, the check is not switched off, its exemption list is
+not widened to buy silence, and the command that would skip it is never put in
+front of the person — not as a suggestion, not as the quick option, not as
+something for them to type. "It only runs on this machine", "the server does
+not have it" and "the check is newer than this work" all argue that the verdict
+does not count; none of them is a reason. Say what is missing and what it costs
+in their words, name the ways that make the gate pass, and take the cheapest
+one; where that cost is large enough to change what they would decide, it is a
+decision for them, put as the work to be done and never as a way past the
+check. If the person orders the skip themselves, say in one line what ships
+unproven and file it as a finding.
+
 **Failures explain themselves.** Time spent collecting diagnostics or rerunning
 CI is a defect of the product and its checks. A failing test states what it
 expected, what it got and the chain of causes. A failing CI job puts its cause
