@@ -219,8 +219,8 @@ a failing check.
 
 Workers run static checks and the tests related to their change, including
 neighbouring behaviour it affects, from the narrowest scope outward as the
-protocol's **Cheapest check first** says; a failing test is rerun alone, not with its
-suite. The full suite, mutation testing and final
+protocol's **Cheapest check first** says; a failing test is iterated on alone,
+not with its suite. The full suite, mutation testing and final
 review happen at stage acceptance. A shared change can rightly widen a worker's
 related tests.
 
@@ -247,8 +247,10 @@ never goes back to ready.
   feature meet its own criteria is part of the work, not a finding.
 - A stubborn failure goes to `diagnose-bug` within the current task.
 - A red check, including one that looks older than this work, follows the
-  protocol's **A red check is this run's work**: diagnose and fix it; never
-  rerun it hoping for green.
+  protocol's **A red check is this run's work**: read the assertion and the
+  code behind each value it asserts on, then fix it. Never rerun it — not for
+  green, not to show the change innocent, not because the failure already has
+  a number in the tracker.
 
 ## 6. Accept each stage
 

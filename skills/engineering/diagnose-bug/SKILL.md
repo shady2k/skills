@@ -39,9 +39,12 @@ a script tells them what to click.
 
 Then **tighten** it: faster (skip unrelated setup), sharper (check the
 symptom), steadier (fix the clock, seed randomness, isolate the filesystem).
-For a flaky bug, aim for a **higher failure rate**, not a clean repro: loop it,
-run it in parallel, add load, narrow the timing. One in two is workable; one in
-a hundred is not.
+For an intermittent failure, **read before you loop**: the message names a file
+and a line, and a check that waits for one thing and asserts another, or waits
+on the clock, carries that window on every run and only looks like load. Where
+reading does not settle it, aim for a **higher failure rate**, not a clean
+repro: loop it, run it in parallel, add load, narrow the timing. One in two is
+workable; one in a hundred is not.
 
 If you cannot build one, say what is missing and narrow the options with
 existing logs, captures, code reading or small experiments. Keep facts apart

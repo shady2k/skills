@@ -428,10 +428,25 @@ agents, and the branch cannot merge while it is red. "It was already broken"
 and "our change does not touch that" are never reasons to stop; when a failure
 appeared matters only as a clue to its cause. A failure that also breaks the
 main line is fixed there by its own small pull request, since it blocks
-everyone, and the report names it as a fixed earlier failure. Never rerun a
-check hoping it passes: a flaky check is a bug and is diagnosed. Only a fix
+everyone, and the report names it as a fixed earlier failure. Only a fix
 that needs an architectural change or other decision the **Autonomy** rules
 reserve for the owner stops for them.
+
+**A check is never rerun to find out why it failed.** A flaky check is a bug,
+and it is diagnosed like any other. A repetition answers one question — does
+it fail every time — which a check that has ever passed has already answered,
+and it costs a whole run to ask again. The attribution ritual costs the same
+and says as little: the check alone, then on the main line, then once more, to
+show the change is not the cause. Whose change caused a red check is not a
+question this run needs answered; the failure is its work either way. The
+first move is the cheap one: read the assertion that failed and the code that
+moves each value it asserts on. A failing check names its file and its line,
+and an intermittent one is usually a race written into the check itself, which
+waits for one thing and asserts another, or waits on the clock — a window that
+is there on every run, where load decides only whether this run lands inside
+it. A flake that already has a number has a name, not a diagnosis: matching
+one explains nothing and buys no pass, and the reading it still needs costs
+less than the repeats spent on avoiding it.
 
 **A gate that refuses is not routed around.** A check that says no has named
 what this run still owes, and that debt is this run's work like any red check.
