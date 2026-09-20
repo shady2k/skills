@@ -162,7 +162,11 @@ timeout and writes where its progress can be seen as it goes, never through a
 pipe that holds the output to the end. Confirm it actually started before
 turning to other work, and when it passes the time that work took before, run
 the cheap liveness check instead of waiting on, as the protocol's **Silence is
-not progress** says.
+not progress** says. The timeout is the estimate for that work, not a round
+number large enough never to trip: an overrun is stopped and diagnosed, never
+restarted or given more time, and what caused it is filed. Keep what the
+checks, builds and workers took; a step that got much slower is a finding even
+when it passes, by **The bound is the forecast**.
 
 The coordinator keeps its own context fresh: the run's state lives in the
 tracker and the decision log, never only in the conversation. When its context

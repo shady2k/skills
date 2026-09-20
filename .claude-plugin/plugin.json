@@ -1,6 +1,6 @@
 {
   "name": "shady2k-skills",
-  "version": "0.30.0",
+  "version": "0.30.1",
   "description": "Plan a feature with your agent, then let it build the whole feature on its own up to one pull request: a backlog kept honest by checks, specs with scenarios, parallel workers, review by another model, and reports in plain words with every decision it made alone. Setup connects the project once; most updates need no setup.",
   "author": {
     "name": "shady2k",

@@ -407,6 +407,18 @@ liveness check comes before any further waiting, and what it shows is said
 plainly. An agent that takes a hung worker for a slow one waits until the owner
 asks, and that hour is spent by both of them.
 
+**The bound is the forecast, and an overrun is a defect.** The time given to
+work that runs out of sight is the estimate made for that work, by
+**Estimates**, not a generous round number chosen so that nothing ever trips
+it. Passing it is a fact about the work: never wait on to see whether it
+finishes, never start it again hoping for a better run, and never raise the
+bound to make the step pass. Stop it, find out why it took longer, and file
+that as a finding like any other failure this run owns. How long tests, a
+compile, a check or any other operation takes is a measurement like its result:
+recorded, compared with what the same work took before, and a change in it
+explained. A suite that was four minutes and is now eleven has said something,
+green or not.
+
 **Cheapest check first.** Checks cost: CI and end-to-end runs take runner
 time, money and the owner's wait, and use up limits shared with everyone
 (runner minutes, image downloads, the queue). So each question gets the
