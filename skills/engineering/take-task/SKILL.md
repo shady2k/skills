@@ -80,6 +80,13 @@ Before the owner leaves, prepare the run so it needs nobody:
   the number is a guess. If that is longer than the project lets a
   branch live, the feature is too big for one run: split it with the owner
   through `to-stages` (and `/to-milestone` if the outcome changes) first;
+- **what the checks will demand at the end, established now and not at the
+  push**: run the integration's gate against the work as it stands and read
+  what a refusal would ask for, the document side included. Where it wants
+  something this project has never had — a first capability document, a record
+  never written here, an approval only the owner can give — that is work with a
+  cost, and it belongs in this batch. A demand met at the push is met with no
+  slack left, which is where the cheap way out starts to look reasonable;
 - how to reach the owner when the run stops, if the harness can notify.
 
 Bring all of it as **one batch**, each item with a recommendation and its
