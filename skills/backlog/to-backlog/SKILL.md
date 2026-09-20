@@ -52,6 +52,16 @@ config and record the decision in the charter with what was displaced.
 Deferring planned work does not lower the count of findings. Do not make an
 unapproved finding ready; filing it need not wait for the decision.
 
+Where the milestone it would join is already closed and the next one does not
+exist, deferring is not an answer the run may give itself either: the next
+slice is the third option, opened now through `to-milestone` or knowingly
+waited for. The deferred issue holds the finding while the owner decides; it
+is never the decision, and the gate going clean is never the reason it was
+made. Name what the finding costs while it waits before any count: where
+people or their data are living with the fault now, that leads, and the budget
+arithmetic follows it. A finding filed this way is reported as waiting on the
+owner, not as filed and settled.
+
 Recommend what to do: what would ship later, or what risk remains if it waits,
 and how that fits the agreed scope. Group related decisions. Do not ask about
 routine labels or fields. "Use defaults" does not allow raising the budget or
@@ -69,5 +79,8 @@ widening the milestone. Speak as the protocol's **Speaking to the owner** says.
 
 Create it with the tracker's operations and run the gate. Done when the gate is
 clean; fix a new error with its own `fix` line. A `finding-budget` error means
-step 3 was skipped. Then publish. Report "Title" (id) with its lane and, for a
-finding, the budget after it: "finding 4 of 5".
+step 3 was skipped: satisfy it by step 3's decision, never by taking the item
+out of what the check counts. Then publish. Report "Title" (id) with its lane,
+read back from the tracker rather than from what you meant to file, and, for a
+finding, the budget after it: "finding 4 of 5". A finding held for the owner's
+decision says so and what it is waiting on.

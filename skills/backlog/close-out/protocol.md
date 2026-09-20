@@ -110,6 +110,18 @@ dependency locks count as collisions.
   displaces something only by the owner's explicit decision; it never jumps to
   the front silently.
 
+**A finding that does not fit is decided, not parked.** The budget is spent, or
+the milestone it would join is already closed and the next one does not exist
+yet: then there is no lane the run may pick on its own. Deferring it with a
+review date is one of the answers to that question, not the way around asking
+it, and the owner gives it. Put the answers that exist with what each costs:
+displace named planned work and approve the new count, open the next slice now,
+or hold it knowingly until one opens. What the finding costs while it waits
+comes before any counting; where people or their data are living with the fault
+now, that is the first sentence, and a counter that measures only intake never
+decides urgency. A run that parks such a finding and reports the parking
+afterwards has taken the owner's decision.
+
 **Labels.** Every live issue, features and stages included, wears exactly one
 area label: the area that owns the behaviour.
 
@@ -349,10 +361,15 @@ one to hold to harder, not more lightly. Say what is missing and what it costs
 in their words, name the ways that make the gate pass, and take the cheapest
 one; where that cost is large enough to change what they would decide, it is a
 decision for them, put as the work to be done and never as a way past the
-check. A skip is usually permanent rather than deferred: where a check judges
-only what is new, what it never judged is never judged again. If the person
-orders one anyway, say that in one line with what ships unproven, and file it
-as a finding.
+check. A gate that counts what the slice takes in refuses by counting, and the
+cheapest way is chosen among the ways that do the work, never among the ways
+that shrink what is counted: dropping the label that puts an item in the slice,
+deferring it or narrowing it until the number fits is the same manoeuvre as
+switching the check off, and it costs more, because the record then says the
+work is not there. A skip is usually permanent rather than deferred: where a
+check judges only what is new, what it never judged is never judged again. If
+the person orders one anyway, say that in one line with what ships unproven,
+and file it as a finding.
 
 **Failures explain themselves.** Time spent collecting diagnostics or rerunning
 CI is a defect of the product and its checks. A failing test states what it
@@ -454,7 +471,12 @@ session has grown long, recommend a fresh one: at a natural
 boundary (a stage accepted, a switch to unrelated work) through `/handoff`;
 in the middle of the same work, through the harness's context compaction (for
 example `/compact`), saying what must survive it. Recommend it before the
-context is exhausted, not after.
+context is exhausted, not after. An offer to end the session carries its
+ledger, read back from the tracker and not from the session's memory: what this
+session found, each item as "Title" (id) with the lane it landed in, what was
+discussed and deliberately not filed, and what still waits on the owner. A
+count recalled instead of read is how a session that filed everything as it
+went reads to the owner as a session that filed nothing.
 
 **The gate is clean** when its report says `new errors: 0`. That line means the
 same under every strength, unlike red and green: under `report` nothing is ever

@@ -49,7 +49,11 @@ Anything left half-done is a trap the next agent cannot see.
   returns unfinished tasks to the queue with a comment on where each stands.
   That comment is the handoff for work in an issue; point at it, do not repeat
   it. If `close-out` could not finish because the gate or tracker would not
-  run, the document says which tasks were left taken and why.
+  run, the document says which tasks were left taken and why. What you tell the
+  user about what this session filed — how many, which, and the lane each one
+  landed in — is read back from the tracker, never counted from the
+  conversation; the protocol's **End with the next step** holds that ledger.
+  Anything discussed and deliberately not filed is named there too.
 - **Running things:** background commands, other agents, branches or worktrees
   you created. Say which still run and who collects them.
 - **Stage acceptance:** keep where submitted results are, the base and merged

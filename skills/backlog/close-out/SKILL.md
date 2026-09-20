@@ -99,10 +99,13 @@ memory, it may keep them too, but the agent doc is what every agent reads.
 Before publishing, run the backlog gate, the applicable document gates, and the
 commit-link check for any commits. Fix new errors without weakening the
 configured strength. Publish only through the project's authorized workflow.
+Never satisfy a count the gate keeps, such as the finding budget, by taking an
+item out of what it counts.
 
 Report by name, following the protocol's **Speaking to the owner**: what was
 accepted and on which revision, what now works, what remains pending or
-unproven, what was filed or returned, and the milestone's outcomes and finding
+unproven, what was filed or returned — each by name with the lane it landed in,
+read back from the tracker — and the milestone's outcomes and finding
 budget. If a decision is needed, recommend the next action with its time and
 risk. Do not ask the owner to read check internals or approve each routine
 closure. "Use defaults" does not waive an open acceptance limitation.
