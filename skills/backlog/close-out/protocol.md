@@ -288,9 +288,13 @@ from the product, technical, risk, cost and reversibility sides, its
 recommendation and why, and what happens if the answer comes later.
 
 The pull request is where the owner looks. Its report says what users can now
-do; how to check it yourself (what to open, what to try); every decision and
-assumption the agent made alone, and where it departed from the spec; what
-review found; what is not done; and the risks left. It follows **Speaking to
+do; how to check it yourself; every decision and assumption the agent made
+alone, and where it departed from the spec; what review found; what is not
+done; and the risks left. **How to check it yourself** is the walk the run
+already made, as a few steps in the order that matters: what to open, what to
+do, what should happen. It leads with what the agent could not reach and what
+it cannot judge for itself, such as whether this is the right thing in the
+right words; it is not a tour of the feature. It follows **Speaking to
 the owner**. The owner's acceptance is the merge; the tracker is closed after
 it.
 
@@ -380,6 +384,17 @@ cannot show:
 A failure at any step sends the work back to the cheapest check that shows it,
 never to a rerun of the whole. Use the machine well: run independent checks in
 parallel, within what it can carry while other agents share it.
+
+**Reached, not just built.** Green checks say the code does what its tests
+assert. They do not say the new behaviour can be reached: code nothing calls, a
+route nobody registered, a switch left off, a command never wired and a screen
+with no way into it all pass every test they have. So an outcome is **seen**
+before it is accepted. At the place the spec named for it, walk the happy path
+once on the accepted revision, the way a person reaches it and not the way a
+test does, and record what was seen in the words of the outcome. A spec that
+named no place said there is nothing a person can see, and acceptance repeats
+that. A walk that needs what this machine has not got is reported as not made,
+never as passed, and becomes the first thing the owner is asked to check.
 
 **CI is not where failures are diagnosed.** A CI failure is a clue: read its
 log once, then instrument the code and reproduce the failure here, recreating

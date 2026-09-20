@@ -59,7 +59,10 @@ so to the owner; changing the milestone's outcomes goes through `/to-milestone`.
 
 **Stages.** Each finishes something observable with its own DONE WHEN: a
 checkpoint that full checks, mutation testing and review accept before the
-next stage builds on it. A stage has no session limit; its tasks do. Together they meet the feature's end-to-end
+next stage builds on it. Observable means seen: carry the spec's place of
+observation down to the stage that first makes the outcome reachable there, so
+the walk happens inside the run and not only at its end. A stage has no
+session limit; its tasks do. Together they meet the feature's end-to-end
 criterion; they need not form a sequence, and independent stages and features
 run concurrently. Add a dependency only for a real required result,
 conflicting write or exclusive resource, on the affected task.

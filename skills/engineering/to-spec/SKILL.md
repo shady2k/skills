@@ -110,7 +110,12 @@ that the new checks should look like.
 What somebody will assume is in, by name.
 
 ## DONE WHEN
-The outcome's own observable check; regressions can make it false again.
+The outcome's own observable check; regressions can make it false again. With
+it, **where the outcome is seen**: the place a person reaches it (a screen, a
+command, a request, a log line) and the happy path through it, so the run walks
+that path at acceptance instead of judging for itself whether there is anything
+to look at. Name it here even when it looks obvious. If a person can see
+nothing because the outcome is internal, say that in so many words.
 ```
 
 `## DONE WHEN` stays last and belongs to the feature: the gate looks for it and

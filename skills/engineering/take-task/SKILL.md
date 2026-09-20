@@ -202,9 +202,11 @@ never goes back to ready.
 ## 6. Accept each stage
 
 With a stage's results merged, run the project's full required checks and the
-stage's DONE WHEN on the assembled revision. Then run mutation testing on
-changed logic within the configured time budget. Investigate survivors that
-matter, telling apart equivalent mutations, missing tests and tool failures.
+stage's DONE WHEN on the assembled revision. Where the stage carries the spec's
+place of observation, walk the happy path there yourself the way a person
+reaches it, and record what you saw; a walk you could not make is recorded as
+not made. Then run mutation testing on changed logic within the configured
+time budget. Investigate survivors that matter, telling apart equivalent mutations, missing tests and tool failures.
 Unsupported tools, timeouts and skipped checks are reported as such, never as
 passed. Use the project's agreed fallback; without one, stop as for a decision
 that needs the owner.
@@ -226,12 +228,15 @@ builds on an accepted one; the owner is not asked between stages.
 ## 7. Open the pull request
 
 When every stage is accepted, run the full checks and the feature's end-to-end
-criterion once more on the final branch and bring the feature's **one pull
-request** to review through the project's authorized workflow, starting its CI
-once in the way this repository's CI allows (the protocol's **Know what a push
-starts**). Write its report as the
+criterion once more on the final branch, and walk the feature's happy path once
+more at the place the spec named: behaviour nothing reaches is not done,
+however green the checks (the protocol's **Reached, not just built**). Then
+bring the feature's **one pull request** to review through the project's
+authorized workflow, starting its CI once in the way this repository's CI
+allows (the protocol's **Know what a push starts**). Write its report as the
 protocol's **Autonomy** describes: what users can now do, how to check it
-yourself, every decision and assumption made alone, departures from the spec,
+yourself as the few steps of the walk you made, every decision and assumption
+made alone, departures from the spec,
 review findings, what is not done and the risks left. Wait for its checks to go
 green; fix a red one as part of the run, back in progress until the fix is
 proven locally.
