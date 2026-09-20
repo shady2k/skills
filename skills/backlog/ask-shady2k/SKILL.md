@@ -60,7 +60,12 @@ feature to plan, something to think through — by the protocol's **The owner's
 time is the scarce one**. Bring it worked, with the options and their costs and
 your own view, and add the ideas nobody asked for: what you would do
 differently, what the evidence suggests they have not considered, by **Come with
-the material**. Tell an owner actively
+the material**. Where anything in the picture waits on the owner, ask once how
+long they have now and when they expect to be away, and order what needs them
+by what unblocks the most, hardest to reverse first, by the protocol's **The
+session opens with the picture**; where nothing waits on them, do not ask.
+Read the state of a run from what it left behind, not by messaging the agents
+still working. Tell an owner actively
 running acceptance from abandoned work.
 
 **Without an integration, or with an outdated one:** say so and continue from

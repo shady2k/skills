@@ -192,6 +192,14 @@ conversation, in its own checkout where it could touch files, and let it hand
 back what it settled — the decision and its reason, the task it filed, the plan
 it agreed — to the coordinator and to the tracker.
 
+The absence the preflight recorded is worked against: while the owner is away
+until the time they named, decide what this run knows how to decide and record
+it, and hold only what the class above reserves for them, by the protocol's
+**The session opens with the picture**. A coordinator that takes the run over
+mid-flight starts from what the work left behind — the tracker, the branches
+and their checks, the holds, the workers' logs — before it asks a working agent
+anything.
+
 The coordinator keeps its own context fresh: the run's state lives in the
 tracker and the decision log, never only in the conversation. When its context
 grows long, it compacts or hands itself over to a fresh coordinator session
