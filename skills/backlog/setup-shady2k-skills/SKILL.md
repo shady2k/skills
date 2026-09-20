@@ -299,7 +299,14 @@ tasks, closed ones included. This check is mandatory whatever the backlog's
 strength. Test the parsing on real linked and unlinked messages.
 
 **Wiring the document gate:** build the deterministic export and the wrapper
-for the agreed evidence level, described in [documents.md](documents.md). Run `product` and `feature`
+for the agreed evidence level, described in [documents.md](documents.md).
+Before enforcement starts, do what adoption owes there: record the work already
+in flight as exempt, with its descendants inheriting the exemption when it is
+split later; seed the capability catalogue with its directory and one document
+from the template; and tell the owner what the gate costs and what the first
+behaviour change after it includes, in hours. Enforcement that starts without
+these meets its first real branch at a push, hours in, and the cheapest exit
+there is a bypass. Run `product` and `feature`
 before the first product implementation, `feature` for new changes,
 `acceptance` for stage evidence and `close` before current docs are accepted.
 CI picks the actual transition and lists every affected document; neither a
@@ -386,7 +393,8 @@ An existing setup runs all of these too, even when versions match.
    entry-point proofs in documents.md: a
    missing scenario in the real format, a stale source requirement, a wrong
    task, stale or missing receipts and an unsynchronized closure. Check that
-   independent changes still pass. Adopt only the legacy scope affected now;
+   independent changes still pass, that a task split from an exempt one is
+   still exempt, and that each refusal names what would make it green. Adopt only the legacy scope affected now;
    an old plan or a model's summary is not verified state.
 
 Keep the proof evidence with the setup task. A tracker outage, missing runtime,

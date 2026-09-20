@@ -65,6 +65,30 @@ Multiple changes stay independent unless they consume the same result or compete
 for the same resource. Pin the old content of each changed requirement, not a
 single global spec revision that invalidates every parallel change.
 
+Adoption happens at a moment, and work is already in flight at that moment. The
+date the gate was adopted grandfathers commits, not work: a branch whose tasks
+predate adoption lands its commits after it and meets the full contract at push
+time, hours in, with the owner waiting. So adoption does three things before
+enforcement starts, and refuses to start it until they are done.
+
+- **List the work in flight** — open tasks, their descendants, and branches not
+  yet merged — and record it as exempt. Enforcement that begins without that
+  list is enforcement against work nobody costed.
+- **Let the exemption follow the task tree.** A descendant of an exempt task is
+  exempt, including one created by splitting it afterwards; otherwise splitting
+  a bug silently voids its exemption, which is exactly how a branch ninety
+  commits in first meets the contract at its push.
+- **Seed the capability catalogue**, with its directory and one capability
+  document from the template, so the first behaviour change pays for its own
+  record and not for inventing the catalogue as well. Where the catalogue is
+  still empty, the first behaviour change may add against an absent baseline:
+  that is a bounded job, not a cliff discovered after the code is written,
+  reviewed and green.
+
+Say what all this costs when it is adopted, in hours and in what the first
+change after it includes. A cost that arrives at the first push is a surprise,
+and a gate whose cheapest exit at push time is a bypass will be bypassed.
+
 ## Templates
 
 Use `templates/vision.md`, `roadmap.md`, `milestone.md`, `capability.md` and
@@ -88,6 +112,16 @@ and preserve complete requirement text and scenarios. Test the adapter against
 real missing sections, duplicates and changed requirements, not only hand-written
 JSON fixtures. The shipped checker is format-independent, not a universal
 Markdown parser or an automatic converter for other workflows.
+
+## A refusal describes green
+
+Every verdict the checker gives carries the shape the author must reach, and its
+text leads with the change's kind and what that kind owes. The project's wrapper
+answers to the same standard: a refusal names the kind implied by what changed,
+the sections that kind requires, whether the capability document it asks for
+exists, and the command that records each missing check. A refusal that names
+only what is wrong turns every first encounter into hours of reading the rules,
+and those are the hours in which a bypass starts to look reasonable.
 
 ## Executable contract
 
@@ -237,7 +271,11 @@ with accepted stages rather than waiting for the entire feature.
 Local commands are feedback, not a security boundary. Protected required CI can
 block merge; tracker transition enforcement needs an adapter/server guard.
 Without that, the checker detects an invalid closure but cannot stop arbitrary
-direct tracker writes. A skill cannot prevent somebody starting to type code.
+direct tracker writes. A skill cannot prevent somebody starting to type code. What
+the check can and cannot stop says nothing about whether its verdict binds: a
+refusal is owed work whoever could technically walk past it, and a check nobody
+else enforces is one to hold to harder, not more lightly. Write both sentences
+into the project's copy; the first one alone has been read as permission.
 
 Setup proves real entry points using recoverable failures: missing vision on a
 new product, missing scenario, invalid task, stale requirement, missing/stale
