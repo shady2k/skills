@@ -76,21 +76,22 @@ Before the owner leaves, prepare the run so it needs nobody:
 - which agents and models do which tasks, against each task's risk;
 - how long the run will likely take and when the pull request can be expected,
   said as a time the owner can hold it to: past it without word the run has
-  stopped, by the protocol's **A run that never came back is found**;
-- **when the owner expects to be away, and for how long**, so execution falls
-  into that window and what needs them is settled before it: every decision in
-  this batch, and anything worth their presence offered now rather than while
-  they wait, by the protocol's **The owner's time is the scarce one**;
-  in agent time with what the estimate rests on (the protocol's **Estimates**:
+  stopped, by the protocol's **A run that never came back is found**. Give it
+  in agent time, with what the estimate rests on (the protocol's **Estimates**:
   the agents' work plus CI and review waits). Start from the measured pace:
   `node runs.mjs pace --tasks <n>`, run from this skill's folder, gives the
   range similar runs took here and how far past estimates were off; quote it
   and correct your estimate by it. The journal is this machine's; where it says
   there is too little history, read the `Run measured` comments on features
   closed before, through the integration's comment operation, and estimate from
-  those. Only with neither, say the number is a guess. If that is longer than the project lets a
-  branch live, the feature is too big for one run: split it with the owner
-  through `to-stages` (and `/to-milestone` if the outcome changes) first;
+  those. Only with neither, say the number is a guess. If that is longer than
+  the project lets a branch live, the feature is too big for one run: split it
+  with the owner through `to-stages` (and `/to-milestone` if the outcome
+  changes) first;
+- **when the owner expects to be away, and for how long**, so execution falls
+  into that window and what needs them is settled before it: every decision in
+  this batch, and anything worth their presence offered now rather than while
+  they wait, by the protocol's **The owner's time is the scarce one**;
 - **what the checks will demand at the end, established now and not at the
   push**: run the integration's gate against the work as it stands and read
   what a refusal would ask for, the document side included. Where it wants
