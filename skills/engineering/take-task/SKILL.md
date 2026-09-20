@@ -177,6 +177,10 @@ restarted or given more time, and what caused it is filed. Keep what the
 checks, builds and workers took; a step that got much slower is a finding even
 when it passes, by **The bound is the forecast**.
 
+Anything put to the owner mid-run is worked first: the cause found, the options
+costed, a recommendation and what happens if the answer comes later, never a
+question they must wait behind, by the protocol's **Come with the material**.
+
 A wait is filled: while a review, a worker or a long check runs, take the next
 independent task, write the pull request's text, or run what does not depend on
 the answer. When the owner writes while the run is going, do not stop it and do

@@ -57,7 +57,10 @@ hold it left on the work, and offer taking it over or ending its record. A run
 still inside its forecast is not a reason to hold the owner: say when its result
 is due and offer what their presence is worth now — a decision waiting, the next
 feature to plan, something to think through — by the protocol's **The owner's
-time is the scarce one**. Tell an owner actively
+time is the scarce one**. Bring it worked, with the options and their costs and
+your own view, and add the ideas nobody asked for: what you would do
+differently, what the evidence suggests they have not considered, by **Come with
+the material**. Tell an owner actively
 running acceptance from abandoned work.
 
 **Without an integration, or with an outdated one:** say so and continue from
