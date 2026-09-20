@@ -183,7 +183,9 @@ question they must wait behind, by the protocol's **Come with the material**.
 
 A wait is filled: while a review, a worker or a long check runs, take the next
 independent task, write the pull request's text, or run what does not depend on
-the answer. When the owner writes while the run is going, do not stop it and do
+the answer. None of it lands on what is being waited for: a branch whose checks
+are running takes nothing but their fixes (the protocol's **A submitted branch
+is frozen**). When the owner writes while the run is going, do not stop it and do
 not answer with the coordinator's own hands: open a separate session for that
 conversation, in its own checkout where it could touch files, and let it hand
 back what it settled — the decision and its reason, the task it filed, the plan
@@ -273,7 +275,10 @@ more at the place the spec named: behaviour nothing reaches is not done,
 however green the checks (the protocol's **Reached, not just built**). Then
 bring the feature's **one pull request** to review through the project's
 authorized workflow, starting its CI once in the way this repository's CI
-allows (the protocol's **Know what a push starts**). Write its report as the
+allows (the protocol's **Know what a push starts**). Move the coordinator's own
+checkout off that branch as soon as the run is submitted, so that the tracker
+records, plans and documents the wait produces cannot land on it and restart
+every job (the protocol's **A submitted branch is frozen**). Write its report as the
 protocol's **Autonomy** describes: what users can now do, how to check it
 yourself as the few steps of the walk you made, every decision and assumption
 made alone, departures from the spec,

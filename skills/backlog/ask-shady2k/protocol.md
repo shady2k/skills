@@ -361,7 +361,8 @@ worker, a check, a deploy — it does the work that is ready meanwhile: the next
 independent task, the pull request's text, the checks that do not depend on the
 answer. Where nothing is ready, say so, with what is being waited for and when
 it is due, rather than holding the session open in silence. Waiting is the
-state of one job, never the state of the run.
+state of one job, never the state of the run. What fills a wait never lands on
+what is being waited for: a wait restarted by its own filler is waited twice.
 
 **Sessions and landing.** The owner opens the agent in the main checkout and
 talks; talking changes nothing, and a conversation that keeps nothing leaves
@@ -381,7 +382,8 @@ feature rides in that feature's branch; the rest of a conversation's plan
 (charter, backlog, other features' tasks) lands once, at its end, by a direct
 push where the main line accepts one and otherwise by one pull request.
 Tracker records kept in the repository ride with the branch where the work
-happens. Never a merge per small change. How the main line accepts changes is
+happens, unless that branch is already submitted. Never a merge per small
+change. How the main line accepts changes is
 recorded at setup; if the plan's pull request is not merged yet, the feature
 branch starts from the plan branch instead of waiting. How a change lands is
 decided this way, never asked, and never part of what the person approves;
@@ -527,6 +529,18 @@ that it will run: the pull request is open, not merged and has no conflicts (a
 pull request with conflicts runs no CI, so its push proves nothing). A merged pull
 request is never edited or reused. Report a CI run as started only after
 seeing it start.
+
+**A submitted branch is frozen.** Once its pull request is open and its run
+has started, a branch carries only what review sends back to it: the fix for
+a red check, or the change a reviewer asked for. Everything else the run makes
+meanwhile — a tracker record, a document, the next stage's plan, another
+feature's work — waits for the merge or goes on its own branch. A push there
+restarts every job, so it costs the owner a whole round on the merge they are
+waiting for, and the check evidence an acceptance names is then a different
+commit's than the one that merges. When the run is submitted, the working
+checkout moves off that branch, so that what is done next cannot land there
+by default; where the harness cannot, every push until the merge names the
+branch it is for.
 
 **Estimates are agent time.** An agent writes in minutes what takes a
 developer hours; its time goes to waiting (CI runs, reviews, the owner),
