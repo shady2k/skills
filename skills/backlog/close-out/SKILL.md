@@ -82,6 +82,10 @@ the records), ask the owner once, in one message, in plain words:
 - was there a decision the agent took alone that it should have asked about;
 - did they have to correct the agent, or finish the work for it.
 
+A run that recorded no end and passed its forecast (`stalled`) is one that
+stopped: end its record with `finish --result stopped` and say so, rather than
+leaving it counted as running.
+
 Record the answer with `verdict`, as counts and a short note. Only the owner
 can judge these; never fill them in yourself. If they skip it, record nothing
 and do not ask again for this feature. Then put `summary`'s numbers on the

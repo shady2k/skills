@@ -407,6 +407,16 @@ liveness check comes before any further waiting, and what it shows is said
 plainly. An agent that takes a hung worker for a slow one waits until the owner
 asks, and that hour is spent by both of them.
 
+**A run that never came back is found, not assumed.** An unattended run cannot
+report its own death; what it leaves behind is a hold that stops moving and a
+record with no end. So before it goes unattended it says when its result is
+due, and past that time silence means it stopped, not that it is working. Every
+session that looks at the work afterwards — the next coordinator, orientation,
+closing out — names each run that passed its forecast with no end recorded,
+with what it last did and when, and offers to take it over or to end its
+record. None of them reads a taken task with a dead run behind it as work in
+progress.
+
 **The bound is the forecast, and an overrun is a defect.** The time given to
 work that runs out of sight is the estimate made for that work, by
 **Estimates**, not a generous round number chosen so that nothing ever trips

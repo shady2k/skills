@@ -215,6 +215,8 @@ function report(project, opts) {
     rescues: sum(judged, (r) => r.verdict.rescues),
     recoveries: Object.fromEntries(GRADES.map((g) => [g, sum(runs, (r) => (r.recoveries || []).filter((x) => x.grade === g).length)])),
     pace: pace(project, {}),
+    open: runs.filter((r) => !r.finishedAt).length,
+    pastForecast: stalled(project).filter((r) => r.pastForecast).length,
   };
   if (!opts['no-transcripts']) {
     const spent = accepted.map(spend).filter((s) => s.found);
@@ -264,6 +266,37 @@ function describeSummary(s) {
       `agent ${s.spend.agentMinutes} min; tokens ${s.spend.input} in, ${s.spend.output} out`
     : 'Owner attention and agent time not measured: no transcript found');
   return lines.join('\n');
+}
+
+// Runs that started and never came back: an unattended run cannot report its
+// own death, so what it leaves is a record with no end, found by whoever looks.
+function stalled(project) {
+  return all(project).filter((r) => !r.finishedAt).map((r) => {
+    const events = r.events || [];
+    const last = events.length ? events.at(-1).at : (r.sessions || []).map((x) => x.at).pop() || r.startedAt;
+    const e = events.at(-1);
+    return {
+      run: r.id, feature: r.feature, startedAt: r.startedAt,
+      estimatedMinutes: r.estimate.workMinutes + r.estimate.waitMinutes,
+      runningMinutes: round(minutes(r.startedAt, now())),
+      quietMinutes: round(minutes(last, now())),
+      lastEvent: e ? `${e.kind}${e.reason ? ` (${e.reason})` : ''}` : null,
+      pastForecast: minutes(r.startedAt, now()) > r.estimate.workMinutes + r.estimate.waitMinutes,
+    };
+  });
+}
+
+function describeStalled(rows) {
+  if (!rows.length) return 'No run is open.';
+  const late = rows.filter((r) => r.pastForecast);
+  const line = (r) => `${r.run}: ${r.runningMinutes} min against a forecast of ${r.estimatedMinutes}, ` +
+    `quiet ${r.quietMinutes} min, last ${r.lastEvent || 'nothing recorded'} \u2014 ${r.feature}`;
+  const out = late.length
+    ? [`${late.length} run(s) past their forecast with no end recorded:`, ...late.map(line)]
+    : ['No run is past its forecast.'];
+  const running = rows.filter((r) => !r.pastForecast);
+  if (running.length) out.push(`${running.length} run(s) still inside their forecast.`);
+  return out.join('\n');
 }
 
 function describePace(p) {
@@ -361,6 +394,10 @@ function run(argv) {
       return print(runs, runs.map((r) =>
         `${r.id}  ${r.result || 'running'}${r.verdict ? `, ${r.verdict.accepted}` : ''}  ${r.feature}`).join('\n') || 'no runs');
     }
+    case 'stalled': {
+      const rows = stalled(project());
+      return print(rows, describeStalled(rows));
+    }
     case 'summary': {
       const { run: r } = ref();
       const out = summary(r);
@@ -379,6 +416,7 @@ function run(argv) {
         `Stops: for the owner ${r.stops.owner}, missing information ${r.stops.missing}`,
         `Avoidable questions ${r.avoidableQuestions}, missed escalations ${r.missedEscalations}, corrections ${r.corrections}, rescues ${r.rescues}`,
         `Recoveries ${GRADES.map((g) => `${g} ${r.recoveries[g]}`).join(', ')}`,
+        `Open runs ${r.open}, of them past their forecast with no end recorded ${r.pastForecast}`,
         describePace(r.pace),
       ];
       if (r.spend) lines.push(r.spend.runsMeasured
@@ -401,6 +439,7 @@ runs.mjs finish <run> --result pull-request|abandoned|stopped [--pr <url>]
 runs.mjs verdict <run> --accepted as-is|after-changes|abandoned [--avoidable N] [--missed N] [--corrections N] [--rescues N] [--note <text>]
 runs.mjs recovery <run> --grade R0|R1|R2|R3 [--from <h>] [--to <h>] [--note <text>]
 runs.mjs summary <run>   one run's measured numbers, for the tracker comment that carries them
+runs.mjs stalled         runs that started and recorded no end, and which passed their forecast
 runs.mjs list | pace [--tasks N] | report [--no-transcripts]
 Every command takes [--project <name>] (default: the checkout's main folder name) and [--json].
 Records live in $SHADY2K_STATE_DIR, else $XDG_STATE_HOME/shady2k-skills, else ~/.local/state/shady2k-skills.
@@ -483,6 +522,23 @@ function selftest() {
     expect('tokens are summed once per request', r.spend.medianTokens === 440);
     expect('a session without a transcript is counted as unmeasured', r.spend.sessionsWithoutTranscript === 1);
     expect('too little history says so', !JSON.parse(run(['pace', '--project', 'empty', '--json'])).enough);
+
+    const open = cli('start', '--feature', 'Open run', '--work', '10', '--wait', '5').split('\n')[0];
+    const openPath = join(process.env.SHADY2K_STATE_DIR, 'runs', 'demo', `${open}.json`);
+    const stale = JSON.parse(readFileSync(openPath, 'utf8'));
+    stale.startedAt = new Date(Date.now() - 120 * 60e3).toISOString();
+    save(openPath, stale);
+    const fresh = cli('start', '--feature', 'Fresh run', '--work', '60', '--wait', '30').split('\n')[0];
+    const late = JSON.parse(cli('stalled', '--json'));
+    expect('a run with no end recorded is found', late.some((r) => r.run === open) && late.some((r) => r.run === fresh));
+    expect('only a run past its forecast is called late', late.find((r) => r.run === open).pastForecast
+      && !late.find((r) => r.run === fresh).pastForecast);
+    expect('a late run says how long it has been quiet', late.find((r) => r.run === open).quietMinutes >= 119);
+    expect('finished runs are not open', !late.some((r) => ids.includes(r.run)));
+    const withOpen = JSON.parse(cli('report', '--no-transcripts', '--json'));
+    expect('the report counts open runs and late ones', withOpen.open === 3 && withOpen.pastForecast === 1);
+    cli('finish', open, '--result', 'stopped');
+    expect('ending the record closes the question', !JSON.parse(cli('stalled', '--json')).some((r) => r.run === open));
 
     const sum = JSON.parse(cli('summary', ids[0], '--json'));
     expect('summary gives one run\'s estimate against what it took', sum.estimatedMinutes === 30 && sum.tookMinutes === 60);

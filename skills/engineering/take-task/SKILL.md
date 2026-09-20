@@ -25,7 +25,10 @@ feature of the current milestone by name. Find or file the tracked work before
 any implementation. Read its requirements, spec, charter and code. Work already
 `submitted` resumes at integration and an `implemented` stage at acceptance,
 never from scratch. A run already under way continues its record in the run
-journal (`node runs.mjs list`) rather than starting a new one. When the owner
+journal (`node runs.mjs list`) rather than starting a new one; `stalled` shows
+the runs that recorded no end and which passed their forecast, and one of those
+on this feature is taken over or ended with `finish --result stopped` before a
+new record is started, never left open beside it. When the owner
 is testing recovery (they stopped a session on purpose and ask this one to
 continue), ask them afterwards for a grade and record it with `recovery`:
 R3 continued correctly, R2 recovered but redid work, R1 needed explanations,
@@ -72,6 +75,8 @@ Before the owner leaves, prepare the run so it needs nobody:
   recommend one and ask here;
 - which agents and models do which tasks, against each task's risk;
 - how long the run will likely take and when the pull request can be expected,
+  said as a time the owner can hold it to: past it without word the run has
+  stopped, by the protocol's **A run that never came back is found**;
   in agent time with what the estimate rests on (the protocol's **Estimates**:
   the agents' work plus CI and review waits). Start from the measured pace:
   `node runs.mjs pace --tasks <n>`, run from this skill's folder, gives the

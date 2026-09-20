@@ -51,7 +51,9 @@ the run journal's `report` and `pace` ([`runs.mjs`](runs.mjs), run with `node`
 from this skill's folder): how past runs went and how long work really takes
 here. The journal is this machine's; where it is thin or missing, the
 `Run measured` comments on closed features carry the same numbers from wherever
-those runs happened. Tell an owner actively
+those runs happened. Its `stalled` names runs that recorded no end and
+passed their forecast: report each with what it last did and when, next to the
+hold it left on the work, and offer taking it over or ending its record. Tell an owner actively
 running acceptance from abandoned work.
 
 **Without an integration, or with an outdated one:** say so and continue from
