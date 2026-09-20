@@ -145,6 +145,19 @@ setup files its own task before any gate exists. Read-only discussion needs no
 issue until it produces work to keep. The commit check verifies links; a clean
 backlog does not.
 
+**Nothing of value stays only in this session.** A conversation is the one
+place work cannot be recovered from: its files are uncommitted, what it found
+is unfiled, and what it learned is in nobody's memory but the agent's. Version
+control's status is the test of that, and it is read rather than recalled. When
+a piece of work ends, and always before offering to stop, hand over, compact or
+start a fresh session, name what this session changed that no commit holds,
+which task each change belongs to, and what would carry it; where there is no
+task, filing one is the next step offered, as **Tracked work** says. What the
+session learned and has nowhere else to live goes through `handoff` the same
+way. Say each thing once, not in every message: this is a duty to leave nothing
+behind, not a checklist to recite. A session that changed files and ended with
+none of it said has lost the work, whatever stopped it.
+
 **Exploration is not admission.** Discussion, imagination and read-only
 research may end with no result, task or document. A hypothesis is not an
 approved requirement, and a scratch experiment does not authorize production
