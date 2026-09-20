@@ -323,6 +323,34 @@ right words; it is not a tour of the feature. It follows **Speaking to
 the owner**. The owner's acceptance is the merge; the tracker is closed after
 it.
 
+**The owner's time is the scarce one.** A run is cheap to restart; an hour of
+the owner's attention is not, and it is the only input the agents cannot
+produce. So the two states are told apart and used for different work. **While
+the owner is there**, spend that time on what only they can give: the decision,
+the plan, the argument about what to build, the judgement of a result. Not on
+watching execution, not on progress they did not ask for, and not on waiting
+beside them for a job to finish. **While the owner is away**, execute:
+everything that needs nobody runs then, and independent work runs at once, by
+**Parallelism**. The preflight asks when they expect to be away and for how
+long, and the run is shaped to fill that window rather than to fill the hour
+they are sitting in.
+
+A run in flight does not stop because the owner starts talking, and their
+message is not something the coordinator serves with its own hands. The
+coordinator opens a separate session for the conversation — in its own checkout
+where the talk could touch files — and keeps executing. That session plans,
+explores or decides, and returns its result: the decision and its reason, the
+task it filed, the plan it agreed, handed back to the coordinator and written
+in the tracker, so nothing of it survives only as the memory of a conversation
+the run cannot read.
+
+**A wait is filled.** Where the run waits on something long — a review, a
+worker, a check, a deploy — it does the work that is ready meanwhile: the next
+independent task, the pull request's text, the checks that do not depend on the
+answer. Where nothing is ready, say so, with what is being waited for and when
+it is due, rather than holding the session open in silence. Waiting is the
+state of one job, never the state of the run.
+
 **Sessions and landing.** The owner opens the agent in the main checkout and
 talks; talking changes nothing, and a conversation that keeps nothing leaves
 no branch behind. When the first thing is to be kept (a task, a spec, a

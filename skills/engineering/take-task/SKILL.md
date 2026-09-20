@@ -77,6 +77,10 @@ Before the owner leaves, prepare the run so it needs nobody:
 - how long the run will likely take and when the pull request can be expected,
   said as a time the owner can hold it to: past it without word the run has
   stopped, by the protocol's **A run that never came back is found**;
+- **when the owner expects to be away, and for how long**, so execution falls
+  into that window and what needs them is settled before it: every decision in
+  this batch, and anything worth their presence offered now rather than while
+  they wait, by the protocol's **The owner's time is the scarce one**;
   in agent time with what the estimate rests on (the protocol's **Estimates**:
   the agents' work plus CI and review waits). Start from the measured pace:
   `node runs.mjs pace --tasks <n>`, run from this skill's folder, gives the
@@ -172,6 +176,14 @@ number large enough never to trip: an overrun is stopped and diagnosed, never
 restarted or given more time, and what caused it is filed. Keep what the
 checks, builds and workers took; a step that got much slower is a finding even
 when it passes, by **The bound is the forecast**.
+
+A wait is filled: while a review, a worker or a long check runs, take the next
+independent task, write the pull request's text, or run what does not depend on
+the answer. When the owner writes while the run is going, do not stop it and do
+not answer with the coordinator's own hands: open a separate session for that
+conversation, in its own checkout where it could touch files, and let it hand
+back what it settled — the decision and its reason, the task it filed, the plan
+it agreed — to the coordinator and to the tracker.
 
 The coordinator keeps its own context fresh: the run's state lives in the
 tracker and the decision log, never only in the conversation. When its context

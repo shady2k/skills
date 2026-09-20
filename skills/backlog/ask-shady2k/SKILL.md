@@ -53,7 +53,11 @@ here. The journal is this machine's; where it is thin or missing, the
 `Run measured` comments on closed features carry the same numbers from wherever
 those runs happened. Its `stalled` names runs that recorded no end and
 passed their forecast: report each with what it last did and when, next to the
-hold it left on the work, and offer taking it over or ending its record. Tell an owner actively
+hold it left on the work, and offer taking it over or ending its record. A run
+still inside its forecast is not a reason to hold the owner: say when its result
+is due and offer what their presence is worth now — a decision waiting, the next
+feature to plan, something to think through — by the protocol's **The owner's
+time is the scarce one**. Tell an owner actively
 running acceptance from abandoned work.
 
 **Without an integration, or with an outdated one:** say so and continue from
