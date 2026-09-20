@@ -76,8 +76,10 @@ Before the owner leaves, prepare the run so it needs nobody:
   the agents' work plus CI and review waits). Start from the measured pace:
   `node runs.mjs pace --tasks <n>`, run from this skill's folder, gives the
   range similar runs took here and how far past estimates were off; quote it
-  and correct your estimate by it. If it says there is too little history, say
-  the number is a guess. If that is longer than the project lets a
+  and correct your estimate by it. The journal is this machine's; where it says
+  there is too little history, read the `Run measured` comments on features
+  closed before, through the integration's comment operation, and estimate from
+  those. Only with neither, say the number is a guess. If that is longer than the project lets a
   branch live, the feature is too big for one run: split it with the owner
   through `to-stages` (and `/to-milestone` if the outcome changes) first;
 - **what the checks will demand at the end, established now and not at the
@@ -115,7 +117,13 @@ the end:
   must make, `--reason missing` for information the project did not have;
   every decision made alone: `event --kind decision`; every CI run:
   `event --kind ci`; each with a one-line note;
-- when the pull request is ready or the run ends without one: `finish`.
+- when the pull request is ready or the run ends without one: `finish`, and
+  then `summary`, whose numbers go on the feature in the tracker as a comment
+  headed `Run measured`, written in the project's artifact language. That
+  comment is the only part of the journal another machine, session or agent can
+  read, and what a later estimate rests on when this machine's records are not
+  there. Put the numbers as they are measured; a run that went badly is
+  measured the same as one that went well.
 
 Run it with `node` from this skill's folder; `--help` lists the commands. The
 record is for measuring, not reading, and is never shown to the owner as such.
@@ -148,6 +156,13 @@ Before any worker starts, check which agent and model will actually run it
 against the task's risk and the agreed execution settings; a harness may pick
 its own default. If it is weaker than the task needs, switch it before
 starting; never find out after the worker is already writing.
+
+Nothing runs unbounded. Every worker, review or long command starts with a hard
+timeout and writes where its progress can be seen as it goes, never through a
+pipe that holds the output to the end. Confirm it actually started before
+turning to other work, and when it passes the time that work took before, run
+the cheap liveness check instead of waiting on, as the protocol's **Silence is
+not progress** says.
 
 The coordinator keeps its own context fresh: the run's state lives in the
 tracker and the decision log, never only in the conversation. When its context

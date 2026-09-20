@@ -84,7 +84,11 @@ the records), ask the owner once, in one message, in plain words:
 
 Record the answer with `verdict`, as counts and a short note. Only the owner
 can judge these; never fill them in yourself. If they skip it, record nothing
-and do not ask again for this feature.
+and do not ask again for this feature. Then put `summary`'s numbers on the
+feature as a comment headed `Run measured`, in the project's artifact language,
+where the run did not leave one; where it did, add the verdict to it. Off this
+machine that comment is the whole measured history, so a feature closing
+without it leaves the next estimate to guesswork.
 
 Then look for **lessons that outlive the feature**: the traps in its handoff
 notes, run notes and review findings that would cost time again in other work,

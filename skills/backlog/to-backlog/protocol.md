@@ -396,6 +396,17 @@ conventions once, as a recorded decision, and every change follows them. When
 a diagnosis stalls for lack of logs, adding them comes first, and the gap is a
 finding.
 
+**Silence is not progress.** Work handed to another agent, a long command, or
+anything else that runs out of sight is given a hard time bound before it
+starts, taken from what similar work took. That it began is proved, not
+assumed: output arriving, a file growing or processor time moving, looked at
+once in the first minutes. Never send such work through something that holds
+its output until the end, which makes "never started" look exactly like "still
+thinking". When the wait passes what that work has taken before, the cheap
+liveness check comes before any further waiting, and what it shows is said
+plainly. An agent that takes a hung worker for a slow one waits until the owner
+asks, and that hour is spent by both of them.
+
 **Cheapest check first.** Checks cost: CI and end-to-end runs take runner
 time, money and the owner's wait, and use up limits shared with everyone
 (runner minutes, image downloads, the queue). So each question gets the
@@ -459,8 +470,10 @@ seeing it start.
 developer hours; its time goes to waiting (CI runs, reviews, the owner),
 rework after a red check, and diagnosis. Estimate from this project's own
 history, measured rather than recalled: the run journal's pace where it has
-enough runs (how long similar runs took, and how far past estimates were off),
-otherwise the tracker's and git's timestamps and how long a CI run takes.
+enough runs (how long similar runs took, and how far past estimates were off);
+that journal is one machine's, so where it is thin the same numbers are read
+from what finished runs left on their features in the tracker; otherwise the
+tracker's and git's timestamps and how long a CI run takes.
 Correct an estimate by how far past ones were off; a model's own sense of time
 runs short. Give the number as a range, the agent's work plus the waits
 ("about twenty to forty minutes of work, then two CI runs of half an hour").

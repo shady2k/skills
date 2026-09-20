@@ -231,6 +231,41 @@ function report(project, opts) {
   return out;
 }
 
+// One run's measured numbers, for the comment that carries them off this
+// machine: the journal is local state, a tracker comment is read from anywhere.
+function summary(r) {
+  const stops = (r.events || []).filter((e) => e.kind === 'stop');
+  const out = {
+    run: r.id, feature: r.feature, startedAt: r.startedAt, finishedAt: r.finishedAt || null,
+    result: r.result || 'running',
+    estimatedMinutes: r.estimate.workMinutes + r.estimate.waitMinutes,
+    tookMinutes: round(minutes(r.startedAt, r.finishedAt || now())),
+    tasks: r.estimate.tasks, stages: r.estimate.stages,
+    stops: { owner: stops.filter((e) => e.reason === 'owner').length, missing: stops.filter((e) => e.reason === 'missing').length },
+    ci: (r.events || []).filter((e) => e.kind === 'ci').length,
+    accepted: r.verdict ? r.verdict.accepted : null,
+  };
+  const s = spend(r);
+  if (s.found) out.spend = {
+    ownerMessages: s.ownerMessages, attentionMinutes: round(s.attentionMinutes),
+    agentMinutes: round(s.agentMinutes), input: s.input, output: s.output,
+  };
+  return out;
+}
+
+function describeSummary(s) {
+  const lines = [
+    `Run ${s.run}, ${s.result}${s.accepted ? `, accepted ${s.accepted}` : ''}, ${(s.finishedAt || s.startedAt).slice(0, 10)}`,
+    `Estimated ${s.estimatedMinutes} min for ${s.tasks} task(s) in ${s.stages} stage(s); took ${s.tookMinutes} min`,
+    `Stops: for the owner ${s.stops.owner}, missing information ${s.stops.missing}; CI runs ${s.ci}`,
+  ];
+  lines.push(s.spend
+    ? `Owner attention ${s.spend.attentionMinutes} min over ${s.spend.ownerMessages} message(s); ` +
+      `agent ${s.spend.agentMinutes} min; tokens ${s.spend.input} in, ${s.spend.output} out`
+    : 'Owner attention and agent time not measured: no transcript found');
+  return lines.join('\n');
+}
+
 function describePace(p) {
   if (!p.enough) return `Too little history for a measured estimate: ${p.runs} finished run(s), 3 needed. Any estimate is a guess.`;
   return `Similar work took ${p.low}-${p.high} minutes (${p.basis}). ` +
@@ -326,6 +361,11 @@ function run(argv) {
       return print(runs, runs.map((r) =>
         `${r.id}  ${r.result || 'running'}${r.verdict ? `, ${r.verdict.accepted}` : ''}  ${r.feature}`).join('\n') || 'no runs');
     }
+    case 'summary': {
+      const { run: r } = ref();
+      const out = summary(r);
+      return print(out, describeSummary(out));
+    }
     case 'pace': {
       const p = pace(project(), opts);
       return print(p, describePace(p));
@@ -360,6 +400,7 @@ runs.mjs event <run> --kind stop|decision|ci [--reason owner|missing] [--note <t
 runs.mjs finish <run> --result pull-request|abandoned|stopped [--pr <url>]
 runs.mjs verdict <run> --accepted as-is|after-changes|abandoned [--avoidable N] [--missed N] [--corrections N] [--rescues N] [--note <text>]
 runs.mjs recovery <run> --grade R0|R1|R2|R3 [--from <h>] [--to <h>] [--note <text>]
+runs.mjs summary <run>   one run's measured numbers, for the tracker comment that carries them
 runs.mjs list | pace [--tasks N] | report [--no-transcripts]
 Every command takes [--project <name>] (default: the checkout's main folder name) and [--json].
 Records live in $SHADY2K_STATE_DIR, else $XDG_STATE_HOME/shady2k-skills, else ~/.local/state/shady2k-skills.
@@ -443,6 +484,15 @@ function selftest() {
     expect('a session without a transcript is counted as unmeasured', r.spend.sessionsWithoutTranscript === 1);
     expect('too little history says so', !JSON.parse(run(['pace', '--project', 'empty', '--json'])).enough);
 
+    const sum = JSON.parse(cli('summary', ids[0], '--json'));
+    expect('summary gives one run\'s estimate against what it took', sum.estimatedMinutes === 30 && sum.tookMinutes === 60);
+    expect('summary carries the stops, the verdict and the size', sum.stops.owner === 1 && sum.accepted === 'as-is' && sum.tasks === 2);
+    expect('summary carries the measured attention where a transcript exists', sum.spend.attentionMinutes === 7 && sum.spend.ownerMessages === 3);
+    const unmeasured = JSON.parse(cli('summary', ids[1], '--json'));
+    expect('summary says nothing it did not measure', unmeasured.spend === undefined);
+    expect('the text says both numbers', cli('summary', ids[0]).includes('estimated 30 min')
+      || cli('summary', ids[0]).includes('Estimated 30 min'));
+
     expect('misuse: unknown command', misuse(['frobnicate', '--project', 'demo']));
     expect('misuse: start without estimate', misuse(['start', '--project', 'demo', '--feature', 'x']));
     expect('misuse: stop without reason', misuse(['event', ids[0], '--project', 'demo', '--kind', 'stop']));
@@ -451,6 +501,7 @@ function selftest() {
     expect('misuse: harness without session', misuse(['session', ids[0], '--project', 'demo', '--harness', 'codex']));
     expect('misuse: no session given or found', misuse(['session', ids[0], '--project', 'demo']));
     expect('misuse: missing run', misuse(['finish', 'nope', '--project', 'demo', '--result', 'abandoned']));
+    expect('misuse: summary without a run', misuse(['summary', '--project', 'demo']));
   } finally {
     process.env = saved;
     rmSync(home, { recursive: true, force: true });
