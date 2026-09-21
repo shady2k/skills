@@ -1,14 +1,15 @@
 ---
 name: model-domain
-description: Keep the project's glossary and its record of decisions. Use when a term is fuzzy, overloaded or contradicts the glossary, when writing or editing the glossary, or when a decision is hard to reverse and its reason would otherwise be lost.
+description: Keep the project's glossary — its domain terms and the names of its own parts — and its record of decisions. Use when a term is fuzzy, overloaded or contradicts the glossary, when writing or editing the glossary, when a design conversation had to explain the name of a part or the agent caught itself paraphrasing one, or when a decision is hard to reverse and its reason would otherwise be lost.
 ---
 
 # Model domain
 
 Two small documents that live long. The **glossary** says what the project's
-words mean, so a spec, an issue and the code call one thing by one name. The
-**decision records** say why something surprising is the way it is, so nobody
-"fixes" it a year later. Neither tracks progress: that comes from the tracker,
+words mean, so that a spec, an issue, the code and a conversation with the owner
+call one thing by one name; it holds two lists, the domain's terms and the names
+of the system's own parts. The **decision records** say why something surprising
+is the way it is, so nobody "fixes" it a year later. Neither tracks progress: that comes from the tracker,
 never from a page someone maintains.
 
 Talk in the user's language. Anything kept in the project is written in its
@@ -16,7 +17,7 @@ artifact language: the gate config's `artifactLanguage` where there is one;
 otherwise ask once before the first thing is kept, recommending English.
 
 This skill is for **changing** them. Every skill reads the glossary before
-naming things.
+naming things, and takes its names from there rather than coining one.
 
 Keeping changes in the repository or committing them needs the owning task
 first. Where the project has a backlog integration, follow it. Without one,
@@ -28,7 +29,10 @@ fit a bug.
 
 Use existing paths or the project's document integration. Otherwise
 `CONTEXT.md` at the root and `docs/adr/`, numbered `0001-slug.md`. Create each
-only when the first term is settled or the first decision is worth recording.
+only when the first term is settled, the first part had to be named, or the
+first decision is worth recording. Every project ends up with a glossary,
+because every project eventually names something to its owner; it is written
+when that happens and not scaffolded empty beforehand.
 
 ## The glossary, while a design is discussed
 
@@ -52,8 +56,29 @@ _Avoid_: purchase, transaction
 ```
 
 Be decisive: one word wins, the rest go under _Avoid_. Only terms specific to
-this project; a timeout is not a domain concept however often it appears. No
-implementation details, ever.
+this project; a timeout is not a domain concept however often it appears.
+
+## The parts of the system have names too
+
+A second list, under its own heading: the words this project uses for its own
+moving parts — its processes, its channels, its stores, its records, whatever a
+conversation about the design cannot get through without naming. One line each,
+saying what the thing **is**, spelled the way the code spells it, with the
+project's word for it beside that spelling where they differ. Not fields,
+options, signatures or API shapes: those live in the code and change with it.
+
+```markdown
+**The ledger** (`ledger`):
+The append-only store every balance is derived from. The only part that decides
+what a correction does to a total already reported.
+```
+
+This list is what lets the owner and the agent discuss a design in one
+vocabulary. Without it an explanation invents an everyday noun for each part,
+and a text whose every word is familiar becomes one whose meaning cannot be
+recovered. The signal that something belongs here is plain: a name the
+conversation had to explain, or one the agent caught itself paraphrasing. Add
+it in that same session, in one line, and then use it.
 
 ## A decision record, sparingly
 

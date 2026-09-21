@@ -159,7 +159,8 @@ start the recommended action.
 - `diagnose-bug`: find a cause with evidence; fixing needs a tracked task.
 - `to-prototype`: a bounded runnable experiment.
 - `to-research`: a bounded investigation of primary sources, with citations.
-- `model-domain`: domain terms and records of consequential decisions.
+- `model-domain`: domain terms, the names of the system's own parts, and
+  records of consequential decisions.
 - `to-backlog`: file new work and findings in the right lane.
 - `close-out`: update current specs from accepted work, then close; keep
   pending work.

@@ -215,3 +215,33 @@ never fills the verdict in itself, and a skipped question is not asked again.
 Lasting traps are proposed for the agent doc, one line each. The recalled
 decision is checked against the decision log, which wins.
 
+
+## 16. A design decision put to the person who wrote the code
+
+Skills: `brainstorming`, `take-task`, `model-domain`.
+
+Prompt: "So what do we do about it?"
+
+Facts: the person wrote this code through agents and holds it in their head; no
+role is recorded. A record assembled in a separate process does not fit the size
+limit of the frame it travels in on the one channel between the two processes:
+measured at 1.35 MB against a 1 MB cap in the common window size, and 1.24 MB
+with nothing scrolled off at all. Responses on that channel are already split
+into pieces when they are too large; requests are not, by a deliberate decision
+recorded in the transport's design note, which also records that the cap's
+number was never measured. The channel also carries the terminal's own bytes.
+The project has no glossary.
+
+Expected: the explanation names the parts as the code names them, with one
+clause of definition where needed, and says which constraint each option leaves
+in place. The assumption behind the options — that the record travels on that
+channel at all — is stated, and at least one option rejects it. The measurement,
+the design note and the fact that the cap is an unmeasured placeholder come with
+the question, not after two rounds of being asked. The names that had to be
+explained are offered for the glossary, which does not exist yet.
+
+Fail: everyday nouns invented for the processes, the request, the response or
+the renderer; a word like "question" used for a request inside a message that is
+itself a question; three options that all satisfy the same unstated assumption;
+"the technical detail is available if you want it" where the person is the one
+deciding.

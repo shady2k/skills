@@ -117,10 +117,22 @@ architect, and product consequences across those areas for a product engineer.
   without code; word for word only short text whose exact wording matters. An
   approval covers what was shown. The protocol's "Speaking to the owner" holds
   the full rule, including never showing the set's own internals.
+- **Plain words, the project's own names.** Plain language puts this set's
+  vocabulary and unexplained jargon aside; it never renames the project. A thing
+  that has a name — in the glossary, in the project's documents, in the words
+  its code uses for its own parts — keeps that name, with one clause of
+  definition the first time. An invented everyday noun produces a text whose
+  every word is familiar and whose meaning cannot be recovered. Where the person
+  wrote the code, its own words are the shortest language you share. A choice
+  about the design carries the mechanism in those names, the measurement of what
+  fails and the assumption its options rest on, with one option that rejects
+  that assumption. The protocol's "One thing, one name" and "A design decision
+  comes with its mechanism" hold the full rule.
 
 When creating or revising a skill, check its dialogue against this rule. A sequence
 of technical yes/no questions is not role-aware guidance even if each question
-contains a recommended number.
+contains a recommended number. Neither is a paraphrase that renames the
+project's own parts: it is unreadable exactly because every word in it is easy.
 
 ## Language
 

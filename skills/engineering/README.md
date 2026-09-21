@@ -16,4 +16,5 @@ Also available directly to the user.
 - [to-prototype](./to-prototype/SKILL.md): bounded runnable evidence for one question.
 - [diagnose-bug](./diagnose-bug/SKILL.md): diagnosis with evidence; fixing requires
   an authorized tracked task.
-- [model-domain](./model-domain/SKILL.md): glossary and consequential decisions.
+- [model-domain](./model-domain/SKILL.md): glossary, the names of the system's
+  own parts, and consequential decisions.

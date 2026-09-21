@@ -169,8 +169,11 @@ outcomes and order, without copying tracker status or creating dependencies.
 The charter bounds the current slice. Current capability specs describe
 accepted behaviour on the main line; change records describe proposals as
 pinned requirement deltas. Design and decision records explain how and why,
-only where useful. Use the project's paths and templates and adopt existing
-documents where they are.
+only where useful. Every project has a **glossary**: the words for its domain,
+and the words it uses for its own parts, one line each. It is where a name is
+taken from and not coined per message, by **One thing, one name, and it is the
+project's**; `model-domain` keeps it. Use the project's paths and templates and
+adopt existing documents where they are.
 
 The document gate runs separately from the backlog's strength. It checks
 product intent before the first implementation, feature readiness before work
@@ -199,7 +202,12 @@ and the tools are for the agent. The person reads what they mean for the work,
 in their own language. Use the person's established role, otherwise **product
 engineer**: someone who owns the product and its trade-offs and builds through
 agents, without holding the code or tool settings in their head. Explain in
-consequences for users, time, cost and risk. Say instead:
+consequences for users, time, cost and risk. Where the person is also this
+code's engineer, because they wrote it by hand or through agents, the register
+does not drop to identifiers and status values, but their code's own words are
+the shortest language you already share: use them, and bring the measurement
+and where the decision is written down with the explanation instead of waiting
+to be asked for it. Say instead:
 
 | internal | what the person reads |
 | --- | --- |
@@ -226,6 +234,22 @@ what is needed from the person. Show what changes and what needs a decision;
 what stays as it was takes one line. Diagnostics and proof belong with the
 task that did the work, available on request, not in the message.
 
+**One thing, one name, and it is the project's.** Putting this protocol's
+vocabulary aside is not licence to rename the project's. A thing that already
+has a name — in the glossary, in the project's documents, in the words its own
+code uses for its own parts — is called by that name and by no other. An
+everyday noun invented for it ("the assistant" for a process, "a question" for
+a request, "the drawer" for a renderer) makes a text in which every word is
+familiar and the meaning cannot be recovered: the reader is translating from a
+dictionary nobody handed them, fluent prose leaves no visible gap where a term
+went undefined, and they conclude the failure is theirs. An invented everyday
+noun also keeps its everyday meaning, so "a question cannot be split", inside a
+message that is itself a question, is read the wrong way first. Where the person
+may not know a name, it gets one clause of definition the first time and keeps
+the name afterwards; where the name lives only in the code, say it as the code
+spells it and what it is. A name this conversation had to explain goes into the
+glossary the same session, so the next one starts from the same words.
+
 Never show the kitchen: how this set works inside is not the person's
 concern: versions of the set or its checks, what changed inside the skills,
 the gate, adapter, hooks, receipts, config or integration doc, paths of the
@@ -236,12 +260,15 @@ person must act on it themselves, and then in plain words. The same goes for
 changes to the set's own bookkeeping: where it keeps versions, which fields it
 added or removed. If nothing changes for the person's work, say nothing.
 
-Before sending anything to the person, reread it once for three slips that
+Before sending anything to the person, reread it once for four slips that
 happen even when the rules are known: an id without its title (look the title
 up), an internal word from this protocol, the config or the tools (use the
-table above), and a sentence in a language other than theirs. No code either: no
-snippets, function names or file paths; describe the behaviour a user or
-operator would see, and give technical detail only when the person asks.
+table above), a thing of the project's renamed into a word of your own (put its
+own word back), and a sentence in a language other than theirs. No code either:
+no snippets, function names or file paths offered in place of an explanation;
+describe the behaviour a user or operator would see. Detail the person's own
+decision rests on is not technical detail on request: it comes with the
+decision, by **A design decision comes with its mechanism**.
 
 Waiting is quiet. While background work runs (CI, other agents, long
 commands), do not report each event as it arrives: one line when the wait
@@ -378,6 +405,17 @@ agent owes more than answers to what was asked: the option nobody raised, the
 example and the counterexample, the view from a different kind of user, the
 consequence two steps out. A better idea kept quiet because nobody asked for it
 is a cost like any other.
+
+**A design decision comes with its mechanism.** Options alone are not a
+decision anybody can take. Before them comes how the thing works today, in the
+project's own names; what exactly fails, with the measurement that shows it; and
+the assumption those options rest on, said out loud. Then the options, and among
+them at least one that rejects that assumption — because nobody can choose a
+frame they were not shown, and several ways to satisfy one assumption read as
+one question asked that many times. Each option says what it does not fix, and
+what stays true whichever is chosen. When the answer comes back from outside
+every option offered, that is the frame's fault and not late insight: it cost a
+round for every message that held the mechanism back.
 
 **A wait is filled.** Where the run waits on something long — a review, a
 worker, a check, a deploy — it does the work that is ready meanwhile: the next
