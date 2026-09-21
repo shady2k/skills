@@ -97,14 +97,28 @@ with the evidence for each.
 
 ## 4. Ways forward
 
+**Ready is not a reason.** Before a leaf reaches the recommendation, check that
+its result is still wanted: read the open work of this milestone and the next
+that would retire or replace what it stands on, by the protocol's **What would
+replace the ground is read before anything is built on it**. Where such work is
+open, the ground is settled first and the leaf waits, however ready it is. That
+it is independent, that its files are free of the workers at work, that it needs
+no decision from the owner are answers about order and never about worth;
+offering one as the reason to start is, by **Ready is not worth doing**, an
+answer to a question nobody asked.
+
 The recommendation is the first row below that applies; its order makes you
-finish before you start. Then give two or three real alternatives, each with
-what it achieves, how long it will roughly take in agent time and what that
-rests on (the protocol's **Estimates**), its budget, what it postpones, its risk and whether
-it can be undone. Include stopping (`/handoff`) when that is a real option. An
-alternative outside the current milestone is labelled a scope change and goes
-to `/to-milestone` or `to-backlog`; an open idea goes to `brainstorming`. Do not
-invent work to fill the list.
+settle the ground and finish what is open before you start anything new. Then
+give two or three real alternatives, each with what it achieves, what it
+unblocks and what waits on it, how long it will roughly take in agent time and
+what that rests on (the protocol's **Estimates**), its budget, what it
+postpones, its risk and whether it can be undone. A way forward whose whole cost
+is half an hour of the owner's attention and whose result is that the rest can
+proceed is reported as that, not as time spent instead of writing code. Include
+stopping (`/handoff`) when that is a real option. An alternative outside the
+current milestone is labelled a scope change and goes to `/to-milestone` or
+`to-backlog`; an open idea goes to `brainstorming`. Do not invent work to fill
+the list.
 
 | condition | next action |
 | --- | --- |
@@ -119,6 +133,7 @@ invent work to fill the list.
 | accepted work awaits closure | `close-out` with the acceptance record |
 | all current outcomes accepted | `/to-milestone` |
 | new product without direction or first charter | `/to-milestone`, drafted from known decisions |
+| an open decision holds the ground the rest of the milestone stands on | that decision, worked, while the owner is here: `brainstorming`, or `to-spec` where its answer is a contract |
 | a change is not ready by the document check | the concrete gap: missing contract, stale base or open decision; `to-spec` |
 | an outcome needs design or breaking down | `/take-task` picks the route, or `to-spec` for design only |
 | a planned feature is ready | `/take-task` to run the whole feature to one pull request, if its run fits how long the project lets a branch live; otherwise split it first; mention what can run in parallel |
@@ -140,8 +155,10 @@ Follow the protocol's **Speaking to the owner**, with or without an
 integration: plain words, tasks by title, numbers with their meaning. Open with
 one or two sentences on where the project stands. Then the picture, compact,
 then the ways forward, recommendation first, as consequences for the product:
-scope, time, cost, risk. End with the recommended action and, only if there is
-one, the single decision it needs. Do not ask about each finding, and do not
+scope, time, cost, risk. Where a decision the remaining work rests on is open
+and the owner is here, it leads the ways forward instead of closing the message,
+by the protocol's **The session opens with the picture**. End with the
+recommended action and, only if there is one, the single decision it needs. Do not ask about each finding, and do not
 start the recommended action.
 
 ## Routes
