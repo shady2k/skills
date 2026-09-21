@@ -59,12 +59,30 @@ next milestone exists as feature titles; anything further lives in the vision.
 wears; everything else is deferred. The current milestone is read from the
 gate's config each time.
 
+**What would replace the ground is read before anything is built on it.** Before
+a feature or a stage is planned, and again before its stage is accepted, read
+the open work of this milestone and the next that would retire or replace what
+it stands on: the component it extends, the representation it adds to, the
+decision record it rests on. Where such work exists, the two are an edge with
+its reason, and one of them is reshaped before either is built. The case this
+catches is two pieces of open work each adding its own representation of the
+same thing, and it is found by reading a sibling issue, never by building. A
+stage whose result is replaced by work already in the queue is paid for twice:
+once to build it, once to take it out.
+
 **Ready** means an open leaf that nobody holds and whose required results are
 available. A closed prerequisite counts. An `implemented` prerequisite counts
 only inside the same stage, once its revision is merged into the consumer's
 checkout and its related checks pass; across stages it must be accepted and
 closed. So the adapter's ready operation takes the stage and checkout revision,
 not just "are the blockers closed".
+
+**Ready is not worth doing.** Ready says that nothing blocks a leaf. It does not
+say its result is still wanted. Before work starts, check that what it produces
+survives the decisions taken since it was filed. "Nothing depends on it" and "it
+is independent of that question" are answers about order, never about worth; a
+run that offers either as its reason to start has answered a question nobody
+asked.
 
 **Execution and acceptance.** A worker claims a leaf (takes a hold on it),
 checks its change and records it as `submitted`, with where the result lives
@@ -121,6 +139,16 @@ comes before any counting; where people or their data are living with the fault
 now, that is the first sentence, and a counter that measures only intake never
 decides urgency. A run that parks such a finding and reports the parking
 afterwards has taken the owner's decision.
+
+**A decision that retires something also decides what is filed against it.**
+When a decision replaces a component, a representation or a form, every open
+leaf and finding against the old one is settled in the same session instead of
+staying in the queue: closed as moot, naming the decision that retired it, or
+rewritten against the requirement that survives, which is different work at a
+different cost. Filing a finding is not a promise to fix it; what filing buys is
+that the fault is known and counted. A fix that lands in code already scheduled
+for replacement is paid for twice and reviewed twice, and the behaviour it
+repairs has to be repaired again in the replacement.
 
 **Labels.** Every live issue, features and stages included, wears exactly one
 area label: the area that owns the behaviour.
@@ -413,9 +441,12 @@ the assumption those options rest on, said out loud. Then the options, and among
 them at least one that rejects that assumption — because nobody can choose a
 frame they were not shown, and several ways to satisfy one assumption read as
 one question asked that many times. Each option says what it does not fix, and
-what stays true whichever is chosen. When the answer comes back from outside
-every option offered, that is the frame's fault and not late insight: it cost a
-round for every message that held the mechanism back.
+what stays true whichever is chosen. Stopping is one of the options, and so is handing the outcome to work
+already filed; each comes with what is already built, what would be rebuilt and
+what survives either way. Work already done is never a reason to finish it. When
+the answer comes back from outside every option offered, that is the frame's
+fault and not late insight: it cost a round for every message that held the
+mechanism back.
 
 **A wait is filled.** Where the run waits on something long — a review, a
 worker, a check, a deploy — it does the work that is ready meanwhile: the next

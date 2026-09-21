@@ -178,6 +178,12 @@ restarted or given more time, and what caused it is filed. Keep what the
 checks, builds and workers took; a step that got much slower is a finding even
 when it passes, by **The bound is the forecast**.
 
+Before a leaf is started, its result is checked against the decisions taken
+since it was filed, by the protocol's **Ready is not worth doing**: a fix that
+lands in code already scheduled for replacement is paid for twice. Where a
+decision of this run retires what other open leaves are written against, they
+are settled with it and not left ready.
+
 Anything put to the owner mid-run is worked first: the cause found, the options
 costed, a recommendation and what happens if the answer comes later, never a
 question they must wait behind, by the protocol's **Come with the material**.

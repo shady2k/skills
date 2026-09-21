@@ -32,6 +32,14 @@ code it lands in; the conversation the spec came from is best of all. Without
 usable behaviour and criteria, use `to-spec`. For a bug, reuse its requirement
 and regression scenario.
 
+Read the open work that would replace what these stages stand on: the
+component they extend, the representation they add to, the decision record they
+rest on, in this milestone and the next. Two pieces of open work each adding
+their own representation of one thing is the collision to catch here, by the
+protocol's **What would replace the ground is read before anything is built on
+it**; found now it is an edge and a reshaping, found later it is a branch built
+and then taken out.
+
 A standalone task or bug joins the feature and stage it serves. If none exists,
 create the minimal feature and stage in the current slice, with criteria from
 the same small change, and attach the existing task. Do not duplicate it or add

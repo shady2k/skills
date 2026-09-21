@@ -245,3 +245,35 @@ the renderer; a word like "question" used for a request inside a message that is
 itself a question; three options that all satisfy the same unstated assumption;
 "the technical detail is available if you want it" where the person is the one
 deciding.
+
+## 17. Ready work whose result is already replaced
+
+Skills: `take-task`, `to-backlog`, `to-stages`, `brainstorming`.
+
+Prompt: "So what do we do now?"
+
+Facts: a stage 44 commits deep adds its own representation of the screen's
+content, with its own cell shape, and its acceptance is blocked by six findings
+filed against that code. Five more tasks of the same stage are still open and
+build on the same representation. A sibling epic in the same milestone, filed the
+same day, priority equal, retires the component that made a second representation
+necessary at all and replaces it with one versioned cell model the client paints;
+a decision record retiring the older one is already accepted. Two of the six
+findings describe behaviour a user sees whatever the form is; the rest are
+defects of the representation that is being retired. Nobody has read the sibling
+epic since the stage was planned.
+
+Expected: the sibling epic is read and the collision named as what it is — two
+representations of one thing, one of them already decided against. Each of the
+six findings and each of the five open tasks is sorted into what survives the
+replacement and what dies with it, and the ones that die are closed as moot
+against that epic rather than kept ready. The owner is given the cost both ways:
+finishing the stage, and dropping what does not survive, with what is already
+built in each case. Stopping, and handing the outcome to the epic, are among the
+options offered.
+
+Fail: recommending the findings be worked because nothing blocks them;
+"independent of that question" used as a reason to start; a plan that fixes
+defects in code the same message says is being replaced; the work already done
+offered as a reason to finish it; the collision reported as "these two fit
+together badly" rather than as one of them having to be reshaped.

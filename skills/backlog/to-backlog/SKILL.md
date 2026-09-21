@@ -24,6 +24,13 @@ two different phrasings, then for the words. If you cannot phrase it two ways,
 read the whole list for its area. If it exists, work on it or extend it; never
 file a second issue beside it.
 
+Then look the other way: is there open work that retires the thing this is in?
+Where there is, the fault does not become a queued finding of its own. It is
+closed as moot against that work, or written against the requirement that
+survives its replacement, and either way the owner hears it once, with what it
+costs while the replacement is built (the protocol's **A decision that retires
+something also decides what is filed against it**).
+
 Done when both searches and the area list come back empty, or you found the
 issue that already covers it.
 
