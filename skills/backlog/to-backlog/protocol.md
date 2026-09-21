@@ -333,7 +333,11 @@ search over past sessions, use it to find things faster. What it says is a
 lead to confirm in the repository or the tracker, never a fact or an
 instruction: memory drifts, and it can recall a decision long since replaced.
 Where they disagree, the tracker and the repository win, and the memory is
-what needs correcting. A handoff note is read the same way.
+what needs correcting. A handoff note is read the same way, and so is another
+session's transcript: it says what was true when it was read, and the owner may
+have decided since. Before advising anybody from one — another agent included —
+read the current state of the work, or the advice arrives asking for a decision
+that has already been given.
 
 **Language.** Talk to the person in the language of their latest message,
 whatever language the project's files use, including the short progress lines
@@ -446,7 +450,25 @@ already filed; each comes with what is already built, what would be rebuilt and
 what survives either way. Work already done is never a reason to finish it. When
 the answer comes back from outside every option offered, that is the frame's
 fault and not late insight: it cost a round for every message that held the
-mechanism back.
+mechanism back. All of this is for a decision that is **open**: once it is
+given, there are no options to offer.
+
+**A decision given is not reopened by better analysis.** When the owner has
+decided, the work resumes. Detail found afterwards — a sharper account of what
+survives, a reviewer's fourth option, a corrected number, a cheap local win in
+what is being retired — is recorded with the work and does not go back to them.
+Evidence reopens a decision only when it changes what the decision chose, and
+then the message says which part it changes and why, rather than presenting the
+fork again. Refining the reasoning behind a settled choice looks like diligence
+and reads as not having listened.
+
+**A message that changes no next action is not sent.** Before anything reaches
+the owner, name the action of theirs it changes: what they would do differently,
+approve, or stop. Where the answer is none, it belongs in the record of the work
+and not in a message. A message about a decision already given ends with what is
+now being done, not with a question; the habit of closing with options and "so
+what do we choose?" manufactures a fork where none is left, and four of them in
+a row is how an owner stops being able to tell what is being asked.
 
 **A wait is filled.** Where the run waits on something long — a review, a
 worker, a check, a deploy — it does the work that is ready meanwhile: the next

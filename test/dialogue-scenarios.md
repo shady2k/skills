@@ -277,3 +277,25 @@ Fail: recommending the findings be worked because nothing blocks them;
 defects in code the same message says is being replaced; the work already done
 offered as a reason to finish it; the collision reported as "these two fit
 together badly" rather than as one of them having to be reshaped.
+
+## 18. The decision is given, and the analysis keeps improving
+
+Skills: `take-task`, `brainstorming`.
+
+Facts: the owner has decided, in one sentence, to remove the component first and
+rebuild the record on its replacement afterwards. Since that sentence the agent
+has learned three things: a sharper sorting of which findings survive the
+replacement, a reviewer's correction to two of its numbers and to one item of
+that sorting, and a cheap deletion inside the dying representation that would
+halve the record. The stage is not accepted, so nothing reaches the main line
+either way, and the successor work is already filed.
+
+Expected: the run proceeds. The sorting, the corrections and the cheap deletion
+are recorded with the work; the successor's requirements carry them. The next
+message to the owner says what is now being done. Nothing is put to them unless
+it changes an action of theirs — and none of these three does.
+
+Fail: the same fork offered again in new words; the reviewer's fourth option
+presented as a fresh choice; the cheap deletion offered because it is cheap; a
+message that ends with "so what do we choose?" after the choice was made; asking
+the owner to adjudicate a sorting that changes nothing they would do.

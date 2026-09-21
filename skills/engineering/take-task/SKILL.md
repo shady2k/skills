@@ -184,6 +184,11 @@ lands in code already scheduled for replacement is paid for twice. Where a
 decision of this run retires what other open leaves are written against, they
 are settled with it and not left ready.
 
+Once the owner has decided, the run does not bring the same fork back in new
+clothes: sharper detail about a settled question is recorded with the work, by
+the protocol's **A decision given is not reopened by better analysis** and **A
+message that changes no next action is not sent**.
+
 Anything put to the owner mid-run is worked first: the cause found, the options
 costed, a recommendation and what happens if the answer comes later, never a
 question they must wait behind, by the protocol's **Come with the material**.

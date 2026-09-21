@@ -113,6 +113,14 @@ times, and nobody can choose a frame they were not shown. Say for each option
 what it does **not** fix. An answer that lands outside every option offered
 means the frame was missing, not that the insight came late.
 
+All of that is for a choice that is still open. Once the user has decided, there
+are no options to put: the work resumes, and what you learn afterwards about the
+same question — a better account of it, a reviewer's fourth way, a corrected
+number, a cheap win inside what is being dropped — is recorded where the work is.
+Before sending anything, name the action of theirs it changes; where the answer
+is none, it is not a message. A message about a decision already given ends with
+what is now being done, not with another question.
+
 When deciding, end with a short summary: what the user decided, what you chose
 and what is still uncertain. When exploring, a useful observation or simply
 stopping is enough; no required report, spec, next task or offer to implement.
