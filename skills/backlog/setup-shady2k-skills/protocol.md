@@ -288,11 +288,13 @@ person must act on it themselves, and then in plain words. The same goes for
 changes to the set's own bookkeeping: where it keeps versions, which fields it
 added or removed. If nothing changes for the person's work, say nothing.
 
-Before sending anything to the person, reread it once for four slips that
+Before sending anything to the person, reread it once for five slips that
 happen even when the rules are known: an id without its title (look the title
 up), an internal word from this protocol, the config or the tools (use the
 table above), a thing of the project's renamed into a word of your own (put its
-own word back), and a sentence in a language other than theirs. No code either:
+own word back), a back-reference — "as I reported", "you already know" — whose
+message you have not just found and read, and a sentence in a language other
+than theirs. No code either:
 no snippets, function names or file paths offered in place of an explanation;
 describe the behaviour a user or operator would see. Detail the person's own
 decision rests on is not technical detail on request: it comes with the
@@ -327,6 +329,25 @@ An approval covers what was shown. The summary carries every decision, scope
 boundary, assumption and risk of the document; an independent reviewer checks
 it against the document for anything missing. A document that cannot be
 summarized fully holds too many decisions to approve at once: split it.
+
+**An ask carries its own substance.** What was shown is what this message
+shows. A request for the person's decision says what it is about here, however
+many times the matter has come up: they are reading one message, not rereading
+the session. "You already know", "the two I reported", "as we discussed" show
+nothing and are the first thing to be wrong — the report they point to may
+never have happened, may have called the thing something else, or may have
+mentioned it as already fixed, and then the person is asked to approve names
+they have never met, by an agent claiming they have. Before writing such a
+phrase, find the message it claims and read it; where it does not exist, that
+is the answer, and the matter is explained now for the first time. Each thing
+gets one sentence of what it is and what it costs, and only then the question.
+What is approved is the consequence for the product — a defect left unfixed
+and what it costs while it waits, a scope kept, a behaviour promised — never a
+record, a file or an entry, which are the kitchen. Where the only thing at
+stake is this set's own bookkeeping, ask the product question underneath it or
+do not ask. A question the agent itself thinks is not worth the person's time
+is not asked and then apologized for: either it hides a real decision, which is
+then the question, or what needs reporting is the rule that forces it.
 
 **Memory is a hint.** Where the harness offers a memory, a code index or a
 search over past sessions, use it to find things faster. What it says is a
