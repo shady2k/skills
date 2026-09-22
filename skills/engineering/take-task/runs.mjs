@@ -172,6 +172,10 @@ function report(project, opts) {
     runs: runs.length,
     finished: runs.filter((r) => r.finishedAt).length,
     judged: judged.length,
+    // A run the owner never judged leaves acceptance unmeasured: nothing but
+    // him can say whether the result was taken, so the gap is reported rather
+    // than filled in.
+    unjudged: runs.filter((r) => r.finishedAt && !r.verdict).length,
     acceptedAsIs: judged.filter((r) => r.verdict.accepted === 'as-is').length,
     acceptedAfterChanges: judged.filter((r) => r.verdict.accepted === 'after-changes').length,
     abandoned: judged.filter((r) => r.verdict.accepted === 'abandoned').length,
@@ -392,7 +396,8 @@ function run(argv) {
       const r = report(project(), opts);
       const lines = [
         `Runs ${r.runs}, finished ${r.finished}, judged by the owner ${r.judged}`,
-        `Accepted as is ${r.acceptedAsIs}, after changes ${r.acceptedAfterChanges}, abandoned ${r.abandoned}`,
+        `Accepted as is ${r.acceptedAsIs}, after changes ${r.acceptedAfterChanges}, abandoned ${r.abandoned}` +
+          (r.unjudged ? `; ${r.unjudged} finished run(s) the owner never judged, so acceptance is unmeasured` : ''),
         `Delivered without corrections or rescue ${r.autonomous} of ${r.judged - r.abandoned} accepted`,
         `Stops: for the owner ${r.stops.owner}, missing information ${r.stops.missing}`,
         `Avoidable questions ${r.avoidableQuestions}, missed escalations ${r.missedEscalations}, corrections ${r.corrections}, rescues ${r.rescues}`,
@@ -535,6 +540,7 @@ function selftest() {
     expect('report counts what the owner judged', r.avoidableQuestions === 1 && r.missedEscalations === 1 && r.corrections === 1 && r.rescues === 1);
     expect('report counts recovery grades', r.recoveries.R3 === 1 && r.recoveries.R0 === 0);
     expect('every finished run is measured, judged or not', r.spend.runsMeasured === 5);
+    expect('a finished run the owner never judged is counted, not passed over', r.unjudged === 2);
     expect('a session the machine does not have is counted, not guessed', r.spend.sessionsNotFound === 1);
     expect('what the runs cost is added up', r.spend.costUSD === 15 && r.spend.linesAdded === 53);
 

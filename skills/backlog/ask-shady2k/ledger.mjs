@@ -112,6 +112,17 @@ const PHASES = {
 export const PHASE_NAMES = ['orient', 'explore', 'plan', 'build', 'debug', 'wrap', 'setup', 'unattributed'];
 const phaseOf = (skill) => (skill ? PHASES[String(skill).split(':').pop()] : undefined);
 
+// A skill names the phase for the turns it leads, and the work takes the name
+// back when what the turn did plainly is not that phase: these four are talk
+// about the product, and making or checking the product is not talk. Where
+// that happens in a working copy of its own, the name does not come back
+// either, because such a copy exists to build and a planning skill called
+// once inside it was an errand, not the session's purpose; in the checkout,
+// where talking is the session's purpose, one command in the middle of a
+// conversation does not end the conversation.
+const TALK = new Set(['orient', 'explore', 'plan', 'wrap']);
+const MAKING = new Set(['develop', 'test', 'build', 'ci']);
+
 // ---- reading a session -----------------------------------------------------
 
 function lines(path) {
@@ -162,9 +173,14 @@ function readClaude(path, id, opening = 'unattributed') {
       const next = phaseOf(d.attributionSkill);
       if (next) { phase = next; skill = d.attributionSkill; }
       const calls = parts.filter((p) => p.type === 'tool_use');
-      for (const c of calls) use.set(c.id, { at, name: c.name, input: c.input, phase });
-      const kinds = calls.map((c) => category(c.name, c.input));
-      gens.push({ at, from: previous, kind: strongest(kinds), phase });
+      const kind = strongest(calls.map((c) => category(c.name, c.input)));
+      let turnPhase = phase;
+      if (TALK.has(phase) && MAKING.has(kind)) {
+        turnPhase = 'build';
+        if (opening === 'build') phase = 'build';
+      }
+      for (const c of calls) use.set(c.id, { at, name: c.name, input: c.input, phase: turnPhase });
+      gens.push({ at, from: previous, kind, phase: turnPhase });
       previous = at;
       continue;
     }
@@ -269,7 +285,7 @@ function readCodex(path, id) {
  * harness's totals are authoritative where it keeps them; the split inside a
  * bucket is by what was measured between the stamps.
  */
-export function measure(raw) {
+export function measure(raw, answerMinutes = ANSWER_MINUTES) {
   const weights = blank();
   const busyTurns = raw.turns.length ? raw.turns : null;
   const within = (at) => (busyTurns ? busyTurns.find((t) => at >= t.start && at <= t.end) : null);
@@ -288,7 +304,7 @@ export function measure(raw) {
   // message is him answering, a long one is him away.
   let answer = 0;
   let away = 0;
-  const cap = ANSWER_MINUTES * 60e3;
+  const cap = answerMinutes * 60e3;
   let mark = raw.startedAt;
   const marks = busyTurns ? [...busyTurns].sort((a, b) => a.start - b.start) : [];
   for (const m of raw.owner) {
@@ -418,7 +434,7 @@ function* files(root, depth = 4) {
  * A folder under the harness's projects is the working directory spelled out,
  * so the project's name narrows the search before anything is parsed.
  */
-export function findSessions(project, { since, until } = {}) {
+export function findSessions(project, { since, until, answerMinutes } = {}) {
   const out = [];
   const root = join(claudeHome(), 'projects');
   const candidates = [];
@@ -435,18 +451,22 @@ export function findSessions(project, { since, until } = {}) {
     try { cwd = workingDir(c.path); } catch { continue; }
     if (!belongs(cwd, project)) continue;
     const id = c.name.replace(/\.jsonl$/, '').replace(/^rollout-[\dT-]+-/, '');
+    // The checkout is where a run is coordinated and where the owner is
+    // talked to; a second working copy of the same project is a worker's, and
+    // it exists to build, so that is what its hours are until a skill says
+    // otherwise.
+    const role = basename(cwd) === project ? 'checkout' : 'side copy';
+    const opening = role === 'checkout' ? 'unattributed' : 'build';
     let raw;
     try {
-      raw = c.harness === 'codex' ? readCodex(c.path, id) : readClaude(c.path, id);
+      raw = c.harness === 'codex' ? readCodex(c.path, id) : readClaude(c.path, id, opening);
     } catch { continue; }
     if (!raw || !Number.isFinite(raw.startedAt)) continue;
     if (since && raw.endedAt < since) continue;
     if (until && raw.startedAt > until) continue;
     raw.cwd = cwd;
-    // The checkout the ledger is asked from is where a run is coordinated;
-    // a second working copy of the same project is a worker's.
-    raw.role = basename(cwd) === project ? 'checkout' : 'side copy';
-    out.push(measure(raw));
+    raw.role = role;
+    out.push(measure(raw, answerMinutes ?? ANSWER_MINUTES));
   }
   return out.sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt));
 }
@@ -479,7 +499,7 @@ export function threads(sessions) {
 export function ledger(project, opts = {}) {
   const since = opts.since ? Date.parse(opts.since) : undefined;
   const until = opts.until ? Date.parse(opts.until) : undefined;
-  const sessions = opts.sessions || findSessions(project, { since, until });
+  const sessions = opts.sessions || findSessions(project, { since, until, answerMinutes: opts['answer-minutes'] });
   const sum = (f) => sessions.reduce((n, s) => n + f(s), 0);
   const kinds = {};
   const phases = {};
@@ -580,6 +600,9 @@ const HELP = `ledger.mjs time [--since <date>] [--until <date>] [--project <name
 ledger.mjs sessions [--since <date>] [--until <date>] [--project <name>] [--json]
 time    where this project's hours went: the model, tools, the owner, and nobody
 sessions one line per session, including the workers' own working copies
+--answer-minutes <n> where a gap before the owner's message stops being him
+answering and becomes him away (${ANSWER_MINUTES} by default): the one figure here
+that is a judgement rather than a measurement
 Sessions are read from this machine's harness records; --project defaults to the checkout's name.
 Exit 0 done, 2 misuse.`;
 
@@ -596,6 +619,11 @@ export function run(argv) {
   }
   for (const key of ['since', 'until'])
     if (opts[key] !== undefined && Number.isNaN(Date.parse(opts[key]))) throw new Usage(`--${key} needs a date`);
+  if (opts['answer-minutes'] !== undefined) {
+    const n = Number(opts['answer-minutes']);
+    if (!Number.isFinite(n) || n <= 0) throw new Usage('--answer-minutes needs minutes');
+    opts['answer-minutes'] = n;
+  }
   const project = projectName(opts.project);
   const print = (value, text) => (opts.json ? JSON.stringify(value, null, 2) : text);
   switch (command) {
@@ -607,6 +635,7 @@ export function run(argv) {
       const s = findSessions(project, {
         since: opts.since ? Date.parse(opts.since) : undefined,
         until: opts.until ? Date.parse(opts.until) : undefined,
+        answerMinutes: opts['answer-minutes'],
       });
       return print(s, describeSessions(s));
     }
@@ -725,10 +754,52 @@ function selftest() {
     expect('the checks and the forge are told apart from each other and from git',
       shell('cargo test --all') === 'test' && shell('gh run watch 42') === 'ci' && shell('git commit -m x') === 'git');
 
+    // A planning skill leads one turn; three turns later the session is
+    // running the tests, which is not planning however it was opened.
+    const planned = [
+      { type: 'user', timestamp: T(200), cwd: '/w/demo', message: { content: 'plan it' } },
+      { type: 'assistant', timestamp: T(202), attributionSkill: 'shady2k-skills:to-stages', message: { content: [{ type: 'tool_use', id: 'p1', name: 'Read', input: {} }] } },
+      { type: 'user', timestamp: T(202, 30), message: { content: [{ type: 'tool_result', tool_use_id: 'p1' }] } },
+      { type: 'assistant', timestamp: T(205), message: { content: [{ type: 'tool_use', id: 'p2', name: 'Bash', input: { command: 'npm test' } }] } },
+      { type: 'user', timestamp: T(210), message: { content: [{ type: 'tool_result', tool_use_id: 'p2' }] } },
+      { type: 'assistant', timestamp: T(212), message: { content: [{ type: 'text', text: 'done' }] } },
+      { type: 'system', subtype: 'turn_duration', timestamp: T(212), durationMs: ms(12) },
+      { type: 'user', timestamp: T(215), message: { content: 'ok' } },
+      { type: 'system', subtype: 'turn_duration', timestamp: T(216), durationMs: ms(1) },
+      {
+        type: 'cost-state', startTime: Date.parse(T(200)), totalAPIDuration: ms(6), totalToolDuration: ms(5.5),
+        totalDuration: ms(16), totalCostUSD: 1, totalLinesAdded: 0, totalLinesRemoved: 0, modelUsage: {},
+      },
+    ];
+    writeFileSync(join(home, 'claude', 'projects', '-w-demo', 'eeee.jsonl'),
+      `${planned.map((r) => JSON.stringify(r)).join('\n')}\n`);
+    const led = findSessions('demo').find((x) => x.id === 'eeee');
+    expect('a planning skill keeps the turns it leads', led.phases.plan.kinds.analyze > 0);
+    expect('running the tests is not planning, whatever led the session',
+      !led.phases.plan.kinds.test && led.phases.build.kinds.test > 0);
+    expect('in the checkout, one command does not end the conversation',
+      led.phases.plan.kinds.reply > 0 && !led.phases.build.kinds.reply);
+
+    // The same session in a working copy of its own: there the planning skill
+    // was an errand, and the work keeps the name after it.
+    mkdirSync(join(home, 'claude', 'projects', '-w-demo-work-2'), { recursive: true });
+    writeFileSync(join(home, 'claude', 'projects', '-w-demo-work-2', 'ffff.jsonl'),
+      `${planned.map((r) => JSON.stringify(r.cwd ? { ...r, cwd: '/w/demo-work-2' } : r)).join('\n')}\n`);
+    const errand = findSessions('demo').find((x) => x.id === 'ffff');
+    expect('in a working copy of its own, the work takes the name back for good',
+      errand.phases.plan.kinds.analyze > 0 && !errand.phases.plan.kinds.reply
+      && errand.phases.build.kinds.reply > 0);
+
+    expect('where answering stops and being away begins can be moved',
+      Math.round(led.answerMinutes) === 3
+      && JSON.parse(run(['sessions', '--project', 'demo', '--answer-minutes', '1', '--json']))
+        .find((x) => x.id === 'eeee').awayMinutes === 3);
+
     const misuse = (a) => { try { run(a); return false; } catch (e) { return e instanceof Usage; } };
     expect('misuse: unknown command', misuse(['frobnicate', '--project', 'demo']));
     expect('misuse: a date that is not one', misuse(['time', '--project', 'demo', '--since', 'soon']));
     expect('misuse: a flag with no value', misuse(['time', '--project', 'demo', '--since']));
+    expect('misuse: a threshold that is not minutes', misuse(['time', '--project', 'demo', '--answer-minutes', 'soon']));
     expect('the text names the four buckets', ['the model thinking', 'tools running', 'the owner answering', 'nobody']
       .every((w) => run(['time', '--project', 'demo']).includes(w)));
   } finally {
