@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.21.0
+Setup version: 0.22.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -368,6 +368,24 @@ do not ask. A question the agent itself thinks is not worth the person's time
 is not asked and then apologized for: either it hides a real decision, which is
 then the question, or what needs reporting is the rule that forces it.
 
+**Where the change can be seen, the ask shows it**: the line, message or screen
+as it reads today and as it will read, taken from a real run and not composed.
+Prose about a visible change is the kitchen in another costume, because the
+person is then approving a description instead of the thing. Where there is
+nothing to see — what a check now believes, which result now survives, what the
+project will refuse — the ask says what will be true afterwards that is not
+true now, in one sentence, and that sentence is what is approved.
+
+**A thing waiting on the person is named the same way every time.** It is named
+once in the words of what they decide, and that name is what every later
+mention uses: a status line, a notification, the closing sentence. The thing
+also has a name in the machinery, and that one is never borrowed — an ask
+explained well once and then referred to four times by the mechanism's word has
+taught them the mechanism's word. If the pending thing has no name outside this
+set's vocabulary, it has not been explained yet, and "the checks require it",
+"it cannot be signed for you" and the name of a setting are not explanations:
+they say who is asking, not what is being decided.
+
 **A decision belongs to whoever made it.** "You said", "you forbade", "you
 chose", "as you decided" are quotations, and the message each one claims is
 found and read before it is written. This is the back-reference check again and
@@ -424,7 +442,17 @@ first thing is kept, recommending English.
 them, up to one pull request for the whole feature. Planning ends with a
 **preflight**: the agent reads the spec, the stages and the code, and brings
 every decision the run will need at once, each with a recommendation, for the
-owner to accept as a whole or change by item. This is the one place where
+owner to accept as a whole or change by item. An approval the end of the run
+will need is one of those decisions and is taken here, before anything is
+written: what he approves is what the change decides — its kind, its scope, the
+requirements it moves and what it promises to leave alone — and never the
+finished text, which does not exist yet and which he was never going to read.
+A record binds itself to what he approved, so that the agent's own working on
+it afterwards — the reasoning, which check covers which requirement, a rewrite
+after review — does not send anybody back to him, and a change to what he
+decided does. An approval that can only be given at the end is one the batch
+cannot hold, and then the run is certain to stop him after he has gone, on the
+one thing this rule exists to prevent. This is the one place where
 questions come as a batch: gathering them while the owner is present is cheaper
 than stopping later. A preflight that goes unanswered has not been accepted; by
 **A decision belongs to whoever made it**, every recommendation in it is still

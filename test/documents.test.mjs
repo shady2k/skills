@@ -4,7 +4,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { checkDocuments, digest, fixtureCases } from '../skills/backlog/setup-shady2k-skills/check-docs.mjs';
+import { checkDocuments, decided, digest, fixtureCases } from '../skills/backlog/setup-shady2k-skills/check-docs.mjs';
 import { parseCapability, parseVision, parseMilestone } from '../skills/backlog/setup-shady2k-skills/document-format.mjs';
 
 const script = new URL('../skills/backlog/setup-shady2k-skills/check-docs.mjs', import.meta.url);
@@ -137,7 +137,7 @@ test('retained preparatory research needs evidence, not invented product require
   c.model.project.milestone = { id: '', outcomes: [], exclusions: '' };
   c.model.baseline = c.model.current = [];
   Object.assign(c.model.change, { kind: 'supporting', rationale: 'Retain the bounded investigation results only.', deltas: [], preserves: [], coverage: [] });
-  c.evidence.approvals[0].changeDigest = digest(c.model.change);
+  c.evidence.approvals[0].changeDigest = digest(decided(c.model.change));
   assert.deepEqual(checkDocuments(c.model, c.policy, c.evidence), []);
   c.evidence.checks = [];
   assert.ok(checkDocuments(c.model, c.policy, c.evidence).some((v) => v.id === 'unproved-check'));
@@ -146,10 +146,10 @@ test('retained preparatory research needs evidence, not invented product require
 test('supporting work cannot carry a product delta or change current requirements', () => {
   const c = good();
   c.model.change.kind = 'supporting'; c.model.change.rationale = 'Claimed documentation only';
-  c.evidence.approvals[0].changeDigest = digest(c.model.change);
+  c.evidence.approvals[0].changeDigest = digest(decided(c.model.change));
   assert.ok(checkDocuments(c.model, c.policy, c.evidence).some((v) => v.id === 'change-kind'));
   c.model.change.deltas = []; c.model.change.coverage = [];
   c.model.current[0].requirements[0].statement = 'Different contract';
-  c.evidence.approvals[0].changeDigest = digest(c.model.change);
+  c.evidence.approvals[0].changeDigest = digest(decided(c.model.change));
   assert.ok(checkDocuments(c.model, c.policy, c.evidence).some((v) => v.id === 'unsynced-current'));
 });

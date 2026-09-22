@@ -97,8 +97,13 @@ Before the owner leaves, prepare the run so it needs nobody:
   what a refusal would ask for, the document side included. Where it wants
   something this project has never had — a first capability document, a record
   never written here, an approval only the owner can give — that is work with a
-  cost, and it belongs in this batch. A demand met at the push is met with no
-  slack left, which is where the cheap way out starts to look reasonable;
+  cost, and it belongs in this batch. An approval is **taken** here, not merely
+  foreseen: he decides the change's kind, its scope, the requirements it moves
+  and what it promises to leave alone, in one sentence of what will be true
+  afterwards that is not true now, and the record binds itself to that. Carrying
+  it to the end instead guarantees stopping him after he has gone. A demand met
+  at the push is met with no slack left, which is where the cheap way out starts
+  to look reasonable;
 - how to reach the owner when the run stops, if the harness can notify.
 
 Bring all of it as **one batch**, each item with a recommendation and its

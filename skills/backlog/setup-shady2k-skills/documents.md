@@ -236,8 +236,13 @@ status is `passed`, `failed`, `skipped` or `unsupported`. The wrapper retrieves
 and verifies runner/approval records; references identify the actual evidence.
 An approval's reference records the summary the owner was shown, since that is
 what they approved, not the document text they were not asked to read.
-`policyDigest = digest(policy)`, `changeDigest = digest(change)`. Changing the
-proposal invalidates its approval; changing checked inputs invalidates evidence.
+`policyDigest = digest(policy)`; `changeDigest` is the digest of what the change
+**decides** — `{kind, intent, outOfScope, deltas, preserves}` — and not of the
+whole record, so the approval can be given in the preflight, before the record
+is written, and survives the agent's own working on it afterwards: the
+rationale, the coverage, the task ids, a rewrite after review. Changing what
+the change decides invalidates its approval; changing checked inputs
+invalidates evidence.
 Where approval is required, the same bounded approval is reused, not requested
 again per field or task. An author-written `approved: true` is not an approval.
 

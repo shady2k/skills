@@ -539,6 +539,30 @@
       "patches": []
     },
     {
+      "name": "approval-survives-the-agents-own-working",
+      "expected": [],
+      "receipts": "pristine",
+      "patches": [
+        {
+          "path": "model/change/rationale",
+          "value": "Rewritten after the independent review, without touching what the change decides."
+        }
+      ]
+    },
+    {
+      "name": "approval-dies-when-the-decision-changes",
+      "expected": [
+        "missing-approval"
+      ],
+      "receipts": "pristine",
+      "patches": [
+        {
+          "path": "model/change/outOfScope",
+          "value": "Import, other formats, and now the thing he was told stayed out."
+        }
+      ]
+    },
+    {
       "name": "stale-evidence",
       "expected": [
         "stale-evidence"
