@@ -111,7 +111,11 @@ not new scope, spending or weaker acceptance.
 
 On "run", land the conversation's general plan once and start the feature on
 its own branch, named after it, as the protocol's **Sessions and landing**
-says; do not wait for the owner to create or rename anything.
+says; do not wait for the owner to create or rename anything. Anything he
+decided in the conversation that the record does not yet hold — a condition on
+other work, a refusal, a constraint — lands in that same first write, before
+the branch starts, by the protocol's **A decision the owner gives is kept, not
+only obeyed**. It is not carried along to be written when the run gets to it.
 
 **Keep the run's record** in the run journal, [`runs.mjs`](runs.mjs), which
 writes outside the repository. It is how the owner learns whether runs get

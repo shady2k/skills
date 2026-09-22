@@ -161,6 +161,17 @@ by the protocol's **The session opens with the picture**. End with the
 recommended action and, only if there is one, the single decision it needs. Do not ask about each finding, and do not
 start the recommended action.
 
+**A correction he gives is a write, not just a better answer.** When he answers
+the picture with a condition, a refusal or a constraint the record does not
+hold — "I will not do that until X", "we decided against Y", "I told you this
+already" — the picture was wrong because the record was, and it is the record
+that has to change. Say what is missing and where it belongs. This skill still
+writes nothing itself; but the moment he agrees to any action, that record is
+the first thing done, through `to-backlog`, before the action starts, by the
+protocol's **A decision the owner gives is kept, not only obeyed**. Promising it
+and starting the work instead leaves him the state you described rather than the
+one that exists, and the next session will offer him what he just refused.
+
 ## Routes
 
 - `setup-shady2k-skills`: choose or check the tracker, clean its queue, agree a
@@ -178,7 +189,8 @@ start the recommended action.
 - `to-research`: a bounded investigation of primary sources, with citations.
 - `model-domain`: domain terms, the names of the system's own parts, and
   records of consequential decisions.
-- `to-backlog`: file new work and findings in the right lane.
+- `to-backlog`: file new work and findings in the right lane, and keep a
+  condition the owner put on work that already exists.
 - `close-out`: update current specs from accepted work, then close; keep
   pending work.
 - `groom-backlog`: snapshot, agree the slice, clean up reversibly, verify.

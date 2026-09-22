@@ -45,6 +45,7 @@ issue that already covers it.
 | planned work the charter already names | `to-stages` when breaking it down is authorized; otherwise send it that way. A fix needed to meet an agreed criterion is part of that work, not a finding |
 | work for a later milestone | deferred, with that milestone's label, as a feature title only |
 | a question that blocks building | work, under the stage it blocks; it is not an idea |
+| a condition the owner put on when something may be done | onto the thing it governs: into its criterion, and as an edge onto the leaf whose result releases it; the milestone's charter where it governs the whole slice. A comment carries the reason, never the whole record |
 
 A finding that needs its own feature is a scope decision for the owner: join
 the current milestone by an explicit scope and budget change, or wait deferred.

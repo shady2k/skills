@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.20.0
+Setup version: 0.21.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -170,7 +170,13 @@ area label: the area that owns the behaviour.
 reason and what releases it, on the leaf that needs it. A cross-stage edge
 points at the concrete leaf that produces the result; that stage must be
 accepted before outside consumers are released. Never chain features or
-stages just because they were listed in order. Importance is priority; "later"
+stages just because they were listed in order — which is about order, and
+never about a thing that genuinely cannot be done yet. An outcome that waits
+on another outcome is one of those, and it is recorded rather than left in
+prose: the edge sits on the leaf that needs it and points at the leaf whose
+result releases it, the one that puts the awaited thing in the person's hands.
+Where no such leaf exists yet, it is written first — the acceptance of the
+producing outcome — and the edge points at that. Importance is priority; "later"
 is a milestone; where an issue came from is never a blocker. Cycles, in the
 hierarchy or in live dependencies, are invalid.
 
@@ -378,6 +384,21 @@ a misread instruction. It moves the fault onto the person who did not commit it
 and it ends the inquiry, because a failure that already has an owner is one
 nobody looks into. Where a day went the way it went, the agent's own choice is
 named as the agent's, and then there is something to fix.
+
+**A decision the owner gives is kept, not only obeyed.** The rule above forbids
+inventing his words; this one obliges keeping them. A condition on when
+something may be done, a refusal, a constraint on how the work may proceed —
+each changes what the project does, and the conversation is the one place no
+later session can read. It is written where the next run meets the thing it
+governs: into the criterion where it changes what finishing requires, as an
+edge where it is a prerequisite, into the milestone's charter where it governs
+the whole slice. A comment is where the reason goes, never the whole record:
+what the queue does not read, the next run does not know, and it will offer him
+the thing he refused. The run says where it put it. The record lands **before
+the work the condition governs starts**: a run that promises it and then begins
+the work has told the owner a state that does not exist yet, and "along the
+way" is not a moment. A skill that may not write says which one will, and that
+write is the first thing done once he authorizes any action at all.
 
 **Memory is a hint.** Where the harness offers a memory, a code index or a
 search over past sessions, use it to find things faster. What it says is a

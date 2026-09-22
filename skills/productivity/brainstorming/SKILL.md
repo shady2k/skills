@@ -40,6 +40,15 @@ that owns them and the project's backlog integration; without one, ask the user
 to run setup first. Do not file issues or save notes just because the
 conversation ended.
 
+A decision the user gives is the exception, and it is not "talking": a
+condition on when something may be done, a refusal, a constraint on how the
+work may proceed. A hypothesis is dropped when the conversation ends; a
+decision outlives it, and the conversation is the one place no later session
+can read. It is kept where the thing it governs will be met — through
+`to-backlog` where the project has a backlog integration, and where it has
+none, said plainly as something that will be lost unless the user keeps it
+himself.
+
 ## Understand before agreeing or disagreeing
 
 Tell apart a checkable factual error, a disputed assumption and a preference.

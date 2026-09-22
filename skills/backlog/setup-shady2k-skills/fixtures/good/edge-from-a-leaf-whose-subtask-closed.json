@@ -1,0 +1,61 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture good/edge-from-a-leaf-whose-subtask-closed",
+  "issues": [
+    {
+      "id": "E1",
+      "title": "Issue E1",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person can do the thing. Falsified if they cannot.",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "B1",
+      "title": "The owner publishes on the live network and traffic continues",
+      "type": "bug",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "E1",
+      "blockedBy": [
+        "T9"
+      ],
+      "body": "Waits on the leaf that puts the awaited thing in the owner's hands.",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "B1.1",
+      "title": "The fix that was split out of B1",
+      "type": "task",
+      "status": "closed",
+      "labels": [
+        "transport"
+      ],
+      "parent": "B1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "T9",
+      "title": "The leaf whose result releases it",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "E1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    }
+  ]
+}
