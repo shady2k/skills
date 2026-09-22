@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.19.0
+Setup version: 0.20.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -127,6 +127,19 @@ dependency locks count as collisions.
   sets that budget. A finding over budget goes to the next milestone, or
   displaces something only by the owner's explicit decision; it never jumps to
   the front silently.
+
+**A repair the merge waits on is not intake.** The budget counts what the
+milestone chose to absorb, and a defect a required check catches on the way to
+a merge was chosen by nobody: the branch cannot land while it is red, no
+version of the milestone skips it, and the time is spent whatever the item is
+called. It is filed under the work whose merge it blocked and closed by the
+change that lands with it, with no finding label and against no budget, and
+the report names it as a repair that merge waited on. The finding is what the
+run leaves behind: the wider fault the red check exposed, the part deliberately
+not fixed, the fix that needs a decision the owner keeps. The test is the check
+itself, red on this branch and green after this change, not how large the
+repair felt. Counting a repair the rules ordered anyway buys nothing, and makes
+doing it dearer than hiding it.
 
 **A finding that does not fit is decided, not parked.** The budget is spent, or
 the milestone it would join is already closed and the next one does not exist
@@ -589,7 +602,8 @@ appeared matters only as a clue to its cause. A failure that also breaks the
 main line is fixed there by its own small pull request, since it blocks
 everyone, and the report names it as a fixed earlier failure. Only a fix
 that needs an architectural change or other decision the **Autonomy** rules
-reserve for the owner stops for them.
+reserve for the owner stops for them. What the run fixes to make the check
+green is filed as **A repair the merge waits on**, never as a finding.
 
 **A check is never rerun to find out why it failed.** A flaky check is a bug,
 and it is diagnosed like any other. A repetition answers one question — does
@@ -626,8 +640,12 @@ cheapest way is chosen among the ways that do the work, never among the ways
 that shrink what is counted: dropping the label that puts an item in the slice,
 deferring it or narrowing it until the number fits is the same manoeuvre as
 switching the check off, and it costs more, because the record then says the
-work is not there. A skip is usually permanent rather than deferred: where a
-check judges only what is new, what it never judged is never judged again. If
+work is not there. A way the check itself names is not exempt. A refusal states
+what is owed, and its remedy line was written before this case: where it names
+a way that shrinks what is counted, this rule outranks it, and what the check
+printed is a defect to report rather than an instruction to follow. A skip is
+usually permanent rather than deferred: where a check judges only what is new,
+what it never judged is never judged again. If
 the person orders one anyway, say that in one line with what ships unproven,
 and file it as a finding.
 

@@ -40,6 +40,7 @@ issue that already covers it.
 | --- | --- |
 | an idea, a wish, a "what if" | the **ideas** lane, with a review date |
 | a bug or debt on the current milestone's path | **finding**: under the stage it serves, with the finding label and the current milestone's label; step 3 first |
+| a defect a required check caught on the way to a merge, fixed to make it green | not a finding: under the work whose merge it blocked, closed by the change that lands with it, no finding label, no budget. What the run leaves unfixed is a finding |
 | a bug or debt off that path | deferred, under its feature, or with no parent if it has none |
 | planned work the charter already names | `to-stages` when breaking it down is authorized; otherwise send it that way. A fix needed to meet an agreed criterion is part of that work, not a finding |
 | work for a later milestone | deferred, with that milestone's label, as a feature title only |
@@ -51,13 +52,15 @@ Joining the slice gives a feature no dependencies on other features.
 
 ## 3. A finding spends the budget
 
-Read the finding budget from the config and count the milestone's findings.
-Within budget, file it and carry on. At or over budget, file it as deferred and
-bring the decision to the owner: leave it for later, or replace named planned
-work and approve the new count. If they replace, update the budget in the
-config and record the decision in the charter with what was displaced.
-Deferring planned work does not lower the count of findings. Do not make an
-unapproved finding ready; filing it need not wait for the decision.
+First check it is one: a repair a required check forced on the way to a merge
+spends no budget, by the protocol's **A repair the merge waits on is not
+intake**. Then read the finding budget from the config and count the
+milestone's findings. Within budget, file it and carry on. At or over budget,
+file it as deferred and bring the decision to the owner: leave it for later, or
+replace named planned work and approve the new count. If they replace, update
+the budget in the config and record the decision in the charter with what was
+displaced. Deferring planned work does not lower the count of findings. Do not
+make an unapproved finding ready; filing it need not wait for the decision.
 
 Where the milestone it would join is already closed and the next one does not
 exist, deferring is not an answer the run may give itself either: the next

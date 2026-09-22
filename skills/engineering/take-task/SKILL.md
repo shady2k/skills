@@ -265,7 +265,11 @@ never goes back to ready.
   protocol's **A red check is this run's work**: read the assertion and the
   code behind each value it asserts on, then fix it. Never rerun it — not for
   green, not to show the change innocent, not because the failure already has
-  a number in the tracker.
+  a number in the tracker. The repair that makes it green rides with this work
+  and spends no finding budget (**A repair the merge waits on is not intake**);
+  a finding is only what you leave unfixed. If the gate refuses the commit that
+  carries the repair, read what it asks for: the count is never made to fit by
+  deferring the repair, whatever the refusal's own remedy line suggests.
 
 ## 6. Accept each stage
 

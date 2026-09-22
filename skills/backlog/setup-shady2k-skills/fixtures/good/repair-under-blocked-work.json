@@ -1,0 +1,74 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture good/repair-under-blocked-work",
+  "issues": [
+    {
+      "id": "E1",
+      "title": "Issue E1",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person can do the thing. Falsified if they cannot.",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "B1",
+      "title": "Issue B1",
+      "type": "bug",
+      "status": "closed",
+      "labels": [
+        "transport",
+        "finding"
+      ],
+      "parent": "E1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "B2",
+      "title": "Issue B2",
+      "type": "bug",
+      "status": "open",
+      "labels": [
+        "transport",
+        "finding"
+      ],
+      "parent": "E1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "T1",
+      "title": "Issue T1",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "E1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "R1",
+      "title": "A cleanup may not run on the clock whose expiry it cleans up after",
+      "type": "bug",
+      "status": "closed",
+      "labels": [
+        "transport"
+      ],
+      "parent": "T1",
+      "blockedBy": [],
+      "body": "The required check was red on T1's branch and green after this change: a repair the merge waited on, not intake.",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    }
+  ]
+}
