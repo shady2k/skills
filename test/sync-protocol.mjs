@@ -14,6 +14,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const SHARED = {
   'protocol.md': 'skills/backlog/setup-shady2k-skills',
   'runs.mjs': 'skills/engineering/take-task',
+  'ledger.mjs': 'skills/engineering/take-task',
 };
 const walk = (d) =>
   readdirSync(d).flatMap((n) => (statSync(join(d, n)).isDirectory() ? walk(join(d, n)) : [join(d, n)]));

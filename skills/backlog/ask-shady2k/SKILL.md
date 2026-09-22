@@ -49,7 +49,12 @@ on each feature in flight, and the tasks that can start now, using the
 integration's stage- and checkout-aware operation. Where runs were recorded,
 the run journal's `report` and `pace` ([`runs.mjs`](runs.mjs), run with `node`
 from this skill's folder): how past runs went and how long work really takes
-here. The journal is this machine's; where it is thin or missing, the
+here. Where the owner asks where the project's hours go rather than how one run
+went, the ledger beside it ([`ledger.mjs`](ledger.mjs)) answers over the whole
+project and not only over runs: `time` splits the hours into the model's, the
+tools', the owner's own and nobody's, names what the agents were doing and
+under which phase of the work, and `sessions` lists what ran, including the
+workers' own working copies and how many were running at once. The journal is this machine's; where it is thin or missing, the
 `Run measured` comments on closed features carry the same numbers from wherever
 those runs happened. Its `stalled` names runs that recorded no end and
 passed their forecast: report each with what it last did and when, next to the

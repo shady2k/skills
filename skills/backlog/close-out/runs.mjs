@@ -1,36 +1,24 @@
 #!/usr/bin/env node
 // The run journal: one record per feature run, kept outside the repository, so
-// that time estimates and the owner's attention are measured, not guessed.
+// that what a run was forecast to cost and what it cost are both on record.
+// The minutes themselves come from the ledger, which reads what the harness
+// measured; this file keeps only what no machine can know by itself — the
+// forecast, the stops, and the owner's verdict.
 // take-task owns this file; close-out and ask-shady2k carry copies of it.
-import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import { basename, dirname, join } from 'node:path';
+import { join } from 'node:path';
+import { Usage, findSessions, projectName, threads } from './ledger.mjs';
 
 const STOP_REASONS = ['owner', 'missing'];
 const KINDS = ['stop', 'decision', 'ci'];
 const RESULTS = ['pull-request', 'abandoned', 'stopped'];
 const ACCEPTED = ['as-is', 'after-changes', 'abandoned'];
 const GRADES = ['R0', 'R1', 'R2', 'R3'];
-const IDLE = 5 * 60e3; // a gap longer than this is someone away, not someone working
-
-class Usage extends Error {}
 
 const stateDir = () =>
   process.env.SHADY2K_STATE_DIR ||
   join(process.env.XDG_STATE_HOME || join(homedir(), '.local/state'), 'shady2k-skills');
-
-function projectName(given) {
-  if (given) return given;
-  try {
-    const common = execFileSync('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'], {
-      encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim();
-    return basename(dirname(common));
-  } catch {
-    throw new Usage('not in a git checkout: pass --project <name>');
-  }
-}
 
 const runsDir = (project) => join(stateDir(), 'runs', project);
 const now = () => new Date().toISOString();
@@ -80,86 +68,60 @@ function session(opts) {
   return harness ? [{ harness, id: process.env[key], at: now() }] : [];
 }
 
-// ---- transcripts: what the owner and the agent actually spent -------------
+// ---- what the run actually spent -------------------------------------------
 
-function findFile(root, name, depth = 6) {
-  if (!existsSync(root) || depth < 0) return null;
-  for (const entry of readdirSync(root)) {
-    const path = join(root, entry);
-    if (statSync(path).isDirectory()) {
-      const found = findFile(path, name, depth - 1);
-      if (found) return found;
-    } else if (entry === `${name}.jsonl` || (entry.endsWith('.jsonl') && entry.includes(name))) return path;
-  }
-  return null;
-}
+// Reading every session of a project is not cheap, and a report asks for the
+// same ones once per run.
+const scanned = new Map();
+const sessionsOfProject = (project) => {
+  if (!scanned.has(project)) scanned.set(project, findSessions(project));
+  return scanned.get(project);
+};
 
-function transcript(s) {
-  const lines = (path) => readFileSync(path, 'utf8').split('\n').filter(Boolean).flatMap((l) => {
-    try { return [JSON.parse(l)]; } catch { return []; }
-  });
-  const events = [];
-  if (/claude/i.test(s.harness)) {
-    const path = findFile(join(process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude'), 'projects'), s.id, 2);
-    if (!path) return null;
-    const seen = new Set();
-    for (const d of lines(path)) {
-      if (d.isSidechain || d.isMeta || !d.timestamp) continue;
-      const c = d.message?.content;
-      if (d.type === 'user' && (typeof c === 'string' || (Array.isArray(c) && c.some((x) => x.type === 'text'))))
-        events.push({ t: d.timestamp, who: 'user' });
-      else if (d.type === 'user' || d.type === 'assistant') events.push({ t: d.timestamp, who: 'agent' });
-      const u = d.type === 'assistant' && d.message?.usage;
-      if (u && !seen.has(d.requestId)) {
-        seen.add(d.requestId);
-        events.at(-1).tokens = {
-          input: (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0),
-          output: u.output_tokens || 0,
-        };
-      }
-    }
-  } else if (/codex/i.test(s.harness)) {
-    const path = findFile(join(process.env.CODEX_HOME || join(homedir(), '.codex'), 'sessions'), s.id);
-    if (!path) return null;
-    let last = { input: 0, output: 0 };
-    for (const d of lines(path)) {
-      const p = d.payload || {};
-      if (d.type === 'event_msg' && p.type === 'user_message') events.push({ t: d.timestamp, who: 'user' });
-      else if (d.type === 'response_item' || (d.type === 'event_msg' && p.type === 'agent_message'))
-        events.push({ t: d.timestamp, who: 'agent' });
-      else if (d.type === 'event_msg' && p.type === 'token_count' && p.info?.total_token_usage) {
-        const total = p.info.total_token_usage;
-        const next = { input: total.input_tokens || 0, output: total.output_tokens || 0 };
-        events.push({ t: d.timestamp, who: 'meter', tokens: { input: next.input - last.input, output: next.output - last.output } });
-        last = next;
-      }
-    }
-  } else return null;
-  return { events };
-}
-
-// Attention: each owner message costs the time since the previous event, up to
-// IDLE (reading, thinking, typing). Agent time: gaps before agent events, up to IDLE.
-function spend(run) {
+/**
+ * The sessions a run was made of: the ones it recorded for itself, and every
+ * second working copy that was open while it ran, because those exist only
+ * because a run made them. A conversation in the checkout that the run never
+ * recorded is somebody else's and is left alone.
+ */
+function sessionsOf(run) {
   const from = Date.parse(run.startedAt);
   const to = Date.parse(run.finishedAt || run.verdict?.at || now());
-  const out = { found: 0, missing: 0, ownerMessages: 0, attentionMinutes: 0, agentMinutes: 0, input: 0, output: 0 };
-  for (const s of run.sessions || []) {
-    const t = transcript(s);
-    if (!t) { out.missing++; continue; }
-    out.found++;
-    let prev = null;
-    for (const e of t.events) {
-      const at = Date.parse(e.t);
-      if (at < from || at > to) { prev = at; continue; }
-      const gap = prev === null ? 0 : Math.min(at - prev, IDLE);
-      if (e.who === 'user') { out.ownerMessages++; out.attentionMinutes += gap / 60e3; }
-      else if (e.who === 'agent') out.agentMinutes += gap / 60e3;
-      if (e.tokens) { out.input += e.tokens.input; out.output += e.tokens.output; }
-      prev = at;
-    }
-  }
-  return out;
+  const ids = new Set((run.sessions || []).map((s) => s.id));
+  return sessionsOfProject(run.project).filter((s) =>
+    ids.has(s.id) || (s.role === 'side copy' && Date.parse(s.endedAt) >= from && Date.parse(s.startedAt) <= to));
+}
+
+// A run's minutes, split by who spent them. Everything but the owner's own
+// minutes is what the harness measured; his are an estimate, and his absence
+// is in no forecast and belongs to no one.
+function spend(run) {
+  const sessions = sessionsOf(run);
+  const sum = (f) => sessions.reduce((n, s) => n + f(s), 0);
+  const seen = new Set(sessions.map((s) => s.id));
+  const model = sum((s) => s.modelMinutes);
+  const tools = sum((s) => s.toolMinutes);
+  const answering = sum((s) => s.answerMinutes);
+  const coordination = sum((s) => s.overheadMinutes);
+  const kinds = {};
+  for (const s of sessions) for (const [k, m] of Object.entries(s.kinds)) kinds[k] = (kinds[k] || 0) + m;
+  return {
+    found: sessions.length,
+    missing: (run.sessions || []).filter((s) => !seen.has(s.id)).length,
+    sideCopies: sessions.filter((s) => s.role === 'side copy').length,
+    ownerMessages: sum((s) => s.ownerMessages),
+    model, tools, answering, coordination,
+    // What the run occupied, which is what a forecast is a forecast of.
+    effortMinutes: model + tools + answering + coordination,
+    // Only a session the owner was in can have been a session he left.
+    awayMinutes: sum((s) => (s.ownerMessages ? s.awayMinutes : 0)),
+    kinds: Object.fromEntries(Object.entries(kinds).sort((a, b) => b[1] - a[1]).map(([k, m]) => [k, round(m)])),
+    threads: threads(sessions),
+    costUSD: Math.round(sum((s) => s.costUSD) * 100) / 100,
+    linesAdded: sum((s) => s.linesAdded),
+    linesRemoved: sum((s) => s.linesRemoved),
+    output: sum((s) => s.tokens.output),
+  };
 }
 
 // ---- figures ---------------------------------------------------------------
@@ -176,19 +138,24 @@ function pace(project, opts) {
   const tasks = opts.tasks === undefined ? null : count(opts, 'tasks');
   const out = { runs: done.length };
   if (done.length < 3) return { ...out, enough: false };
-  const actual = done.map((r) => minutes(r.startedAt, r.finishedAt));
-  const ratio = done.map((r, i) => actual[i] / Math.max(1, r.estimate.workMinutes + r.estimate.waitMinutes));
+  // What a run occupied, not how long its record stayed open: the nights in
+  // between are the owner's, and no forecast ever meant them.
+  const effort = done.map((r) => spend(r).effortMinutes);
+  const elapsed = done.map((r) => minutes(r.startedAt, r.finishedAt));
+  const ratio = done.map((r, i) => effort[i] / Math.max(1, r.estimate.workMinutes + r.estimate.waitMinutes));
   out.enough = true;
   out.estimateRatio = +quantile(ratio, 0.5).toFixed(2);
-  const perTask = done.filter((r) => r.estimate.tasks > 0).map((r) => minutes(r.startedAt, r.finishedAt) / r.estimate.tasks);
+  out.elapsedLow = round(quantile(elapsed, 0.25));
+  out.elapsedHigh = round(quantile(elapsed, 0.75));
+  const perTask = done.map((r, i) => (r.estimate.tasks > 0 ? effort[i] / r.estimate.tasks : null)).filter((x) => x !== null);
   if (tasks && perTask.length >= 3) {
     out.basis = `${perTask.length} runs, per task`;
     out.low = round(quantile(perTask, 0.25) * tasks);
     out.high = round(quantile(perTask, 0.75) * tasks);
   } else {
     out.basis = `${done.length} runs, whole runs`;
-    out.low = round(quantile(actual, 0.25));
-    out.high = round(quantile(actual, 0.75));
+    out.low = round(quantile(effort, 0.25));
+    out.high = round(quantile(effort, 0.75));
   }
   return out;
 }
@@ -199,6 +166,7 @@ function report(project, opts) {
   const accepted = judged.filter((r) => r.verdict.accepted !== 'abandoned');
   const autonomous = accepted.filter((r) => !r.verdict.corrections && !r.verdict.rescues);
   const sum = (rs, f) => rs.reduce((n, r) => n + f(r), 0);
+  const sum2 = sum;
   const stops = runs.flatMap((r) => (r.events || []).filter((e) => e.kind === 'stop'));
   const out = {
     runs: runs.length,
@@ -219,15 +187,20 @@ function report(project, opts) {
     pastForecast: stalled(project).filter((r) => r.pastForecast).length,
   };
   if (!opts['no-transcripts']) {
-    const spent = accepted.map(spend).filter((s) => s.found);
-    const attention = sum(spent, (s) => s.attentionMinutes);
+    const spent = runs.filter((r) => r.finishedAt).map(spend).filter((s) => s.found);
+    const attention = sum2(spent, (s) => s.answering);
+    const delivered = judged.filter((r) => r.verdict.accepted !== 'abandoned').length;
     out.spend = {
       runsMeasured: spent.length,
       attentionMinutes: round(attention),
-      acceptedPerAttentionHour: spent.length && attention ? +(spent.length / (attention / 60)).toFixed(2) : null,
-      medianAgentMinutes: spent.length ? round(quantile(spent.map((s) => s.agentMinutes), 0.5)) : null,
-      medianTokens: spent.length ? round(quantile(spent.map((s) => s.input + s.output), 0.5)) : null,
-      sessionsWithoutTranscript: sum(accepted.map(spend), (s) => s.missing),
+      acceptedPerAttentionHour: delivered && attention ? +(delivered / (attention / 60)).toFixed(2) : null,
+      medianEffortMinutes: spent.length ? round(quantile(spent.map((s) => s.effortMinutes), 0.5)) : null,
+      medianAgentMinutes: spent.length ? round(quantile(spent.map((s) => s.model + s.tools), 0.5)) : null,
+      medianSessions: spent.length ? round(quantile(spent.map((s) => s.found), 0.5)) : null,
+      peakThreads: spent.reduce((n, s) => Math.max(n, s.threads.peak), 0),
+      costUSD: Math.round(sum2(spent, (s) => s.costUSD) * 100) / 100,
+      linesAdded: sum2(spent, (s) => s.linesAdded),
+      sessionsNotFound: sum2(spent, (s) => s.missing),
     };
   }
   return out;
@@ -237,35 +210,42 @@ function report(project, opts) {
 // machine: the journal is local state, a tracker comment is read from anywhere.
 function summary(r) {
   const stops = (r.events || []).filter((e) => e.kind === 'stop');
-  const out = {
+  const s = spend(r);
+  return {
     run: r.id, feature: r.feature, startedAt: r.startedAt, finishedAt: r.finishedAt || null,
     result: r.result || 'running',
     estimatedMinutes: r.estimate.workMinutes + r.estimate.waitMinutes,
-    tookMinutes: round(minutes(r.startedAt, r.finishedAt || now())),
+    effortMinutes: round(s.effortMinutes),
+    elapsedMinutes: round(minutes(r.startedAt, r.finishedAt || now())),
     tasks: r.estimate.tasks, stages: r.estimate.stages,
     stops: { owner: stops.filter((e) => e.reason === 'owner').length, missing: stops.filter((e) => e.reason === 'missing').length },
     ci: (r.events || []).filter((e) => e.kind === 'ci').length,
     accepted: r.verdict ? r.verdict.accepted : null,
+    spend: {
+      sessions: s.found, sideCopies: s.sideCopies, peakThreads: s.threads.peak,
+      model: round(s.model), tools: round(s.tools), coordination: round(s.coordination),
+      ownerMinutes: round(s.answering), ownerMessages: s.ownerMessages, awayMinutes: round(s.awayMinutes),
+      kinds: s.kinds, costUSD: s.costUSD, linesAdded: s.linesAdded, linesRemoved: s.linesRemoved,
+    },
   };
-  const s = spend(r);
-  if (s.found) out.spend = {
-    ownerMessages: s.ownerMessages, attentionMinutes: round(s.attentionMinutes),
-    agentMinutes: round(s.agentMinutes), input: s.input, output: s.output,
-  };
-  return out;
 }
 
 function describeSummary(s) {
-  const lines = [
+  const p = s.spend;
+  const kinds = Object.entries(p.kinds).filter(([, m]) => m >= 1).map(([k, m]) => `${k} ${m}`).join(', ');
+  return [
     `Run ${s.run}, ${s.result}${s.accepted ? `, accepted ${s.accepted}` : ''}, ${(s.finishedAt || s.startedAt).slice(0, 10)}`,
-    `Estimated ${s.estimatedMinutes} min for ${s.tasks} task(s) in ${s.stages} stage(s); took ${s.tookMinutes} min`,
+    `Estimated ${s.estimatedMinutes} min for ${s.tasks} task(s) in ${s.stages} stage(s); ` +
+      `it took ${s.effortMinutes} min of work over ${s.elapsedMinutes} min of clock`,
+    `Work: the model ${p.model}, tools ${p.tools}, the owner ${p.ownerMinutes} over ${p.ownerMessages} message(s), ` +
+      `coordination ${p.coordination}; the owner away ${p.awayMinutes}`,
+    p.sessions
+      ? `${p.sessions} session(s), ${p.sideCopies} in working copies of their own, ${p.peakThreads} at once at the peak`
+      : 'No session of this run was found on this machine: its minutes are not measured',
+    `On: ${kinds || 'nothing measured'}`,
     `Stops: for the owner ${s.stops.owner}, missing information ${s.stops.missing}; CI runs ${s.ci}`,
-  ];
-  lines.push(s.spend
-    ? `Owner attention ${s.spend.attentionMinutes} min over ${s.spend.ownerMessages} message(s); ` +
-      `agent ${s.spend.agentMinutes} min; tokens ${s.spend.input} in, ${s.spend.output} out`
-    : 'Owner attention and agent time not measured: no transcript found');
-  return lines.join('\n');
+    `Cost $${p.costUSD}, ${p.linesAdded} line(s) written and ${p.linesRemoved} removed`,
+  ].join('\n');
 }
 
 // Runs that started and never came back: an unattended run cannot report its
@@ -301,7 +281,8 @@ function describeStalled(rows) {
 
 function describePace(p) {
   if (!p.enough) return `Too little history for a measured estimate: ${p.runs} finished run(s), 3 needed. Any estimate is a guess.`;
-  return `Similar work took ${p.low}-${p.high} minutes (${p.basis}). ` +
+  return `Similar work took ${p.low}-${p.high} minutes of work (${p.basis}), ` +
+    `over ${p.elapsedLow}-${p.elapsedHigh} minutes of clock. ` +
     `Runs took ${p.estimateRatio} times their estimate (median): correct a new estimate by that.`;
 }
 
@@ -420,10 +401,12 @@ function run(argv) {
         describePace(r.pace),
       ];
       if (r.spend) lines.push(r.spend.runsMeasured
-        ? `Owner attention ${r.spend.attentionMinutes} min over ${r.spend.runsMeasured} accepted runs: ` +
-          `${r.spend.acceptedPerAttentionHour} accepted features per hour of attention; ` +
-          `median agent time ${r.spend.medianAgentMinutes} min, median tokens ${r.spend.medianTokens}`
-        : 'No transcripts found for accepted runs: attention and cost unknown');
+        ? `Measured over ${r.spend.runsMeasured} finished run(s): the owner ${r.spend.attentionMinutes} min` +
+          `${r.spend.acceptedPerAttentionHour ? `, ${r.spend.acceptedPerAttentionHour} feature(s) accepted per hour of it` : ''}; ` +
+          `a run takes ${r.spend.medianEffortMinutes} min of work (median), ${r.spend.medianAgentMinutes} of them the agents', ` +
+          `over ${r.spend.medianSessions} session(s), up to ${r.spend.peakThreads} at once; ` +
+          `$${r.spend.costUSD} and ${r.spend.linesAdded} line(s) written in all`
+        : 'No session of any finished run was found on this machine: its minutes are not measured');
       return print(r, lines.join('\n'));
     }
     default:
@@ -457,18 +440,36 @@ function selftest() {
   const cli = (...a) => run([...a, '--project', 'demo']);
   const misuse = (a) => { try { run(a); return false; } catch (e) { return e instanceof Usage; } };
   try {
-    // Four finished runs with back-dated times; the model estimated 30 minutes each.
+    // Four finished runs, each estimated at 30 minutes. Each left one session
+    // that says what it really spent, and each record stayed open three times
+    // as long as the work took, because the owner came back the next day.
+    const iso = (ms) => new Date(ms).toISOString();
+    const day = (i) => Date.parse('2026-01-01T10:00:00Z') + i * 864e5;
+    const projects = join(home, 'claude', 'projects', '-w-demo');
+    mkdirSync(projects, { recursive: true });
+    const transcript = (name, rows) =>
+      writeFileSync(join(projects, `${name}.jsonl`), `${rows.map((r) => JSON.stringify(r)).join('\n')}\n`);
+    const worked = (startMs, min) => [
+      { type: 'user', timestamp: iso(startMs), cwd: '/w/demo', message: { content: 'run it' } },
+      { type: 'assistant', timestamp: iso(startMs + min * 60e3), message: { content: [{ type: 'text', text: 'done' }] } },
+      { type: 'system', subtype: 'turn_duration', timestamp: iso(startMs + min * 60e3), durationMs: min * 60e3 },
+      {
+        type: 'cost-state', startTime: startMs, totalAPIDuration: min * 60e3, totalToolDuration: 0,
+        totalDuration: min * 60e3, totalCostUSD: 2, totalLinesAdded: 10, totalLinesRemoved: 1, modelUsage: {},
+      },
+    ];
+
     const took = [60, 80, 100, 120];
     const ids = took.map((m, i) => {
       const id = cli('start', '--feature', `Feature ${i}`, '--work', '20', '--wait', '10', '--tasks', '2',
-        '--harness', i === 0 ? 'claude-code' : 'codex', '--session', `s${i}`).split('\n')[0];
+        '--harness', 'claude-code', '--session', `s${i}`).split('\n')[0];
       const path = join(process.env.SHADY2K_STATE_DIR, 'runs', 'demo', `${id}.json`);
       const r = JSON.parse(readFileSync(path, 'utf8'));
-      const start = Date.parse('2026-01-01T10:00:00Z') + i * 864e5;
-      r.startedAt = new Date(start).toISOString();
-      r.finishedAt = new Date(start + m * 60e3).toISOString();
+      r.startedAt = iso(day(i));
+      r.finishedAt = iso(day(i) + m * 3 * 60e3);
       r.result = 'pull-request';
       save(path, r);
+      transcript(`s${i}`, worked(day(i), m));
       return id;
     });
     expect('start names a run after its date and feature', /^\d{4}-\d{2}-\d{2}-feature-0$/.test(ids[0]));
@@ -486,41 +487,69 @@ function selftest() {
     cli('verdict', ids[1], '--accepted', 'after-changes', '--corrections', '1', '--missed', '1');
     cli('verdict', ids[2], '--accepted', 'abandoned', '--rescues', '1');
     cli('recovery', ids[3], '--grade', 'R3', '--from', 'claude-code', '--to', 'codex');
+    // A session the run recorded that this machine does not have.
+    cli('session', ids[0], '--harness', 'claude-code', '--session', 'gone');
+
+    // A fifth run, stopped rather than delivered, where the owner answered
+    // once in three minutes and once after an hour and a half away. A worker
+    // was started in a working copy of its own while it ran.
+    const fifth = cli('start', '--feature', 'The owner run', '--work', '30', '--wait', '0', '--tasks', '1',
+      '--harness', 'claude-code', '--session', 's4').split('\n')[0];
+    const fifthPath = join(process.env.SHADY2K_STATE_DIR, 'runs', 'demo', `${fifth}.json`);
+    const fifthStart = day(9);
+    const at = (min) => iso(fifthStart + min * 60e3);
+    transcript('s4', [
+      { type: 'user', timestamp: at(0), cwd: '/w/demo', message: { content: 'start' } },
+      { type: 'assistant', timestamp: at(10), message: { content: [{ type: 'tool_use', id: 't', name: 'Bash', input: { command: 'npm test' } }] } },
+      { type: 'user', timestamp: at(14), message: { content: [{ type: 'tool_result', tool_use_id: 't' }] } },
+      { type: 'system', subtype: 'turn_duration', timestamp: at(14), durationMs: 14 * 60e3 },
+      { type: 'user', timestamp: at(17), message: { content: 'go on' } },
+      { type: 'system', subtype: 'turn_duration', timestamp: at(18), durationMs: 60e3 },
+      { type: 'user', timestamp: at(108), message: { content: 'back' } },
+      { type: 'system', subtype: 'turn_duration', timestamp: at(109), durationMs: 60e3 },
+      {
+        type: 'cost-state', startTime: fifthStart, totalAPIDuration: 11 * 60e3, totalToolDuration: 4 * 60e3,
+        totalDuration: 109 * 60e3, totalCostUSD: 5, totalLinesAdded: 3, totalLinesRemoved: 0, modelUsage: {},
+      },
+    ]);
+    mkdirSync(join(home, 'claude', 'projects', '-w-demo-work-1'), { recursive: true });
+    writeFileSync(join(home, 'claude', 'projects', '-w-demo-work-1', 'w1.jsonl'),
+      `${worked(fifthStart + 60e3, 20).map((r) => JSON.stringify({ ...r, cwd: r.cwd ? '/w/demo-work-1' : undefined })).join('\n')}\n`);
+    const fifthRecord = JSON.parse(readFileSync(fifthPath, 'utf8'));
+    fifthRecord.startedAt = iso(fifthStart);
+    fifthRecord.finishedAt = iso(fifthStart + 109 * 60e3);
+    fifthRecord.result = 'stopped';
+    save(fifthPath, fifthRecord);
 
     const p = JSON.parse(cli('pace', '--tasks', '2', '--json'));
-    expect('pace measures from four finished runs', p.enough && p.runs === 4);
-    expect('pace reports how far estimates were off (median 90/30 = 3x)', p.estimateRatio === 3);
+    expect('pace measures from four delivered runs', p.enough && p.runs === 4);
+    expect('pace reports how far the estimates were off (median 90/30 = 3x)', p.estimateRatio === 3);
     expect('pace gives a range for the size asked', p.low === 75 && p.high === 105);
+    expect('the forecast is answered by the work, not by the calendar',
+      p.elapsedLow === 225 && p.elapsedHigh === 315);
 
-    // A Claude transcript for run 0 (10:00-11:00): the owner answers after 2
-    // minutes, later returns after 36 minutes away (capped at 5); one response
-    // is split over two lines of the same request; a message after the run is
-    // not the run's.
-    const lines = [
-      ['user', '2026-01-01T10:00:00Z', 'run it'],
-      ['assistant', '2026-01-01T10:04:00Z', null, 'r1'],
-      ['assistant', '2026-01-01T10:08:00Z', null, 'r2'],
-      ['user', '2026-01-01T10:10:00Z', 'yes'],
-      ['assistant', '2026-01-01T10:14:00Z', null, 'r3'],
-      ['assistant', '2026-01-01T10:14:01Z', null, 'r3'],
-      ['user', '2026-01-01T10:50:00Z', 'back'],
-      ['assistant', '2026-01-01T10:51:00Z', null, 'r4'],
-      ['user', '2026-01-01T13:00:00Z', 'after the run'],
-    ].map(([type, timestamp, text, requestId]) => JSON.stringify(type === 'user'
-      ? { type, timestamp, message: { content: text } }
-      : { type, timestamp, requestId, message: { content: [{ type: 'text', text: 'ok' }], usage: { input_tokens: 100, output_tokens: 10 } } }));
-    mkdirSync(join(home, 'claude', 'projects', 'x'), { recursive: true });
-    writeFileSync(join(home, 'claude', 'projects', 'x', 's0.jsonl'), `${lines.join('\n')}\n`);
     const r = JSON.parse(cli('report', '--json'));
     expect('report counts verdicts', r.acceptedAsIs === 1 && r.acceptedAfterChanges === 1 && r.abandoned === 1);
     expect('only a run without corrections or rescue counts as delivered alone', r.autonomous === 1);
     expect('report separates stops for the owner from missing information', r.stops.owner === 1 && r.stops.missing === 1);
     expect('report counts what the owner judged', r.avoidableQuestions === 1 && r.missedEscalations === 1 && r.corrections === 1 && r.rescues === 1);
     expect('report counts recovery grades', r.recoveries.R3 === 1 && r.recoveries.R0 === 0);
-    expect('attention is the owner\'s gaps, capped at five minutes', r.spend.runsMeasured === 1 && r.spend.attentionMinutes === 7);
-    expect('agent time is the gaps before agent events', r.spend.medianAgentMinutes === 13);
-    expect('tokens are summed once per request', r.spend.medianTokens === 440);
-    expect('a session without a transcript is counted as unmeasured', r.spend.sessionsWithoutTranscript === 1);
+    expect('every finished run is measured, judged or not', r.spend.runsMeasured === 5);
+    expect('a session the machine does not have is counted, not guessed', r.spend.sessionsNotFound === 1);
+    expect('what the runs cost is added up', r.spend.costUSD === 15 && r.spend.linesAdded === 53);
+
+    const owner = JSON.parse(cli('summary', fifth, '--json'));
+    expect('a short gap before the owner\'s message is him answering, a long one is not',
+      owner.spend.ownerMinutes === 3 && owner.spend.awayMinutes === 90);
+    expect('the worker\'s own working copy is counted as the run\'s',
+      owner.spend.sessions === 2 && owner.spend.sideCopies === 1 && owner.spend.peakThreads === 2);
+    // 109 minutes on the clock, 90 of them nobody's: 19 left in the run's own
+    // session, and 20 more in the worker's, which ran inside them.
+    expect('a run\'s work leaves out the hour and a half nobody spent',
+      owner.effortMinutes === 39 && owner.elapsedMinutes === 109);
+    expect('what the run was doing is named, the call and the minutes that led to it',
+      owner.spend.kinds.test === 15);
+
     expect('too little history says so', !JSON.parse(run(['pace', '--project', 'empty', '--json'])).enough);
 
     const open = cli('start', '--feature', 'Open run', '--work', '10', '--wait', '5').split('\n')[0];
@@ -541,13 +570,11 @@ function selftest() {
     expect('ending the record closes the question', !JSON.parse(cli('stalled', '--json')).some((r) => r.run === open));
 
     const sum = JSON.parse(cli('summary', ids[0], '--json'));
-    expect('summary gives one run\'s estimate against what it took', sum.estimatedMinutes === 30 && sum.tookMinutes === 60);
+    expect('summary gives one run\'s estimate against the work it took', sum.estimatedMinutes === 30 && sum.effortMinutes === 60);
     expect('summary carries the stops, the verdict and the size', sum.stops.owner === 1 && sum.accepted === 'as-is' && sum.tasks === 2);
-    expect('summary carries the measured attention where a transcript exists', sum.spend.attentionMinutes === 7 && sum.spend.ownerMessages === 3);
-    const unmeasured = JSON.parse(cli('summary', ids[1], '--json'));
-    expect('summary says nothing it did not measure', unmeasured.spend === undefined);
-    expect('the text says both numbers', cli('summary', ids[0]).includes('estimated 30 min')
-      || cli('summary', ids[0]).includes('Estimated 30 min'));
+    expect('summary carries what the sessions cost', sum.spend.costUSD === 2 && sum.spend.linesAdded === 10);
+    expect('the text says both numbers', cli('summary', ids[0]).includes('Estimated 30 min')
+      && cli('summary', ids[0]).includes('60 min of work'));
 
     expect('misuse: unknown command', misuse(['frobnicate', '--project', 'demo']));
     expect('misuse: start without estimate', misuse(['start', '--project', 'demo', '--feature', 'x']));

@@ -80,8 +80,11 @@ Before the owner leaves, prepare the run so it needs nobody:
   in agent time, with what the estimate rests on (the protocol's **Estimates**:
   the agents' work plus CI and review waits). Start from the measured pace:
   `node runs.mjs pace --tasks <n>`, run from this skill's folder, gives the
-  range similar runs took here and how far past estimates were off; quote it
-  and correct your estimate by it. The journal is this machine's; where it says
+  range of **work** similar runs took here, the range of clock they ran over,
+  and how far past estimates were off; quote the work range and correct your
+  estimate by it. The two ranges differ because the clock holds the hours the
+  owner was away, which no estimate is a forecast of; promise the result by
+  the clock and size the work by the work. The journal is this machine's; where it says
   there is too little history, read the `Run measured` comments on features
   closed before, through the integration's comment operation, and estimate from
   those. Only with neither, say the number is a guess. If that is longer than
@@ -123,9 +126,13 @@ the branch starts, by the protocol's **A decision the owner gives is kept, not
 only obeyed**. It is not carried along to be written when the run gets to it.
 
 **Keep the run's record** in the run journal, [`runs.mjs`](runs.mjs), which
-writes outside the repository. It is how the owner learns whether runs get
-cheaper, faster and safer, so write it as things happen, not from memory at
-the end:
+writes outside the repository. The minutes themselves are not written by hand:
+the record keeps the forecast, the stops and the verdict, and the ledger
+([`ledger.mjs`](ledger.mjs), beside it) reads back what the harness measured —
+the model's minutes, the tools', what the owner answered, what a run cost and
+how many lines it wrote, including the workers' own working copies. It is how
+the owner learns whether runs get cheaper, faster and safer, so write the
+record as things happen, not from memory at the end:
 
 - on "run": `start` with the feature's title, the preflight's estimate as work
   and wait minutes, and the numbers of tasks and stages;

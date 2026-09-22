@@ -75,7 +75,8 @@ or release the coordinator's hold and name who resumes.
 
 When a feature closes whose run left a record in the run journal
 ([`runs.mjs`](runs.mjs), run with `node` from this skill's folder; `list` shows
-the records), ask the owner once, in one message, in plain words:
+the records, and the ledger beside it, [`ledger.mjs`](ledger.mjs), is where its
+minutes come from), ask the owner once, in one message, in plain words:
 
 - did they take the result as it was, after changes of their own, or not at all;
 - was there a question the agent could have answered itself from the project;
