@@ -1,0 +1,423 @@
+{"type":"user","timestamp":"2026-09-18T11:12:52.624Z","cwd":"/fixture/cwd","sessionId":"xfe4d9a7382","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T11:12:54.907Z","message":{"id":"x3bc100a5fd","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:12:55.198Z","message":{"id":"x3bc100a5fd","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:12:56.199Z","message":{"id":"x3bc100a5fd","content":[{"type":"tool_use","id":"x8dd592fdba","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:12:56.630Z","message":{"content":[{"type":"tool_result","tool_use_id":"x8dd592fdba"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:12:59.895Z","message":{"id":"xcf4034f5a3","content":[{"type":"tool_use","id":"x9e1a721a2c","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:13:02.803Z","message":{"content":[{"type":"tool_result","tool_use_id":"x9e1a721a2c"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:08.678Z","message":{"id":"x52cdfa648c","content":[{"type":"tool_use","id":"x12d51b96b2","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:09.670Z","message":{"id":"x52cdfa648c","content":[{"type":"tool_use","id":"x59ba74df78","name":"Read","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:13:10.738Z","message":{"content":[{"type":"tool_result","tool_use_id":"x12d51b96b2"}]}}
+{"type":"user","timestamp":"2026-09-18T11:13:11.330Z","message":{"content":[{"type":"tool_result","tool_use_id":"x59ba74df78"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:14.605Z","message":{"id":"xbf1ca11a26","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:14.607Z","message":{"id":"xbf1ca11a26","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:16.363Z","message":{"id":"xbf1ca11a26","content":[{"type":"tool_use","id":"x70ae8d3682","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:13:16.489Z","message":{"content":[{"type":"tool_result","tool_use_id":"x70ae8d3682"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:16.892Z","message":{"id":"xbf1ca11a26","content":[{"type":"tool_use","id":"x95322673bf","name":"Read","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:13:17.017Z","message":{"content":[{"type":"tool_result","tool_use_id":"x95322673bf"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:20.181Z","message":{"id":"xb1ce33175e","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:20.182Z","message":{"id":"xb1ce33175e","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:22.613Z","message":{"id":"xb1ce33175e","content":[{"type":"tool_use","id":"xd206e39605","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:13:24.947Z","message":{"content":[{"type":"tool_result","tool_use_id":"xd206e39605"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:45.194Z","message":{"id":"x778ccae2e7","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:45.879Z","message":{"id":"x778ccae2e7","content":[{"type":"tool_use","id":"xfe636dcc74","name":"ToolSearch","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:13:45.904Z","message":{"content":[{"type":"tool_result","tool_use_id":"xfe636dcc74"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:48.132Z","message":{"id":"x778ccae2e7","content":[{"type":"tool_use","id":"x9221d4a9e0","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:13:48.263Z","message":{"content":[{"type":"tool_result","tool_use_id":"x9221d4a9e0"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:48.626Z","message":{"id":"x778ccae2e7","content":[{"type":"tool_use","id":"xb61fc2ddba","name":"Read","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:13:48.749Z","message":{"content":[{"type":"tool_result","tool_use_id":"xb61fc2ddba"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:50.937Z","message":{"id":"xee50acc7ee","content":[{"type":"tool_use","id":"x32c7f6faeb","name":"mcp__server__tool","input":{}}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:13:52.545Z","message":{"id":"xee50acc7ee","content":[{"type":"tool_use","id":"xcda5d6fe0f","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:13:52.673Z","message":{"content":[{"type":"tool_result","tool_use_id":"xcda5d6fe0f"}]}}
+{"type":"user","timestamp":"2026-09-18T11:13:53.974Z","message":{"content":[{"type":"tool_result","tool_use_id":"x32c7f6faeb"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:03.436Z","message":{"id":"x29fba33485","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:03.923Z","message":{"id":"x29fba33485","content":[{"type":"tool_use","id":"xd8da18987b","name":"Read","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:14:04.034Z","message":{"content":[{"type":"tool_result","tool_use_id":"xd8da18987b"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:06.696Z","message":{"id":"x41d7f2497f","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:06.697Z","message":{"id":"x41d7f2497f","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:09.429Z","message":{"id":"x41d7f2497f","content":[{"type":"tool_use","id":"xcbdd51c3c3","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:14:09.584Z","message":{"content":[{"type":"tool_result","tool_use_id":"xcbdd51c3c3"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:12.419Z","message":{"id":"x41d7f2497f","content":[{"type":"tool_use","id":"x2c8c0bb920","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:14:12.561Z","message":{"content":[{"type":"tool_result","tool_use_id":"x2c8c0bb920"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:15.780Z","message":{"id":"x41d7f2497f","content":[{"type":"tool_use","id":"xaaefd08d30","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:14:15.920Z","message":{"content":[{"type":"tool_result","tool_use_id":"xaaefd08d30"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:18.967Z","message":{"id":"x41d7f2497f","content":[{"type":"tool_use","id":"x6ab8e5e097","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:14:19.106Z","message":{"content":[{"type":"tool_result","tool_use_id":"x6ab8e5e097"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:21.040Z","message":{"id":"x03eb9d5cf5","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:27.588Z","message":{"id":"x03eb9d5cf5","content":[{"type":"tool_use","id":"xb9d8021762","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:14:27.723Z","message":{"content":[{"type":"tool_result","tool_use_id":"xb9d8021762"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:29.222Z","message":{"id":"x03eb9d5cf5","content":[{"type":"tool_use","id":"x0ac5161f6e","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:14:29.362Z","message":{"content":[{"type":"tool_result","tool_use_id":"x0ac5161f6e"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:30.716Z","message":{"id":"x03eb9d5cf5","content":[{"type":"tool_use","id":"x6d6a7fd416","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:14:30.858Z","message":{"content":[{"type":"tool_result","tool_use_id":"x6d6a7fd416"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:33.962Z","message":{"id":"x9bf47f31f0","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:33.963Z","message":{"id":"x9bf47f31f0","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:36.028Z","message":{"id":"x9bf47f31f0","content":[{"type":"tool_use","id":"x941c4ac0af","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:14:38.863Z","message":{"content":[{"type":"tool_result","tool_use_id":"x941c4ac0af"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:43.748Z","message":{"id":"xfc3c95e802","content":[{"type":"tool_use","id":"xd950e73f4a","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:14:43.891Z","message":{"content":[{"type":"tool_result","tool_use_id":"xd950e73f4a"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:14:45.059Z","message":{"id":"xfc3c95e802","content":[{"type":"tool_use","id":"xfab290827c","name":"Bash","input":{"command":"npm test"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:14:48.830Z","message":{"content":[{"type":"tool_result","tool_use_id":"xfab290827c"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:15:03.627Z","message":{"id":"xf58ea187ed","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T11:15:03.787Z","durationMs":131177,"messageCount":135}
+{"type":"user","timestamp":"2026-09-18T11:15:10.554Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T11:15:12.700Z","message":{"id":"x85d4096bbf","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:15:15.629Z","message":{"id":"x85d4096bbf","content":[{"type":"tool_use","id":"x8322463175","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:15:19.693Z","message":{"content":[{"type":"tool_result","tool_use_id":"x8322463175"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:15:24.652Z","message":{"id":"x86938e2e1c","content":[{"type":"tool_use","id":"x1a839b1b47","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:15:26.659Z","message":{"content":[{"type":"tool_result","tool_use_id":"x1a839b1b47"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:15:35.302Z","message":{"id":"xc8b01798d5","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:15:36.545Z","message":{"id":"xc8b01798d5","content":[{"type":"tool_use","id":"xd0c03a907f","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:15:36.849Z","message":{"content":[{"type":"tool_result","tool_use_id":"xd0c03a907f"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:15:39.910Z","message":{"id":"x0ecb51ae67","content":[{"type":"tool_use","id":"xf967d3519c","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:15:43.370Z","message":{"content":[{"type":"tool_result","tool_use_id":"xf967d3519c"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:16:16.979Z","message":{"id":"xb26c36368c","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:16:28.382Z","message":{"id":"xb26c36368c","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T11:16:28.531Z","durationMs":77989,"messageCount":166}
+{"type":"user","timestamp":"2026-09-18T11:17:15.489Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:17.451Z","message":{"id":"x5e82f5935a","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:17.761Z","message":{"id":"x5e82f5935a","content":[{"type":"tool_use","id":"x8743bf968d","name":"Skill","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:17:17.802Z","message":{"content":[{"type":"tool_result","tool_use_id":"x8743bf968d"}]}}
+{"type":"user","timestamp":"2026-09-18T11:17:17.791Z","isMeta":true,"message":{"content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:19.880Z","attributionSkill":"someone:other-skill","message":{"id":"xcd511c7959","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:20.946Z","attributionSkill":"someone:other-skill","message":{"id":"xcd511c7959","content":[{"type":"tool_use","id":"x942e625847","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:17:22.710Z","message":{"content":[{"type":"tool_result","tool_use_id":"x942e625847"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:27.048Z","attributionSkill":"someone:other-skill","message":{"id":"x87e827b3c7","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:29.338Z","attributionSkill":"someone:other-skill","message":{"id":"x87e827b3c7","content":[{"type":"tool_use","id":"x849c71b580","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:17:31.402Z","message":{"content":[{"type":"tool_result","tool_use_id":"x849c71b580"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:33.199Z","attributionSkill":"someone:other-skill","message":{"id":"x9864de5d84","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:34.681Z","attributionSkill":"someone:other-skill","message":{"id":"x9864de5d84","content":[{"type":"tool_use","id":"x601046c359","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:17:36.761Z","message":{"content":[{"type":"tool_result","tool_use_id":"x601046c359"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:39.078Z","attributionSkill":"someone:other-skill","message":{"id":"x8b51d4e608","content":[{"type":"tool_use","id":"x7db3d12007","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:17:41.193Z","message":{"content":[{"type":"tool_result","tool_use_id":"x7db3d12007"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:43.707Z","attributionSkill":"someone:other-skill","message":{"id":"x199de7ee01","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:43.709Z","attributionSkill":"someone:other-skill","message":{"id":"x199de7ee01","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:47.618Z","attributionSkill":"someone:other-skill","message":{"id":"x199de7ee01","content":[{"type":"tool_use","id":"x86e3de7553","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:17:49.641Z","message":{"content":[{"type":"tool_result","tool_use_id":"x86e3de7553"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:17:52.725Z","attributionSkill":"someone:other-skill","message":{"id":"xf38e5c47fb","content":[{"type":"tool_use","id":"xa76e30d937","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:17:52.840Z","message":{"content":[{"type":"tool_result","tool_use_id":"xa76e30d937"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:18:00.290Z","attributionSkill":"someone:other-skill","message":{"id":"x6aa07c87c4","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:18:03.576Z","attributionSkill":"someone:other-skill","message":{"id":"x6aa07c87c4","content":[{"type":"tool_use","id":"xbb16e542db","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:18:05.824Z","message":{"content":[{"type":"tool_result","tool_use_id":"xbb16e542db"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:18:37.694Z","attributionSkill":"someone:other-skill","message":{"id":"x4b20a9c2d3","content":[{"type":"tool_use","id":"x31659bb194","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:18:39.760Z","message":{"content":[{"type":"tool_result","tool_use_id":"x31659bb194"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:18:42.958Z","attributionSkill":"someone:other-skill","message":{"id":"xea97c08f5b","content":[{"type":"tool_use","id":"xa37e95d818","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:18:49.198Z","message":{"content":[{"type":"tool_result","tool_use_id":"xa37e95d818"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:18:51.542Z","attributionSkill":"someone:other-skill","message":{"id":"xcf2fe984f8","content":[{"type":"tool_use","id":"xc5bd915fa7","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:18:54.125Z","message":{"content":[{"type":"tool_result","tool_use_id":"xc5bd915fa7"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:18:55.931Z","attributionSkill":"someone:other-skill","message":{"id":"xac1cc2909e","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:18:57.589Z","attributionSkill":"someone:other-skill","message":{"id":"xac1cc2909e","content":[{"type":"tool_use","id":"x1b9f469a2e","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:19:20.032Z","message":{"content":[{"type":"tool_result","tool_use_id":"x1b9f469a2e"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:19:22.411Z","attributionSkill":"someone:other-skill","message":{"id":"x7d963e3506","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:19:22.413Z","attributionSkill":"someone:other-skill","message":{"id":"x7d963e3506","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:19:24.087Z","attributionSkill":"someone:other-skill","message":{"id":"x7d963e3506","content":[{"type":"tool_use","id":"x4815046eb6","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:19:26.428Z","message":{"content":[{"type":"tool_result","tool_use_id":"x4815046eb6"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:19:28.692Z","attributionSkill":"someone:other-skill","message":{"id":"x8a5660ceb0","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:19:30.008Z","attributionSkill":"someone:other-skill","message":{"id":"x8a5660ceb0","content":[{"type":"tool_use","id":"x6a15ee5ef6","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:19:30.127Z","message":{"content":[{"type":"tool_result","tool_use_id":"x6a15ee5ef6"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:19:37.364Z","attributionSkill":"someone:other-skill","message":{"id":"x569cee2e2d","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:19:37.367Z","attributionSkill":"someone:other-skill","message":{"id":"x569cee2e2d","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T11:19:37.530Z","durationMs":142045,"messageCount":251}
+{"type":"user","timestamp":"2026-09-18T11:20:46.153Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T11:20:48.422Z","message":{"id":"x2fa422b378","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:20:49.175Z","message":{"id":"x2fa422b378","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:20:49.736Z","message":{"id":"x2fa422b378","content":[{"type":"tool_use","id":"x75a12f706c","name":"Read","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:20:49.854Z","message":{"content":[{"type":"tool_result","tool_use_id":"x75a12f706c"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:20:50.249Z","message":{"id":"x2fa422b378","content":[{"type":"tool_use","id":"x45fada525f","name":"ToolSearch","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:20:50.290Z","message":{"content":[{"type":"tool_result","tool_use_id":"x45fada525f"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:20:53.759Z","message":{"id":"xf3c6c32c90","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:20:54.924Z","message":{"id":"xf3c6c32c90","content":[{"type":"tool_use","id":"x5bb9388f5f","name":"mcp__server__tool","input":{}}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:20:56.275Z","message":{"id":"xf3c6c32c90","content":[{"type":"tool_use","id":"xc8c99dce71","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:21:13.656Z","message":{"content":[{"type":"tool_result","tool_use_id":"x5bb9388f5f"}]}}
+{"type":"user","timestamp":"2026-09-18T11:21:13.974Z","message":{"content":[{"type":"tool_result","tool_use_id":"xc8c99dce71"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:21:15.975Z","message":{"id":"x9e44722b1c","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:21:17.038Z","message":{"id":"x9e44722b1c","content":[{"type":"tool_use","id":"x8ddb30fc86","name":"mcp__server__tool","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:21:34.051Z","message":{"content":[{"type":"tool_result","tool_use_id":"x8ddb30fc86"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:21:36.808Z","message":{"id":"x6293da08a4","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:21:39.776Z","message":{"id":"x6293da08a4","content":[{"type":"tool_use","id":"x668cf92b19","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:21:42.554Z","message":{"content":[{"type":"tool_result","tool_use_id":"x668cf92b19"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:21:44.522Z","message":{"id":"x14cd838b1c","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:21:46.310Z","message":{"id":"x14cd838b1c","content":[{"type":"tool_use","id":"xd083a7f89e","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:21:48.341Z","message":{"content":[{"type":"tool_result","tool_use_id":"xd083a7f89e"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:22:18.665Z","message":{"id":"xf0c797bc65","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:22:27.849Z","message":{"id":"xf0c797bc65","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T11:22:28.025Z","durationMs":101894,"messageCount":295}
+{"type":"user","timestamp":"2026-09-18T11:22:48.857Z","origin":{"kind":"task-notification"},"message":{"content":"<task-notification> …"}}
+{"type":"assistant","timestamp":"2026-09-18T11:22:53.862Z","message":{"id":"x7c269ef038","content":[{"type":"tool_use","id":"x686a8c9648","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:22:57.150Z","message":{"content":[{"type":"tool_result","tool_use_id":"x686a8c9648"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:22:59.260Z","message":{"id":"xeacc5f880f","content":[{"type":"tool_use","id":"x7ebb17105b","name":"Read","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:22:59.382Z","message":{"content":[{"type":"tool_result","tool_use_id":"x7ebb17105b"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:23:22.466Z","message":{"id":"x7886c797c5","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:23:22.468Z","message":{"id":"x7886c797c5","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:23:29.387Z","message":{"id":"x7886c797c5","content":[{"type":"tool_use","id":"x1ac2be9904","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:23:29.556Z","message":{"content":[{"type":"tool_result","tool_use_id":"x1ac2be9904"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:23:31.762Z","message":{"id":"x7886c797c5","content":[{"type":"tool_use","id":"xb0ff79d3c0","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:23:31.907Z","message":{"content":[{"type":"tool_result","tool_use_id":"xb0ff79d3c0"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:23:33.303Z","message":{"id":"x7886c797c5","content":[{"type":"tool_use","id":"xfb9eee5eed","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:23:33.444Z","message":{"content":[{"type":"tool_result","tool_use_id":"xfb9eee5eed"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:23:36.154Z","message":{"id":"x6918123f0b","content":[{"type":"tool_use","id":"x814675990a","name":"Bash","input":{"command":"npm test"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:23:38.955Z","message":{"content":[{"type":"tool_result","tool_use_id":"x814675990a"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:23:41.018Z","message":{"id":"x1a334b3884","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:23:42.225Z","message":{"id":"x1a334b3884","content":[{"type":"tool_use","id":"x78f9f3a3ba","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:23:44.264Z","message":{"content":[{"type":"tool_result","tool_use_id":"x78f9f3a3ba"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:23:53.436Z","message":{"id":"x3ae70f768c","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:24:07.362Z","message":{"id":"x3ae70f768c","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T11:24:07.528Z","durationMs":78683,"messageCount":335}
+{"type":"user","timestamp":"2026-09-18T11:25:03.095Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T11:25:07.686Z","message":{"id":"x0694405987","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:25:16.040Z","message":{"id":"x0694405987","content":[{"type":"tool_use","id":"xcba948a71d","name":"Bash","input":{"command":"git commit -m x"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:25:18.040Z","message":{"content":[{"type":"tool_result","tool_use_id":"xcba948a71d"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:25:20.881Z","message":{"id":"x5ac92580ef","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:25:20.882Z","message":{"id":"x5ac92580ef","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:25:22.025Z","message":{"id":"x5ac92580ef","content":[{"type":"tool_use","id":"xdba786965b","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:25:24.115Z","message":{"content":[{"type":"tool_result","tool_use_id":"xdba786965b"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:25:58.515Z","message":{"id":"xea8118dd3d","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:26:00.802Z","message":{"id":"xea8118dd3d","content":[{"type":"tool_use","id":"x2180a08187","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:26:00.933Z","message":{"content":[{"type":"tool_result","tool_use_id":"x2180a08187"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:26:04.626Z","message":{"id":"x4e41aa9111","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:26:04.627Z","message":{"id":"x4e41aa9111","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:26:15.221Z","message":{"id":"x4e41aa9111","content":[{"type":"tool_use","id":"x121aaf5629","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:26:15.363Z","message":{"content":[{"type":"tool_result","tool_use_id":"x121aaf5629"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:26:17.474Z","message":{"id":"xf212192144","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:26:18.505Z","message":{"id":"xf212192144","content":[{"type":"tool_use","id":"x749d747e25","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:26:20.678Z","message":{"content":[{"type":"tool_result","tool_use_id":"x749d747e25"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:26:34.012Z","message":{"id":"x25e6d7555e","content":[{"type":"tool_use","id":"x0ce858d693","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:26:34.154Z","message":{"content":[{"type":"tool_result","tool_use_id":"x0ce858d693"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:26:37.157Z","message":{"id":"xc7e00f023a","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:26:37.159Z","message":{"id":"xc7e00f023a","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:26:42.550Z","message":{"id":"xc7e00f023a","content":[{"type":"tool_use","id":"x1c8e75a0c8","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:26:42.695Z","message":{"content":[{"type":"tool_result","tool_use_id":"x1c8e75a0c8"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:26:48.338Z","message":{"id":"xc7e00f023a","content":[{"type":"tool_use","id":"xf26f674a82","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:26:48.474Z","message":{"content":[{"type":"tool_result","tool_use_id":"xf26f674a82"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:26:51.063Z","message":{"id":"x7a3d3426ae","content":[{"type":"tool_use","id":"x6e45b4bc93","name":"Read","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:26:51.183Z","message":{"content":[{"type":"tool_result","tool_use_id":"x6e45b4bc93"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:02.046Z","message":{"id":"xb50fa3af3b","content":[{"type":"tool_use","id":"xeea2e08698","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:27:02.186Z","message":{"content":[{"type":"tool_result","tool_use_id":"xeea2e08698"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:04.042Z","message":{"id":"x86cef691c5","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:05.521Z","message":{"id":"x86cef691c5","content":[{"type":"tool_use","id":"xadbcbbbca1","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:27:07.872Z","message":{"content":[{"type":"tool_result","tool_use_id":"xadbcbbbca1"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:14.004Z","message":{"id":"xd30fedb9e2","content":[{"type":"tool_use","id":"xe3aa4f16d7","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:27:14.137Z","message":{"content":[{"type":"tool_result","tool_use_id":"xe3aa4f16d7"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:17.198Z","message":{"id":"x6a47dc73e7","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:20.779Z","message":{"id":"x6a47dc73e7","content":[{"type":"tool_use","id":"x9e14aafb4a","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:27:23.881Z","message":{"content":[{"type":"tool_result","tool_use_id":"x9e14aafb4a"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:26.620Z","message":{"id":"x14c8cea3ae","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:27.586Z","message":{"id":"x14c8cea3ae","content":[{"type":"tool_use","id":"x662d5438b6","name":"Read","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:27:27.706Z","message":{"content":[{"type":"tool_result","tool_use_id":"x662d5438b6"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:31.577Z","message":{"id":"x880b8842cb","content":[{"type":"tool_use","id":"xbc133a54a8","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:27:31.719Z","message":{"content":[{"type":"tool_result","tool_use_id":"xbc133a54a8"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:37.707Z","message":{"id":"x20c8516b12","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:37.709Z","message":{"id":"x20c8516b12","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:42.064Z","message":{"id":"x20c8516b12","content":[{"type":"tool_use","id":"x622492593c","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:27:44.093Z","message":{"content":[{"type":"tool_result","tool_use_id":"x622492593c"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:51.494Z","message":{"id":"x3161b245b3","content":[{"type":"tool_use","id":"x3ea72923ed","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:27:54.299Z","message":{"content":[{"type":"tool_result","tool_use_id":"x3ea72923ed"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:27:59.264Z","message":{"id":"x2c006d117a","content":[{"type":"tool_use","id":"x0c5260b1d3","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:27:59.416Z","message":{"content":[{"type":"tool_result","tool_use_id":"x0c5260b1d3"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:01.206Z","message":{"id":"x4d918a2455","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:08.715Z","message":{"id":"x4d918a2455","content":[{"type":"tool_use","id":"x10c4e26352","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:28:10.696Z","message":{"content":[{"type":"tool_result","tool_use_id":"x10c4e26352"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:16.114Z","message":{"id":"xffe15ec541","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:16.116Z","message":{"id":"xffe15ec541","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:22.121Z","message":{"id":"xffe15ec541","content":[{"type":"tool_use","id":"x9175031174","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:28:22.251Z","message":{"content":[{"type":"tool_result","tool_use_id":"x9175031174"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:29.225Z","message":{"id":"xffe15ec541","content":[{"type":"tool_use","id":"x29f4dad89c","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:28:31.391Z","message":{"content":[{"type":"tool_result","tool_use_id":"x29f4dad89c"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:33.997Z","message":{"id":"xe7ebd37ca1","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:33.998Z","message":{"id":"xe7ebd37ca1","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:36.434Z","message":{"id":"xe7ebd37ca1","content":[{"type":"tool_use","id":"x8b30a8ddcb","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:28:38.873Z","message":{"content":[{"type":"tool_result","tool_use_id":"x8b30a8ddcb"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:42.500Z","message":{"id":"xbb1a3e696a","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:42.501Z","message":{"id":"xbb1a3e696a","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:43.914Z","message":{"id":"xbb1a3e696a","content":[{"type":"tool_use","id":"x35877a833b","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:28:44.033Z","message":{"content":[{"type":"tool_result","tool_use_id":"x35877a833b"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:46.210Z","message":{"id":"x9d567b97e3","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:28:50.007Z","message":{"id":"x9d567b97e3","content":[{"type":"tool_use","id":"xf94ebef0e4","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:28:52.599Z","message":{"content":[{"type":"tool_result","tool_use_id":"xf94ebef0e4"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:29:06.833Z","message":{"id":"x340fb7ed5c","content":[{"type":"tool_use","id":"x169ebab443","name":"Bash","input":{"command":"npm test"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:29:09.102Z","message":{"content":[{"type":"tool_result","tool_use_id":"x169ebab443"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:29:12.413Z","message":{"id":"xf2351e53d8","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:29:26.223Z","message":{"id":"xf2351e53d8","content":[{"type":"tool_use","id":"x50f0dab06d","name":"Bash","input":{"command":"npm test"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:29:39.532Z","message":{"content":[{"type":"tool_result","tool_use_id":"x50f0dab06d"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:29:43.811Z","message":{"id":"xecebf213cc","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:29:44.913Z","message":{"id":"xecebf213cc","content":[{"type":"tool_use","id":"x894f06c7cf","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:29:47.062Z","message":{"content":[{"type":"tool_result","tool_use_id":"x894f06c7cf"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:29:59.188Z","message":{"id":"x9dcf50cabb","content":[{"type":"tool_use","id":"x1b47e6256a","name":"Bash","input":{"command":"git commit -m x"}}]}}
+{"type":"user","timestamp":"2026-09-18T11:30:01.179Z","message":{"content":[{"type":"tool_result","tool_use_id":"x1b47e6256a"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:30:06.434Z","message":{"id":"xeed77f9172","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:30:06.436Z","message":{"id":"xeed77f9172","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:30:07.027Z","message":{"id":"xeed77f9172","content":[{"type":"tool_use","id":"x1f5c03bb5d","name":"ToolSearch","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:30:07.055Z","message":{"content":[{"type":"tool_result","tool_use_id":"x1f5c03bb5d"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:30:13.934Z","message":{"id":"xdc0ef1feef","content":[{"type":"tool_use","id":"x5e5855cf55","name":"mcp__server__tool","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T11:30:17.240Z","message":{"content":[{"type":"tool_result","tool_use_id":"x5e5855cf55"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:30:32.878Z","message":{"id":"x8e168276e8","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T11:30:33.053Z","durationMs":329965,"messageCount":506}
+{"type":"user","timestamp":"2026-09-18T11:58:58.325Z","message":{"content":"text"}}
+{"type":"user","timestamp":"2026-09-18T11:59:00.343Z","message":{"content":"<bash-stdout> …"}}
+{"type":"assistant","timestamp":"2026-09-18T11:59:03.329Z","message":{"id":"x2f1a4ec9d1","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T11:59:06.028Z","message":{"id":"x2f1a4ec9d1","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T11:59:06.306Z","durationMs":7990,"messageCount":513}
+{"type":"user","timestamp":"2026-09-18T12:42:54.779Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T12:42:58.955Z","message":{"id":"x6f6afba90f","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:42:59.586Z","message":{"id":"x6f6afba90f","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:43:01.693Z","message":{"id":"x6f6afba90f","content":[{"type":"tool_use","id":"x5abc89e830","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T12:43:01.837Z","message":{"content":[{"type":"tool_result","tool_use_id":"x5abc89e830"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:43:07.309Z","message":{"id":"x3d839327a3","content":[{"type":"tool_use","id":"x613a294379","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T12:43:10.352Z","message":{"content":[{"type":"tool_result","tool_use_id":"x613a294379"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:43:36.169Z","message":{"id":"x043a535327","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:43:37.328Z","message":{"id":"x043a535327","content":[{"type":"tool_use","id":"xc31833b3fc","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T12:43:37.639Z","message":{"content":[{"type":"tool_result","tool_use_id":"xc31833b3fc"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:43:41.607Z","message":{"id":"x7c558c12a5","content":[{"type":"tool_use","id":"xfdf3421430","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T12:43:41.744Z","message":{"content":[{"type":"tool_result","tool_use_id":"xfdf3421430"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:43:58.310Z","message":{"id":"x5a48a86932","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:44:08.008Z","message":{"id":"x5a48a86932","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T12:44:08.187Z","durationMs":73418,"messageCount":543}
+{"type":"user","timestamp":"2026-09-18T12:47:09.699Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T12:47:43.198Z","message":{"id":"x9601bf03dd","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:47:44.440Z","message":{"id":"x9601bf03dd","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:47:47.571Z","message":{"id":"x9601bf03dd","content":[{"type":"tool_use","id":"x01163038f4","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T12:47:49.752Z","message":{"content":[{"type":"tool_result","tool_use_id":"x01163038f4"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:48:10.675Z","message":{"id":"x41a09ea227","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:48:10.934Z","message":{"id":"x41a09ea227","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T12:48:19.875Z","message":{"id":"x41a09ea227","content":[{"type":"tool_use","id":"x676b26a783","name":"AskUserQuestion","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:02:13.194Z","message":{"content":[{"type":"tool_result","tool_use_id":"x676b26a783"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:02:48.814Z","message":{"id":"x382e0927f9","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:02:48.816Z","message":{"id":"x382e0927f9","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:02:51.657Z","message":{"id":"x382e0927f9","content":[{"type":"tool_use","id":"x4f3b8f9852","name":"mcp__server__tool","input":{}}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:02:55.368Z","message":{"id":"x382e0927f9","content":[{"type":"tool_use","id":"xefb9e830ca","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:02:56.483Z","message":{"content":[{"type":"tool_result","tool_use_id":"x4f3b8f9852"}]}}
+{"type":"user","timestamp":"2026-09-18T13:02:58.845Z","message":{"content":[{"type":"tool_result","tool_use_id":"xefb9e830ca"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:03:03.808Z","message":{"id":"x47d3dd2fd1","content":[{"type":"tool_use","id":"x6011d21571","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:03:06.109Z","message":{"content":[{"type":"tool_result","tool_use_id":"x6011d21571"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:03:08.853Z","message":{"id":"xc767ba871b","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:03:08.855Z","message":{"id":"xc767ba871b","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:03:10.845Z","message":{"id":"xc767ba871b","content":[{"type":"tool_use","id":"xaba077eea6","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:03:10.992Z","message":{"content":[{"type":"tool_result","tool_use_id":"xaba077eea6"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:03:55.435Z","message":{"id":"x2cfda3b7e4","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:03:58.459Z","message":{"id":"x2cfda3b7e4","content":[{"type":"tool_use","id":"xb9c974b3ab","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:03:58.614Z","message":{"content":[{"type":"tool_result","tool_use_id":"xb9c974b3ab"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:04:01.537Z","message":{"id":"xced46694b2","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:04:01.540Z","message":{"id":"xced46694b2","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:04:03.313Z","message":{"id":"xced46694b2","content":[{"type":"tool_use","id":"x0fe5d0fd04","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:04:05.797Z","message":{"content":[{"type":"tool_result","tool_use_id":"x0fe5d0fd04"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:04:19.331Z","message":{"id":"x43a1e68c72","content":[{"type":"tool_use","id":"xfae77b1f4a","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:04:19.469Z","message":{"content":[{"type":"tool_result","tool_use_id":"xfae77b1f4a"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:04:21.914Z","message":{"id":"x4909a503fe","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:04:39.005Z","message":{"id":"x4909a503fe","content":[{"type":"tool_use","id":"x64f150b964","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:04:39.154Z","message":{"content":[{"type":"tool_result","tool_use_id":"x64f150b964"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:04:41.385Z","message":{"id":"xff0b5d7d54","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:04:58.844Z","message":{"id":"xff0b5d7d54","content":[{"type":"tool_use","id":"x082b8cdedd","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:04:58.984Z","message":{"content":[{"type":"tool_result","tool_use_id":"x082b8cdedd"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:05:09.970Z","message":{"id":"xff0b5d7d54","content":[{"type":"tool_use","id":"xe87740b162","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:05:10.126Z","message":{"content":[{"type":"tool_result","tool_use_id":"xe87740b162"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:05:13.464Z","message":{"id":"x7c7d4e2c54","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:05:15.150Z","message":{"id":"x7c7d4e2c54","content":[{"type":"tool_use","id":"xeae00b4b73","name":"Edit","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:05:15.299Z","message":{"content":[{"type":"tool_result","tool_use_id":"xeae00b4b73"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:05:17.421Z","message":{"id":"x5a39e1fd8e","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:05:35.445Z","message":{"id":"x5a39e1fd8e","content":[{"type":"tool_use","id":"x7a2b587036","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:05:35.596Z","message":{"content":[{"type":"tool_result","tool_use_id":"x7a2b587036"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:05:48.327Z","message":{"id":"x5a39e1fd8e","content":[{"type":"tool_use","id":"xcaf81d3493","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:05:48.469Z","message":{"content":[{"type":"tool_result","tool_use_id":"xcaf81d3493"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:06:01.567Z","message":{"id":"x5a39e1fd8e","content":[{"type":"tool_use","id":"xb62bf54270","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:06:01.779Z","message":{"content":[{"type":"tool_result","tool_use_id":"xb62bf54270"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:06:06.854Z","message":{"id":"x5a39e1fd8e","content":[{"type":"tool_use","id":"x13c319277c","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:06:07.019Z","message":{"content":[{"type":"tool_result","tool_use_id":"x13c319277c"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:06:10.507Z","message":{"id":"xf89112bc1c","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:06:10.509Z","message":{"id":"xf89112bc1c","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:06:14.546Z","message":{"id":"xf89112bc1c","content":[{"type":"tool_use","id":"xd8596b5c73","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:06:18.248Z","message":{"content":[{"type":"tool_result","tool_use_id":"xd8596b5c73"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:06:20.599Z","message":{"id":"xb6a31e26d8","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:06:32.065Z","message":{"id":"xb6a31e26d8","content":[{"type":"tool_use","id":"x91b944f15f","name":"Bash","input":{"command":"npm run build"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:06:34.377Z","message":{"content":[{"type":"tool_result","tool_use_id":"x91b944f15f"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:06:37.369Z","message":{"id":"x308f03c64c","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:06:50.681Z","message":{"id":"x308f03c64c","content":[{"type":"tool_use","id":"xad8d911b10","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:06:52.945Z","message":{"content":[{"type":"tool_result","tool_use_id":"xad8d911b10"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:06:56.145Z","message":{"id":"xf0565993fb","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:06:59.906Z","message":{"id":"xf0565993fb","content":[{"type":"tool_use","id":"xcaa07c3eed","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:07:03.040Z","message":{"content":[{"type":"tool_result","tool_use_id":"xcaa07c3eed"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:07:07.344Z","message":{"id":"xa684f6a3fa","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:07:21.179Z","message":{"id":"xa684f6a3fa","content":[{"type":"tool_use","id":"x3cf256e333","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:07:23.654Z","message":{"content":[{"type":"tool_result","tool_use_id":"x3cf256e333"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:07:25.939Z","message":{"id":"x31fbabc2c4","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:07:45.055Z","message":{"id":"x31fbabc2c4","content":[{"type":"tool_use","id":"x0bcd7a2da6","name":"Bash","input":{"command":"npm run build"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:07:47.261Z","message":{"content":[{"type":"tool_result","tool_use_id":"x0bcd7a2da6"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:07:52.030Z","message":{"id":"x6b2544f507","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:08:15.733Z","message":{"id":"x6b2544f507","content":[{"type":"tool_use","id":"x7d46aab970","name":"Bash","input":{"command":"npm test"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:08:19.962Z","message":{"content":[{"type":"tool_result","tool_use_id":"x7d46aab970"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:08:24.132Z","message":{"id":"xc3e34bf087","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:08:27.108Z","message":{"id":"xc3e34bf087","content":[{"type":"tool_use","id":"x3162ca49be","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:08:29.846Z","message":{"content":[{"type":"tool_result","tool_use_id":"x3162ca49be"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:08:42.128Z","message":{"id":"x11153b4d1a","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:08:52.081Z","message":{"id":"x11153b4d1a","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T13:08:52.347Z","durationMs":469412,"messageCount":688}
+{"type":"user","timestamp":"2026-09-18T13:14:09.689Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T13:14:23.073Z","message":{"id":"xba2bd0fab7","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:14:25.906Z","message":{"id":"xba2bd0fab7","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:14:27.471Z","message":{"id":"xba2bd0fab7","content":[{"type":"tool_use","id":"x392033b8c5","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:14:29.964Z","message":{"content":[{"type":"tool_result","tool_use_id":"x392033b8c5"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:14:55.589Z","message":{"id":"xa23ce60131","content":[{"type":"tool_use","id":"xb207eb7cf8","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:14:55.761Z","message":{"content":[{"type":"tool_result","tool_use_id":"xb207eb7cf8"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:14:58.371Z","message":{"id":"x2240c1a916","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:15:01.036Z","message":{"id":"x2240c1a916","content":[{"type":"tool_use","id":"x8109e4caed","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:15:03.672Z","message":{"content":[{"type":"tool_result","tool_use_id":"x8109e4caed"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:15:07.060Z","message":{"id":"xe27dbe948d","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:15:26.634Z","message":{"id":"xe27dbe948d","content":[{"type":"tool_use","id":"xd2eaf58a2e","name":"Bash","input":{"command":"npm test"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:15:30.393Z","message":{"content":[{"type":"tool_result","tool_use_id":"xd2eaf58a2e"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:15:34.310Z","message":{"id":"x8a432225a1","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:15:40.929Z","message":{"id":"x8a432225a1","content":[{"type":"tool_use","id":"x6a07e23564","name":"Bash","input":{"command":"npm test"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:15:43.897Z","message":{"content":[{"type":"tool_result","tool_use_id":"x6a07e23564"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:15:47.261Z","message":{"id":"x71b80f9cef","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:15:48.605Z","message":{"id":"x71b80f9cef","content":[{"type":"tool_use","id":"x706bd192f1","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:15:48.716Z","message":{"content":[{"type":"tool_result","tool_use_id":"x706bd192f1"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:15:58.060Z","message":{"id":"xa76946308d","content":[{"type":"tool_use","id":"x961f66771f","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:15:58.193Z","message":{"content":[{"type":"tool_result","tool_use_id":"x961f66771f"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:15:59.410Z","message":{"id":"xa76946308d","content":[{"type":"tool_use","id":"x0cf39c622e","name":"Write","input":{}}]}}
+{"type":"user","timestamp":"2026-09-18T13:15:59.537Z","message":{"content":[{"type":"tool_result","tool_use_id":"x0cf39c622e"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:16:17.565Z","message":{"id":"xd6d0e448e9","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T13:16:17.823Z","durationMs":128147,"messageCount":736}
+{"type":"user","timestamp":"2026-09-18T13:26:03.147Z","origin":{"kind":"human"},"message":{"content":[{"type":"text","text":"owner text"},{"type":"image"}]}}
+{"type":"user","timestamp":"2026-09-18T13:26:03.147Z","isMeta":true,"message":{"content":[{"type":"text","text":"text"}]}}
+{"type":"user","timestamp":"2026-09-18T13:26:21.745Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T13:26:25.712Z","message":{"id":"x4704136d49","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:26:37.774Z","message":{"id":"x4704136d49","content":[{"type":"tool_use","id":"x7ac2f2f156","name":"Bash","input":{"command":"npm test"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:26:42.062Z","message":{"content":[{"type":"tool_result","tool_use_id":"x7ac2f2f156"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:26:44.636Z","message":{"id":"xa57a015fc6","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:26:48.915Z","message":{"id":"xa57a015fc6","content":[{"type":"tool_use","id":"xa4383ec0b4","name":"Bash","input":{"command":"npm test"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:26:51.786Z","message":{"content":[{"type":"tool_result","tool_use_id":"xa4383ec0b4"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:26:59.488Z","message":{"id":"x5c75d0e52b","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T13:26:59.690Z","durationMs":37955,"messageCount":754}
+{"type":"user","timestamp":"2026-09-18T13:27:16.377Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T13:27:30.902Z","message":{"id":"x49807b55de","content":[{"type":"tool_use","id":"x3cafb4cdc3","name":"Bash","input":{"command":"git commit -m x"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:27:35.130Z","message":{"content":[{"type":"tool_result","tool_use_id":"x3cafb4cdc3"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:27:43.414Z","message":{"id":"xc9440c6cff","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T13:27:43.602Z","durationMs":27233,"messageCount":764}
+{"type":"user","timestamp":"2026-09-18T13:30:17.170Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T13:30:21.248Z","message":{"id":"x9c616c6582","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:30:24.231Z","message":{"id":"x9c616c6582","content":[{"type":"tool_use","id":"x796fc80820","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:30:26.900Z","message":{"content":[{"type":"tool_result","tool_use_id":"x796fc80820"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:30:30.723Z","message":{"id":"x287b76ca34","content":[{"type":"tool_use","id":"xf595ecc5e6","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:30:33.361Z","message":{"content":[{"type":"tool_result","tool_use_id":"xf595ecc5e6"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:30:38.684Z","message":{"id":"x9312d3298c","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:30:38.687Z","message":{"id":"x9312d3298c","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:30:38.709Z","message":{"id":"x9312d3298c","content":[{"type":"tool_use","id":"x0e1979e029","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-18T13:30:41.150Z","message":{"content":[{"type":"tool_result","tool_use_id":"x0e1979e029"}]}}
+{"type":"assistant","timestamp":"2026-09-18T13:30:47.225Z","message":{"id":"x14897d2336","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T13:30:47.580Z","durationMs":30422,"messageCount":785}
+{"type":"user","timestamp":"2026-09-18T13:31:39.217Z","message":{"content":"text"}}
+{"type":"user","timestamp":"2026-09-18T13:31:41.354Z","message":{"content":"<bash-stdout> …"}}
+{"type":"assistant","timestamp":"2026-09-18T13:31:45.600Z","message":{"id":"xce6962be02","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T13:31:45.859Z","durationMs":6663,"messageCount":791}
+{"type":"user","timestamp":"2026-09-18T16:29:52.821Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T16:30:01.406Z","message":{"id":"x4a6a7a5132","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-18T16:30:16.712Z","message":{"id":"x4a6a7a5132","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T16:30:16.930Z","durationMs":24146,"messageCount":797}
+{"type":"user","timestamp":"2026-09-18T16:34:34.438Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T16:34:35.854Z","message":{"id":"xa5ea4f8aff","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T16:34:35.867Z","durationMs":1443,"messageCount":801}
+{"type":"user","timestamp":"2026-09-18T16:34:53.179Z","isMeta":true,"message":{"content":"<local-command-caveat> …"}}
+{"type":"user","timestamp":"2026-09-18T16:34:53.178Z","message":{"content":"<command-name> …"}}
+{"type":"user","timestamp":"2026-09-18T16:34:53.178Z","message":{"content":"<local-command-stdout> …"}}
+{"type":"user","timestamp":"2026-09-18T16:35:08.522Z","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-18T16:35:09.784Z","message":{"id":"x69076a7443","content":[{"type":"text","text":"text"}]}}
+{"type":"system","subtype":"turn_duration","timestamp":"2026-09-18T16:35:09.793Z","durationMs":1297,"messageCount":808}
+{"type":"cost-state","totalCostUSD":1.5,"totalAPIDuration":1417881,"totalAPIDurationWithoutRetries":1417602,"totalToolDuration":75295,"totalLinesAdded":10,"totalLinesRemoved":2,"totalDuration":20575918,"startTime":1789729949562,"hasUnknownModelCost":false,"modelUsage":{"model-0":{"inputTokens":100,"outputTokens":200,"thinkingTokens":50,"cacheReadInputTokens":1000}}}

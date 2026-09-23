@@ -1,0 +1,78 @@
+{"type":"user","timestamp":"2026-09-23T11:29:31.101Z","cwd":"/fixture/cwd","sessionId":"xf0ff594ea6","origin":{"kind":"human"},"message":{"content":"owner text"}}
+{"type":"assistant","timestamp":"2026-09-23T11:29:35.944Z","message":{"id":"x7eab0bba09","content":[{"type":"tool_use","id":"x41e559d9c5","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:29:37.439Z","message":{"content":[{"type":"tool_result","tool_use_id":"x41e559d9c5"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:29:39.527Z","message":{"id":"xa92cd29bc2","content":[{"type":"tool_use","id":"x284fcbe020","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:29:39.679Z","message":{"content":[{"type":"tool_result","tool_use_id":"x284fcbe020"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:29:40.223Z","message":{"id":"xa92cd29bc2","content":[{"type":"tool_use","id":"x5e16527c81","name":"Skill","input":{}}]}}
+{"type":"user","timestamp":"2026-09-23T11:29:40.266Z","message":{"content":[{"type":"tool_result","tool_use_id":"x5e16527c81"}]}}
+{"type":"user","timestamp":"2026-09-23T11:29:40.251Z","isMeta":true,"message":{"content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:29:43.124Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"xda5a276f3e","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:29:43.802Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"xda5a276f3e","content":[{"type":"tool_use","id":"xfefce608ff","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:29:44.929Z","message":{"content":[{"type":"tool_result","tool_use_id":"xfefce608ff"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:29:46.512Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x67c6f2694c","content":[{"type":"tool_use","id":"x48005aa5a9","name":"Read","input":{}}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:29:46.979Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x67c6f2694c","content":[{"type":"tool_use","id":"x38555d6d14","name":"Read","input":{}}]}}
+{"type":"user","timestamp":"2026-09-23T11:29:47.074Z","message":{"content":[{"type":"tool_result","tool_use_id":"x48005aa5a9"}]}}
+{"type":"user","timestamp":"2026-09-23T11:29:47.118Z","message":{"content":[{"type":"tool_result","tool_use_id":"x38555d6d14"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:29:49.146Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x3faeeab479","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:29:50.993Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x3faeeab479","content":[{"type":"tool_use","id":"xfe0f00d83c","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:29:52.323Z","message":{"content":[{"type":"tool_result","tool_use_id":"xfe0f00d83c"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:29:53.989Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"xdca154b332","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:29:54.887Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"xdca154b332","content":[{"type":"tool_use","id":"xbc8d37bd56","name":"Read","input":{}}]}}
+{"type":"user","timestamp":"2026-09-23T11:29:55.000Z","message":{"content":[{"type":"tool_result","tool_use_id":"xbc8d37bd56"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:29:57.076Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x3a7f965778","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:00.142Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x3a7f965778","content":[{"type":"tool_use","id":"x223edb3a40","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:30:02.102Z","message":{"content":[{"type":"tool_result","tool_use_id":"x223edb3a40"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:05.589Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x43f121e19c","content":[{"type":"tool_use","id":"xb82e6626ce","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:30:07.009Z","message":{"content":[{"type":"tool_result","tool_use_id":"xb82e6626ce"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:10.295Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"xbd737e9c74","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:13.891Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"xbd737e9c74","content":[{"type":"tool_use","id":"x51dca6a2e0","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:30:16.195Z","message":{"content":[{"type":"tool_result","tool_use_id":"x51dca6a2e0"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:18.699Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x35b311b2e6","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:20.288Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x35b311b2e6","content":[{"type":"tool_use","id":"xafacdf522c","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:30:21.647Z","message":{"content":[{"type":"tool_result","tool_use_id":"xafacdf522c"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:24.138Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x93d999812b","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:24.593Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x93d999812b","content":[{"type":"tool_use","id":"x0aa4201efd","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:30:24.723Z","message":{"content":[{"type":"tool_result","tool_use_id":"x0aa4201efd"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:29.440Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x4480092206","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:29.442Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x4480092206","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:29.637Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x4480092206","content":[{"type":"tool_use","id":"x9a65d7d04a","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:30:30.821Z","message":{"content":[{"type":"tool_result","tool_use_id":"x9a65d7d04a"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:33.804Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"xac3248e621","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:34.596Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"xac3248e621","content":[{"type":"tool_use","id":"xf8b145882f","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:30:34.730Z","message":{"content":[{"type":"tool_result","tool_use_id":"xf8b145882f"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:40.594Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"xb3376cbfb4","content":[{"type":"tool_use","id":"x200a1888a2","name":"Bash","input":{"command":"git commit -m x"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:30:42.189Z","message":{"content":[{"type":"tool_result","tool_use_id":"x200a1888a2"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:45.636Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x26cc2b9e12","content":[{"type":"tool_use","id":"x3ef971395d","name":"Bash","input":{"command":"git commit -m x"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:30:47.179Z","message":{"content":[{"type":"tool_result","tool_use_id":"x3ef971395d"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:50.919Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"xd1b6cc39e6","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:51.541Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"xd1b6cc39e6","content":[{"type":"tool_use","id":"x94bd68e59b","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:30:51.656Z","message":{"content":[{"type":"tool_result","tool_use_id":"x94bd68e59b"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:55.266Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x898ae88e25","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:30:59.796Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x898ae88e25","content":[{"type":"tool_use","id":"x54e0f539f0","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:31:01.038Z","message":{"content":[{"type":"tool_result","tool_use_id":"x54e0f539f0"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:31:04.245Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x33205f58b4","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:31:07.480Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x33205f58b4","content":[{"type":"tool_use","id":"x2b3d8700ec","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:31:10.272Z","message":{"content":[{"type":"tool_result","tool_use_id":"x2b3d8700ec"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:31:13.095Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x5fb3e0a995","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:31:16.788Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x5fb3e0a995","content":[{"type":"tool_use","id":"x9e6c21e05b","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:31:20.205Z","message":{"content":[{"type":"tool_result","tool_use_id":"x9e6c21e05b"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:31:24.038Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x88ed3b553d","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:31:25.943Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x88ed3b553d","content":[{"type":"tool_use","id":"x6db9f2d9c1","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:31:31.265Z","message":{"content":[{"type":"tool_result","tool_use_id":"x6db9f2d9c1"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:31:35.780Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x0ecf92a90b","content":[{"type":"tool_use","id":"x7852d68231","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:31:37.366Z","message":{"content":[{"type":"tool_result","tool_use_id":"x7852d68231"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:31:41.039Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x0f25e96403","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:31:41.418Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x0f25e96403","content":[{"type":"tool_use","id":"x826018238b","name":"Bash","input":{"command":"grep -n x f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:31:43.574Z","message":{"content":[{"type":"tool_result","tool_use_id":"x826018238b"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:31:47.670Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x03427207f2","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:31:49.452Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x03427207f2","content":[{"type":"tool_use","id":"x847cfb5d21","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:31:53.718Z","message":{"content":[{"type":"tool_result","tool_use_id":"x847cfb5d21"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:31:58.419Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x1e32cc5ab6","content":[{"type":"tool_use","id":"x96c68bcfb6","name":"Bash","input":{"command":"sed -i s/a/b/ f.txt"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:31:59.929Z","message":{"content":[{"type":"tool_result","tool_use_id":"x96c68bcfb6"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:32:05.673Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x4f64806284","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:32:05.675Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x4f64806284","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:32:07.320Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x4f64806284","content":[{"type":"tool_use","id":"x3d8fd2fb71","name":"Bash","input":{"command":"git commit -m x"}}]}}
+{"type":"user","timestamp":"2026-09-23T11:32:09.005Z","message":{"content":[{"type":"tool_result","tool_use_id":"x3d8fd2fb71"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:32:12.793Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x734ade5add","content":[{"type":"thinking"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:32:12.797Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x734ade5add","content":[{"type":"text","text":"text"}]}}
+{"type":"assistant","timestamp":"2026-09-23T11:32:14.191Z","attributionSkill":"shady2k-skills:take-task","message":{"id":"x734ade5add","content":[{"type":"tool_use","id":"x1a0ef521a7","name":"Bash","input":{"command":"npm test"}}]}}

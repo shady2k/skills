@@ -1,0 +1,220 @@
+{"timestamp":"2026-09-23T16:21:04.323Z","type":"session_meta","payload":{"id":"fixture-thread","cwd":"/fixture/cwd","source":"cli","thread_source":"user","git":{"repository_url":"/srv/git/demo.git"}}}
+{"timestamp":"2026-09-23T16:21:04.323Z","type":"event_msg","payload":{"type":"task_started","turn_id":"x4061966627"}}
+{"timestamp":"2026-09-23T16:21:05.125Z","type":"response_item","payload":{"type":"message","role":"developer","content":[{"type":"input_text","text":"text"}]}}
+{"timestamp":"2026-09-23T16:21:05.125Z","type":"response_item","payload":{"type":"message","role":"developer","content":[{"type":"input_text","text":"text"}]}}
+{"timestamp":"2026-09-23T16:21:05.126Z","type":"response_item","payload":{"type":"message","role":"developer","content":[{"type":"input_text","text":"text"}]}}
+{"timestamp":"2026-09-23T16:21:05.126Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"# AGENTS.md instructions /fixture/cwd"}]}}
+{"timestamp":"2026-09-23T16:21:07.305Z","type":"response_item","payload":{"type":"message","role":"developer","content":[{"type":"input_text","text":"text"}]}}
+{"timestamp":"2026-09-23T16:21:07.305Z","type":"response_item","payload":{"type":"message","role":"developer","content":[{"type":"input_text","text":"text"}]}}
+{"timestamp":"2026-09-23T16:21:07.711Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"owner text"}]}}
+{"timestamp":"2026-09-23T16:21:07.713Z","type":"event_msg","payload":{"type":"item_completed","item":{"type":"UserMessage"},"started_at_ms":1790180467713,"completed_at_ms":1790180467713}}
+{"timestamp":"2026-09-23T16:21:10.977Z","type":"event_msg","payload":{"type":"item_completed","item":{"type":"AgentMessage"},"started_at_ms":1790180469709,"completed_at_ms":1790180470977}}
+{"timestamp":"2026-09-23T16:21:10.978Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"text"}],"phase":"commentary"}}
+{"timestamp":"2026-09-23T16:21:15.022Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:21:16.312Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xee7a5b101a","name":"exec","input":"await tools.exec_command({cmd: \"echo x\"})"}}
+{"timestamp":"2026-09-23T16:21:16.397Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xee7a5b101a","output":"Wall time 0.0 seconds"}}
+{"timestamp":"2026-09-23T16:21:18.627Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:21:22.140Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x6470db6bef","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:21:22.370Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x6470db6bef","output":"Wall time 0.2 seconds"}}
+{"timestamp":"2026-09-23T16:21:25.627Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:21:28.524Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x40b55f8d80","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:21:28.752Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x40b55f8d80","output":"Wall time 0.2 seconds"}}
+{"timestamp":"2026-09-23T16:21:31.257Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:21:33.919Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x60d6601e53","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:21:34.134Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x60d6601e53","output":"Wall time 0.2 seconds"}}
+{"timestamp":"2026-09-23T16:21:41.628Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:21:43.467Z","type":"event_msg","payload":{"type":"item_completed","item":{"type":"AgentMessage"},"started_at_ms":1790180501629,"completed_at_ms":1790180503467}}
+{"timestamp":"2026-09-23T16:21:43.474Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"text"}],"phase":"commentary"}}
+{"timestamp":"2026-09-23T16:21:47.351Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xeba67eb849","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:21:47.476Z","type":"response_item","payload":{"type":"message","role":"developer","content":[{"type":"input_text","text":"text"}]}}
+{"timestamp":"2026-09-23T16:21:47.615Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xeba67eb849","output":"Wall time 0.3 seconds"}}
+{"timestamp":"2026-09-23T16:22:04.523Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:22:11.169Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x7858058fae","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:22:11.764Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x7858058fae","output":"Wall time 0.6 seconds"}}
+{"timestamp":"2026-09-23T16:22:15.606Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:22:18.314Z","type":"event_msg","payload":{"type":"item_completed","item":{"type":"AgentMessage"},"started_at_ms":1790180535607,"completed_at_ms":1790180538314}}
+{"timestamp":"2026-09-23T16:22:18.316Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"text"}],"phase":"commentary"}}
+{"timestamp":"2026-09-23T16:22:19.422Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xd258bbdec9","name":"exec","input":"await tools.exec_command({cmd: \"echo x\"})"}}
+{"timestamp":"2026-09-23T16:22:19.484Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xd258bbdec9","output":"Wall time 0.0 seconds"}}
+{"timestamp":"2026-09-23T16:22:21.411Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:22:24.021Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x189a14ad9e","name":"exec","input":"await tools.exec_command({cmd: \"echo x\"})"}}
+{"timestamp":"2026-09-23T16:22:27.440Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x189a14ad9e","output":"Wall time 3.4 seconds"}}
+{"timestamp":"2026-09-23T16:22:30.525Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:22:32.616Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xa1100804a9","name":"exec","input":"await tools.exec_command({cmd: \"echo x\"})"}}
+{"timestamp":"2026-09-23T16:22:42.905Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xa1100804a9","output":"Wall time 10.3 seconds"}}
+{"timestamp":"2026-09-23T16:22:58.716Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:23:01.337Z","type":"event_msg","payload":{"type":"item_completed","item":{"type":"AgentMessage"},"started_at_ms":1790180578718,"completed_at_ms":1790180581337}}
+{"timestamp":"2026-09-23T16:23:01.339Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"text"}],"phase":"commentary"}}
+{"timestamp":"2026-09-23T16:23:05.302Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xe6df6311a5","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:23:05.615Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xe6df6311a5","output":"Wall time 0.3 seconds"}}
+{"timestamp":"2026-09-23T16:23:08.528Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:23:11.864Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x41d3a4a95c","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:23:12.130Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x41d3a4a95c","output":"Wall time 0.3 seconds"}}
+{"timestamp":"2026-09-23T16:23:14.223Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:23:17.631Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x732ceb85f3","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:23:17.894Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x732ceb85f3","output":"Wall time 0.3 seconds"}}
+{"timestamp":"2026-09-23T16:23:36.127Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:23:52.496Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:23:53.825Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:24:01.288Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xb9cf7e4cbd","name":"exec","input":"await tools.exec_command({cmd: \"npm test\"})"}}
+{"timestamp":"2026-09-23T16:24:02.142Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xb9cf7e4cbd","output":"Wall time 0.8 seconds"}}
+{"timestamp":"2026-09-23T16:24:05.032Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:24:09.789Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xede1380e5e","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:24:10.122Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xede1380e5e","output":"Wall time 0.3 seconds"}}
+{"timestamp":"2026-09-23T16:24:28.556Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:24:37.600Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:24:41.409Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xc87392df77","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:24:41.776Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xc87392df77","output":"Wall time 0.4 seconds"}}
+{"timestamp":"2026-09-23T16:24:45.366Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:24:49.686Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xffa26a755d","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:24:50.243Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xffa26a755d","output":"Wall time 0.5 seconds"}}
+{"timestamp":"2026-09-23T16:24:58.945Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:25:13.406Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xa43c045490","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:25:13.816Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xa43c045490","output":"Wall time 0.4 seconds"}}
+{"timestamp":"2026-09-23T16:25:30.213Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:25:40.951Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x925b25b1d3","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:25:44.074Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x925b25b1d3","output":"Wall time 3.1 seconds"}}
+{"timestamp":"2026-09-23T16:25:48.422Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:25:51.901Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x1f273aed5a","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:25:53.290Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x1f273aed5a","output":"Wall time 1.4 seconds"}}
+{"timestamp":"2026-09-23T16:25:55.333Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:26:04.964Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x886931eedf","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:26:05.286Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x886931eedf","output":"Wall time 0.3 seconds"}}
+{"timestamp":"2026-09-23T16:26:14.819Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:26:22.630Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x719cf8fec4","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:26:23.653Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x719cf8fec4","output":"Wall time 1.0 seconds"}}
+{"timestamp":"2026-09-23T16:26:34.385Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:26:37.396Z","type":"event_msg","payload":{"type":"item_completed","item":{"type":"AgentMessage"},"started_at_ms":1790180794386,"completed_at_ms":1790180797396}}
+{"timestamp":"2026-09-23T16:26:37.397Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"text"}],"phase":"commentary"}}
+{"timestamp":"2026-09-23T16:26:48.454Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x50450de96a","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:26:54.463Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x50450de96a","output":"Wall time 6.0 seconds"}}
+{"timestamp":"2026-09-23T16:26:57.892Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:27:02.558Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x71992514fa","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:27:02.930Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x71992514fa","output":"Wall time 0.4 seconds"}}
+{"timestamp":"2026-09-23T16:27:11.742Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:27:20.657Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xda39cdac12","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:27:20.940Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xda39cdac12","output":"Wall time 0.3 seconds"}}
+{"timestamp":"2026-09-23T16:27:24.801Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:27:30.018Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x3406b3e223","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:27:30.268Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x3406b3e223","output":"Wall time 0.2 seconds"}}
+{"timestamp":"2026-09-23T16:27:38.495Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:27:44.365Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xb4cce8c6c2","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:27:47.409Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xb4cce8c6c2","output":"Wall time 3.0 seconds"}}
+{"timestamp":"2026-09-23T16:27:50.360Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:27:56.869Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x47b5f1728b","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:27:59.962Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x47b5f1728b","output":"Wall time 3.1 seconds"}}
+{"timestamp":"2026-09-23T16:28:04.849Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:28:08.163Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xf54412b790","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:28:08.445Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xf54412b790","output":"Wall time 0.3 seconds"}}
+{"timestamp":"2026-09-23T16:28:12.077Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:28:17.230Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x1be35c613f","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:28:18.865Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x1be35c613f","output":"Wall time 1.6 seconds"}}
+{"timestamp":"2026-09-23T16:28:23.332Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:28:30.683Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xab6cbe3c62","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:28:31.219Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xab6cbe3c62","output":"Wall time 0.5 seconds"}}
+{"timestamp":"2026-09-23T16:28:34.046Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:28:37.961Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xd1b607c06c","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:28:39.675Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xd1b607c06c","output":"Wall time 1.7 seconds"}}
+{"timestamp":"2026-09-23T16:28:42.775Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:28:46.969Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x53dfff2529","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:28:50.448Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x53dfff2529","output":"Wall time 3.5 seconds"}}
+{"timestamp":"2026-09-23T16:28:53.500Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:28:57.169Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x15564547f8","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:28:58.975Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x15564547f8","output":"Wall time 1.8 seconds"}}
+{"timestamp":"2026-09-23T16:29:17.935Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:29:22.936Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:29:32.771Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x25fce0847f","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:29:33.079Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x25fce0847f","output":"Wall time 0.3 seconds"}}
+{"timestamp":"2026-09-23T16:29:42.646Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:29:50.819Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xf6f84236da","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:29:51.519Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xf6f84236da","output":"Wall time 0.7 seconds"}}
+{"timestamp":"2026-09-23T16:29:55.387Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:30:02.805Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xea9c0d37c0","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:30:03.483Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xea9c0d37c0","output":"Wall time 0.7 seconds"}}
+{"timestamp":"2026-09-23T16:30:21.349Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:30:32.439Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:30:39.883Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x56adc6362e","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:30:42.904Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x56adc6362e","output":"Wall time 3.0 seconds"}}
+{"timestamp":"2026-09-23T16:31:00.937Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:31:13.996Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:31:17.596Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x96ede0cd26","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:31:17.858Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x96ede0cd26","output":"Wall time 0.3 seconds"}}
+{"timestamp":"2026-09-23T16:31:21.148Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:31:31.255Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x871a76047e","name":"exec","input":"await tools.exec_command({cmd: \"sed -i s/a/b/ f.txt\"})"}}
+{"timestamp":"2026-09-23T16:31:31.748Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x871a76047e","output":"Wall time 0.5 seconds"}}
+{"timestamp":"2026-09-23T16:31:34.584Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:31:43.032Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xb8d97a3908","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:31:44.398Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xb8d97a3908","output":"Wall time 1.4 seconds"}}
+{"timestamp":"2026-09-23T16:31:49.876Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:31:53.658Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x58064d5459","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:31:53.955Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x58064d5459","output":"Wall time 0.3 seconds"}}
+{"timestamp":"2026-09-23T16:32:13.338Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:32:18.584Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x1eac943edd","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:32:19.791Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x1eac943edd","output":"Wall time 1.2 seconds"}}
+{"timestamp":"2026-09-23T16:32:37.797Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:32:38.539Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:32:46.679Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x8ac5b78431","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:32:47.133Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x8ac5b78431","output":"Wall time 0.4 seconds"}}
+{"timestamp":"2026-09-23T16:32:56.649Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:33:01.297Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x022f70c0fc","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:33:02.110Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x022f70c0fc","output":"Wall time 0.8 seconds"}}
+{"timestamp":"2026-09-23T16:33:06.768Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:33:09.968Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x7ed321b918","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:33:10.303Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x7ed321b918","output":"Wall time 0.3 seconds"}}
+{"timestamp":"2026-09-23T16:33:28.319Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:33:44.741Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:33:55.192Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:33:57.738Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xb35676b88b","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:33:58.142Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xb35676b88b","output":"Wall time 0.4 seconds"}}
+{"timestamp":"2026-09-23T16:34:01.413Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:34:03.758Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x2f1980153e","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:34:04.683Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x2f1980153e","output":"Wall time 0.9 seconds"}}
+{"timestamp":"2026-09-23T16:34:22.997Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:34:28.199Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x21f13b9db7","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:34:38.369Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x21f13b9db7","output":"Wall time 10.1 seconds"}}
+{"timestamp":"2026-09-23T16:34:41.168Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:34:48.243Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x656493b003","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:34:52.851Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x656493b003","output":"Wall time 4.6 seconds"}}
+{"timestamp":"2026-09-23T16:34:59.126Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:35:03.334Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x1fa8bf4879","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:35:03.722Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x1fa8bf4879","output":"Wall time 0.4 seconds"}}
+{"timestamp":"2026-09-23T16:35:11.608Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:35:17.279Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xe9df628817","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:35:18.003Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xe9df628817","output":"Wall time 0.7 seconds"}}
+{"timestamp":"2026-09-23T16:35:21.289Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:35:27.446Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x14c8f0f9f5","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:35:34.549Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x14c8f0f9f5","output":"Wall time 7.1 seconds"}}
+{"timestamp":"2026-09-23T16:35:52.889Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:35:55.145Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:35:59.603Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x4b6b0e4446","name":"exec","input":"await tools.exec_command({cmd: \"echo x\"})"}}
+{"timestamp":"2026-09-23T16:36:00.308Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x4b6b0e4446","output":"Wall time 0.7 seconds"}}
+{"timestamp":"2026-09-23T16:36:06.274Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:36:12.907Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x44dc026a02","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:36:13.359Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x44dc026a02","output":"Wall time 0.4 seconds"}}
+{"timestamp":"2026-09-23T16:36:20.109Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:36:25.619Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x759ae9f847","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:36:26.571Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x759ae9f847","output":"Wall time 0.9 seconds"}}
+{"timestamp":"2026-09-23T16:36:44.647Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:37:01.178Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:37:17.831Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:37:34.519Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:37:40.657Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:37:43.593Z","type":"event_msg","payload":{"type":"item_completed","item":{"type":"AgentMessage"},"started_at_ms":1790181460660,"completed_at_ms":1790181463585}}
+{"timestamp":"2026-09-23T16:37:43.649Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"text"}],"phase":"commentary"}}
+{"timestamp":"2026-09-23T16:37:59.090Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:40:00.267Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x5fc591cd86","name":"exec","input":"await tools.apply_patch(\"*** Begin Patch\")"}}
+{"timestamp":"2026-09-23T16:40:01.078Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x5fc591cd86","output":"Wall time 0.7 seconds"}}
+{"timestamp":"2026-09-23T16:40:03.449Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:40:04.367Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"xb062aeeac7","name":"exec","input":"await tools.exec_command({cmd: \"echo x\"})"}}
+{"timestamp":"2026-09-23T16:40:04.439Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"xb062aeeac7","output":"Wall time 0.0 seconds"}}
+{"timestamp":"2026-09-23T16:40:20.576Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:40:30.624Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x67912a87c6","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:40:32.039Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x67912a87c6","output":"Wall time 1.2 seconds"}}
+{"timestamp":"2026-09-23T16:40:45.007Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:40:48.064Z","type":"response_item","payload":{"type":"custom_tool_call","call_id":"x55b346214b","name":"exec","input":"await tools.exec_command({cmd: \"grep -n x f.txt\"})"}}
+{"timestamp":"2026-09-23T16:40:48.634Z","type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"x55b346214b","output":"Wall time 0.6 seconds"}}
+{"timestamp":"2026-09-23T16:41:01.302Z","type":"response_item","payload":{"type":"reasoning"}}
+{"timestamp":"2026-09-23T16:41:06.965Z","type":"event_msg","payload":{"type":"item_completed","item":{"type":"AgentMessage"},"started_at_ms":1790181661320,"completed_at_ms":1790181666965}}
+{"timestamp":"2026-09-23T16:41:07.041Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"text"}],"phase":"final_answer"}}
+{"timestamp":"2026-09-23T16:41:07.076Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1000,"cached_input_tokens":800,"cache_write_input_tokens":0,"output_tokens":200,"reasoning_output_tokens":100,"total_tokens":1200}}}}
+{"timestamp":"2026-09-23T16:41:07.574Z","type":"event_msg","payload":{"type":"task_complete","turn_id":"x4061966627"}}

@@ -26,8 +26,8 @@ any implementation. Read its requirements, spec, charter and code. Work already
 `submitted` resumes at integration and an `implemented` stage at acceptance,
 never from scratch. A run already under way continues its record in the run
 journal (`node runs.mjs list`) rather than starting a new one; `stalled` shows
-the runs that recorded no end and which passed their forecast, and one of those
-on this feature is taken over or ended with `finish --result stopped` before a
+the runs that recorded no end and which passed the time their result was
+promised for, and one of those on this feature is taken over or ended with `finish --result stopped` before a
 new record is started, never left open beside it. When the owner
 is testing recovery (they stopped a session on purpose and ask this one to
 continue), ask them afterwards for a grade and record it with `recovery`:
@@ -77,13 +77,15 @@ Before the owner leaves, prepare the run so it needs nobody:
   said as a time the owner can hold it to: past it without word the run has
   stopped, by the protocol's **A run that never came back is found**. Give it
   in agent time, with what the estimate rests on (the protocol's **Estimates**:
-  the agents' work plus CI and review waits). Start from the measured pace:
-  `node runs.mjs pace --tasks <n>`, run from this skill's folder, gives the
-  range of **work** similar runs took here, the range of clock they ran over,
-  and how far past estimates were off; quote the work range and correct your
-  estimate by it. The two ranges differ because the clock holds the hours the
-  owner was away, which no estimate is a forecast of; promise the result by
-  the clock and size the work by the work. The journal is this machine's; where it says
+  the agents' work plus the waits inside it, the owner's answers included).
+  Start from the measured pace: `node runs.mjs pace --tasks <n>`, run from
+  this skill's folder, gives the range of minutes similar runs **occupied**
+  here (the agents working, waiting on checks, reviews and workers, the owner
+  answering; parallel workers counted once), the range of clock they ran over,
+  and how far past estimates were off; quote the occupied range and correct
+  your estimate by it. The clock also holds the owner's time away, which is in
+  no estimate: size the work by what runs occupied, and promise the result by
+  that plus the absence he names below. The journal is this machine's; where it says
   there is too little history, read the `Run measured` comments on features
   closed before, through the integration's comment operation, and estimate from
   those. Only with neither, say the number is a guess. If that is longer than
@@ -120,18 +122,27 @@ owner gives is kept, not only obeyed**.
 
 **Keep the run's record** in the run journal, [`runs.mjs`](runs.mjs), which
 writes outside the repository. The minutes themselves are not written by hand:
-the record keeps the forecast, the stops and the verdict, and the ledger
-([`ledger.mjs`](ledger.mjs), beside it) reads back what the harness measured —
-the model's minutes, the tools', what the owner answered, what a run cost and
-how many lines it wrote, including the workers' own working copies. It is how
+the record keeps the forecast, the stops, the verdict and which sessions and
+working copies were the run's, and the ledger ([`ledger.mjs`](ledger.mjs),
+beside it) reads back what the harnesses recorded — the model's minutes, the
+tools', what the owner answered, what a run cost and how many lines it wrote,
+including the workers' working copies and subagents, counted only inside the
+run's own start and end, and saying which figures a harness did not record
+rather than calling them zero. It is how
 the owner learns whether runs get cheaper, faster and safer, so write the
 record as things happen, not from memory at the end:
 
 - on "run": `start` with the feature's title, the preflight's estimate as work
-  and wait minutes, and the numbers of tasks and stages;
+  and wait minutes, the absence the owner announced as `--away` (or the
+  promised time itself as `--due`), so that the time the result was promised
+  for is on record and `stalled` holds the run to it, and the numbers of tasks
+  and stages;
 - every session that coordinates the run, a fresh coordinator or a resumed
   run: `session`; the current one is recorded by itself where the harness
   names it;
+- every working copy made for a worker, when it is made: `session --copy
+  <path>`, so that the sessions in it are this run's and no other's; a copy
+  left unrecorded while another run is open is charged to neither;
 - every stop: `event --kind stop --reason owner` for a decision the owner
   must make, `--reason missing` for information the project did not have;
   every decision made alone: `event --kind decision`; every CI run:

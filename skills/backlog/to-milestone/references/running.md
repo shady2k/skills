@@ -186,18 +186,22 @@ by default; where the harness cannot, every push until the merge names the
 branch it is for.
 
 **Estimates are agent time.** An agent writes in minutes what takes a
-developer hours; its time goes to waiting (CI runs, reviews, the owner),
-rework after a red check, and diagnosis. Estimate from this project's own
-history, measured rather than recalled: the run journal's pace where it has
-enough runs (how long similar runs took, and how far past estimates were off);
+developer hours; its time goes to waiting (CI runs, reviews, workers, the
+owner's answers), rework after a red check, and diagnosis. Estimate from this
+project's own history, measured rather than recalled: the run journal's pace
+where it has enough runs (how long similar runs occupied, and how far past
+estimates were off);
 that journal is one machine's, so where it is thin the same numbers are read
 from what finished runs left on their features in the tracker; otherwise the
 tracker's and git's timestamps and how long a CI run takes.
 Correct an estimate by how far past ones were off; a model's own sense of time
-runs short. Give the number as a range, the agent's work plus the waits
-("about twenty to forty minutes of work, then two CI runs of half an hour").
-Never estimate by how long a developer would take; with no history, say the
-number is a guess and what it rests on.
+runs short. Give the number as a range of the time the work occupies, the
+agent's work plus the waits inside it, the owner's answers among them ("about
+twenty to forty minutes of work, then two CI runs of half an hour"). The
+owner's time away is in no estimate: its length is his to choose, and the time
+a result is promised for adds the absence he announced. Never estimate by how
+long a developer would take; with no history, say the number is a guess and
+what it rests on.
 
 When work grows well past the
 time given for it, or turns into different work (a small fix that uncovers

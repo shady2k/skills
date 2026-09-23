@@ -51,13 +51,16 @@ the run journal's `report` and `pace` ([`runs.mjs`](runs.mjs), run with `node`
 from this skill's folder): how past runs went and how long work really takes
 here. Where the owner asks where the project's hours go rather than how one run
 went, the ledger beside it ([`ledger.mjs`](ledger.mjs)) answers over the whole
-project and not only over runs: `time` splits the hours into the model's, the
-tools', the owner's own and nobody's, names what the agents were doing and
-under which phase of the work, and `sessions` lists what ran, including the
-workers' own working copies and how many were running at once. The journal is this machine's; where it is thin or missing, the
+project and not only over runs: `time` splits each session's clock into the
+model's, the tools', the waiting inside the agents' turns, the owner answering,
+the owner away and nobody's, which add up to it, names what the agents were
+doing and under which phase of the work where a record shows one, and says
+which figures some sessions did not record (a harness that keeps no cost has
+an unknown cost, not a free one); `sessions` lists what ran, including the
+workers' own working copies and subagents, and how many were working at once. The journal is this machine's; where it is thin or missing, the
 `Run measured` comments on closed features carry the same numbers from wherever
 those runs happened. Its `stalled` names runs that recorded no end and
-passed their forecast: report each with what it last did and when, next to the
+passed the time their result was promised for: report each with what it last did and when, next to the
 hold it left on the work, and offer taking it over or ending its record. A run
 still inside its forecast is not a reason to hold the owner: say when its result
 is due and offer what their presence is worth now — a decision waiting, the next
