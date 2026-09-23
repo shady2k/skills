@@ -269,6 +269,15 @@ mark the task `implemented`. Its dependants in this stage can start now;
 dependants in other stages wait for that stage's acceptance. Implemented work
 never goes back to ready.
 
+Then end the worker session that produced it: an idle agent keeps its process
+and memory for as long as it is left open, and nothing else ends it. Keep its
+working copy until the stage is accepted, and record in the task where its log
+is. Work that comes back goes to a fresh worker given the rework and that log,
+or to the old session resumed from its log where the agent can do that, never
+to a session kept running in case. A worker that failed or stopped for a
+decision stays open until that is settled: its screen is the only record of
+what it ran.
+
 - A gap you know how to close: decide, and record the decision and its
   assumptions in the decision log. It goes into the pull request.
 - A decision the protocol's **Autonomy** says needs the owner: stop only the
@@ -337,5 +346,6 @@ proven locally.
 Finish the run's record with the pull request. The owner's acceptance is the
 merge. After it, close the tasks, stages and feature through `close-out`, which
 also asks the owner how the run went, and remove the checkouts and branches
-this run created. Commit links and a clean backlog are required but
+this run created. A run that stops or hands over ends every worker session it
+started that is not working now, and names the ones still running. Commit links and a clean backlog are required but
 never replace checking the behaviour.

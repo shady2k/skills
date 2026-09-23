@@ -69,7 +69,9 @@ File discoveries that still matter through `to-backlog`, reusing existing
 issues. Return unfinished tasks nobody will continue to the queue, with their
 state and next action. Keep submitted results, implemented tasks, evidence and
 pending acceptance; a session ending never makes them ready to redo. Hand over
-or release the coordinator's hold and name who resumes.
+or release the coordinator's hold and name who resumes. End the worker
+sessions the work started that are not working now: an idle agent holds its
+memory until someone closes it. Name any still running and why.
 
 ## 4. Ask how the run went, and keep its lessons
 
