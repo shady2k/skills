@@ -138,16 +138,16 @@ mention it only when they must act, such as merging, after the work exists.
 After the owner merges, the agent closes the work and removes the checkouts
 and branches it created.
 
-**Silence is not progress.** Work handed to another agent, a long command, or
-anything else that runs out of sight is given a hard time bound before it
-starts, taken from what similar work took. That it began is proved, not
-assumed: output arriving, a file growing or processor time moving, looked at
-once in the first minutes. Never send such work through something that holds
-its output until the end, which makes "never started" look exactly like "still
-thinking". When the wait passes what that work has taken before, the cheap
-liveness check comes before any further waiting, and what it shows is said
-plainly. An agent that takes a hung worker for a slow one waits until the owner
-asks, and that hour is spent by both of them.
+**Silence is not progress.** Work that runs out of sight — handed to another
+agent, a long command — gets a timeout and a liveness probe, on these terms.
+The hard bound is set before it starts, from what similar work took. That it
+started is proved, never assumed: looked at once in the first minutes (output
+arriving, a file growing, processor time moving). It never goes through
+anything that holds its output until the end, where "never started" looks
+exactly like "still thinking". Once the wait passes what that work has taken
+before, the liveness check comes before any further waiting, and what it shows
+is said plainly. A hung worker taken for a slow one is waited on until the
+owner asks, and that hour is spent by both.
 
 **A run that never came back is found, not assumed.** An unattended run cannot
 report its own death; what it leaves behind is a hold that stops moving and a
@@ -165,11 +165,11 @@ work that runs out of sight is the estimate made for that work, by
 it. Passing it is a fact about the work: never wait on to see whether it
 finishes, never start it again hoping for a better run, and never raise the
 bound to make the step pass. Stop it, find out why it took longer, and file
-that as a finding like any other failure this run owns. How long tests, a
-compile, a check or any other operation takes is a measurement like its result:
-recorded, compared with what the same work took before, and a change in it
-explained. A suite that was four minutes and is now eleven has said something,
-green or not.
+that as a finding like any other failure this run owns. Durations are tracked
+as performance regressions are: how long tests, a compile, a check or any
+other operation takes is recorded with its result, compared with what the same
+work took before, and a change explained. A suite that went from four minutes
+to eleven has said something, green or not.
 
 **A submitted branch is frozen.** Once its pull request is open and its run
 has started, a branch carries only what review sends back to it: the fix for

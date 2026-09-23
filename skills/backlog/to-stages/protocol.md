@@ -60,9 +60,9 @@ DONE WHEN names the observable behaviour and the check that watches it; a
 regression can make it false again. A feature merges into the main line on its
 own and soon: when its run would keep a branch open longer than the project
 allows, it is split into features that each merge separately and leave the main
-line working (expand, then migrate, then contract; behind a switch where the
-project allows one). A task that will not fit one worker's session is split
-before it starts. A stage has no session limit: it groups
+line working (a parallel change: expand, migrate, contract; behind a switch
+where the project allows one). A task that will not fit one worker's session is
+split before it starts. A stage has no session limit: it groups
 tasks toward a checkpoint that is accepted by checks and review before the
 next stage builds on it.
 
@@ -122,13 +122,13 @@ assembled stage gets full tests, mutation checks of changed logic and a final
 review. Its tasks and the stage close only after acceptance on that revision; a
 parent has its own criterion too.
 
-**Parallelism.** Independent leaves, stages and features may run at once.
-Hierarchy, list order or a shared milestone never make one wait for another.
-Each stage has its own merge and acceptance and does not wait for unrelated
-features. Inside a stage, merge results as they arrive so dependants can start.
-Serialize only for a real prerequisite, a conflicting write or an exclusive
-resource. Use separate checkouts where changes can collide; generated files and
-dependency locks count as collisions.
+**Parallelism.** Independent leaves, stages and features may run at once;
+serialize only for a real prerequisite, a conflicting write or an exclusive
+resource, and never for hierarchy, list order or a shared milestone. Each stage
+has its own merge and acceptance and does not wait for unrelated features.
+Inside a stage, merge results as they arrive so dependants can start. Use
+separate checkouts where changes can collide; generated files and dependency
+locks count as collisions.
 
 **Two lanes outside the flow.**
 

@@ -1,6 +1,6 @@
 {
   "name": "shady2k-skills",
-  "version": "0.49.0",
+  "version": "0.49.1",
   "description": "Plan a feature with your agent, then let it build the feature on its own up to one pull request, with checks, review and plain-language reports.",
   "author": {
     "name": "shady2k",

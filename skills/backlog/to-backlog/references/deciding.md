@@ -41,21 +41,20 @@ fault and not late insight: it cost a round for every message that held the
 mechanism back. All of this is for a decision that is **open**: once it is
 given, there are no options to offer.
 
-**A reading is not a fact until its edges are read.** A claim taken out of a
-log, a capture or a dump — how often something happened, how long it went on,
-what it stopped with — is a claim about the whole record, and a run of
-consecutive lines shows none of it. Before saying it, read how many there are,
-the first and the last, what ends the record, and what lies outside it; say the
-span the evidence covers alongside the finding. Duration and coincidence are
-the two that a sample never contains: "for hours" and "stopped exactly when the
-other thing happened" are statements about the edges, and they are the ones a
-story wants to be true. The sharper a reading makes the picture — the more it
-explains, the more it ties one failure to another — the more it is worth the
-minute that checks it, and it is checked before it becomes the frame of the
-work: before a task is written on it, before it enters a document, before it
-reaches the owner at all. Where such a fact is later found false, everything
-carrying it is corrected and not only the conversation: the record already
-merged, the task, and whatever conclusion was built on it, each named as wrong
+**A reading is not a fact until its edges are read.** How often something
+happened, how long it went on or what it stopped with, taken from a log, a
+capture or a dump, is a claim about the whole record, and a run of consecutive
+lines is a truncated sample of it. Before saying it, read how many there are,
+the first and the last, what ends the record and what lies outside it, and
+give the span the evidence covers with the finding. Duration and coincidence
+("for hours", "stopped exactly when the other thing happened") are claims about
+the edges, which a sample never holds, and the ones a story wants to be true.
+The more a reading explains — the more it ties one failure to another — the
+more it is worth the minute that checks it, and it is checked before it becomes the
+frame of the work: before a task is written on it, before it enters a
+document, before it reaches the owner at all. A fact later found false is
+corrected everywhere it went and not only in the conversation — the record
+already merged, the task, any conclusion built on it — each named as wrong
 rather than quietly reworded.
 
 **A decision given is not reopened by better analysis.** When the owner has
