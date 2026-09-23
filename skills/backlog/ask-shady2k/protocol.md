@@ -242,6 +242,17 @@ in them is a Mermaid block, never one drawn with characters. A specification
 required by a standard, such as a ТЗ, is drafted from these documents on
 request by [tz-gost.md](references/tz-gost.md), never kept beside them.
 
+**What describes the present is kept true.** The agent doc, the glossary, the
+current capability specs and the architecture describe the main line as it is
+now, and every agent acts on them without checking. So a change that makes one
+of them false updates it in the same pull request, never in a later one: a
+command renamed, a component moved, a behaviour changed, a lesson whose cause
+was fixed. Review reads the diff against them as it reads it against the
+tests, and a stage is not accepted while one of them is known to be wrong. A
+statement found stale outside such a change is corrected by the work that found
+it, as a repair, and named in its report. Keeping them short is part of keeping
+them true: an entry nobody would miss is removed, not archived.
+
 The document gate runs separately from the backlog's strength. It checks
 product intent before the first implementation, feature readiness before work
 starts, evidence tied to the revision at acceptance, and updated current specs

@@ -24,6 +24,9 @@ Cover both sides, with parallel reviewers where useful:
   ownership and interfaces, unjustified coupling or duplication, needless
   complexity, and changes that make the next likely change harder. A style
   preference is not a blocker; two matching lines do not demand an abstraction.
+- **Documents that describe the present:** whether the agent doc, the glossary,
+  the current specs and the architecture are still true of the final revision.
+  A statement this change made false is a finding that blocks acceptance.
 
 Each actionable finding names its consequence, severity, location and evidence.
 Keep the original reports, then produce one deduplicated list with what happens

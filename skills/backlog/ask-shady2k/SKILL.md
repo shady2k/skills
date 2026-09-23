@@ -84,7 +84,9 @@ with the evidence for each.
   Where runs were recorded, how they went in the owner's terms: how many were
   taken as they were, how often the owner had to step in, and how much of
   their time a feature cost.
-- **Now:** work in progress, what waits for merging or acceptance, abandoned
+- **Now:** work in progress, what waits for merging or acceptance, decisions
+  filed for the owner and waiting on them (each by title, with the agent's
+  recommendation), abandoned
   work, stranded branches or uncommitted results, and each real blocker with
   what would release it.
 - **Health and risk:** failing, missing or unrun checks; specs or docs out of

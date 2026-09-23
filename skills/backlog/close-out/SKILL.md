@@ -103,6 +103,9 @@ needs. A trap that only this feature could meet closes with it. Propose the
 lasting ones, one line each, for the project's agent doc; with the owner's
 agreement they land in the closing commit. Where the harness has its own
 memory, it may keep them too, but the agent doc is what every agent reads.
+Read the agent doc's existing lessons against what this feature changed: one
+whose cause it removed (the test fixed, the command corrected) goes in the same
+closing commit, by the protocol's **What describes the present is kept true**.
 
 ## 5. Publish and prove
 

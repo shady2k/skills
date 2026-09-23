@@ -249,7 +249,9 @@ what it ran.
 - A decision the protocol's **Autonomy** says needs the owner: stop only the
   affected work, send the ready decision it describes, and continue the
   independent rest. Resume when the answer comes, recording it.
-- Unrelated bugs, debt and questions go through `to-backlog`. Making this
+- Unrelated bugs, debt and questions go through `to-backlog`; a question for the
+  owner that blocks nothing is filed there as a decision they hold, and the
+  pull request's report names it by title. Making this
   feature meet its own criteria is part of the work, not a finding.
 - A stubborn failure goes to `diagnose-bug` within the current task.
 - A red check, including one that looks older than this work, follows the
@@ -270,8 +272,10 @@ Unsupported tools, timeouts and skipped checks are reported as such, never as
 passed. Use the project's agreed fallback; without one, stop as for a decision
 that needs the owner.
 
-Get a review following [`review.md`](review.md), preferably from another
-model. Fix valid findings within scope and repeat the affected checks. If a fix
+Check that the agent doc, the glossary, the current specs and the architecture
+still describe the assembled revision, by the protocol's **What describes the
+present is kept true**; what this stage made false is updated in it. Get a
+review following [`review.md`](review.md), preferably from another model. Fix valid findings within scope and repeat the affected checks. If a fix
 changes code after the full run, rerun the full checks on the final revision.
 Repeat mutation testing and review where a fix invalidated them; evidence whose
 inputs did not change can be reused.
