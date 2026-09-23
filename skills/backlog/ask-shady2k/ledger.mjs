@@ -144,6 +144,7 @@ export function identify(project, { repo, cwds = [] } = {}) {
   if (repo) {
     const c = commonDir(repo);
     if (!c) throw new Usage(`--repo ${repo} is not a git checkout`);
+    if (basename(dirname(c)) !== project) throw new Usage(`--repo ${repo} is a checkout of ${basename(dirname(c))}, not of ${project}`);
     commons.add(c);
   } else {
     tryDir(process.cwd());

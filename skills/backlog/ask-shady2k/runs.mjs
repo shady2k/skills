@@ -31,7 +31,11 @@ const under = (path, root) => path === root || path.startsWith(root.endsWith(sep
 function load(project, ref) {
   const path = ref.endsWith('.json') && existsSync(ref) ? ref : join(runsDir(project), `${ref}.json`);
   if (!existsSync(path)) throw new Usage(`no run record ${ref}`);
-  return { path, run: JSON.parse(readFileSync(path, 'utf8')) };
+  const run = JSON.parse(readFileSync(path, 'utf8'));
+  // A record given by its path is still this project's, or its sessions would
+  // be looked for in another repository under this one's name.
+  if (run.project !== project) throw new Usage(`${ref} is a run of ${run.project}, not of ${project}`);
+  return { path, run };
 }
 
 const save = (path, run) => writeFileSync(path, `${JSON.stringify(run, null, 2)}\n`);
@@ -440,20 +444,29 @@ function run(argv) {
     case 'session': {
       const { path, run: r } = ref();
       r.copies ||= [];
-      // A session or working copy belongs to one run: one another open run
-      // already recorded is refused, not charged twice.
-      const open = all(r.project).filter((x) => x.id !== r.id && !x.finishedAt);
+      // A session or working copy belongs to one run: one that another run
+      // whose window overlaps this one's already recorded is refused, not
+      // charged twice; finishing that run first does not free it.
+      // A run still open reaches forward without end, and windows that touch
+      // overlap: two runs started in the same instant share it.
+      const reach = (x) => ({ start: Date.parse(x.startedAt), end: x.finishedAt ? Date.parse(x.finishedAt) : Infinity });
+      const mine = reach(r);
+      const open = all(r.project).filter((x) => {
+        if (x.id === r.id) return false;
+        const w = reach(x);
+        return w.start <= mine.end && mine.start <= w.end;
+      });
       if (opts.copy) {
         const copy = resolve(opts.copy);
         const holder = open.find((x) => (x.copies || []).some((c) => under(copy, c) || under(c, copy)));
-        if (holder) throw new Usage(`${copy} is already recorded by the open run ${holder.id}`);
+        if (holder) throw new Usage(`${copy} is already recorded by the overlapping run ${holder.id}`);
         if (!r.copies.includes(copy)) r.copies.push(copy);
         if (!opts.session) { save(path, r); return print(r, `${r.id}: ${r.copies.length} working cop(ies)`); }
       }
       const s = session(opts);
       if (!s.length) throw new Usage('this harness does not say which session this is: pass --harness and --session');
       const holder = open.find((x) => (x.sessions || []).some((y) => y.id === s[0].id));
-      if (holder) throw new Usage(`session ${s[0].id} is already recorded by the open run ${holder.id}`);
+      if (holder) throw new Usage(`session ${s[0].id} is already recorded by the overlapping run ${holder.id}`);
       if (!r.sessions.some((x) => x.id === s[0].id)) r.sessions.push(...s);
       save(path, r);
       return print(r, `${r.id}: ${r.sessions.length} session(s)`);
@@ -753,6 +766,18 @@ function selftest() {
       && misuse(['start', '--project', 'demo', '--feature', 'Third', '--work', '1', '--wait', '0', '--harness', 'claude-code', '--session', 'dup']));
     expect('misuse: a working copy another open run recorded', misuse(['session', r2, '--project', 'demo', '--copy', join(home, 'w', 'copy-x')])
       && misuse(['session', r2, '--project', 'demo', '--copy', join(home, 'w', 'copy-x', 'sub')]));
+    // Finishing the holder does not free what it recorded for a run whose
+    // window overlapped it.
+    edit(r1, (y) => { y.finishedAt = new Date().toISOString(); y.result = 'stopped'; });
+    expect('misuse: a session an overlapping run recorded, after that run finished',
+      misuse(['session', r2, '--project', 'demo', '--harness', 'claude-code', '--session', 'dup'])
+      && misuse(['session', r2, '--project', 'demo', '--copy', join(home, 'w', 'copy-x')]));
+    // A record named by its path is still checked against the project.
+    const foreign = join(home, 'foreign-run.json');
+    save(foreign, { ...JSON.parse(readFileSync(record(r2), 'utf8')), project: 'other' });
+    let refusal = '';
+    try { run(['summary', foreign, '--project', 'demo']); } catch (e) { refusal = e instanceof Usage ? e.message : ''; }
+    expect('misuse: a run record of another project given by its path', refusal.includes('is a run of other'));
     for (const x of [r1, r2]) edit(x, (y) => { y.startedAt = iso(day(60)); y.finishedAt = iso(day(60) + 60e3); y.result = 'stopped'; });
 
     const open = cli('start', '--feature', 'Open run', '--work', '10', '--wait', '5').split('\n')[0];
