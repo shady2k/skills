@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.23.0
+Setup version: 0.24.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -21,7 +21,7 @@ file, read when a step needs it:
   the cheapest check, reaching the outcome, CI.
 - [starting.md](references/starting.md): a project from an empty folder, with
   not even an idea, to its first planned feature;
-- [tz-gost.md](references/tz-gost.md): assembling a ТЗ or a ПМИ by Russian
+- [tz-gost.md](references/tz-gost.md): drafting a ТЗ or a ПМИ by Russian
   standards from the living documents, when a customer requires one.
 
 **Compatibility before writes.** Before changing the tracker or the repository,
@@ -239,7 +239,7 @@ taken from and not coined per message, by [**One thing, one name, and it is the
 project's**](references/speaking.md); `model-domain` keeps it. Use the project's paths and templates and
 adopt existing documents where they are. Documents are Markdown, and a diagram
 in them is a Mermaid block, never one drawn with characters. A specification
-required by a standard, such as a ТЗ, is assembled from these documents on
+required by a standard, such as a ТЗ, is drafted from these documents on
 request by [tz-gost.md](references/tz-gost.md), never kept beside them.
 
 The document gate runs separately from the backlog's strength. It checks

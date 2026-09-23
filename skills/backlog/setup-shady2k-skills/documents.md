@@ -107,9 +107,10 @@ and a gate whose cheapest exit at push time is a bypass will be bypassed.
 Use `templates/vision.md`, `roadmap.md`, `milestone.md`, `capability.md` and
 `change.md` as editorial seeds. `design.md`, `architecture.md`, `decision.md` and
 `exploration.md` are conditional. A capability states its requirements as EARS
-statements with Given/When/Then scenarios, and names every quality category,
-writing "not applicable" rather than leaving one out, so silence is never
-ambiguous. The vision's optional sections (non-users, alternatives, key
+statements with Given/When/Then scenarios, and its quality requirements by
+category, writing "not applicable" for a category rather than leaving it out.
+That section is editorial guidance: the document gate does not read it, so a
+capability without it still passes, and review is what keeps it honest. The vision's optional sections (non-users, alternatives, key
 journeys, success signal) scale with the stakes: a small tool may skip them, a
 product for other people should not.
 Replace placeholders; do not publish empty scaffolds. Existing equivalent

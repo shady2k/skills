@@ -16,10 +16,10 @@ the <system> shall ...". Include relevant guarantees and constraints.>
 - Then: <Observable result, including errors where relevant.>
 
 ## Quality requirements
-<For this capability, each category with its requirement or "not applicable",
-never left out: performance, reliability and recovery, security and data
-protection, data (retention, volume, integrity), usability and accessibility,
-compatibility and operation.>
+<For this capability, each category the project commits to, with its
+requirement or "not applicable": for example performance, reliability and
+recovery, security and data protection, data (retention, volume, integrity),
+usability and accessibility, compatibility and operation.>
 
 ## Context
 <Links to contracts and significant decisions; implementation detail belongs in

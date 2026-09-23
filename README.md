@@ -64,12 +64,13 @@ work up.
 
 | step | what you do | what the agents do | skills | how much of you |
 | --- | --- | --- | --- | --- |
-| **Start from nothing** (an empty folder) | pick where to look, choose the idea, tell the key journeys of your users, cut the MVP | generate and challenge ideas, check the market and the domain, draft the vision | `brainstorming`, `to-research`, `to-prototype` | a few conversations |
+| **Start from nothing** (an empty folder) | pick where to look, choose the idea, tell the key journeys of your users | generate and challenge ideas, check the market and the domain; nothing is written yet | `brainstorming`, `to-research`, `to-prototype` | a few conversations |
+| **Keep it** | agree to create the repository and the tracker | create them, connect the checks, write down the vision | `setup-shady2k-skills` | once, under an hour for an empty project |
 | **Or join an existing project** | agree what is current, what waits and what was abandoned | read the code, the tracker and the history; clean up the queue reversibly | `setup-shady2k-skills`, `groom-backlog` | once, from half an hour to a few sessions for a neglected backlog |
-| **Agree the next version** | accept or change the outcomes, what is out, and how many new bugs it may absorb | propose the charter from the vision and what is done | `to-milestone` | one conversation per version |
+| **Agree the next version** (the first one is the MVP) | accept or change the outcomes, what is out, and how many new bugs it may absorb; cut the MVP | propose the charter from the vision and what is done | `to-milestone` | one conversation per version |
 | **Decide the architecture** | choose between options shown with their consequences | show the parts, the options and what each costs; record the decisions | `brainstorming`, `model-domain` | when a hard-to-reverse choice comes up |
 | **Plan a feature** | settle the behaviour and the open decisions; answer the preflight once | write the spec with checkable scenarios, split it into stages and tasks, collect every decision the run will need into one list with recommendations and a time estimate | `to-spec`, `to-stages`, `take-task` | an evening conversation |
-| **The run** | nothing; you are away | build the whole feature on its own branch with parallel workers, tests first where agreed, review by another model, fix every red check; stop only for a real fork (architecture, expensive mistakes, behaviour beyond the spec) and reach you with a ready decision | `take-task`, `diagnose-bug` | only if a fork comes up |
+| **The run** | nothing; you are away | build the whole feature on its own branch with parallel workers, tests first where agreed, independent review (by another model where one is available), fix every red check; stop only for a real fork (architecture, expensive mistakes, behaviour beyond the spec) and reach you with a ready decision | `take-task`, `diagnose-bug` | only if a fork comes up |
 | **Acceptance** | try it the way the pull request says; merging is your acceptance | a green pull request: what users can now do, how to check it yourself, every decision taken without you, what review found, what is not done | `take-task` | the time it takes to try it |
 | **Close** | nothing | update the current specs from the accepted work, close the tasks, remove branches and checkouts | `close-out` | none |
 
@@ -96,8 +97,9 @@ next whenever you come back; `handoff` keeps the thread when a session ends.
 A bug you mention is filed at once in the right place and does not jump the
 queue: the current version has a budget for new bugs, and anything beyond it
 waits for your decision, never for the agent's. A bug found mid-run that blocks
-the merge is fixed by the run itself. An idea goes to a separate lane with a
-review date, not into the work. If you start talking while a run is going, the
+the merge is fixed by the run itself. An idea you want kept goes to a separate
+lane with a review date, not into the work; one only discussed stays in the
+conversation. If you start talking while a run is going, the
 run does not stop: your conversation happens in a separate session, and what it
 decides is written where the run will read it.
 
@@ -460,8 +462,10 @@ Specs are kept by capability, not by feature: they always say what the system
 does now, and a feature's changes are merged into them at acceptance. Diagrams
 are Mermaid blocks, which GitHub, GitLab and Gitea render as they are; never
 drawn with characters. Where a customer requires a ТЗ or a test programme by
-Russian standards (ГОСТ 34.602-2020, ЕСПД), the agent assembles it from these
-documents on request; it is never a second copy kept by hand.
+Russian standards (ГОСТ 34.602-2020, ЕСПД), the agent drafts it from these
+documents on request, asks for what they do not hold (the parties, dates,
+financing), and leaves its formal approval to the contract; it is never a
+second copy kept by hand.
 The templates follow established practice: ISO/IEC/IEEE 29148, arc42 and C4,
 MADR, EARS, OpenSpec.
 
@@ -485,7 +489,7 @@ Version 0.50 adds the path from an empty folder, with not even an idea, to the
 first feature (discovery, a pressure test, the vision with key journeys, the MVP,
 the architecture, a walking skeleton), and checks the document templates against
 established practice: arc42 and C4, MADR, EARS, Mermaid diagrams, and a ТЗ by
-ГОСТ assembled on request. Projects rerun setup once for the new templates.
+ГОСТ drafted on request. Projects rerun setup once for the new templates.
 Version 0.49 splits the protocol into a core and topic references that skills
 cite instead of restating.
 Version 0.7 revises execution and setup. Fixtures and package checks run locally;
