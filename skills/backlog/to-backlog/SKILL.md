@@ -80,7 +80,8 @@ widening the milestone. Speak as the protocol's **Speaking to the owner** says.
 
 ## 4. Write it so it can be finished
 
-- A **title that is a sentence**: the work is clear from it alone.
+- A **title that is a sentence**: the work is clear from it alone, and each
+  part is called by the glossary's name for it.
 - **Exactly one area label**, for the area that owns the behaviour.
 - An observable criterion and what would disprove it. For a bug: what a person
   does, what happens, what should happen, and the requirement it breaks, if any.

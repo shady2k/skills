@@ -82,7 +82,8 @@ conflicting write or exclusive resource, on the affected task.
   touches, never one layer across. Finished, it can be shown or checked alone.
 - Prefactoring first, as its own tasks.
 - Acceptance covers the spec's seams; local tests may use other stable interfaces.
-- The title is a sentence the work can be understood from.
+- The title is a sentence the work can be understood from, naming each part by
+  the glossary's name for it (the protocol's **One thing, one name**).
 - The criterion is an **assertion** a stranger can run or look at and get yes
   or no. Every "fails when" has a paired "and normally it succeeds".
 - Dependencies follow the protocol: the required result or conflict and what

@@ -294,8 +294,14 @@ noun also keeps its everyday meaning, so "a question cannot be split", inside a
 message that is itself a question, is read the wrong way first. Where the person
 may not know a name, it gets one clause of definition the first time and keeps
 the name afterwards; where the name lives only in the code, say it as the code
-spells it and what it is. A name this conversation had to explain goes into the
-glossary the same session, so the next one starts from the same words.
+spells it and what it is. A name is looked up, not remembered: before a text
+names a part — a message, a task, a stage, a spec, a worker's brief — check the
+glossary and the decision records, not the last text that used a word for it. A
+task written with a coined word hands it to every worker and every message
+after. A part the text needs and the glossary lacks is added then, from the
+decision records and the code, not after someone has confused it. A name this
+conversation had to explain goes into the glossary the same session, so the
+next one starts from the same words.
 
 Never show the kitchen: how this set works inside is not the person's
 concern: versions of the set or its checks, what changed inside the skills,
@@ -542,8 +548,15 @@ is a cost like any other.
 
 **A design decision comes with its mechanism.** Options alone are not a
 decision anybody can take. Before them comes how the thing works today, in the
-project's own names; what exactly fails, with the measurement that shows it; and
-the assumption those options rest on, said out loud. Then the options, and among
+project's own names, drawn as its parts: for each part the decision touches,
+where it runs, what it holds, what it knows and what it must not know, and what
+it passes to whom; and what each does while another is gone — restarted,
+unreachable, full. The options start from what those parts already hold and do:
+a new copy or a new store beside one that exists comes with why the existing one
+will not serve. Then what exactly fails, with the measurement that shows it; and
+the assumption those options rest on, said out loud. A question the owner has to
+ask to follow the options — where is this kept, who decides that, what if that
+part is down — was owed in the first message. Then the options, and among
 them at least one that rejects that assumption — because nobody can choose a
 frame they were not shown, and several ways to satisfy one assumption read as
 one question asked that many times. Each option says what it does not fix, and

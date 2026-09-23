@@ -172,9 +172,9 @@ they are independent. Dispatch independent ready tasks in parallel where
 resources allow. Add dependencies only by the protocol's rules, never from list
 order, hierarchy or a shared milestone.
 
-Give each worker its task and criterion, the relevant spec, dependencies, base
-revision, owned scope, local check commands, the TDD setting and the return
-format. A worker's task fits one session; split one that will not. Use
+Give each worker its task and criterion, the relevant spec, the glossary's
+entries for the parts it touches, dependencies, base revision, owned scope,
+local check commands, the TDD setting and the return format. A worker's task fits one session; split one that will not. Use
 isolated checkouts where concurrent writes could collide, and coordinate
 shared generated files, migrations and dependency locks.
 
@@ -208,10 +208,11 @@ message that changes no next action is not sent**.
 Anything put to the owner mid-run is worked first: the cause found, the options
 costed, a recommendation and what happens if the answer comes later, never a
 question they must wait behind, by the protocol's **Come with the material**.
-Where the choice is about the design, it carries how the thing works today in
-the project's own names, the measurement of what fails and the assumption the
-options rest on, by the protocol's **A design decision comes with its
-mechanism** — a menu whose frame is invisible costs a round per message.
+Where the choice is about the design, it carries the parts it touches in the
+project's own names — where each runs, what it holds and knows, what it passes
+on, what happens while another is down — the measurement of what fails and the
+assumption the options rest on, by the protocol's **A design decision comes
+with its mechanism** — a menu whose frame is invisible costs a round per message.
 
 A wait is filled: while a review, a worker or a long check runs, take the next
 independent task, write the pull request's text, or run what does not depend on

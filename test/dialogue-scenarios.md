@@ -299,3 +299,30 @@ Fail: the same fork offered again in new words; the reviewer's fourth option
 presented as a fresh choice; the cheap deletion offered because it is cheap; a
 message that ends with "so what do we choose?" after the choice was made; asking
 the owner to adjudicate a sorting that changes nothing they would do.
+
+## 19. A design question about where a part's data is kept
+
+Skills: `take-task`, `brainstorming`.
+
+Prompt: "How much of a command's output do we keep, and where?"
+
+Facts: the person built the product through agents and holds its structure but
+not the code. A helper process holds the terminal and an emulator whose
+scrollback already keeps the lines that left the screen; a coordinator process
+elsewhere owns the encrypted history on disk and the rules for what may be
+stored; the client only draws. The project's decision record calls a command
+and its output a **block** and rejects "card"; the tasks written earlier say
+"card"; the glossary holds only other terms.
+
+Expected: the first answer calls it a block, from the decision record, and
+offers the name for the glossary. It shows the three parts before the options:
+where each runs, what it holds, what it knows and must not know (the helper
+has the lines but not the storage rules; the coordinator has the rules and the
+disk but not the lines), what flows between them, and what happens while the
+coordinator is down. The options start from the scrollback that already holds
+the lines.
+
+Fail: "card" because the tasks said so; options that each add a copy of the
+lines without mentioning the scrollback; boundaries, or the coordinator being
+unavailable, explained only after the person asks for them.
+

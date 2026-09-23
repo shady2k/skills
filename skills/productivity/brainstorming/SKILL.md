@@ -91,7 +91,8 @@ not spend money or take significant external actions just to answer an
 interesting question.
 
 **Call each thing by the project's name for it.** Where the project has a
-glossary, names come from there; otherwise from its documents and from the words
+glossary, names come from there, looked up before the part is named rather than
+taken from the last task or message that mentioned it; otherwise from its documents and from the words
 its own code uses for its own parts. Never invent an everyday noun for a thing
 that has a name — "the assistant" for a process, "a question" for a request.
 Every word then reads as familiar and the meaning cannot be recovered, because
@@ -115,8 +116,14 @@ unblocks the next step, not every question in the design. Do not pit your
 favourite against straw men. Do not ask again for approval already given.
 
 A choice about the design needs more than its options. Say how the thing works
-today, in the project's own names; what fails, with the measurement; and the
-assumption the options rest on — then offer one that rejects that assumption.
+today, in the project's own names, as its parts: for each part the choice
+touches, where it runs, what it holds, what it knows and must not know, what it
+passes to whom, and what happens while another part is down. Start the options
+from what those parts already hold and do. Then what fails, with the
+measurement; and the assumption the options rest on — then offer one that
+rejects that assumption. A question the user has to ask to follow the options
+("where is this kept?", "who decides that?", "what if that part is down?") was
+owed in the first answer.
 Several ways to satisfy one assumption read as one question asked that many
 times, and nobody can choose a frame they were not shown. Say for each option
 what it does **not** fix. An answer that lands outside every option offered
