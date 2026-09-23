@@ -52,6 +52,64 @@ sure what comes next. Ask "what next?" for a short answer, or "where are we?"
 for the full picture. Skip it only when you already know the exact task
 (`take-task`) or just want to think something through (`brainstorming`).
 
+## How your work changes
+
+You stop driving the agent step by step and start working as the owner of a
+product that agents build: you decide what to build and whether the result is
+right; they plan with you, build without you, and report in plain words. The
+repository, not the chat, holds everything agreed, so any session can pick the
+work up.
+
+### The path of work, end to end
+
+| step | what you do | what the agents do | skills | how much of you |
+| --- | --- | --- | --- | --- |
+| **Start from nothing** (an empty folder) | pick where to look, choose the idea, tell the key journeys of your users, cut the MVP | generate and challenge ideas, check the market and the domain, draft the vision | `brainstorming`, `to-research`, `to-prototype` | a few conversations |
+| **Or join an existing project** | agree what is current, what waits and what was abandoned | read the code, the tracker and the history; clean up the queue reversibly | `setup-shady2k-skills`, `groom-backlog` | once, from half an hour to a few sessions for a neglected backlog |
+| **Agree the next version** | accept or change the outcomes, what is out, and how many new bugs it may absorb | propose the charter from the vision and what is done | `to-milestone` | one conversation per version |
+| **Decide the architecture** | choose between options shown with their consequences | show the parts, the options and what each costs; record the decisions | `brainstorming`, `model-domain` | when a hard-to-reverse choice comes up |
+| **Plan a feature** | settle the behaviour and the open decisions; answer the preflight once | write the spec with checkable scenarios, split it into stages and tasks, collect every decision the run will need into one list with recommendations and a time estimate | `to-spec`, `to-stages`, `take-task` | an evening conversation |
+| **The run** | nothing; you are away | build the whole feature on its own branch with parallel workers, tests first where agreed, review by another model, fix every red check; stop only for a real fork (architecture, expensive mistakes, behaviour beyond the spec) and reach you with a ready decision | `take-task`, `diagnose-bug` | only if a fork comes up |
+| **Acceptance** | try it the way the pull request says; merging is your acceptance | a green pull request: what users can now do, how to check it yourself, every decision taken without you, what review found, what is not done | `take-task` | the time it takes to try it |
+| **Close** | nothing | update the current specs from the accepted work, close the tasks, remove branches and checkouts | `close-out` | none |
+
+Between those: `ask-shady2k` tells you where the project stands and what to do
+next whenever you come back; `handoff` keeps the thread when a session ends.
+
+### What reaches you, and what does not
+
+- **Decisions, already worked.** A question comes with what was looked at, the
+  options with their cost, the agent's recommendation and the strongest case
+  against it. Design choices come with the architecture they live in: the parts,
+  who owns what, what happens when one fails.
+- **Summaries, not documents.** You are never asked to read a spec to approve
+  it: you get its substance, the decisions and assumptions, the risks and cost,
+  in your language and your project's own names. The documents are for the
+  agents and the record.
+- **Estimates in agent time**, measured from this project's history, with what
+  they rest on, and a word when work outgrows them.
+- **Not the kitchen:** no task ids without titles, no internal statuses, no
+  progress chatter while a run is healthy.
+
+### Bugs, ideas and interruptions
+
+A bug you mention is filed at once in the right place and does not jump the
+queue: the current version has a budget for new bugs, and anything beyond it
+waits for your decision, never for the agent's. A bug found mid-run that blocks
+the merge is fixed by the run itself. An idea goes to a separate lane with a
+review date, not into the work. If you start talking while a run is going, the
+run does not stop: your conversation happens in a separate session, and what it
+decides is written where the run will read it.
+
+### What you no longer do
+
+You do not create branches or name them, merge a pull request for every change
+of plan, re-explain the context to a new session, remember issue numbers, chase
+a stuck agent, or keep a document in step with the code by hand. Checks, not
+good intentions, keep the tracker honest: a commit without its task or a change
+that breaks the backlog is rejected before it lands, and once the document
+check is installed, so is a feature whose spec is not ready.
+
 ### How a day with it looks
 
 **In the evening, planning.** Open the agent in the project's main folder and
@@ -64,17 +122,12 @@ list with recommendations, and says roughly how long the run will take and
 when to expect the pull request. You answer, say "run", and go.
 
 **While you are away.** The agent builds the whole feature on its own branch.
-Small gaps it decides itself and writes down; a real fork (architecture,
-expensive mistakes, behaviour beyond the spec) stops that part of the work and
-reaches you with a ready decision to make.
+Small gaps it decides itself and writes down; a real fork stops that part of
+the work and reaches you with a ready decision to make.
 
 **The next day, acceptance.** A green pull request says what was built, how to
 try it yourself and what the agent decided without you. You try it; merging is
 your acceptance, and the agent closes the tasks and cleans up.
-
-You never create or rename branches, merge a pull request for every small
-change of plan, or explain the context again: it lives in the spec, the stages
-and the decision log.
 
 ## Skills
 
@@ -317,7 +370,7 @@ repository's installation needs updating through setup; older means you update
 your plugin. Most plugin updates change no setup version and need nothing. This is a first-use guard and an update
 instruction, not a claim that every harness runs an automatic update hook.
 
-## The flow
+## How the flow works inside
 
 "Let's imagine" or "just discuss" starts `brainstorming`, not a setup interview.
 The agent contributes ideas, explores other perspectives and tests assumptions.
@@ -386,21 +439,31 @@ not executable checks.
 
 ## Documents: direction, current state and changes
 
-For a new repository, begin with vision, the first milestone charter and one
-useful change. Roadmap may start as a section of vision. Create the rest only
-when needed:
+Everything lives in `docs/` beside the code, in Markdown, so a behaviour change
+and its spec travel in one pull request. For a new repository, begin with the
+vision, the first milestone and one useful change; the rest appears when needed:
 
 ```text
-docs/vision.md                       # purpose, audience, exclusions
-docs/roadmap.md                      # outcomes and sequencing, not copied task status
-docs/milestones/<milestone>.md       # agreed scope and acceptance
-docs/system/capabilities/<name>.md   # accepted mainline behaviour
-docs/system/architecture.md          # current boundaries, when useful
-docs/changes/<change>/change.md      # proposed requirement deltas
-docs/changes/<change>/design.md      # optional technical design
-docs/decisions/                      # significant rationale
-docs/explorations/                   # optional retained research
+docs/vision.md                      # audience, problem, key journeys, success signal, exclusions
+docs/roadmap.md                     # or a section of the vision
+docs/glossary.md                    # domain terms and the names of the system's own parts
+docs/milestones/<milestone>.md      # agreed scope; the first one is the MVP
+docs/system/architecture.md         # arc42 sections as needed, C4 diagrams in Mermaid
+docs/system/capabilities/<name>.md  # current behaviour by capability, requirements in EARS
+docs/changes/<change>/change.md     # a feature's proposed requirement changes
+docs/changes/<change>/design.md     # optional technical design
+docs/decisions/NNNN-<slug>.md       # decision records (MADR)
+docs/explorations/                  # optional retained research
 ```
+
+Specs are kept by capability, not by feature: they always say what the system
+does now, and a feature's changes are merged into them at acceptance. Diagrams
+are Mermaid blocks, which GitHub, GitLab and Gitea render as they are; never
+drawn with characters. Where a customer requires a ТЗ or a test programme by
+Russian standards (ГОСТ 34.602-2020, ЕСПД), the agent assembles it from these
+documents on request; it is never a second copy kept by hand.
+The templates follow established practice: ISO/IEC/IEEE 29148, arc42 and C4,
+MADR, EARS, OpenSpec.
 
 These are defaults, not required paths. Setup maps existing documents in place,
 including projects using Superpowers, Spec Kit or OpenSpec. It does not uninstall
@@ -418,6 +481,13 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Status
 
+Version 0.50 adds the path from an empty folder, with not even an idea, to the
+first feature (discovery, a pressure test, the vision with key journeys, the MVP,
+the architecture, a walking skeleton), and checks the document templates against
+established practice: arc42 and C4, MADR, EARS, Mermaid diagrams, and a ТЗ by
+ГОСТ assembled on request. Projects rerun setup once for the new templates.
+Version 0.49 splits the protocol into a core and topic references that skills
+cite instead of restating.
 Version 0.7 revises execution and setup. Fixtures and package checks run locally;
 the new complete workflow still needs validation in real projects. Earlier
 installation runs informed the protections around proof, isolated staging and
