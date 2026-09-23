@@ -659,3 +659,21 @@ Role changes language/depth, not the allowed range of viewpoints. Exploration
 may stop without a conclusion or artifact; research may stay a cited chat answer,
 and a scratch prototype does not automatically become production work. Gates
 protect commitments, publication and acceptance, not the freedom to think.
+
+## 16. The protocol by topic, and rules cited rather than restated (0.49)
+
+By 0.48 the protocol was one file of 874 lines, and a skill that needed three of
+its rules linked all of them. Skills had also started restating the rules they
+cited, about 375 lines in all, often beside the citation, and six skills that
+must work without setup carried no protocol at all and so had to restate it.
+The owner found this through a fix that copied one conversation into three
+places instead of naming the practice it lacked. The protocol is now a core
+(`protocol.md`: setup version, compatibility, the backlog's rules) and topic
+references in `references/`, which is how a skill is meant to be built: the
+`SKILL.md` holds the skill's own steps, and what it shares is read when a step
+needs it. A skill links what it uses; the copy script follows links between
+those files, so a skill carries everything its citations reach, and a test fails
+when a cited rule is held by no file the skill carries. The split moved the
+rules' text unchanged, which a script checked line by line; the one rule
+rewritten was the design decision's, which now asks for the architecture as
+architectural design describes it rather than a list taken from one session.

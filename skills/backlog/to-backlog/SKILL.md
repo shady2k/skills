@@ -25,11 +25,9 @@ read the whole list for its area. If it exists, work on it or extend it; never
 file a second issue beside it.
 
 Then look the other way: is there open work that retires the thing this is in?
-Where there is, the fault does not become a queued finding of its own. It is
-closed as moot against that work, or written against the requirement that
-survives its replacement, and either way the owner hears it once, with what it
-costs while the replacement is built (the protocol's **A decision that retires
-something also decides what is filed against it**).
+Where there is, settle it by the protocol's **A decision that retires something
+also decides what is filed against it**, and tell the owner once what it costs
+while the replacement is built.
 
 Done when both searches and the area list come back empty, or you found the
 issue that already covers it.
@@ -64,19 +62,16 @@ displaced. Deferring planned work does not lower the count of findings. Do not
 make an unapproved finding ready; filing it need not wait for the decision.
 
 Where the milestone it would join is already closed and the next one does not
-exist, deferring is not an answer the run may give itself either: the next
-slice is the third option, opened now through `to-milestone` or knowingly
-waited for. The deferred issue holds the finding while the owner decides; it
-is never the decision, and the gate going clean is never the reason it was
-made. Name what the finding costs while it waits before any count: where
-people or their data are living with the fault now, that leads, and the budget
-arithmetic follows it. A finding filed this way is reported as waiting on the
-owner, not as filed and settled.
+exist, the protocol's **A finding that does not fit is decided, not parked**
+holds: the next slice, opened now through `to-milestone` or knowingly waited
+for, is the third option. The deferred issue holds the finding while the owner
+decides; the gate going clean is never the reason it was made.
 
 Recommend what to do: what would ship later, or what risk remains if it waits,
 and how that fits the agreed scope. Group related decisions. Do not ask about
 routine labels or fields. "Use defaults" does not allow raising the budget or
-widening the milestone. Speak as the protocol's **Speaking to the owner** says.
+widening the milestone. Speak as the protocol's [**Speaking to the
+owner**](references/speaking.md) says.
 
 ## 4. Write it so it can be finished
 
@@ -92,9 +87,8 @@ widening the milestone. Speak as the protocol's **Speaking to the owner** says.
 Create it with the tracker's operations and run the gate. Done when the gate is
 clean; fix a new error with its own `fix` line. A `finding-budget` error means
 step 3 was skipped: satisfy it by step 3's decision, never by taking the item
-out of what the check counts. Then publish: the record joins the session's
-landing branch and waits with the rest for its one merge, since filing is not
-work the owner merges on its own (the protocol's **Sessions and landing**).
+out of what the check counts. Then publish by the protocol's [**Sessions and
+landing**](references/running.md): the record waits for the session's one merge.
 Report "Title" (id) with its lane,
 read back from the tracker rather than from what you meant to file, and, for a
 finding, the budget after it: "finding 4 of 5". A finding held for the owner's

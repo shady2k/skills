@@ -10,10 +10,9 @@ matching version does not prove the tracker, commands, hooks or settings still
 work. Keep valid earlier choices, inspect the real state, repair drift and
 prove the result. Never reduce an update to copying one script.
 
-Use the user's established role, otherwise **product engineer**: they own
-product outcomes and trade-offs, not code or tool configuration. Find technical
-facts yourself; never ask the user for commands or config keys. Everything the
-user reads follows **Speaking to the owner** in [the protocol](protocol.md).
+Find technical facts yourself; never ask the user for commands or config keys.
+Everything the user reads, and the role it is pitched at, follows the
+protocol's [**Speaking to the owner**](references/speaking.md).
 
 The set owns [the protocol](protocol.md), [the backlog rules](check.mjs),
 [the commit check](check-commits.mjs) and [the normalized model](model.md).
@@ -117,8 +116,7 @@ Ask separately only about unresolved scope, a material cost or risk,
 conflicting decisions or missing authority: one question at a time, with a
 recommendation, real alternatives and their consequences. Approval of the
 profile does not permit undisclosed bulk cleanup, publication, weaker
-acceptance or wider scope, and silence is not approval. Reuse approval already
-given; leave settings unrelated to this setup for later.
+acceptance or wider scope. Reuse approval already given; leave settings unrelated to this setup for later.
 
 The profile covers the following. It is the agent's checklist, **not a
 questionnaire**.

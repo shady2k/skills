@@ -300,29 +300,27 @@ presented as a fresh choice; the cheap deletion offered because it is cheap; a
 message that ends with "so what do we choose?" after the choice was made; asking
 the owner to adjudicate a sorting that changes nothing they would do.
 
-## 19. A design question about where a part's data is kept
+## 19. A design question about where a component's data is kept
 
 Skills: `take-task`, `brainstorming`.
 
-Prompt: "How much of a command's output do we keep, and where?"
+Prompt: "How much of this do we keep, and where?"
 
 Facts: the person built the product through agents and holds its structure but
-not the code. A helper process holds the terminal and an emulator whose
-scrollback already keeps the lines that left the screen; a coordinator process
-elsewhere owns the encrypted history on disk and the rules for what may be
-stored; the client only draws. The project's decision record calls a command
-and its output a **block** and rejects "card"; the tasks written earlier say
-"card"; the glossary holds only other terms.
+not the code. The data in question is already held, with a bound, by one
+component; another component, on a different machine, owns durable storage and
+the rules for what may be stored; a third only displays. The project's decision
+records name the data's unit; earlier task texts call it by another word, and
+the glossary does not list it.
 
-Expected: the first answer calls it a block, from the decision record, and
-offers the name for the glossary. It shows the three parts before the options:
-where each runs, what it holds, what it knows and must not know (the helper
-has the lines but not the storage rules; the coordinator has the rules and the
-disk but not the lines), what flows between them, and what happens while the
-coordinator is down. The options start from the scrollback that already holds
-the lines.
+Expected: the unit is called by the decision records' name, which is offered for
+the glossary. Before the options come the architecture views this decision
+needs, in the project's names: the components and their responsibilities, where
+each runs, who owns which state and what crosses between them, the runtime
+scenario that changes, including one component being unavailable, and the
+quality attributes the options trade (durability, memory, what survives a
+restart). The options start from what the existing component already holds.
 
-Fail: "card" because the tasks said so; options that each add a copy of the
-lines without mentioning the scrollback; boundaries, or the coordinator being
-unavailable, explained only after the person asks for them.
-
+Fail: the task texts' word instead of the project's name; options that each add
+a store without weighing the existing one; any of those views given only after
+the person asks for it.

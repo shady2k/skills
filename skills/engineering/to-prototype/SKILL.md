@@ -9,27 +9,23 @@ Some questions talking does not settle: whether a state model survives its
 awkward cases, what a screen should look like. A prototype is **throwaway code
 that answers one such question**, and the question decides its shape.
 
-Talk in the user's language. Anything kept in the project is written in its
-artifact language: the gate config's `artifactLanguage` where there is one;
-otherwise ask once before the first thing is kept, recommending English.
+Talk and keep things by the protocol's [**Language**](references/speaking.md).
 
 ## 1. Write the question down
 
-Files kept in the repository and commits need their owning task first. Where
-the project has a backlog integration, use it; without one, experiment in
-scratch space and ask for setup before kept work. A scratch experiment is not
-permission to commit untracked work.
+Kept files and commits need their owning task; without a backlog integration,
+experiment in scratch space and ask for setup before kept work.
 
 Put one paragraph at the top of the prototype: what is being asked, and which
 answer would change the design. A prototype that answers the wrong question is
 wasted. If it is genuinely unclear and nobody can be asked, follow the shape
 the surrounding code suggests and state that assumption there.
 
-Reuse the known role, otherwise product engineer. Recommend the question, the
-shape of the experiment and its effort together: what it will teach, why, and
-what it cannot prove. The user may correct named assumptions; ask only when a
-missing requirement or a real cost or risk changes the experiment, not which
-tool or file to use.
+Speak to the role the protocol's **Speaking to the owner** assumes. Recommend
+the question, the shape of the experiment and its effort together: what it will
+teach, why, and what it cannot prove. The user may correct named assumptions;
+ask only when a missing requirement or a real cost or risk changes the
+experiment, not which tool or file to use.
 
 ## 2. Pick the shape
 

@@ -18,7 +18,8 @@ write anything. If there is none, tell the user to run
 protocol (levels, lanes, the horizon, what a clean gate is) is
 [`protocol.md`](protocol.md), beside this file.
 
-Everything the owner reads follows the protocol's **Speaking to the owner**.
+Everything the owner reads follows the protocol's [**Speaking to the
+owner**](references/speaking.md).
 
 ## 1. Check the horizon
 
@@ -32,13 +33,9 @@ code it lands in; the conversation the spec came from is best of all. Without
 usable behaviour and criteria, use `to-spec`. For a bug, reuse its requirement
 and regression scenario.
 
-Read the open work that would replace what these stages stand on: the
-component they extend, the representation they add to, the decision record they
-rest on, in this milestone and the next. Two pieces of open work each adding
-their own representation of one thing is the collision to catch here, by the
-protocol's **What would replace the ground is read before anything is built on
-it**; found now it is an edge and a reshaping, found later it is a branch built
-and then taken out.
+Before drafting, read the open work that would replace what these stages stand
+on, by the protocol's **What would replace the ground is read before anything
+is built on it**: found now, a collision is an edge and a reshaping.
 
 A standalone task or bug joins the feature and stage it serves. If none exists,
 create the minimal feature and stage in the current slice, with criteria from
@@ -96,7 +93,7 @@ conflicting write or exclusive resource, on the affected task.
 **A wide refactor is the exception.** A mechanical change across the whole
 codebase (a renamed column, a retyped shared symbol) breaks every caller at
 once, so no vertical slice of it lands green. Use **expand, migrate,
-contract**: add the new form beside the old; move callers in batches, one task
+contract** (the protocol's **Levels**): add the new form beside the old; move callers in batches, one task
 each; delete the old form in a last task once nothing uses it.
 
 Stages and tasks each wear exactly one area label. Create stages as the type

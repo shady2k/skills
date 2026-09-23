@@ -66,14 +66,12 @@ to have run it.
 
 ## User decisions: role-aware recommendations, not a questionnaire
 
-Apply the role model in `brainstorming` across the whole set, including setup,
-configuration, planning and acceptance. Reuse the user's established role;
-otherwise assume **product engineer**: someone responsible for the product and
-its trade-offs, building through agents, not holding the code or tool settings
-in their head. Ask about their role only if the ambiguity materially changes
-who should decide. Match explanations to that role: outcomes and constraints
-for an owner, domain rules for an analyst, boundaries and trade-offs for an
-architect, and product consequences across those areas for a product engineer.
+Apply the role model across the whole set, including setup, configuration,
+planning and acceptance: the protocol's **Speaking to the owner**
+([`speaking.md`](skills/backlog/setup-shady2k-skills/references/speaking.md)) holds it, with the default role of
+**product engineer**, and `brainstorming` holds its table of what each role is
+told. Ask about the role only if the ambiguity materially changes who should
+decide. The bullets below are how that model shapes setup and configuration.
 
 - **Investigate before asking.** Read the project, current configuration and
   relevant prior decisions. Preserve valid choices; do not ask the user to
@@ -111,36 +109,21 @@ architect, and product consequences across those areas for a product engineer.
   with what was retained, what the user changed, what the agent chose and any
   genuinely blocking unknowns; do not reopen settled decisions without new evidence.
 
-- **Summarize; never assign reading.** Documents are for agents and the record.
-  The person gets the substance, decisions, the agent's own assumptions and
-  guesses, risks and cost, other views and what review found, in plain words
-  without code; word for word only short text whose exact wording matters. An
-  approval covers what was shown. The protocol's "Speaking to the owner" holds
-  the full rule, including never showing the set's own internals.
-- **Plain words, the project's own names.** Plain language puts this set's
-  vocabulary and unexplained jargon aside; it never renames the project. A thing
-  that has a name — in the glossary, in the project's documents, in the words
-  its code uses for its own parts — keeps that name, with one clause of
-  definition the first time. An invented everyday noun produces a text whose
-  every word is familiar and whose meaning cannot be recovered. Where the person
-  wrote the code, its own words are the shortest language you share. A choice
-  about the design carries the mechanism in those names, the measurement of what
-  fails and the assumption its options rest on, with one option that rejects
-  that assumption. The protocol's "One thing, one name" and "A design decision
-  comes with its mechanism" hold the full rule.
-
-When creating or revising a skill, check its dialogue against this rule. A sequence
+What the person reads, and how a decision is put to them, follow
+[`speaking.md`](skills/backlog/setup-shady2k-skills/references/speaking.md) (**Summarize; never assign reading**, **One
+thing, one name**, never showing the set's own internals) and
+[`deciding.md`](skills/backlog/setup-shady2k-skills/references/deciding.md) (**A design decision comes with its
+mechanism**). When creating or revising a skill, check its dialogue against
+these rules. A sequence
 of technical yes/no questions is not role-aware guidance even if each question
 contains a recommended number. Neither is a paraphrase that renames the
 project's own parts: it is unreadable exactly because every word in it is easy.
 
 ## Language
 
-Talk to the user in the language of their latest message. Everything kept in a
-project (documents, specs, tasks, commit messages, code comments, handoffs) is
-written in that project's artifact language, which setup asks for explicitly,
-recommending English, and records as the config's `artifactLanguage`. A skill
-that keeps anything without that value asks once, recommending English. The
+What the user is told and what a project keeps follow the protocol's
+**Language** ([`speaking.md`](skills/backlog/setup-shady2k-skills/references/speaking.md)): the user's language in
+conversation, the project's recorded artifact language in everything kept. The
 skills themselves, and reports to this repository, are written in English.
 
 ## Dialogue is not a requirements interview
@@ -191,12 +174,19 @@ is how a gate certifies instead of checking.
 
 Three kinds of knowledge, three owners:
 
-- **The protocol** (levels, lanes, the horizon, names over identifiers, what a
-  clean gate is) is the set's. Its single source is
-  `skills/backlog/setup-shady2k-skills/protocol.md`; every skill that uses it
-  links to a copy **in its own folder**, because a harness may install one
-  folder at a time. `npm run protocol` writes the copies and `npm test` fails
-  on one that drifted. A skill uses its words and does not restate it.
+- **The protocol** is the set's. Its single source is
+  `skills/backlog/setup-shady2k-skills/`: `protocol.md` is the core (setup
+  version, compatibility, levels, lanes, the horizon, what a clean gate is),
+  and `references/` holds the rest by topic (speaking to the owner, deciding,
+  running alone, checks). A skill links what it uses, and every linked file,
+  with whatever it links in turn, is copied **into the skill's own folder**,
+  because a harness may install one folder at a time. `npm run protocol`
+  writes and prunes the copies; `npm test` fails on one that drifted, and on a
+  rule a skill cites that no file it carries holds. A skill cites a rule by its
+  name and does not restate it: what stays in `SKILL.md` is only what is the
+  skill's own (its step, its timing, its trigger). A skill that must work
+  without setup links the references it needs and never `protocol.md`, which
+  carries the compatibility check.
 - **The backlog integration** (the gate's command and files, how the tracker
   is driven, where the vision and charters are) is the project's. The installer
   writes it as a section of the project's own tracker doc, from the seed
@@ -212,7 +202,7 @@ backlog integration should have been provided, and if not, tell the user to
 run the installer. It names no path, and the skill links its own copy of the
 protocol. A skill that merely does better with one (`handoff`, `diagnose-bug`,
 `to-prototype`) says "where the project has a backlog integration" at the one
-step that uses it, and carries neither the sentence nor the protocol. The rest
+step that uses it, and carries neither the sentence nor the core protocol. The rest
 (`brainstorming`, `to-research`, `model-domain`) work in an empty directory.
 Research and discussion can be read-only without setup; retained repository
 changes and commits still require a task. Setup provides a verified bootstrap

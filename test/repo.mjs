@@ -7,15 +7,18 @@
  *     bought and so the words most likely to leak;
  *   - every skill is listed in the plugin manifest, and nothing else is;
  *   - a skill is user-invoked in both harnesses or in neither;
- *   - a skill that links to the protocol or the run journal has it in its own
- *     folder, word for word the source's (test/sync-protocol.mjs writes the
- *     copies), and no copy lies in a folder that does not link to it.
+ *   - a skill that links to the protocol, one of its references or the run
+ *     journal, directly or through another of them, has it in its own folder,
+ *     word for word the source's (test/sync-protocol.mjs writes the copies),
+ *     and no copy lies in a folder that nothing it links to reaches;
+ *   - every rule a skill cites as "the protocol's **Name**" is a heading in a
+ *     file that skill carries.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pluginContract } from './plugin-contract.mjs';
-import { SHARED } from './sync-protocol.mjs';
+import { SHARED, needs } from './sync-protocol.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const walk = (d) =>
@@ -62,18 +65,36 @@ for (const s of skills) {
 }
 
 const protocol = readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills/protocol.md'), 'utf8');
-for (const [name, owner] of Object.entries(SHARED)) {
-  const source = readFileSync(join(ROOT, owner, name), 'utf8');
-  for (const s of skills) {
+for (const s of skills) {
+  const needed = needs(s);
+  for (const [name, owner] of Object.entries(SHARED)) {
     if (s === join(ROOT, owner)) continue;
-    const links = readFileSync(join(s, 'SKILL.md'), 'utf8').includes(`](${name})`);
+    const source = readFileSync(join(ROOT, owner, name), 'utf8');
     let copy = null;
     try {
       copy = readFileSync(join(s, name), 'utf8');
     } catch {}
+    const links = needed.has(name);
     if (links && copy === null) fail(`${relative(ROOT, s)} links to ${name} and has none: npm run protocol`);
     else if (links && copy !== source) fail(`${relative(ROOT, s)}/${name} differs from the source: npm run protocol`);
-    else if (!links && copy !== null) fail(`${relative(ROOT, s)} has a ${name} its SKILL.md never links to`);
+    else if (!links && copy !== null) fail(`${relative(ROOT, s)} has a ${name} nothing it links to reaches`);
+  }
+}
+
+// A rule a skill cites by name is a rule it can read: the name is a heading of
+// the protocol or of a reference that skill carries. A rule dropped or renamed
+// in a split is found here, not by the agent that looks for it.
+const heading = (text) =>
+  [...text.matchAll(/(?:^|\n\n)\*\*([^*]+?)\*\*/g)].map((m) => m[1].split(/\s+/).join(' ').replace(/[.:]$/, ''));
+for (const s of skills) {
+  const carried = [...needs(s), ...(s === join(ROOT, 'skills/backlog/setup-shady2k-skills') ? Object.keys(SHARED) : [])]
+    .filter((n) => n.endsWith('.md'));
+  const known = carried.flatMap((n) => heading(readFileSync(join(ROOT, SHARED[n], n), 'utf8')));
+  const text = readFileSync(join(s, 'SKILL.md'), 'utf8');
+  for (const m of text.matchAll(/protocol's \[?\*\*([^*]+?)\*\*/g)) {
+    const name = m[1].split(/\s+/).join(' ').replace(/[.:]$/, '');
+    if (!known.some((h) => h === name || h.startsWith(name)))
+      fail(`${relative(ROOT, s)} cites the protocol's "${name}", which no file it carries holds`);
   }
 }
 

@@ -20,10 +20,9 @@ fallback, review and resolved findings. Check that it covers the exact result
 being accepted. A green run remembered from before later changes is not
 evidence.
 
-A worker's local checks justify `submitted`, with its revision or location and
-evidence kept. Only integration checked by the coordinator justifies
-`implemented`. Neither means closed. If integration is pending, keep submitted
-work for the next coordinator; if acceptance is pending, keep it implemented.
+Neither `submitted` nor `implemented` means closed, by the protocol's
+**Execution and acceptance**. If integration is pending, keep submitted work
+for the next coordinator; if acceptance is pending, keep it implemented.
 Name the next action and who owns it. A task that still fails its criterion
 stays open or active, with what is missing. If asked to accept work directly,
 run the missing checks and review first; a stage can be checked before its
@@ -113,16 +112,14 @@ configured strength. Publish only through the project's authorized workflow.
 Never satisfy a count the gate keeps, such as the finding budget, by taking an
 item out of what it counts.
 
-What a closing leaves is a record of what already happened, so it never asks
-for a merge of its own: the records, the lessons and the closing commit go on
-the session's landing branch and wait there for its one merge, with everything
-else the session kept (the protocol's **Sessions and landing**). A closing
-that follows a merge and finds work left on the merged branch moves it there
-too, rather than opening a second request for the remainder.
+The records, the lessons and the closing commit land as the protocol's
+[**Sessions and landing**](references/running.md) says. A closing that
+follows a merge and finds work left on the merged branch moves it there too,
+rather than opening a second request for the remainder.
 
-Report by name, following the protocol's **Speaking to the owner**: what was
-accepted and on which revision, what now works, what remains pending or
-unproven, what was filed or returned — each by name with the lane it landed in,
+Report by name, following the protocol's
+[**Speaking to the owner**](references/speaking.md): what was accepted and on
+which revision, what now works, what remains pending or unproven, what was filed or returned — each by name with the lane it landed in,
 read back from the tracker — and the milestone's outcomes and finding
 budget. If a decision is needed, recommend the next action with its time and
 risk. Do not ask the owner to read check internals or approve each routine

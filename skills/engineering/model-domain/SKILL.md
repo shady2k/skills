@@ -12,16 +12,13 @@ of the system's own parts. The **decision records** say why something surprising
 is the way it is, so nobody "fixes" it a year later. Neither tracks progress: that comes from the tracker,
 never from a page someone maintains.
 
-Talk in the user's language. Anything kept in the project is written in its
-artifact language: the gate config's `artifactLanguage` where there is one;
-otherwise ask once before the first thing is kept, recommending English.
+Talk and keep things by the protocol's [**Language**](references/speaking.md).
 
 This skill is for **changing** them. Every skill reads the glossary before
 naming things, and takes its names from there rather than coining one.
 
-Keeping changes in the repository or committing them needs the owning task
-first. Where the project has a backlog integration, follow it. Without one,
-discuss terms without changing files and ask for setup before kept work. If
+Keeping changes or committing needs the owning task; without a backlog
+integration, discuss terms without changing files and ask for setup. If
 the code and the glossary disagree, investigate; do not redefine the domain to
 fit a bug.
 
@@ -38,8 +35,8 @@ when that happens and not scaffolded empty beforehand.
 
 - **Test terms against it.** Show conflicting meanings with a concrete
   scenario, recommend the one the domain supports and say what behaviour each
-  implies. Use the known role, otherwise product engineer; ask only when the
-  difference in meaning needs their decision, not for every term.
+  implies, to the role the protocol's **Speaking to the owner** assumes; ask
+  only when the difference in meaning needs their decision, not for every term.
 - **Sharpen.** A word with three meanings gets three words, or one meaning.
   Propose the preferred term.
 - **Probe the boundary** between two concepts with scenarios until it is exact.
@@ -74,11 +71,10 @@ what a correction does to a total already reported.
 ```
 
 This list is what lets the owner and the agent discuss a design in one
-vocabulary. Without it an explanation invents an everyday noun for each part,
-and a text whose every word is familiar becomes one whose meaning cannot be
-recovered. The signal that something belongs here is plain: a name the
-conversation had to explain, or one the agent caught itself paraphrasing. Add
-it in that same session, in one line, and then use it.
+vocabulary, as the protocol's **One thing, one name** requires. The signal that
+something belongs here is plain: a name the conversation had to explain, or one
+the agent caught itself paraphrasing. Add it in that same session, in one line,
+and then use it.
 
 ## A decision record, sparingly
 

@@ -17,7 +17,8 @@ write anything. If there is none, tell the user to run
 protocol (levels, lanes, the horizon, what a clean gate is) is
 [`protocol.md`](protocol.md), beside this file.
 
-Everything the owner reads follows the protocol's **Speaking to the owner**.
+Everything the owner reads follows the protocol's [**Speaking to the
+owner**](references/speaking.md).
 
 ## 0. Which milestone is this?
 
@@ -40,11 +41,10 @@ recommend it. Ask only for missing requirements that matter. Record the agreed
 vision on one page at the integration's path.
 
 Use the integration's vision, roadmap and charter locations, adapting existing
-documents rather than duplicating them. Vision is direction and deliberate
-exclusions. A roadmap explains intended outcomes and their order, not task
-status; for a new project a short section in the vision is enough. Future ideas
-need no dates, specs or tasks. Current capability specs stay empty until
-something is implemented and accepted.
+documents rather than duplicating them; what each holds is the protocol's
+**Living documents**. For a new project the roadmap can be a short section in
+the vision. Future ideas need no dates, specs or tasks. Current capability specs
+stay empty until something is implemented and accepted.
 
 ## 2. Propose the charter
 

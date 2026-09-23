@@ -10,9 +10,7 @@ and testable hypotheses, not a plausible story. A request to diagnose permits
 investigation, not a fix or a commit. Fix only when that was asked for or is
 already part of the current tracked task.
 
-Talk in the user's language. Anything kept in the project is written in its
-artifact language: the gate config's `artifactLanguage` where there is one;
-otherwise ask once before the first thing is kept, recommending English.
+Talk and keep things by the protocol's [**Language**](references/speaking.md).
 
 Hide every secret in anything you show. Read credentials from environment
 variables so none reaches the transcript.
@@ -39,11 +37,10 @@ a script tells them what to click.
 
 Then **tighten** it: faster (skip unrelated setup), sharper (check the
 symptom), steadier (fix the clock, seed randomness, isolate the filesystem).
-For an intermittent failure, **read before you loop**: the message names a file
-and a line, and a check that waits for one thing and asserts another, or waits
-on the clock, carries that window on every run and only looks like load. Where
-reading does not settle it, aim for a **higher failure rate**, not a clean
-repro: loop it, run it in parallel, add load, narrow the timing. One in two is
+For an intermittent failure, **read before you loop**, as the protocol's
+[**A check is never rerun**](references/checks.md) says. Where reading does not
+settle it, aim for a **higher failure rate**, not a clean repro: loop it, run
+it in parallel, add load, narrow the timing. One in two is
 workable; one in a hundred is not.
 
 If you cannot build one, say what is missing and narrow the options with
@@ -53,27 +50,19 @@ the others. Ask for a missing artifact or access when needed; adding
 instrumentation to production needs permission. A slow or rare failure is
 still worth pursuing even if it never fits a seconds-long loop.
 
-When the evidence is missing because the product or its checks do not say what
-happened, add the missing logs, error causes or test output first, then
-diagnose; the gap itself is a finding. Whether the bug predates the current
-work changes nothing: it is diagnosed and fixed the same way, and a CI job is
-never rerun hoping for green.
+Evidence the product or its checks do not give is added first, by the
+protocol's **Failures explain themselves**. Whether the bug predates the current
+work changes nothing, by **A red check is this run's work**.
 
-A failure seen in CI is reproduced here, never debugged through CI: a push
-costs a whole CI run and proves nothing when it passes. Read the CI log once,
-then instrument the code and build the loop locally by recreating what CI has
-(its load, timing, parallelism, environment). Only when the failure needs what
-this machine cannot have (another operating system) does its instrumentation
-travel with the work's next push, said plainly as unproven. Run the one
-failing test in the loop, never the whole suite, and prefer the cheapest loop
-that shows the failure: a unit test over an end-to-end run, this machine over
-CI. Once the fix holds, widen one step at a time (its package, what the change
-touches, the full local check) and push once, when all of it is green.
+A failure seen in CI gets its loop built here, by **CI is not where failures
+are diagnosed**. The loop is the cheapest check that shows the failure, and
+once the fix holds it widens one step at a time, by **Cheapest check first**
+and **Push once**.
 
-Ask the user only for evidence you cannot get yourself. Use their known role,
-otherwise product engineer: say what the observation will tell apart, recommend
-the least disruptive way to get it, and its effort and risk. Do not make them
-pick debugging tools or repeat known facts.
+Ask the user only for evidence you cannot get yourself. Speak to the role the
+protocol's **Speaking to the owner** assumes: say what the observation will
+tell apart, recommend the least disruptive way to get it, and its effort and
+risk. Do not make them pick debugging tools or repeat known facts.
 
 ## 2. Reproduce, then minimise
 

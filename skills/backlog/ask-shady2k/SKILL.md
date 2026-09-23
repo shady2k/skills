@@ -61,17 +61,11 @@ passed their forecast: report each with what it last did and when, next to the
 hold it left on the work, and offer taking it over or ending its record. A run
 still inside its forecast is not a reason to hold the owner: say when its result
 is due and offer what their presence is worth now — a decision waiting, the next
-feature to plan, something to think through — by the protocol's **The owner's
-time is the scarce one**. Bring it worked, with the options and their costs and
-your own view, and add the ideas nobody asked for: what you would do
-differently, what the evidence suggests they have not considered, by **Come with
-the material**. Where anything in the picture waits on the owner, ask once how
-long they have now and when they expect to be away, and order what needs them
-by what unblocks the most, hardest to reverse first, by the protocol's **The
-session opens with the picture**; where nothing waits on them, do not ask.
-Read the state of a run from what it left behind, not by messaging the agents
-still working. Tell an owner actively
-running acceptance from abandoned work.
+feature to plan, something to think through — worked, by the protocol's
+[**Come with the material**](references/deciding.md) and [**The owner's time is
+the scarce one**](references/running.md). What waits on the owner, and whether
+to ask about their time, follows **The session opens with the picture**. Tell
+an owner actively running acceptance from abandoned work.
 
 **Without an integration, or with an outdated one:** say so and continue from
 the repository. Mark what you cannot know without it, such as task states and
@@ -103,14 +97,10 @@ with the evidence for each.
 ## 4. Ways forward
 
 **Ready is not a reason.** Before a leaf reaches the recommendation, check that
-its result is still wanted: read the open work of this milestone and the next
-that would retire or replace what it stands on, by the protocol's **What would
-replace the ground is read before anything is built on it**. Where such work is
-open, the ground is settled first and the leaf waits, however ready it is. That
-it is independent, that its files are free of the workers at work, that it needs
-no decision from the owner are answers about order and never about worth;
-offering one as the reason to start is, by **Ready is not worth doing**, an
-answer to a question nobody asked.
+its result is still wanted, by the protocol's **Ready is not worth doing** and
+**What would replace the ground is read before anything is built on it**: where
+such work is open, the ground is settled first and the leaf waits, however
+ready it is.
 
 The recommendation is the first row below that applies; its order makes you
 settle the ground and finish what is open before you start anything new. Then
@@ -156,9 +146,9 @@ these skills themselves is `/report-to-shady2k`.
 
 ## 5. Report
 
-Follow the protocol's **Speaking to the owner**, with or without an
-integration: plain words, tasks by title, numbers with their meaning. Open with
-one or two sentences on where the project stands. Then the picture, compact,
+Follow the protocol's [**Speaking to the owner**](references/speaking.md),
+with or without an integration: plain words, tasks by title, numbers with their
+meaning. Open with one or two sentences on where the project stands. Then the picture, compact,
 then the ways forward, recommendation first, as consequences for the product:
 scope, time, cost, risk. Where a decision the remaining work rests on is open
 and the owner is here, it leads the ways forward instead of closing the message,
@@ -169,13 +159,10 @@ start the recommended action.
 **A correction he gives is a write, not just a better answer.** When he answers
 the picture with a condition, a refusal or a constraint the record does not
 hold — "I will not do that until X", "we decided against Y", "I told you this
-already" — the picture was wrong because the record was, and it is the record
-that has to change. Say what is missing and where it belongs. This skill still
-writes nothing itself; but the moment he agrees to any action, that record is
-the first thing done, through `to-backlog`, before the action starts, by the
-protocol's **A decision the owner gives is kept, not only obeyed**. Promising it
-and starting the work instead leaves him the state you described rather than the
-one that exists, and the next session will offer him what he just refused.
+already" — say what is missing and where it belongs. This skill writes nothing
+itself; the write that keeps it is `to-backlog`'s, done first once he agrees to
+any action, by the protocol's **A decision the owner gives is kept, not only
+obeyed**.
 
 ## Routes
 

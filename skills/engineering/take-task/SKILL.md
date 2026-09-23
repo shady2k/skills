@@ -6,9 +6,9 @@ description: "Run a planned feature on its own, from preflight to one green pull
 # Take task
 
 The owner plans a feature with the agent, then leaves. This skill runs the
-whole feature without them, as the protocol's **Autonomy** describes: one
-coordinator carries it through all its stages to one pull request, and each
-worker takes one task. It also takes a single bug or task when that is all the
+whole feature without them, as the protocol's
+[**Autonomy**](references/running.md) describes: one coordinator carries it
+through all its stages to one pull request, and each worker takes one task. It also takes a single bug or task when that is all the
 owner asked for; the same rules apply at that size.
 
 This project's **backlog integration** should have been provided to you: how
@@ -34,7 +34,8 @@ continue), ask them afterwards for a grade and record it with `recovery`:
 R3 continued correctly, R2 recovered but redid work, R1 needed explanations,
 R0 did not understand where the work stood.
 
-Everything the owner reads follows the protocol's **Speaking to the owner**.
+Everything the owner reads follows the protocol's [**Speaking to the
+owner**](references/speaking.md).
 
 Size the design by **size, uncertainty and risk**, not by the TDD setting. A
 small irreversible change can need more design than a large routine one.
@@ -66,10 +67,8 @@ Before the owner leaves, prepare the run so it needs nobody:
   decision the run will meet: open forks, choices the spec leaves open, the
   assumptions you would otherwise make alone, the risks. Check what you can
   check instead of listing it;
-- **how the work runs**, from the execution settings, confirmed for this run:
-  inline in this session, subagents of this session, separate worker sessions
-  (a terminal multiplexer or similar), or a cloud session, as the harness
-  offers. Explain the consequence: inline and subagents stop when this session
+- **how the work runs**, the execution settings' run mode confirmed for this
+  run, with its consequence: inline and subagents stop when this session
   stops, so the owner cannot close it; separate sessions survive while the
   machine runs; a cloud session needs no machine of theirs. With no setting,
   recommend one and ask here;
@@ -91,22 +90,17 @@ Before the owner leaves, prepare the run so it needs nobody:
   the project lets a branch live, the feature is too big for one run: split it
   with the owner through `to-stages` (and `/to-milestone` if the outcome
   changes) first;
-- **when the owner expects to be away, and for how long**, so execution falls
-  into that window and what needs them is settled before it: every decision in
-  this batch, and anything worth their presence offered now rather than while
-  they wait, by the protocol's **The owner's time is the scarce one**;
+- **when the owner expects to be away, and for how long**, by the protocol's
+  **The owner's time is the scarce one**;
 - **what the checks will demand at the end, established now and not at the
   push**: run the integration's gate against the work as it stands and read
   what a refusal would ask for, the document side included. Where it wants
   something this project has never had — a first capability document, a record
   never written here, an approval only the owner can give — that is work with a
-  cost, and it belongs in this batch. An approval is **taken** here, not merely
-  foreseen: he decides the change's kind, its scope, the requirements it moves
-  and what it promises to leave alone, in one sentence of what will be true
-  afterwards that is not true now, and the record binds itself to that. Carrying
-  it to the end instead guarantees stopping him after he has gone. A demand met
-  at the push is met with no slack left, which is where the cheap way out starts
-  to look reasonable;
+  cost, and it belongs in this batch. An approval is **taken** here, by
+  **Autonomy**, put as one sentence of what will be true afterwards that is not
+  true now. A demand met at the push is met with no slack left, which is where
+  the cheap way out starts to look reasonable;
 - how to reach the owner when the run stops, if the harness can notify.
 
 Bring all of it as **one batch**, each item with a recommendation and its
@@ -120,10 +114,9 @@ not new scope, spending or weaker acceptance.
 On "run", land the conversation's general plan once and start the feature on
 its own branch, named after it, as the protocol's **Sessions and landing**
 says; do not wait for the owner to create or rename anything. Anything he
-decided in the conversation that the record does not yet hold — a condition on
-other work, a refusal, a constraint — lands in that same first write, before
-the branch starts, by the protocol's **A decision the owner gives is kept, not
-only obeyed**. It is not carried along to be written when the run gets to it.
+decided in the conversation that the record does not yet hold lands in that
+same first write, before the branch starts, by the protocol's **A decision the
+owner gives is kept, not only obeyed**.
 
 **Keep the run's record** in the run journal, [`runs.mjs`](runs.mjs), which
 writes outside the repository. The minutes themselves are not written by hand:
@@ -183,54 +176,26 @@ against the task's risk and the agreed execution settings; a harness may pick
 its own default. If it is weaker than the task needs, switch it before
 starting; never find out after the worker is already writing.
 
-Nothing runs unbounded. Every worker, review or long command starts with a hard
-timeout and writes where its progress can be seen as it goes, never through a
-pipe that holds the output to the end. Confirm it actually started before
-turning to other work, and when it passes the time that work took before, run
-the cheap liveness check instead of waiting on, as the protocol's **Silence is
-not progress** says. The timeout is the estimate for that work, not a round
-number large enough never to trip: an overrun is stopped and diagnosed, never
-restarted or given more time, and what caused it is filed. Keep what the
-checks, builds and workers took; a step that got much slower is a finding even
-when it passes, by **The bound is the forecast**.
+Nothing runs unbounded: every worker, review or long command is bounded and
+watched by the protocol's **Silence is not progress** and **The bound is the
+forecast**.
 
-Before a leaf is started, its result is checked against the decisions taken
-since it was filed, by the protocol's **Ready is not worth doing**: a fix that
-lands in code already scheduled for replacement is paid for twice. Where a
-decision of this run retires what other open leaves are written against, they
-are settled with it and not left ready.
+Before a leaf is started, check it by the protocol's **Ready is not worth
+doing**; a decision of this run that retires what other open leaves are written
+against settles them with it, by **A decision that retires something also
+decides what is filed against it**.
 
-Once the owner has decided, the run does not bring the same fork back in new
-clothes: sharper detail about a settled question is recorded with the work, by
-the protocol's **A decision given is not reopened by better analysis** and **A
-message that changes no next action is not sent**.
+Anything put to the owner mid-run follows the protocol's [**Come with the
+material**](references/deciding.md), and a design choice **A design decision
+comes with its mechanism**. Once he has decided, the fork is not brought back,
+by **A decision given is not reopened by better analysis** and **A message that
+changes no next action is not sent**.
 
-Anything put to the owner mid-run is worked first: the cause found, the options
-costed, a recommendation and what happens if the answer comes later, never a
-question they must wait behind, by the protocol's **Come with the material**.
-Where the choice is about the design, it carries the parts it touches in the
-project's own names — where each runs, what it holds and knows, what it passes
-on, what happens while another is down — the measurement of what fails and the
-assumption the options rest on, by the protocol's **A design decision comes
-with its mechanism** — a menu whose frame is invisible costs a round per message.
-
-A wait is filled: while a review, a worker or a long check runs, take the next
-independent task, write the pull request's text, or run what does not depend on
-the answer. None of it lands on what is being waited for: a branch whose checks
-are running takes nothing but their fixes (the protocol's **A submitted branch
-is frozen**). When the owner writes while the run is going, do not stop it and do
-not answer with the coordinator's own hands: open a separate session for that
-conversation, in its own checkout where it could touch files, and let it hand
-back what it settled — the decision and its reason, the task it filed, the plan
-it agreed — to the coordinator and to the tracker.
-
-The absence the preflight recorded is worked against: while the owner is away
-until the time they named, decide what this run knows how to decide and record
-it, and hold only what the class above reserves for them, by the protocol's
-**The session opens with the picture**. A coordinator that takes the run over
-mid-flight starts from what the work left behind — the tracker, the branches
-and their checks, the holds, the workers' logs — before it asks a working agent
-anything.
+Every wait is filled, by **A wait is filled** and **A submitted branch is
+frozen**. When the owner writes mid-run, the run goes on and a separate session
+takes the conversation, by **The owner's time is the scarce one**. The absence
+the preflight recorded, and a coordinator taking the run over mid-flight,
+follow **The session opens with the picture**.
 
 The coordinator keeps its own context fresh: the run's state lives in the
 tracker and the decision log, never only in the conversation. When its context
@@ -251,8 +216,8 @@ a failing check.
 
 Workers run static checks and the tests related to their change, including
 neighbouring behaviour it affects, from the narrowest scope outward as the
-protocol's **Cheapest check first** says; a failing test is iterated on alone,
-not with its suite. The full suite, mutation testing and final
+protocol's [**Cheapest check first**](references/checks.md) says; a failing
+test is iterated on alone, not with its suite. The full suite, mutation testing and final
 review happen at stage acceptance. A shared change can rightly widen a worker's
 related tests.
 
@@ -288,14 +253,10 @@ what it ran.
   feature meet its own criteria is part of the work, not a finding.
 - A stubborn failure goes to `diagnose-bug` within the current task.
 - A red check, including one that looks older than this work, follows the
-  protocol's **A red check is this run's work**: read the assertion and the
-  code behind each value it asserts on, then fix it. Never rerun it — not for
-  green, not to show the change innocent, not because the failure already has
-  a number in the tracker. The repair that makes it green rides with this work
-  and spends no finding budget (**A repair the merge waits on is not intake**);
-  a finding is only what you leave unfixed. If the gate refuses the commit that
-  carries the repair, read what it asks for: the count is never made to fit by
-  deferring the repair, whatever the refusal's own remedy line suggests.
+  protocol's **A red check is this run's work** and **A check is never rerun to
+  find out why it failed**. Its repair rides with this work by **A repair the
+  merge waits on is not intake**, and a gate that refuses the commit carrying it
+  is read by **A gate that refuses is not routed around**.
 
 ## 6. Accept each stage
 
@@ -332,11 +293,8 @@ however green the checks (the protocol's **Reached, not just built**). Then
 bring the feature's **one pull request** to review through the project's
 authorized workflow, starting its CI once in the way this repository's CI
 allows (the protocol's **Know what a push starts**). Move the coordinator's own
-checkout off that branch as soon as the run is submitted, so that the tracker
-records, plans and documents the wait produces cannot land on it and restart
-every job (the protocol's **A submitted branch is frozen**). They go on the
-session's landing branch and wait there for one merge at the end, never a
-request apiece. Write its report as the
+checkout off that branch as soon as the run is submitted, by the protocol's
+**A submitted branch is frozen**. Write its report as the
 protocol's **Autonomy** describes: what users can now do, how to check it
 yourself as the few steps of the walk you made, every decision and assumption
 made alone, departures from the spec,

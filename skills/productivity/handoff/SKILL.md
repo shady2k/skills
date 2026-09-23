@@ -20,9 +20,7 @@ defect to fix there and to report, not a gap to paper over with a document.
 Never write a handoff into the workspace. A committed handoff becomes a stale
 instruction someone later follows.
 
-Talk in the user's language. Anything kept in the project is written in its
-artifact language: the gate config's `artifactLanguage` where there is one;
-otherwise ask once before the first thing is kept, recommending English.
+Talk and keep things by the protocol's [**Language**](references/speaking.md).
 
 If the user passed arguments, they say what the next session is for. Tailor
 everything to that and leave the rest out.
@@ -41,8 +39,8 @@ Anything left half-done is a trap the next agent cannot see.
   committing each piece. Say that another checkout will not see it and
   recommend a way to continue that keeps access. If the handoff really needs a
   commit or other new permission, ask once for that one action, with
-  alternatives and consequences, in terms of the user's role (otherwise
-  product engineer).
+  alternatives and consequences, in terms of the role the protocol's
+  **Speaking to the owner** assumes.
 - **The backlog**, where the project's agent doc points at a backlog
   integration: use `close-out`. It closes only work whose stage was accepted,
   keeps agent results waiting to be merged or accepted, files findings, and

@@ -25,7 +25,8 @@ the inventory and the agreed cleanup, then return to setup, which installs and
 proves the gate. If the queue is already usable, say so and change nothing in
 bulk. Work waiting for acceptance is live: keep it.
 
-Everything the owner reads follows the protocol's **Speaking to the owner**.
+Everything the owner reads follows the protocol's [**Speaking to the
+owner**](references/speaking.md).
 
 ## 1. Take the snapshot
 
