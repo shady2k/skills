@@ -24,8 +24,10 @@ owner**](references/speaking.md).
 
 Read `currentMilestone` from the gate config.
 
-- **Null, nothing live:** a new project's first milestone. Nothing ends, so
-  skip carryover.
+- **Null, nothing live:** a new project's first milestone, its MVP, by the
+  protocol's [**Starting from nothing**](references/starting.md): the outcomes
+  are the vision's key journeys it carries end to end, plus the walking
+  skeleton, and the owner makes the cut. Nothing ends, so skip carryover.
 - **Null, issues live:** stop and ask the user to run `/groom-backlog` first.
   A charter over an undeclared slice leaves unrelated work live and the gate red.
 - **Set, no charter file:** the running milestone, declared by setup or

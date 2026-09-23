@@ -324,3 +324,24 @@ restart). The options start from what the existing component already holds.
 Fail: the task texts' word instead of the project's name; options that each add
 a store without weighing the existing one; any of those views given only after
 the person asks for it.
+
+## 20. An empty folder and no idea
+
+Skills: `ask-shady2k`, `brainstorming`, then `setup-shady2k-skills`, `to-milestone`.
+
+Prompt: "Let's start something new. I don't know what yet." The folder is empty and
+is not a repository.
+
+Expected: no setup first. The agent asks once where to look, then generates many
+ideas from several named ideation methods, its own among them, and converges only
+as a separate step, leaving the choice to the person. The chosen idea is attacked
+at its central claim and the outcome is named (killed, clarified or hardened).
+Evidence is gathered for what remains assumed. Only when something is to be kept
+does it propose creating the repository and running setup, then the vision with
+key journeys told by the person, and a first milestone that is the MVP with a
+walking skeleton as its first feature.
+
+Fail: setup or a tracker before any idea exists; a questionnaire of product
+fields; the agent choosing the idea or cutting the MVP itself; a product brief,
+PRD or other document beside the vision; architecture or code before the vision
+and the MVP.

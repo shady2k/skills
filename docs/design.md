@@ -677,3 +677,25 @@ when a cited rule is held by no file the skill carries. The split moved the
 rules' text unchanged, which a script checked line by line; the one rule
 rewritten was the design decision's, which now asks for the architecture as
 architectural design describes it rather than a list taken from one session.
+
+## 17. Starting from nothing, and documents checked against practice (0.50)
+
+The owner asked what the set does in an empty folder with not even an idea, and
+the answer was: it sends you to setup. Setup, the milestone and the feature
+flow assumed a product already existed. BMAD, studied as the best-worked
+reference, starts from ideation, a pressure test that may kill the idea, the
+brief and PRD, and a starter template as the first story. The set takes its
+order and its stances (diverge before converging, the owner chooses and cuts,
+journeys told with a named protagonist, counter-metrics, the walking skeleton
+first) but not its documents: the vision, the charter and the specs already hold
+what a brief and a PRD would, and a second copy is what the set exists to avoid.
+The path is one rule, `references/starting.md`, which orders existing skills.
+
+The document templates were checked against ISO/IEC/IEEE 29148, arc42, C4,
+MADR, EARS, OpenSpec, Kubernetes KEPs and ГОСТ 34.602-2020. The layout already
+matched what mature projects converge on, so it stayed; the templates gained
+what they lacked. Russian standards contribute what the others do not: every
+quality category named even when nothing is required, and acceptance as a
+programme agreed in advance. A ТЗ is exported from the living documents on
+request, never kept beside them. Diagrams are Mermaid, the one text format
+repository hosts render without setup.

@@ -19,6 +19,8 @@ file, read when a step needs it:
   preflight, the owner's time, sessions and landing, waits, estimates;
 - [checks.md](references/checks.md): red checks, refusing gates, diagnostics,
   the cheapest check, reaching the outcome, CI.
+- [starting.md](references/starting.md): a project from an empty folder, with
+  not even an idea, to its first planned feature;
 - [tz-gost.md](references/tz-gost.md): assembling a ТЗ or a ПМИ by Russian
   standards from the living documents, when a customer requires one.
 

@@ -318,8 +318,13 @@ If it is not wired in this setup, file its task in the current milestone and
 record in the integration that the gate is not installed yet, naming that
 task. Setup still completes; wiring the gate later reruns proof 6.
 
-**New projects:** conversation may come before setup with no files or issues.
-Once work is to be kept, create the setup task first, then seed only the agreed
+**New projects:** conversation may come before setup with no files or issues,
+by the protocol's [**Starting from nothing**](references/starting.md). In a
+folder that is not yet a repository, create it with the owner's agreement,
+saying where its remote will be or that there is none yet. An empty repository
+has no CI to prove against: prove the local hooks, and record the CI checks as
+wired by the walking skeleton, the first feature. Once work is to be kept,
+create the setup task first, then seed only the agreed
 vision, current slice and resource locations. The charter comes from
 `/to-milestone` when the user runs it. Setup may finish with no admitted work,
 no current capabilities and nothing beyond a vision section; never invent a

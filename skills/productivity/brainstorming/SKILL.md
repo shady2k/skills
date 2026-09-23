@@ -87,6 +87,16 @@ interesting question.
 **Call each thing by the project's name for it**, by the protocol's **One
 thing, one name**: plain language never means renaming the project.
 
+## From an empty folder
+
+Where there is no idea yet, the conversation is the first two steps of the
+protocol's [**Starting from nothing**](references/starting.md): find the idea,
+then try to kill it. Ask once where to look, then diverge with named ideation
+methods, bringing ideas of your own and switching angle when one runs dry;
+converge only as a separate move, and let the owner choose. The pressure test
+ends killed, clarified or hardened, said in those words. Nothing is filed or
+written until the owner wants something kept.
+
 ## When a decision is actually needed
 
 Read earlier decisions first. For setup or configuration, propose one coherent
