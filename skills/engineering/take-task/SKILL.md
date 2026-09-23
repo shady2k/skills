@@ -71,7 +71,10 @@ Before the owner leaves, prepare the run so it needs nobody:
   run, with its consequence: inline and subagents stop when this session
   stops, so the owner cannot close it; separate sessions survive while the
   machine runs; a cloud session needs no machine of theirs. With no setting,
-  recommend one and ask here;
+  recommend one and ask here. For separate sessions, find the mechanism this
+  environment provides for starting them and read its instructions now, by the
+  protocol's **A started session answers to the one that started it**; where
+  there is none, say so here with the fallback and its consequence;
 - which agents and models do which tasks, against each task's risk;
 - how long the run will likely take and when the pull request can be expected,
   said as a time the owner can hold it to: past it without word the run has
@@ -178,7 +181,9 @@ order, hierarchy or a shared milestone.
 
 Give each worker its task and criterion, the relevant spec, the glossary's
 entries for the parts it touches, dependencies, base revision, owned scope,
-local check commands, the TDD setting and the return format. A worker's task fits one session; split one that will not. Use
+local check commands, the TDD setting, and where its report goes and what it
+holds, by **A started session answers to the one that started it**; record in
+the task, as it starts, how to resume it and where its log is. A worker's task fits one session; split one that will not. Use
 isolated checkouts where concurrent writes could collide, and coordinate
 shared generated files, migrations and dependency locks.
 
@@ -232,7 +237,7 @@ test is iterated on alone, not with its suite. The full suite, mutation testing 
 review happen at stage acceptance. A shared change can rightly widen a worker's
 related tests.
 
-A worker returns the task, its linked commits, the changed behaviour, check
+A worker's report holds the task, its linked commits, the changed behaviour, check
 commands and results, open doubts, decisions it made and integration notes.
 Record `submitted` with the result's revision or location and evidence before
 releasing the worker's claim. A worker's "done" means ready to integrate, not
@@ -248,8 +253,8 @@ never goes back to ready.
 
 Then end the worker session that produced it: an idle agent keeps its process
 and memory for as long as it is left open, and nothing else ends it. Keep its
-working copy until the stage is accepted, and record in the task where its log
-is. Work that comes back goes to a fresh worker given the rework and that log,
+working copy until the stage is accepted, beside the resume record its task
+already holds. Work that comes back goes to a fresh worker given the rework and that log,
 or to the old session resumed from its log where the agent can do that, never
 to a session kept running in case. A worker that failed or stopped for a
 decision stays open until that is settled: its screen is the only record of

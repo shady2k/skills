@@ -149,6 +149,30 @@ before, the liveness check comes before any further waiting, and what it shows
 is said plainly. A hung worker taken for a slow one is waited on until the
 owner asks, and that hour is spent by both.
 
+**A started session answers to the one that started it.** Every session one
+agent starts for another — a worker, a reviewer, a coordinator started by a
+session above it — works to the same contract, whatever starts it:
+
+- It is started only through the mechanism this environment provides for
+  sessions, driven by that mechanism's own instructions, chosen before the work
+  and never improvised once it is under way. Where none is available, that is
+  said before the work starts, with what the fallback costs.
+- Its brief names where its **report** goes. Its last act is to write that
+  report whole — done, or stopped and why, a question for the owner included —
+  so that nothing half-written is ever read as an answer. A session that stops
+  to wait on anyone writes its report before it waits.
+- It has finished when its report exists and its agent has stopped working;
+  either alone proves nothing. A line on its screen is never the signal: the
+  brief that asks for the line is in its context, and it repeats the line while
+  still thinking. Neither is an idle status, which is also how it looks before
+  it starts.
+- How to resume it is recorded with its task when it starts, not when it ends:
+  a session that dies takes the chance to record it with it.
+- The one that started it ends it once the report is collected and the result
+  taken in, and proves it ended, as the start was proved. A session stopped for
+  a decision stays open until that is settled; nothing is left open in case.
+  Handing the run over hands these sessions over by name.
+
 **A run that never came back is found, not assumed.** An unattended run cannot
 report its own death; what it leaves behind is a hold that stops moving and a
 record with no end. So before it goes unattended it says when its result is
