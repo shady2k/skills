@@ -24,8 +24,9 @@ fit a bug.
 
 ## Where they live
 
-Use existing paths or the project's document integration. Otherwise
-`CONTEXT.md` at the root and `docs/adr/`, numbered `0001-slug.md`. Create each
+Use existing paths or the project's document integration, including a
+`CONTEXT.md` or `docs/adr/` a project already has. Otherwise `docs/glossary.md`
+and `docs/decisions/`, numbered `0001-slug.md` and never renumbered. Create each
 only when the first term is settled, the first part had to be named, or the
 first decision is worth recording. Every project ends up with a glossary,
 because every project eventually names something to its owner; it is written
@@ -89,11 +90,28 @@ locks you in, who owns which data, a deliberate step off the obvious path, a
 constraint the code cannot show, an alternative rejected for a non-obvious
 reason.
 
-```markdown
-# <the decision, as a short title>
+The record follows MADR, the common decision-record format; a small decision
+keeps each section to a line or two:
 
-One to three sentences: the situation, what was decided, and why.
+```markdown
+# 0007. <the decision, as a short title>
+
+Status: accepted
+Date: <YYYY-MM-DD>
+
+## Context and problem
+<The situation and the question, in two or three sentences.>
+
+## Considered options
+<Each real option, including one that rejects the assumption the others share.>
+
+## Decision
+<What was chosen and why.>
+
+## Consequences
+<What gets easier and harder; what would make it worth revisiting.>
 ```
 
-That can be the whole record. Add status, options or consequences only when
-they say something the paragraph does not.
+A "Decision drivers" section goes before the options when the forces are not obvious. A decision reversed
+later is not edited or deleted: it is marked `superseded by NNNN`, and the new
+record says what changed. A diagram in a record is a Mermaid block.

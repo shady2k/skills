@@ -34,7 +34,8 @@ function sections(text, names) {
 }
 
 export function parseVision(text) {
-  const s = sections(text, ['Audience', 'Problem', 'Outcome', 'Exclusions', 'Constraints and assumptions', 'Direction']);
+  const s = sections(text, ['Audience', 'Non-users', 'Problem', 'Alternatives and difference', 'Key journeys', 'Outcome',
+    'Success signal', 'Exclusions', 'Constraints and assumptions', 'Direction']);
   return { audience: s.Audience ?? '', problem: s.Problem ?? '', outcome: s.Outcome ?? '', exclusions: s.Exclusions ?? '' };
 }
 
@@ -69,7 +70,7 @@ export function parseCapability(text) {
       if (match) {
         requirement = { id: match[1], title: match[2], statement: '', scenarios: [] };
         capability.requirements.push(requirement); statements.set(requirement, []);
-      } else if (!['Purpose', 'Context', 'Coverage limits'].includes(section)) throw new Error(`unrecognized section: ${section}`);
+      } else if (!['Purpose', 'Quality requirements', 'Context', 'Coverage limits'].includes(section)) throw new Error(`unrecognized section: ${section}`);
       continue;
     }
     const scenarioHeading = structural && raw.match(/^### (.+)$/);

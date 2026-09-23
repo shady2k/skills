@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.22.0
+Setup version: 0.23.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -19,6 +19,8 @@ file, read when a step needs it:
   preflight, the owner's time, sessions and landing, waits, estimates;
 - [checks.md](references/checks.md): red checks, refusing gates, diagnostics,
   the cheapest check, reaching the outcome, CI.
+- [tz-gost.md](references/tz-gost.md): assembling a ТЗ or a ПМИ by Russian
+  standards from the living documents, when a customer requires one.
 
 **Compatibility before writes.** Before changing the tracker or the repository,
 compare this setup version with the repository's installation: the `--version`
@@ -233,7 +235,10 @@ only where useful. Every project has a **glossary**: the words for its domain,
 and the words it uses for its own parts, one line each. It is where a name is
 taken from and not coined per message, by [**One thing, one name, and it is the
 project's**](references/speaking.md); `model-domain` keeps it. Use the project's paths and templates and
-adopt existing documents where they are.
+adopt existing documents where they are. Documents are Markdown, and a diagram
+in them is a Mermaid block, never one drawn with characters. A specification
+required by a standard, such as a ТЗ, is assembled from these documents on
+request by [tz-gost.md](references/tz-gost.md), never kept beside them.
 
 The document gate runs separately from the backlog's strength. It checks
 product intent before the first implementation, feature readiness before work

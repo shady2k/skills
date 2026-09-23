@@ -28,20 +28,33 @@ project integration, never through a sibling skill's filesystem path.
 - **Exploration:** optional retained questions, hypotheses and observations, never
   automatically approved requirements. A conversation may leave no artifact.
 
-Suggested new-project paths (defaults, not mandatory names):
+Suggested new-project paths (defaults, not mandatory names). Everything lives in
+`docs/` beside the code, so a behaviour change and its spec travel in one pull
+request:
 
 ```text
-docs/vision.md
+docs/vision.md                      # audience, problem, key journeys, success signal, exclusions
 docs/roadmap.md                     # or a section of vision
-docs/milestones/<milestone>.md
+docs/glossary.md                    # domain terms and the names of the system's own parts
+docs/milestones/<milestone>.md      # the first one is the MVP
 docs/system/index.md                # coverage and known unknowns
-docs/system/capabilities/<name>.md
-docs/system/architecture.md         # when useful
+docs/system/architecture.md         # arc42 sections as needed, C4 diagrams in Mermaid
+docs/system/capabilities/<name>.md  # by capability, named from the glossary, not by feature
 docs/changes/<change>/change.md
-docs/changes/<change>/design.md      # when needed
-docs/decisions/
-docs/explorations/                   # only when retention is requested
+docs/changes/<change>/design.md     # when needed
+docs/decisions/NNNN-<slug>.md       # MADR-style decision records, never renumbered
+docs/explorations/                  # only when retention is requested
 ```
+
+Specs are kept **by capability**, not by feature: a capability spec is the
+current truth, and a feature is a change record whose requirement deltas are
+merged into the capabilities it touches at acceptance. Kept by feature, specs
+stop saying what the system does now.
+
+**Diagrams are Mermaid** blocks in the Markdown, the format repository hosts
+render natively; never diagrams drawn with characters. Architecture views follow
+the C4 levels, drawn as Mermaid flowcharts (Mermaid's own C4 syntax is still
+experimental); sequence, state and entity diagrams use Mermaid's own kinds.
 
 Do not scaffold empty documents for every path. Start with vision, the first
 charter and one useful change. Current capabilities may be empty before the first
@@ -92,7 +105,13 @@ and a gate whose cheapest exit at push time is a bypass will be bypassed.
 ## Templates
 
 Use `templates/vision.md`, `roadmap.md`, `milestone.md`, `capability.md` and
-`change.md` as editorial seeds. `design.md` and `exploration.md` are conditional.
+`change.md` as editorial seeds. `design.md`, `architecture.md`, `decision.md` and
+`exploration.md` are conditional. A capability states its requirements as EARS
+statements with Given/When/Then scenarios, and names every quality category,
+writing "not applicable" rather than leaving one out, so silence is never
+ambiguous. The vision's optional sections (non-users, alternatives, key
+journeys, success signal) scale with the stakes: a small tool may skip them, a
+product for other people should not.
 Replace placeholders; do not publish empty scaffolds. Existing equivalent
 documents take precedence over creating duplicates. A small change may live in
 its task body, provided the deterministic export includes it and the accepted

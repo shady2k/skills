@@ -1,19 +1,21 @@
 {
-  "setupVersion": "0.22.0",
+  "setupVersion": "0.23.0",
   "files": {
-    "check.mjs": "5f2430cab026b1c081590d33e251e0afa8198ba518a874c9e77c5aae3deb336a",
-    "check-commits.mjs": "03f11ef96c9b96c0734d0be3683768f0709609a268435682dabcb7ddde0fcdb3",
-    "check-docs.mjs": "61ab178290bc5464dc5fc006e3fac5cd4c0668d955e41a74196795e3bb361f92",
-    "document-format.mjs": "dadf33034bf7bfd1d3143c3f7ec5203796beb472437bc92d5f570ef9e16235ce",
+    "check.mjs": "1da6d872d337c22875938a937c7e237dd66573745f7e4bc24dea187be82d81c2",
+    "check-commits.mjs": "c78f014068c5236e1cf53ee0e7a17d87c768c1e572d7171e4fde9bea8feab9c4",
+    "check-docs.mjs": "63715e587a61ad3fd266e1f697a680caae76754f343f6d55cbc86ddd8de0099e",
+    "document-format.mjs": "9aba90c251d02fddc52d831342f8d8755a05a61ad4b11177e50f0f8f37dfce9d",
     "integration.md": "3fc72574b8b091cd9d9602783ebe6b397455e2ac93cb7e9b36ccdff09eeaa00f",
     "model.md": "a39c92ef3523bac78f2314ac60967b4b430dce1b8abc81eacacc3825432846ce",
-    "documents.md": "a3512a3031dd44df1567057855d75390b28fa9cddca1cd9642ce279cf08bdec1",
-    "templates/capability.md": "2660182a81abfc5f6bd2ce51d904faed05c811f196db57547c8708d8da267897",
+    "documents.md": "56f49aef4833363281dda9c11f97eb7f1dd0ba7599c321666ac4aed3b48b175b",
+    "templates/architecture.md": "a51fadd3ce89492cc9b52451d573a449fb47677ece3234c121aff51376a7b3a6",
+    "templates/capability.md": "faa2ffeeca36a5052968f1613b8d189d3e594d13575d8cb49c48342d293cbc52",
     "templates/change.md": "77019020ba372ff304fc0de12d17b8deaf223b98fc6af3e718f811fbc352fda5",
+    "templates/decision.md": "331dbe64dc281e541a6506a22b1ceafe3323d7bde245e6a6582f7b275c6421ed",
     "templates/design.md": "c258875a8fd685741aa87ad11b7c11255e2acd4b7a3041e9ffdece214668c7a9",
     "templates/exploration.md": "dd97de50107151ef2215d1b441e5d27d027ef462881443d4b7bc752449757745",
-    "templates/milestone.md": "20b06eb6e6de3bfd30530634e2e22c514edd0526bc381ccedd4a6dc807d893f6",
+    "templates/milestone.md": "3bccec34de651599a8af075b564482f343341749f5a35026cc29649757acf49d",
     "templates/roadmap.md": "d4136a878c26679e34ec90408911dcbd4b29d2d2238d882b08106c8b8f317ffd",
-    "templates/vision.md": "568c9d3e17eeeff54f1a5d3a55bc3e35e773d112cca3ed0bb75a9e95f614d82a"
+    "templates/vision.md": "ccc2d945a579372d84a515295ac2bfb791ddf9adec7642ed42bea0d94e512bdb"
   }
 }

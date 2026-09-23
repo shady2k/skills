@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -152,4 +152,17 @@ test('supporting work cannot carry a product delta or change current requirement
   c.model.current[0].requirements[0].statement = 'Different contract';
   c.evidence.approvals[0].changeDigest = digest(decided(c.model.change));
   assert.ok(checkDocuments(c.model, c.policy, c.evidence).some((v) => v.id === 'unsynced-current'));
+});
+
+test('the shipped templates parse, and their optional sections are recognized, not required', () => {
+  const read = (n) => readFileSync(new URL(`../skills/backlog/setup-shady2k-skills/templates/${n}`, import.meta.url), 'utf8');
+  const vision = parseVision(read('vision.md'));
+  assert.ok(vision.audience && vision.problem && vision.outcome && vision.exclusions);
+  const small = parseVision('## Audience\nA\n## Problem\nP\n## Outcome\nO\n## Exclusions\nE');
+  assert.deepEqual(small, { audience: 'A', problem: 'P', outcome: 'O', exclusions: 'E' });
+  assert.throws(() => parseVision('## Audience\nA\n## Personas\nX'), /unrecognized section: Personas/);
+  assert.equal(parseMilestone(read('milestone.md'), 'm1').outcomes.length, 1);
+  const withQuality = capabilityMarkdown.replace('## Coverage limits', '## Quality requirements\nPerformance: not applicable.\n## Coverage limits');
+  assert.deepEqual(parseCapability(withQuality), parseCapability(capabilityMarkdown));
+  assert.throws(() => parseCapability(withQuality.replace('## Quality requirements\n', '## Quality requirements\n### Scenario: q1\n')), /unrecognized scenario/);
 });
