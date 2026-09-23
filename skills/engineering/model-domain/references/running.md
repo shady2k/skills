@@ -1,7 +1,7 @@
 # Running work alone
 
-Part of the set's protocol, like [`protocol.md`](../protocol.md) beside this
-folder: the same in every project, and it wins over a project's restatement.
+Part of the set's protocol, whose core is `protocol.md`: the same in every
+project, and it wins over a project's restatement.
 How a planned feature runs without the owner: the preflight, the owner's time,
 sessions and landing, waits, runs out of sight, estimates.
 

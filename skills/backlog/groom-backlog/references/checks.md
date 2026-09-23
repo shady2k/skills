@@ -1,7 +1,7 @@
 # Checks and CI
 
-Part of the set's protocol, like [`protocol.md`](../protocol.md) beside this
-folder: the same in every project, and it wins over a project's restatement.
+Part of the set's protocol, whose core is `protocol.md`: the same in every
+project, and it wins over a project's restatement.
 How a run treats its checks: red checks, refusing gates, diagnostics, the
 cheapest check, reaching the outcome, and CI.
 

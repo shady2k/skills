@@ -82,21 +82,44 @@ for (const s of skills) {
 }
 
 // A rule a skill cites by name is a rule it can read: the name is a heading of
-// the protocol or of a reference that skill carries. A rule dropped or renamed
-// in a split is found here, not by the agent that looks for it.
-const heading = (text) =>
-  [...text.matchAll(/(?:^|\n\n)\*\*([^*]+?)\*\*/g)].map((m) => m[1].split(/\s+/).join(' ').replace(/[.:]$/, ''));
+// the protocol or of a reference that skill carries, whole or cut at a word
+// boundary where the cut still names one rule ("A check is never rerun",
+// "Estimates"). A rule dropped or renamed in a split is found here, not by the
+// agent that looks for it.
+const norm = (s) => s.split(/\s+/).join(' ').replace(/[.:,]$/, '');
+const heading = (text) => [...text.matchAll(/(?:^|\n\n)\*\*([^*]+?)\*\*/g)].map((m) => norm(m[1]));
+const resolves = (name, known) => {
+  if (known.includes(name)) return true;
+  const cut = known.filter((h) => h.startsWith(name) && /^[\s,.:;—-]/.test(h.slice(name.length)));
+  return new Set(cut).size === 1;
+};
 for (const s of skills) {
   const carried = [...needs(s), ...(s === join(ROOT, 'skills/backlog/setup-shady2k-skills') ? Object.keys(SHARED) : [])]
     .filter((n) => n.endsWith('.md'));
   const known = carried.flatMap((n) => heading(readFileSync(join(ROOT, SHARED[n], n), 'utf8')));
   const text = readFileSync(join(s, 'SKILL.md'), 'utf8');
-  for (const m of text.matchAll(/protocol's \[?\*\*([^*]+?)\*\*/g)) {
-    const name = m[1].split(/\s+/).join(' ').replace(/[.:]$/, '');
-    if (!known.some((h) => h === name || h.startsWith(name)))
+  for (const m of text.matchAll(/protocol's\s+\[?\*\*([^*]+?)\*\*/g)) {
+    const name = norm(m[1]);
+    if (!resolves(name, known))
       fail(`${relative(ROOT, s)} cites the protocol's "${name}", which no file it carries holds`);
   }
+  const refs = join(s, 'references');
+  if (s !== join(ROOT, 'skills/backlog/setup-shady2k-skills') && existsSync(refs))
+    for (const n of readdirSync(refs))
+      if (!(`references/${n}` in SHARED)) fail(`${relative(ROOT, s)}/references/${n} has no source: npm run protocol`);
 }
+const probes = ['A design decision comes with its mechanism', 'A check is never rerun to find out why it failed',
+  'One thing, one name, and it is the project\'s', 'Levels'];
+for (const [probe, want] of [['A', false], ['A design decision comes with its mechanis', false],
+  ['A check is never rerun', true], ['One thing, one name', true], ['Levels', true], ['Level', false]])
+  if (resolves(probe, probes) !== want)
+    fail(`citation matching is wrong for "${probe}"`);
+
+// The skills that work without setup never receive the core protocol, whose
+// compatibility check would send a discussion to setup.
+for (const n of ['productivity/brainstorming', 'engineering/model-domain', 'engineering/to-prototype',
+  'productivity/to-research', 'engineering/diagnose-bug', 'productivity/handoff'])
+  if (needs(join(ROOT, 'skills', n)).has('protocol.md')) fail(`skills/${n} reaches protocol.md, and must work without setup`);
 
 const version = JSON.parse(readFileSync(join(ROOT, '.claude-plugin/plugin.json'), 'utf8')).version;
 const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).version;

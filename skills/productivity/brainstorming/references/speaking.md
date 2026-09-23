@@ -1,7 +1,7 @@
 # Speaking to the owner
 
-Part of the set's protocol, like [`protocol.md`](../protocol.md) beside this
-folder: the same in every project, and it wins over a project's restatement.
+Part of the set's protocol, whose core is `protocol.md`: the same in every
+project, and it wins over a project's restatement.
 How anything the person reads is written: names, plain words, summaries,
 asks, whose decision it was, the language, and how a step ends.
 

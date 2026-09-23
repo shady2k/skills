@@ -1,7 +1,7 @@
 # Deciding with the owner
 
-Part of the set's protocol, like [`protocol.md`](../protocol.md) beside this
-folder: the same in every project, and it wins over a project's restatement.
+Part of the set's protocol, whose core is `protocol.md`: the same in every
+project, and it wins over a project's restatement.
 How a question reaches the person and what happens to the answer: worked
 material, design decisions, evidence, given decisions and corrections.
 

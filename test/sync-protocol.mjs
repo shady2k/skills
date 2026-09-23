@@ -64,6 +64,14 @@ if (process.argv[1] === fileURLToPath(import.meta.url))
       copyFileSync(source, copy);
       console.log(`${was === null ? 'wrote  ' : 'updated'} ${relative(ROOT, copy)}`);
     }
+    // A reference whose source was renamed or removed is no longer in SHARED;
+    // a skill's references/ holds only copies, so anything unreached goes.
     const refs = join(skill, 'references');
+    if (join(ROOT, SETUP) !== skill && existsSync(refs))
+      for (const n of readdirSync(refs))
+        if (!needed.has(`references/${n}`)) {
+          rmSync(join(refs, n), { recursive: true });
+          console.log(`removed ${relative(ROOT, join(refs, n))}`);
+        }
     if (existsSync(refs) && !readdirSync(refs).length) rmSync(refs, { recursive: true });
   }
