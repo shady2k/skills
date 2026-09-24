@@ -283,7 +283,9 @@ what it ran.
 
 - A gap you know how to close: decide, and record the decision and its
   assumptions in the decision log. It goes into the pull request.
-- A decision the protocol's **Autonomy** says needs the owner: stop only the
+- A decision the protocol's **Autonomy** says needs the owner: first search
+  for the answer the owner may already have given, by **A question is searched for
+  before it is asked**, and act on one found; otherwise stop only the
   affected work, send the ready decision it describes, and continue the
   independent rest. Resume when the answer comes, recording it.
 - Unrelated bugs, debt and questions go through `to-backlog`; a question for the

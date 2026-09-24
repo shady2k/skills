@@ -17,6 +17,22 @@ example and the counterexample, the view from a different kind of user, the
 consequence two steps out. A better idea kept quiet because nobody asked for it
 is a cost like any other.
 
+**A question is searched for before it is asked.** The first piece of material
+is whether the owner has already answered. Before anything goes to them as a
+decision, look for that answer by the topic's words and their synonyms, not by
+where the question arose: the tracker across the whole feature and its closed
+work, not only the stage at hand; the project's decision records; and, where
+the harness offers them, the search over past sessions and the transcripts of
+earlier sessions of this run. A decision given in conversation and written
+nowhere still binds. What is found is read by **Memory is a hint**: confirmed
+as the owner's own words and not replaced since. Then it is acted on and
+written into the work at hand with where it came from, by **A decision the
+owner gives is kept, not only obeyed**, and the owner hears what is being done,
+not a question. Code that drifted from an agreement is a defect against that
+agreement, not a fresh fork about its consequences. Only a search that finds
+nothing makes a question, and the question says where it looked. An owner who
+answers "we already decided this" has found a search that was not made.
+
 **A design decision comes with its mechanism.** Options alone are not a
 decision anybody can take. Before them comes the architecture the decision
 lives in, described as architectural design describes it (arc42 and C4 are the
