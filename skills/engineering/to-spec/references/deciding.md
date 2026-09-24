@@ -27,7 +27,19 @@ scenario the decision changes, failure included — and the quality attributes
 the options trade against each other. The depth follows the person's role.
 What the existing blocks already provide comes before any new one; a new block
 beside one that could serve says why it cannot. A question the owner has to ask
-to follow the options is a view that was owed in the first message. Then what
+to follow the options is a view that was owed in the first message. Views
+describe; an instance shows. The thing being decided comes as a worked sample,
+written for this project and not composed as a generic illustration: a few
+lines of the format, a row of the store, a request and its answer, the screen
+or the message as it would read. Each option says what it makes possible and
+for which later outcome. Records the owner wrote themselves are no shortcut: a
+record's number carries its conclusion, not its reasoning, and a message built
+on numbers asks them to reconstruct the one thing it was meant to bring.
+Several decisions in one message — a preflight, a plan's ground decisions — do
+not share the material out among them: a short picture of the whole first,
+which part serves what, then each decision with its own sample. Such a message
+is long, and that is its cost; a short one the owner cannot act on costs a
+round trip and then the long one anyway. Then what
 exactly fails, with the measurement that shows it; and the assumption those
 options rest on, said out loud. Then the options, and among
 them at least one that rejects that assumption — because nobody can choose a

@@ -80,9 +80,10 @@ person must act on it themselves, and then in plain words. The same goes for
 changes to the set's own bookkeeping: where it keeps versions, which fields it
 added or removed. If nothing changes for the person's work, say nothing.
 
-Before sending anything to the person, reread it once for five slips that
+Before sending anything to the person, reread it once for six slips that
 happen even when the rules are known: an id without its title (look the title
-up), an internal word from this protocol, the config or the tools (use the
+up; a decision record's number is an id too), a design decision without a
+worked sample of what it decides, an internal word from this protocol, the config or the tools (use the
 table above), a thing of the project's renamed into a word of your own (put its
 own word back), a back-reference — "as I reported", "you already know" — whose
 message you have not just found and read, and a sentence in a language other

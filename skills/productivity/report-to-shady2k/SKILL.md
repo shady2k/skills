@@ -27,11 +27,19 @@ interview. Find out yourself:
 - the settings that shaped it, from the project's gate config where there is
   one: strength, development mode, workers, review, whether setup is verified.
   Name the kind of tracker ("an issue store kept in the repository"), not the
-  product;
+  product. Add the user's role as the conversation established it, or the
+  set's default where none was: one role, not a choice of two, because it
+  decides how deep an explanation had to go;
 - the shape of the situation, enough to rebuild it with made-up data: "about
   900 open issues, most marked ready; features without a done criterion;
-  dependencies attached to features instead of tasks";
+  dependencies attached to features instead of tasks". The shape is of what
+  the skill met, not of the product: "one feature bundling four building
+  blocks, one of them a store", never what those blocks are, what they keep or
+  how they talk. A product's design identifies it as surely as its name;
 - where in the skill's text the cause probably is, and what change would fix it.
+  A rule in a skill's `references/` folder is a copy of one shared rule, found
+  in several skills: name the rule and its file once, and propose the change
+  there, not in each skill that carries it.
 
 ## 2. Write the draft
 
@@ -72,7 +80,7 @@ Title: Idea: <what should become possible>
 
 **Leave out**, replacing with neutral words ("the project", "a feature task",
 "a service"): names of the project, product, company, people, repositories,
-branches and hosts; paths, URLs and addresses; issue numbers and titles from
+branches and hosts; the product's design and domain; paths, URLs and addresses; issue numbers and titles from
 the user's tracker (describe their kind instead); commit hashes; code or
 document text from the project; credentials of any kind. Paraphrase the
 conversation; do not quote the user. Quote only the skill's own output, and
