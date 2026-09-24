@@ -1,6 +1,6 @@
 ---
 name: ask-shady2k
-description: "Get oriented in the project, read-only: its picture, progress, where it stands and the ways forward with their consequences and rough durations. Use when the user asks where the project stands or what to do next, or comes back after a break; when they agree to a recommended action, start that skill."
+description: "Get oriented in the project, read-only: its picture, progress, where it stands and the ways forward with their consequences and rough durations, or a report for the team's sync over a period. Use when the user asks where the project stands or what to do next, comes back after a break, or asks what was done since yesterday or for a standup or sync; when they agree to a recommended action, start that skill."
 ---
 
 # Ask shady2k
@@ -27,6 +27,8 @@ Do not make the user pick a mode.
   then the action.
 - **Orientation** (back after a break, a new or unfamiliar project, "where are
   we", "what are our options"): the full picture of sections 3 and 4.
+- **A report for the team's sync** ("for the standup", "what was done since
+  yesterday", "over the weekend"): section 6 instead of the picture.
 - **Free discussion**: `brainstorming`, with no setup or tracker needed.
   Evidence-only questions: `to-research`. Thinking commits to nothing.
 
@@ -169,6 +171,39 @@ already" — say what is missing and where it belongs. This skill writes nothing
 itself; the write that keeps it is `to-backlog`'s, done first once he agrees to
 any action, by the protocol's **A decision the owner gives is kept, not only
 obeyed**.
+
+## 6. A report for the team's sync
+
+The owner reports to people at a daily sync: what was done, what got in the
+way, what they need from others, and whether the work fits by a date. Give them
+that text, over a period, in words they can say aloud.
+
+**The period is the one they name** ("since yesterday", "since Thursday", "this
+week"). Do not ask for it: unnamed, it runs from the start of the previous
+working day (on a Monday, from Friday). Name it in the first line with its
+bounds, so a wrong one is seen at once. Collect over it with the sources of
+section 2: tasks closed in the period, rolled up to their features and stages;
+the runs that started or ended in it; the ledger's `time --since`.
+
+- **Done:** accepted features and finished stages, as what a user can now do,
+  and what waits for their acceptance. Tasks are not listed one by one; they
+  are the agents' division of the work, not the team's.
+- **Difficulties:** what cost more than its estimate, stopped a run, turned a
+  check red or was redone, each with its cause and whether it is settled.
+- **Questions:** what waits on someone other than the owner (a product
+  question, another team, an outside dependency), each with the agent's
+  recommendation. A decision that is the owner's own is not a question for the
+  sync: list it apart, as something to settle before it.
+- **Forecast:** when the open work will be done, in calendar time, by the
+  protocol's **Estimates**, adding the owner's acceptances and decisions still
+  ahead and the outside waits, and saying which of them the date depends on
+  ("ready Tuesday if stage 2 is accepted today, Wednesday otherwise"). Where
+  they name a date, such as the sprint's end, say whether the work fits it,
+  with what margin and what risks it.
+
+The team's own units, such as story points, stay the team's: do not produce or
+convert them. The report is text for the owner; writing it into any other
+tracker is not this skill's.
 
 ## Routes
 

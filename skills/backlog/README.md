@@ -9,7 +9,8 @@ Skills that keep the queue usable and stage acceptance honest.
   setup; adopt existing document layouts, install templates and document gates;
   fully recheck on every invocation without repeating settled questions.
 - [ask-shady2k](./ask-shady2k/SKILL.md): read-only orientation: picture, progress,
-  ways forward and the recommended next action.
+  ways forward and the recommended next action; or a report for the team's
+  sync over a period.
 - [to-milestone](./to-milestone/SKILL.md): agree independent outcomes and budget.
 
 ## Started when the work calls for it

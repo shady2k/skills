@@ -714,3 +714,17 @@ composed in shared frames rather than inherited. The owner added the ban on
 second surfaces: a capability keeps one way in. The set knows no stack, so
 `references/building.md` states principles and each project records their form
 once as a decision, turned into lint rules where a machine can check them.
+
+## 19. A report for the team's sync (0.54)
+
+An engineer working with the set still reports to a team at a daily sync: what
+was done, what got in the way, questions, and whether the committed work fits
+the sprint. `ask-shady2k` gained that report over a period. Daily snapshots were
+rejected: nothing takes them on a weekend, and the tracker and the ledger
+already carry the times a period needs. Inferring the period from when the owner
+was last present was rejected too: the engineer names it anyway, and a guess
+fails on the one short Sunday answer. Unnamed, it is the previous working day,
+stated in the first line. Story points and writes to an outside tracker stay
+out: points are the team's agreed units, and a tracker the set does not own is
+written only on a real request. The sprint's end comes in words rather than as
+a config setting, which would make every project rerun setup.
