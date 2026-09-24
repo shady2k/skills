@@ -1,13 +1,13 @@
 {
-  "setupVersion": "0.24.0",
+  "setupVersion": "0.25.0",
   "files": {
-    "check.mjs": "f35e0ebe7d7e3db106953a008c28c8bd7a666a3117275de62353764dce74b16d",
-    "check-commits.mjs": "5900c3f00ee8cb1aa3883c56a6a54ceca9c50a62f5a367e2dcfbe29812ea1ae3",
-    "check-docs.mjs": "1d6e90d1a65059d3a317b26cec9c1f119b3de91bf921572def8bd5303583f75a",
+    "check.mjs": "f1de69a130a29433fcec5c7bcb81c22b016f06eead5e97d48575822617635d22",
+    "check-commits.mjs": "93bff03341e2c99c74fd84bbcb956ed1ccbf8aab70cf46ee63e3678705343a79",
+    "check-docs.mjs": "3d322bd1e8a45f209cdc25ffee563cd3073c2c8cd2210e636702f297f7dad311",
     "document-format.mjs": "9aba90c251d02fddc52d831342f8d8755a05a61ad4b11177e50f0f8f37dfce9d",
     "integration.md": "3fc72574b8b091cd9d9602783ebe6b397455e2ac93cb7e9b36ccdff09eeaa00f",
     "model.md": "a39c92ef3523bac78f2314ac60967b4b430dce1b8abc81eacacc3825432846ce",
-    "documents.md": "7ea6ffa3e48d17d8ae494043a0502cf217e297f66b17fca7fd06a0562b3402de",
+    "documents.md": "a3e96fabd8935e169110006dd46fb071838e722f1915f5e4fec7910b492dcfd7",
     "templates/architecture.md": "a51fadd3ce89492cc9b52451d573a449fb47677ece3234c121aff51376a7b3a6",
     "templates/capability.md": "fbe2b6c7018d9b69d9f6ee707c418e5bae3ae06643278e55dbac0f463e3d3a12",
     "templates/change.md": "77019020ba372ff304fc0de12d17b8deaf223b98fc6af3e718f811fbc352fda5",

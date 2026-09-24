@@ -52,7 +52,12 @@ switching the check off, and it costs more, because the record then says the
 work is not there. A way the check itself names is not exempt. A refusal states
 what is owed, and its remedy line was written before this case: where it names
 a way that shrinks what is counted, this rule outranks it, and what the check
-printed is a defect to report rather than an instruction to follow. A skip is
+printed is a defect to report rather than an instruction to follow. So is a
+demand for something the work does not owe: a record written only so the check
+passes, saying nothing was done, and the person's signature asked for under
+it, route around the check as surely as skipping it, and teach them to sign
+without reading. The way that makes the gate pass is then fixing the check,
+said as that work with its cost. A skip is
 usually permanent rather than deferred: where a check judges only what is new,
 what it never judged is never judged again. If
 the person orders one anyway, say that in one line with what ships unproven,

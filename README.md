@@ -485,6 +485,7 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.55.0** stops the document check from demanding a signed record for merely filing a task: a commit owes a record for work it delivers, and an empty record written only to get past a check counts as going around it. Projects rerun setup once, so their check is proved on both sides.
 - **0.54.0** gives, from `ask-shady2k`, a report for the team's daily sync over the period you name: what was done, what got in the way, the questions for others and whether the work fits by a date such as the sprint's end.
 - **0.53.0** says how the product's code is shaped: one way in per capability, outside dependencies behind interfaces the logic owns, screens built from shared components and tokens, tests that survive a refactoring, and log records that name their module and trace.
 - **0.52.1** brings each design decision with a worked example of what it decides, one per decision when several come together; a report about the skills keeps your product's design out of it.

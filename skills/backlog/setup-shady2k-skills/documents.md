@@ -143,6 +143,24 @@ exists, and the command that records each missing check. A refusal that names
 only what is wrong turns every first encounter into hours of reading the rules,
 and those are the hours in which a bypass starts to look reasonable.
 
+## A commit owes a record for what it delivers
+
+Where the wrapper judges a range of commits, it asks which change covers the
+work each commit **delivers**, not every task the commit names. Code, documents
+and a tracker transition that claims a result (submitted, implemented or
+closed) deliver work: without a change behind them they are refused. A commit
+that touches only the tracker and files a task, comments on it or edits its
+fields delivers nothing, and needs no change, whatever state the task is in
+and whichever milestone it is on. Draw the line by the delivered states, all of
+them: exempting everything except `closed` lets a tracker-only commit mark work
+implemented with nothing behind it. Prove both sides on real commits, a filed
+finding passing and a delivered state refused, before enforcement starts.
+
+A wrapper that demands a record for filing gets empty records ("found, filed,
+nothing changed") signed so the push can pass, and a signature that stands
+under nothing stops meaning anything under the next record. A record like that
+is a defect of the wrapper, fixed there, never a form to fill.
+
 ## Executable contract
 
 `check-docs.mjs` is a third portable check. Once the project has wired it, it is
