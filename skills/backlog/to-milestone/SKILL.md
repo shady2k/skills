@@ -58,6 +58,16 @@ The user approves it as a whole or changes named items. Ask separately, one at
 a time, only about material unknowns or conflicting priorities. Do not re-ask
 what is already decided.
 
+**A question the owner left open stays open until the owner closes it.** Where
+the conversation asked something ("should this part be done by X or by Y?")
+and nobody answered, the draft either keeps it open, with the outcomes that
+rest on it saying so, or answers it as the agent's own recommendation. Each
+such answer comes first in the summary, named as the agent's, with what goes
+into the milestone because of it, and is approved by name, by the protocol's
+**A decision belongs to whoever made it**. A charter that settles an open
+question silently carries that answer into every outcome, feature and decision
+written after it.
+
 The draft covers:
 
 1. **What ships.** The milestone is named for it in the owner's words and gets
@@ -77,6 +87,10 @@ The draft covers:
 6. **The next milestone**, as feature titles only.
 
 ## 3. Write it
+
+Write only after the owner's explicit yes to the summary; silence, or "accept
+it without reading", is not that yes. Without it the charter is kept as a
+draft and the vision and charter are not accepted.
 
 - The charter at `<charters directory>/<milestone label>.md`: name, date,
   outcomes with their checks, out, carried over, the finding-budget decision

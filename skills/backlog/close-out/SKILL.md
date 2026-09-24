@@ -28,6 +28,11 @@ stays open or active, with what is missing. If asked to accept work directly,
 run the missing checks and review first; a stage can be checked before its
 children close.
 
+A vision or a charter is accepted only on the owner's yes to its summary,
+which named every open question the agent answered itself. "Accepted without
+review" is not a way to close one: its task stays open, with the summary still
+to be shown as what is missing.
+
 Cancelling or closing as a duplicate is a stated decision, not success. Say
 why; for a duplicate, name the issue that survives.
 

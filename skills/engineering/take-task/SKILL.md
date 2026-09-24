@@ -187,6 +187,22 @@ the task, as it starts, how to resume it and where its log is. A worker's task f
 isolated checkouts where concurrent writes could collide, and coordinate
 shared generated files, migrations and dependency locks.
 
+**The brief carries the bar the review will apply**, so the review finds what
+a bar cannot catch instead of teaching it one round at a time. Fill it from the
+integration and the project's recorded conventions: how errors and logs are
+written here, the protocol's building rules the work touches (**A missing input
+is an error**, **Same input, same output**, **A test fails when its behaviour
+breaks**), and the mutation command for changed files with the time it may
+take. A kind of finding the review returns twice in this run goes into every
+later worker's brief.
+
+**A worker commits only its own paths.** It stages what it changed by name and
+reads the staged list before committing; a broad add in a checkout another
+agent also writes in commits that agent's work under the wrong task. A
+coordinator that dispatches a worker into its own checkout commits its own
+changes first, and commits each later write there at once rather than leaving
+it in the working tree.
+
 Before any worker starts, check which agent and model will actually run it
 against the task's risk and the agreed execution settings; a harness may pick
 its own default. If it is weaker than the task needs, switch it before
@@ -236,9 +252,11 @@ a failing check.
 Workers run static checks and the tests related to their change, including
 neighbouring behaviour it affects, from the narrowest scope outward as the
 protocol's [**Cheapest check first**](references/checks.md) says; a failing
-test is iterated on alone, not with its suite. The full suite, mutation testing and final
-review happen at stage acceptance. A shared change can rightly widen a worker's
-related tests.
+test is iterated on alone, not with its suite. Where the project's mutation
+tool runs on the changed files within the brief's time, the worker runs it
+before reporting and deals with what survives. The full suite, mutation testing
+of the stage and final review happen at stage acceptance. A shared change can
+rightly widen a worker's related tests.
 
 A worker's report holds the task, its linked commits, the changed behaviour, check
 commands and results, open doubts, decisions it made and integration notes.

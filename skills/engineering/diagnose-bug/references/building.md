@@ -62,6 +62,18 @@ with no return.
 lives in one place and is referenced from there, never repeated as a literal
 across the code. Settings and secrets live outside the code.
 
+**A missing input is an error.** An empty, missing or unreadable input — a
+file, a setting, a list of patterns, a response — stops the work with an error
+that names it and says how to supply it; it never yields a smaller result or a
+pass. A guard that cannot find what it checks against refuses. Code that fails
+open passes every test that hands it its input, and is found only by the day
+the input is not there. Where several independent things are wrong, all of
+them are reported in one run, not only the first.
+
+**Same input, same output.** What a person or a check compares does not depend
+on the locale, the order a directory or map is read in, the clock or the
+machine: it is sorted by a stated key and built from its inputs alone.
+
 ## Interface
 
 **A screen is assembled from components.** A page holds the project's
@@ -92,6 +104,12 @@ the module calls and asserts on what they see, never on which internal method
 ran or in what order. Then a refactoring changes no test, and a test that had
 to change says the behaviour changed; a behaviour change must change tests,
 which is their job.
+
+**A test fails when its behaviour breaks.** A test that still passes with the
+behaviour it names broken guards nothing. Its expected value comes from the
+requirement or an independent example, and it is checked by breaking what it
+guards: a mutation run on the changed code where the project has one, by hand
+on the line it is about where it has not.
 
 **Doubles only at the boundaries.** Mocks and fakes stand in for the outside
 dependencies of **Dependencies point inward**, never for the product's own
