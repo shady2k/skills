@@ -483,86 +483,36 @@ format deterministically; there is no universal Markdown importer. Protected CI
 can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
-## Status
+## Changelog
 
-Version 0.50 adds the path from an empty folder, with not even an idea, to the
-first feature (discovery, a pressure test, the vision with key journeys, the MVP,
-the architecture, a walking skeleton), and checks the document templates against
-established practice: arc42 and C4, MADR, EARS, Mermaid diagrams, and a ТЗ by
-ГОСТ drafted on request. Projects rerun setup once for the new templates.
-Version 0.49 splits the protocol into a core and topic references that skills
-cite instead of restating.
-Version 0.7 revises execution and setup. Fixtures and package checks run locally;
-the new complete workflow still needs validation in real projects. Earlier
-installation runs informed the protections around proof, isolated staging and
-landing. Harness-specific automatic update/session hooks are not shipped.
-Version 0.7.2 replaces per-setting interviews with role-aware recommendations
-across the set; consequential decisions and explicit authorization remain required.
-Version 0.8.0 adds open-ended dialogue, living-document templates and a portable
-document gate. Its fixture and CLI tests do not replace project adapter/CI proof
-or demonstrate conversational quality; live rollout remains a separate validation.
-Version 0.9.0 turns `ask-shady2k` into a read-only orientation: the project's
-picture, progress and ways forward with consequences, also before setup.
-Version 0.26.1 has `handoff` propose lessons that outlive the session for the
-project's agent doc, only when there are some.
-Version 0.26.0 measures runs instead of guessing: `take-task` keeps a run
-journal outside the repository, estimates from the pace it measures, and
-`close-out` asks the owner once how each run went (taken as is, questions it
-need not have asked, decisions it should have, corrections), with owner
-attention and cost counted from the session transcripts. Memory and code
-indexes are leads to confirm, and lessons that outlive a feature go to the
-project's agent doc.
-Version 0.25.0 keeps a handoff out of the repository and out of temporary
-files: the work's state stays in the tracker, and what only the conversation
-knows goes on the feature, or to the user's state directory, where
-`ask-shady2k` reads it.
-Version 0.24.4 answers each question with the cheapest check that can: a local
-unit test before an end-to-end run, this machine before CI, one test before the
-suite.
-Version 0.24.3 reads what starts CI from the repository itself: unfinished work
-starts no expensive run, and ready work starts it once, by whatever means that
-repository offers (a draft pull request, holding the push, a label).
-Version 0.24.1 treats CI and end-to-end runs as expensive: tests run from the
-one failing test outward, a CI failure is reproduced and instrumented locally,
-and the branch is pushed once when everything local is green.
-Version 0.24.0 never pushes a guessed fix for CI to judge: a failure seen only
-in CI first gets what makes it explain itself. Waiting on CI is quiet until a
-result matters, and estimates are in agent time (the work plus the waits), said
-again once when the work outgrows them.
-Version 0.23.0 publishes everything described below from 0.21.0 on: those
-releases were pushed but their version number never rose, so no installed plugin
-updated. Bumps now go through a script that fails if the number does not rise.
-Version 0.22.0 treats every red check as the run's own to fix, never "someone
-else's", and asks that failures explain themselves: clear test output, CI causes
-on the first screen, log levels and trace ids by project conventions.
-Version 0.21.0 separates talking from building: the agent opens a working copy
-only when something is kept, lands plans with as few merges as possible, and
-starts each feature on its own branch without you.
-Version 0.20.0 starts a skill when you ask in words or agree, instead of asking
-you to type its command; runs are sized to how long your branches may live, and
-every option carries a rough duration.
-Version 0.19.0 runs a whole feature without you: plan it together, answer one
-batch of questions, leave, and come back to one pull request that says what was
-built, how to try it and what the agent decided alone.
-Version 0.18.0 asks whether the process is for you alone or the whole team,
-and tells contributors how to get the plugin.
-Version 0.17.0 keeps installation state out of the repository: setup lands
-with one merge, and each contributor's plugin and hooks stay their own.
-Version 0.16.0 stops asking for setup after every update: only a change that
-needs the installation redone does.
-Version 0.15.0 never asks you to read documents: the agent tells you the
-substance, its decisions and assumptions, risks, other views and what review
-found, in plain words, and your approval covers what you were shown.
-Version 0.14.0 assigns tasks to the agent doing them, not to you, and every
-step ends with the next action, recommending a handoff or compaction in time.
-Version 0.13.0 adds a light "records" level for the document gate, recommended
-without protected CI, scopes required checks by what a change touches, and stops
-setup from rerunning full suites that were already proved.
-Version 0.12.0 separates languages: the agent talks in yours, and files are
-written in the project's artifact language, asked at setup (English by default).
-Version 0.11.0 adds `report-to-shady2k` for anonymized reports and ideas.
-Version 0.10.0 no longer holds setup and work until the document gate is wired:
-it becomes its own stage, and documents are checked by reading meanwhile.
+- **0.54.0** gives, from `ask-shady2k`, a report for the team's daily sync over the period you name: what was done, what got in the way, the questions for others and whether the work fits by a date such as the sprint's end.
+- **0.50.0** adds the path from an empty folder, with not even an idea, to the first feature (discovery, a pressure test, the vision with key journeys, the MVP, the architecture, a walking skeleton), and checks the document templates against established practice: arc42 and C4, MADR, EARS, Mermaid diagrams, and a ТЗ by ГОСТ drafted on request. Projects rerun setup once for the new templates.
+- **0.49.0** splits the protocol into a core and topic references that skills cite instead of restating.
+- **0.26.1** has `handoff` propose lessons that outlive the session for the project's agent doc, only when there are some.
+- **0.26.0** measures runs instead of guessing: `take-task` keeps a run journal outside the repository, estimates from the pace it measures, and `close-out` asks the owner once how each run went (taken as is, questions it need not have asked, decisions it should have, corrections), with owner attention and cost counted from the session transcripts. Memory and code indexes are leads to confirm, and lessons that outlive a feature go to the project's agent doc.
+- **0.25.0** keeps a handoff out of the repository and out of temporary files: the work's state stays in the tracker, and what only the conversation knows goes on the feature, or to the user's state directory, where `ask-shady2k` reads it.
+- **0.24.4** answers each question with the cheapest check that can: a local unit test before an end-to-end run, this machine before CI, one test before the suite.
+- **0.24.3** reads what starts CI from the repository itself: unfinished work starts no expensive run, and ready work starts it once, by whatever means that repository offers (a draft pull request, holding the push, a label).
+- **0.24.1** treats CI and end-to-end runs as expensive: tests run from the one failing test outward, a CI failure is reproduced and instrumented locally, and the branch is pushed once when everything local is green.
+- **0.24.0** never pushes a guessed fix for CI to judge: a failure seen only in CI first gets what makes it explain itself. Waiting on CI is quiet until a result matters, and estimates are in agent time (the work plus the waits), said again once when the work outgrows them.
+- **0.23.0** publishes everything described below from 0.21.0 on: those releases were pushed but their version number never rose, so no installed plugin updated. Bumps now go through a script that fails if the number does not rise.
+- **0.22.0** treats every red check as the run's own to fix, never "someone else's", and asks that failures explain themselves: clear test output, CI causes on the first screen, log levels and trace ids by project conventions.
+- **0.21.0** separates talking from building: the agent opens a working copy only when something is kept, lands plans with as few merges as possible, and starts each feature on its own branch without you.
+- **0.20.0** starts a skill when you ask in words or agree, instead of asking you to type its command; runs are sized to how long your branches may live, and every option carries a rough duration.
+- **0.19.0** runs a whole feature without you: plan it together, answer one batch of questions, leave, and come back to one pull request that says what was built, how to try it and what the agent decided alone.
+- **0.18.0** asks whether the process is for you alone or the whole team, and tells contributors how to get the plugin.
+- **0.17.0** keeps installation state out of the repository: setup lands with one merge, and each contributor's plugin and hooks stay their own.
+- **0.16.0** stops asking for setup after every update: only a change that needs the installation redone does.
+- **0.15.0** never asks you to read documents: the agent tells you the substance, its decisions and assumptions, risks, other views and what review found, in plain words, and your approval covers what you were shown.
+- **0.14.0** assigns tasks to the agent doing them, not to you, and every step ends with the next action, recommending a handoff or compaction in time.
+- **0.13.0** adds a light "records" level for the document gate, recommended without protected CI, scopes required checks by what a change touches, and stops setup from rerunning full suites that were already proved.
+- **0.12.0** separates languages: the agent talks in yours, and files are written in the project's artifact language, asked at setup (English by default).
+- **0.11.0** adds `report-to-shady2k` for anonymized reports and ideas.
+- **0.10.0** no longer holds setup and work until the document gate is wired: it becomes its own stage, and documents are checked by reading meanwhile.
+- **0.9.0** turns `ask-shady2k` into a read-only orientation: the project's picture, progress and ways forward with consequences, also before setup.
+- **0.8.0** adds open-ended dialogue, living-document templates and a portable document gate. Its fixture and CLI tests do not replace project adapter/CI proof or demonstrate conversational quality; live rollout remains a separate validation.
+- **0.7.2** replaces per-setting interviews with role-aware recommendations across the set; consequential decisions and explicit authorization remain required.
+- **0.7.0** revises execution and setup. Fixtures and package checks run locally; the new complete workflow still needs validation in real projects. Earlier installation runs informed the protections around proof, isolated staging and landing. Harness-specific automatic update/session hooks are not shipped.
 
 ## Credits
 
