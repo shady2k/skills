@@ -486,8 +486,43 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 ## Changelog
 
 - **0.54.0** gives, from `ask-shady2k`, a report for the team's daily sync over the period you name: what was done, what got in the way, the questions for others and whether the work fits by a date such as the sprint's end.
+- **0.53.0** says how the product's code is shaped: one way in per capability, outside dependencies behind interfaces the logic owns, screens built from shared components and tokens, tests that survive a refactoring, and log records that name their module and trace.
+- **0.52.1** brings each design decision with a worked example of what it decides, one per decision when several come together; a report about the skills keeps your product's design out of it.
+- **0.52.0** makes a started agent session answer to the one that started it: its report lands whole in a known place, it counts as finished only once stopped, it can be resumed, and its starter ends it.
+- **0.51.1** makes the time ledger report only measured facts: every session adds up to its clock, what a record lacks is unknown rather than zero, and one run's sessions cannot be counted by another.
+- **0.51.0** keeps what describes the present true: a change that makes the agent doc, glossary, specs or architecture wrong fixes them in the same pull request; a question for you that blocks nothing is kept for you instead of stopping a run.
 - **0.50.0** adds the path from an empty folder, with not even an idea, to the first feature (discovery, a pressure test, the vision with key journeys, the MVP, the architecture, a walking skeleton), and checks the document templates against established practice: arc42 and C4, MADR, EARS, Mermaid diagrams, and a ТЗ by ГОСТ drafted on request. Projects rerun setup once for the new templates.
 - **0.49.0** splits the protocol into a core and topic references that skills cite instead of restating.
+- **0.48.3** opens a design question with the parts it touches and their boundaries, and looks names up in the glossary before using them.
+- **0.48.2** ends a worker's session once its result is merged instead of leaving it running.
+- **0.48.1** puts time under the phase of the work actually done, not under whichever skill spoke first.
+- **0.48.0** reads the project's hours from what the harness measured instead of guessing from gaps between messages, across all sessions, workers and subagents.
+- **0.47.0** takes every approval a run will need in the preflight, before you leave, and names it in your words.
+- **0.46.0** keeps a decision or condition you give on record, so no later session recommends what you already refused.
+- **0.45.0** fixes a red check the merge waits on as part of the work, without charging it to the milestone's finding budget.
+- **0.44.0** never recommends work just because it is ready: work whose ground is being replaced waits for it.
+- **0.43.0** leaves a decision with whoever made it: an unanswered question is not your answer, and the agent's own recommendation is not your ban.
+- **0.42.0** checks a reading's edges before calling it a fact: when it starts, when it stops and what else happened then.
+- **0.41.0** puts the substance in every request for your approval, never a reference to a report you did not get.
+- **0.40.0** does not reopen a decision you gave because a later analysis looks better.
+- **0.39.0** reads the neighbouring work that would replace a piece's ground before building on it.
+- **0.38.0** talks about your project with its own names for its parts instead of renaming them into everyday words.
+- **0.37.0** reads and instruments a red check instead of rerunning it in the hope it turns green.
+- **0.36.0** never asks for a separate merge just for tracker records or notes; they ride with the work.
+- **0.35.0** opens a session with the state of the work in flight and asks how long you have, so you need not ask what is going on.
+- **0.34.1** repairs the preflight's estimate item, which 0.34.0 had split in two.
+- **0.34.0** keeps a branch waiting on its checks untouched, so other work does not restart them.
+- **0.33.1** brings everything that reaches you already worked: options, costs, evidence, a recommendation and the case against it.
+- **0.33.0** treats your time as the scarce one: runs parallelize, fill waits with useful work and do not stop for decisions you already left with them.
+- **0.32.0** makes adopting the checks pay for itself at setup rather than at the first push, and has every refusal say what green looks like. Projects rerun setup once.
+- **0.31.0** notices a run that stopped in silence: each run says when its result is due, and past that time the silence is reported.
+- **0.30.1** bounds out-of-sight work by its estimate; overrunning it is a defect to find, not a reason to wait longer.
+- **0.30.0** carries measured time on the work itself in the tracker, so any machine or session can estimate from it, and silence is no longer read as progress.
+- **0.29.1** leaves nothing of value only in the session: edits, findings and decisions are committed, filed or noted before it ends.
+- **0.29.0** hands a finding that does not fit the milestone's budget to you to decide, instead of parking it to make the checks pass.
+- **0.28.0** has you see an outcome working before it is accepted; green tests alone do not prove a feature can be reached.
+- **0.27.1** works out what a refusing check will demand at preflight, not at the push.
+- **0.27.0** satisfies a refusing check instead of bypassing it.
 - **0.26.1** has `handoff` propose lessons that outlive the session for the project's agent doc, only when there are some.
 - **0.26.0** measures runs instead of guessing: `take-task` keeps a run journal outside the repository, estimates from the pace it measures, and `close-out` asks the owner once how each run went (taken as is, questions it need not have asked, decisions it should have, corrections), with owner attention and cost counted from the session transcripts. Memory and code indexes are leads to confirm, and lessons that outlive a feature go to the project's agent doc.
 - **0.25.0** keeps a handoff out of the repository and out of temporary files: the work's state stays in the tracker, and what only the conversation knows goes on the feature, or to the user's state directory, where `ask-shady2k` reads it.
