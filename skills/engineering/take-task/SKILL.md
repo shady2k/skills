@@ -224,7 +224,10 @@ through the harness, and continues without the owner.
 code that passes it, refactor while it stays green; one slice at a time.
 **Test-after:** implement, then add or update the checks before returning.
 
-The spec's seams define acceptance, not a ban on local tests. Test through
+The spec's seams define acceptance, not a ban on local tests. Code and tests
+are shaped by the protocol's [building rules](references/building.md): **Find
+before writing**, **One surface per capability**, **Doubles only at the
+boundaries**, **Test data comes from factories**. Test through
 stable behaviour at a sensible level; take expected values from the requirement
 or an independent example, not from a copy of the algorithm. For operations,
 use a safe rehearsal or isolated environment; never cause a live outage to get

@@ -64,8 +64,10 @@ integration tests through other stable interfaces.
 Include how failures will be seen, as the protocol's [**Failures explain
 themselves**](references/checks.md) asks: which errors reach which log level, what carries the request
 and trace ids, what a failing check will print. Follow the project's recorded
-conventions; where none exist, record that gap as a finding instead of
-inventing conventions for one feature.
+conventions; where the outcome needs one that does not exist, propose it by the
+protocol's [**The project's form is decided once**](references/building.md)
+instead of inventing it for one feature. The design keeps [**One surface per
+capability**](references/building.md): it extends the way in that exists.
 
 ## 4. Write it
 

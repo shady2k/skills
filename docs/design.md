@@ -699,3 +699,18 @@ quality category named even when nothing is required, and acceptance as a
 programme agreed in advance. A ТЗ is exported from the living documents on
 request, never kept beside them. Diagrams are Mermaid, the one text format
 repository hosts render without setup.
+
+## 18. How the product's code is shaped (0.53)
+
+The protocol said how checks run and how failures are seen, but nothing about
+the code the checks guard, so each agent brought its own habits, and an agent's
+habit is to write a fresh copy beside what exists. The owner asked for test,
+logging and architecture principles. Two of his proposals were narrowed in the
+conversation: mocks everywhere contradicted his own rule that a refactoring must
+not rewrite tests, so doubles stand only at the outside boundaries; and "any
+part replaceable" became replaceable outside dependencies behind interfaces the
+logic owns, since an interface per class costs without return. Pages are
+composed in shared frames rather than inherited. The owner added the ban on
+second surfaces: a capability keeps one way in. The set knows no stack, so
+`references/building.md` states principles and each project records their form
+once as a decision, turned into lint rules where a machine can check them.

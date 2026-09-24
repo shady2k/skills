@@ -63,9 +63,11 @@ CI is a defect of the product and its checks. A failing test states what it
 expected, what it got and the chain of causes; a failing CI job puts its cause
 on the first screen of its log and keeps the logs and artifacts diagnosis
 needs. The product is instrumented by ordinary observability practice, to its
-nature (log levels detailed in development and concise in operation, trace
-ids across components, errors wrapped in their
-causes), and secrets and personal data never reach a log. The project decides
+nature: every level from debug to error, detailed in development and concise
+in operation; each record names its module and carries the ids that join the
+chain of calls, a trace id through every component and the request id where
+one arrives from outside; errors wrapped in their causes. Secrets and personal
+data never reach a log. The project decides
 these conventions once, as a recorded decision, and every change follows them.
 When a diagnosis stalls for lack of logs, adding them comes first, and the gap
 is a finding.

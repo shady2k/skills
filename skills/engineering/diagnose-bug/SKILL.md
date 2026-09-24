@@ -96,7 +96,8 @@ setup before keeping changes. The original symptom stays the fix's criterion.
 
 Turn the minimised repro into a failing check **at the boundary where the bug
 really happens** (a public interface, endpoint or command where the behaviour
-can be observed). See it fail, fix, see it pass, then run the step 1 loop on
+can be observed), shaped by the protocol's [**Tests check behaviour through
+the interface**](references/building.md). See it fail, fix, see it pass, then run the step 1 loop on
 the original, full case.
 
 If no such boundary can reproduce the real pattern, a check at a shallower one

@@ -18,7 +18,10 @@ file, read when a step needs it:
 - [running.md](references/running.md): a feature run without the owner —
   preflight, the owner's time, sessions and landing, waits, estimates;
 - [checks.md](references/checks.md): red checks, refusing gates, diagnostics,
-  the cheapest check, reaching the outcome, CI.
+  the cheapest check, reaching the outcome, CI;
+- [building.md](references/building.md): how the product's code is shaped —
+  one surface per capability, replaceable boundaries, screens from components
+  and tokens, tests that survive a refactoring;
 - [starting.md](references/starting.md): a project from an empty folder, with
   not even an idea, to its first planned feature;
 - [tz-gost.md](references/tz-gost.md): drafting a ТЗ or a ПМИ by Russian
