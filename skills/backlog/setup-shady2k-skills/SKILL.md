@@ -76,7 +76,7 @@ and say setup must be rerun.
 
 **A repository already installed at this setup version** needs only this clone
 connected: hooks active, runtime present, the person's plugin at the same
-setup version. Do that, prove the hooks fire, and stop: no queue cleanup, no
+setup version. Run the integration's connect command, prove the hooks fire, and stop: no queue cleanup, no
 profile, nothing committed. Announce it as the short run it is.
 
 **Clean the queue with the owner.** Inventory statuses, labels, milestones,
@@ -267,7 +267,11 @@ own bookkeeping is never news for the owner.
 **Adapter:** read [model.md](model.md) in full before writing or changing it.
 It exports every status, closed, `submitted` and `implemented` included, real
 dependency edges, holders and recorded merge evidence. Its ready operation
-takes the stage and checkout. A tracker without native `implemented` or
+takes the stage and checkout, and whatever it returns can be claimed: a
+tracker that refuses to claim or start an issue with an open blocker gets a
+recorded way to claim a same-stage dependant of an implemented prerequisite
+that stays atomic and keeps the edge, since setting only an assignee leaves
+the work looking open and the claim no longer exclusive. A tracker without native `implemented` or
 `submitted` statuses gets an explicit, stored mapping, never a silent mapping
 to ready or closed. For `block-new`, verify that history can be exported and
 the historical config retrieved; otherwise agree an honest supported strength.
@@ -282,6 +286,16 @@ Wiring follows the agreed scope: in personal scope the hooks run only in the
 owner's clone and nothing is added to CI; in team scope every clone connects the
 hooks and CI enforces them. Every rejection says in plain words what is wrong
 and how to fix it, readable by a contributor who has never heard of the set.
+
+**Connecting a clone** is one committed command, written with the wiring and
+named in the integration: it sets the hooks, filters and tracker import a clone
+needs and checks every local file a hook reads, is safe to rerun, and fails
+with what is missing instead of connecting half. A list of manual steps is
+what a second machine skips one of. Every hook this setup writes, and every
+guard the project adds beside them (a privacy guard in a public repository,
+say), follows the protocol's [**A missing input is an
+error**](references/building.md): one that cannot find its patterns, config or
+runtime refuses the commit and names the connect command.
 
 **Wiring the backlog gate:** it runs in the project's local hook and in CI.
 For `block-new`, compare the working export with the last committed revision and
@@ -371,15 +385,17 @@ An existing setup runs all of these too, even when versions match.
    tracker; explain every difference. On an empty tracker use recoverable
    proof issues. Exercise claim (the holder must be the agent in the protocol's
    full name, not the person or a bare role),
-   release, `implemented`, readiness of a
-   dependant in the same stage, acceptance across stages and independent ready
+   release, `implemented`, readiness and an actual claim of a
+   dependant in the same stage, through the integration's own claim operation, acceptance across stages and independent ready
    work. Check that `submitted` results survive a handoff without being redone.
    Check dependency cycles and the exact task-reference parser.
 3. **Real entry points:** plant a recoverable backlog violation and run the real
    hook; see it fail (or report, at `report` strength), undo, see it clean. Run
    the real commit-message entry point with a missing task, an unknown task and
    a valid leaf. Verify both CI range calculations on representative
-   revisions. Never publish test commits.
+   revisions. Run the connect command in a scratch clone and see its hooks
+   fire; take away a file a hook reads and see the commit refused. Never
+   publish test commits.
 4. **Execution commands:** each configured command exists and starts in the
    declared environment, proved the cheapest way that shows it works. Run a
    full suite only when that command has never been proved here, or it or its

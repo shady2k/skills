@@ -32,6 +32,7 @@ are the repository's installation, and each person's plugin and hooks are theirs
 - **Document adapter and gate:** <deterministic export from real docs/tasks; product/feature/acceptance/close commands; or "not installed yet" and the "Title" (id) of its task>
 - **Document policy:** <config source for approval and required checks; protected policy selection>
 - **Document baseline/scope:** <actual target revision, full affected capabilities and complete changed-file enumeration>
+- **Evidence revision:** <how it is computed; the exact paths left out of it: the tracker export, change records, current specs and their catalogue, and nothing else>
 - **Evidence level:** <records (acceptance record, trusted not verified) or protected (runner/API receipts, revision and digest binding)>
 - **Document synchronization:** <prepare delta replay, verify final tree, publish, archive and close idempotently>
 - **Enforcement boundary:** <protected required CI and tracker transition guard, or explicitly audit-only limits>
@@ -39,7 +40,10 @@ are the repository's installation, and each person's plugin and hooks are theirs
 - **JSON report:** <exact command>
 - **Commit-link input and check:** <message/range parser, tracker resolution,
   normalized commits input and check-commits.mjs command>
-- **Local entry points:** <pre-commit and commit-msg commands; installation in a fresh clone>
+- **Local entry points:** <pre-commit and commit-msg commands>
+- **Connecting a clone:** <the one committed command that connects a fresh
+  clone: hooks, filters, tracker import, every local file a hook reads; safe to
+  rerun, and failing with what is missing rather than half-connecting>
 - **CI:** <backlog baseline selection and introduced-commit enumeration; empty
   or unreadable required ranges fail>
 - **Bulk-edit age correction:** <paired --ages-from before and --ages-through after snapshots>
@@ -62,7 +66,7 @@ capabilities and their substitutes.
 | --- | --- |
 | create | <title, type, labels, parent, criterion> |
 | link / unlink | <required-result or conflict edges on leaves, reason, release condition; provenance separate> |
-| claim | <atomic owner assignment or a serialized coordinator; not last-write-wins readback; the holder is the agent doing the work (coordinator or numbered worker), never the person by default> |
+| claim | <atomic owner assignment or a serialized coordinator; not last-write-wins readback; the holder is the agent doing the work (coordinator or numbered worker), never the person by default; how a dependant of an implemented prerequisite in the same stage is claimed where the tracker refuses claims on blocked issues, keeping the edge> |
 | release | <unfinished holds only; preserve implemented work> |
 | implemented | <record integrated revision and local evidence; coordinator only> |
 | submitted | <preserve the worker result and evidence pending integration; clear worker hold> |

@@ -196,6 +196,16 @@ digits, dot, underscore, colon or dash, starting with a letter/digit.
 | `baseline`, `current` | arrays of capabilities `{id, title, requirements}` |
 | `change` | the change below; may be null for `product` |
 
+**What the revision binds.** It is a receipt's pin, so it is fixed by a rule,
+never by judging what a change touches: a wrong judgement there weakens every
+receipt silently. It covers the tree **except what this gate reads and verifies
+itself on every run**: the tracker's export, the change records, the current
+specs and their capability catalogue. Those are checked by structure and
+replay each time, so no receipt needs to cover them, and leaving them inside
+means the closing commit that updates the catalogue, or a task filed during the
+run, stales evidence that nothing about it touched. The wrapper names the
+excluded paths in the integration and nothing else is left out.
+
 Requirement: `{id, title, statement, scenarios}`. Each scenario has
 `{id, given, when, then}` strings. IDs are unique within capability/requirement.
 Title, statement and all scenario parts must be filled, with no known scaffold
