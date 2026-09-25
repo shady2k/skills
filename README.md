@@ -8,6 +8,33 @@ Skills guide dialogue and decisions; portable checks enforce the backlog's shape
 commit links and document lifecycle. The project owns its adapters and wiring, proved during setup.
 A green backlog is not evidence that the code works.
 
+## Contents
+
+- [Why it exists](#why-it-exists)
+  - [Start with `ask-shady2k`, almost every time](#start-with-ask-shady2k-almost-every-time)
+- [How your work changes](#how-your-work-changes)
+  - [The path of work, end to end](#the-path-of-work-end-to-end)
+  - [What reaches you, and what does not](#what-reaches-you-and-what-does-not)
+  - [Bugs, ideas and interruptions](#bugs-ideas-and-interruptions)
+  - [What you no longer do](#what-you-no-longer-do)
+  - [How a day with it looks](#how-a-day-with-it-looks)
+- [Skills](#skills)
+  - [Started on your request](#started-on-your-request)
+  - [Started when the work calls for it](#started-when-the-work-calls-for-it)
+- [Installation and updates](#installation-and-updates)
+  - [Claude Code](#claude-code)
+  - [Codex](#codex)
+  - [Other agents / standalone skills](#other-agents--standalone-skills)
+  - [Joining a repository that already uses the set](#joining-a-repository-that-already-uses-the-set)
+  - [What setup takes](#what-setup-takes)
+  - [What setup verifies](#what-setup-verifies)
+- [How the flow works inside](#how-the-flow-works-inside)
+- [What the checks enforce](#what-the-checks-enforce)
+- [Documents: direction, current state and changes](#documents-direction-current-state-and-changes)
+- [Changelog](#changelog)
+- [Credits](#credits)
+- [Development](#development)
+
 ## Why it exists
 
 The set grew out of the owner's own project, built through agents, and the
