@@ -392,14 +392,14 @@ const CHECKS = [
     severity: 'error',
     why: 'A record of how the work went that does not parse, or whose table does not add up, is not counted by anyone, so the time it held is lost while the item looks recorded.',
     fix: 'Post the record again exactly as the run script printed it, and delete the damaged one. The numbers come from the script; a hand-edited table is what this catches.',
-    run: (m) => spansOf(m).damaged.map((r) => ({ id: r.item, ref: `comment:${r.comment ?? r.body.slice(0, 60)}`, note: r.problems.slice(0, 2).join('; ') })),
+    run: (m) => spansOf(m).damaged.map((r) => ({ id: r.item, ref: `comment:${r.comment}`, note: r.problems.slice(0, 2).join('; ') })),
   },
   {
     id: 'time-span-conflict',
     severity: 'error',
     why: 'One span has one claim and one receipt. Two different ones mean the same minutes are recorded twice, or a receipt was written for someone else\'s span, and no total built on them can be trusted.',
     fix: 'Keep the record the script printed for this span and delete the other. The same record posted twice by a retry is not a conflict and needs nothing.',
-    run: (m) => spansOf(m).spans.filter((s) => s.conflict.length || (s.claim && s.receipt && Math.abs(Date.parse(s.receipt.fields.from) - s.start) > 60e3))
+    run: (m) => spansOf(m).spans.filter((s) => s.conflict.length || (s.claim && s.receipt && Date.parse(s.receipt.fields.from) !== s.start))
       .map((s) => ({ id: s.item, ref: `span:${s.id}`, note: s.conflict.length ? `span ${s.id}: ${s.conflict.join('; ')}` : `span ${s.id}: its receipt starts at ${s.receipt.fields.from}, its claim at ${s.claim.fields.at}` })),
   },
   {
@@ -486,6 +486,7 @@ function checkedConfig(raw, where) {
 function checkedBacklog(raw, where) {
   if (!raw || !Array.isArray(raw.issues)) throw new Misuse(`${where}: not a normalized backlog (no "issues" list); see model.md`);
   const seen = new Set();
+  const comments = new Set();
   for (const i of raw.issues) {
     if (!i || typeof i.id !== 'string' || !i.id) throw new Misuse(`${where}: an issue has no id`);
     if (seen.has(i.id)) throw new Misuse(`${where}: the id ${i.id} appears twice`);
@@ -495,8 +496,15 @@ function checkedBacklog(raw, where) {
       throw new Misuse(`${where}: ${i.id} blockedBy must be a list of ids`);
     // An unreadable date makes every age comparison false, which reads as "fresh".
     if (LIVE(i.status) && !Number.isFinite(Date.parse(i.updatedAt))) throw new Misuse(`${where}: ${i.id} has no readable updatedAt`);
-    if (i.comments != null && (!Array.isArray(i.comments) || i.comments.some((c) => !c || typeof c.body !== 'string')))
-      throw new Misuse(`${where}: ${i.id} comments must be a list of { id, at, author, body }`);
+    // A record's violations are known by its comment's id, so a new damaged
+    // record is never mistaken for an old one: every comment carries its own.
+    if (i.comments != null && (!Array.isArray(i.comments) || i.comments.some((c) => !c || typeof c.body !== 'string'
+      || typeof c.id !== 'string' || !c.id || typeof c.author !== 'string' || !Number.isFinite(Date.parse(c.at)))))
+      throw new Misuse(`${where}: ${i.id} comments must be a list of { id, at, author, body }, each with its tracker's id, time and author`);
+    for (const c of i.comments || []) {
+      if (comments.has(c.id)) throw new Misuse(`${where}: the comment id ${c.id} appears twice`);
+      comments.add(c.id);
+    }
   }
   return raw;
 }
@@ -734,6 +742,7 @@ function runSelftest(cfg, projectConfigPath) {
     ['an unknown --only', 2, ['--config', fixtureCfg, '--strength', 'block', '--only', 'no-such-check', stale]],
     ['an empty backlog file', 2, ['--config', fixtureCfg, '--strength', 'block', put('empty.json', '')]],
     ['a config that is not an object', 2, ['--config', put('cfg.json', '[]'), '--strength', 'block', stale]],
+    ['a record comment without its tracker id', 2, ['--config', fixtureCfg, '--strength', 'block', put('noid.json', { issues: [{ id: 'A', status: 'closed', comments: [{ at: '2026-01-01T00:00:00Z', author: 'x', body: '[shady2k-time v1] claim' }] }] })]],
     ['a live issue with an unreadable date', 2, ['--config', fixtureCfg, '--strength', 'block', put('nodate.json', { issues: [{ id: 'A', status: 'active', updatedAt: 'not-a-date' }] })]],
     ['no strength chosen anywhere', 2, ['--config', fixtureCfg, stale]],
     ['an unpaired age snapshot', 2, ['--config', fixtureCfg, '--strength', 'block', '--ages-from', stale, stale]],

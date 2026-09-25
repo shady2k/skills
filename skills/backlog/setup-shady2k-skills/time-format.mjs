@@ -202,7 +202,7 @@ function validate(kind, fields, table, schema) {
   // A receipt covers its own stretch of the clock and nothing else.
   if (kind === 'receipt') {
     const length = (Date.parse(fields.to) - Date.parse(fields.from)) / 60e3;
-    if (Math.abs(length - table.rows.total.total) > 1) out.push(`the table totals ${table.rows.total.total} min, the span from ${fields.from} to ${fields.to} is ${Math.round(length)}`);
+    if (Math.round(length) !== table.rows.total.total) out.push(`the table totals ${table.rows.total.total} min, the span from ${fields.from} to ${fields.to} is ${Math.round(length)}`);
   }
   return out;
 }
@@ -292,6 +292,12 @@ export function spansOf(backlog) {
     else if (r.kind === 'event') get(r.fields.span).events.push(r);
     else other[{ summary: 'summaries', verdict: 'verdicts', recovery: 'recoveries' }[r.kind]].push(r);
   }
+  // A retry posts the same record again: one record, however many copies.
+  const once = (list) => {
+    const seen = new Set();
+    return list.filter((r) => { const k = `${r.item}\n${canon(r.body)}`; if (seen.has(k)) return false; seen.add(k); return true; });
+  };
+  for (const k of Object.keys(other)) other[k] = once(other[k]);
   for (const s of spans.values()) {
     for (const key of ['claims', 'receipts']) {
       const distinct = new Map();
@@ -301,6 +307,9 @@ export function spansOf(backlog) {
       if (items.size > 1) s.conflict.push(`${key} on ${[...items].join(' and ')}`);
       s[key] = [...distinct.values()];
     }
+    s.events = once(s.events);
+    const where = new Set([...s.claims, ...s.receipts, ...s.events].map((r) => r.item));
+    if (where.size > 1) s.conflict.push(`records of one span on ${[...where].join(' and ')}`);
     s.claim = s.claims[0] || null;
     s.receipt = s.receipts[0] || null;
     s.item = s.claim?.item ?? s.receipt?.item ?? s.events[0]?.item ?? null;

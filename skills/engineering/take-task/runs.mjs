@@ -242,7 +242,10 @@ function finishedRuns(v) {
     const claim = run.find((s) => s.claim.table)?.claim || run[0]?.claim || null;
     const n = (k) => (sm.fields[k] === undefined ? null : Number(sm.fields[k]));
     return {
-      item: sm.item, result: sm.fields.result, occupied: n('occupied'), partial: sm.fields['occupied-partial'] === 'yes',
+      item: sm.item, result: sm.fields.result, occupied: n('occupied'),
+      // A summary written while spans were still open, or with a transcript
+      // on another machine, is an incomplete run and no reference for another.
+      partial: sm.fields['occupied-partial'] === 'yes' || n('open') > 0 || n('missing') > 0,
       forecast: n('forecast'), elapsed: n('elapsed'), tasks: claim?.fields.tasks ? Number(claim.fields.tasks) : null,
       table: sm.table.rows,
     };
@@ -334,6 +337,7 @@ function report(v) {
   const stops = events.filter((e) => e.fields.event === 'stop');
   const accepted = judged.filter((x) => x.accepted !== 'abandoned');
   const measured = runs.filter((r) => r.occupied !== null);
+  const complete = measured.filter((r) => !r.partial);
   const attention = runs.reduce((a, r) => a + (r.table.total?.answer || 0), 0);
   const running = new Set(v.spans.filter((s) => s.claim?.fields.role === 'coordinator').map((s) => s.item));
   for (const r of runs) running.delete(r.item);
@@ -358,7 +362,7 @@ function report(v) {
       partial: measured.filter((r) => r.partial).length,
       attentionMinutes: attention,
       acceptedPerAttentionHour: accepted.length && attention ? +(accepted.length / (attention / 60)).toFixed(2) : null,
-      medianOccupiedMinutes: measured.length ? round(quantile(measured.map((r) => r.occupied), 0.5)) : null,
+      medianOccupiedMinutes: complete.length ? round(quantile(complete.map((r) => r.occupied), 0.5)) : null,
       medianWorkMinutes: runs.length ? round(quantile(runs.map((r) => r.table.total?.work || 0), 0.5)) : null,
     },
     damaged: v.damaged.length,
@@ -377,7 +381,7 @@ function describeReport(r) {
     `Open runs ${r.open}, of them past their promised time ${r.pastForecast}`,
     describePace(r.pace),
     r.spend.runsMeasured
-      ? `Measured over ${r.spend.runsMeasured} finished run(s)${r.spend.partial ? ` (${r.spend.partial} of them only partly: a session's transcript was on another machine)` : ''}: ` +
+      ? `Measured over ${r.spend.runsMeasured} finished run(s)${r.spend.partial ? ` (${r.spend.partial} of them incomplete, left out of the median: a span still open or a transcript on another machine)` : ''}: ` +
         `the owner ${r.spend.attentionMinutes} min answering${r.spend.acceptedPerAttentionHour ? `, ${r.spend.acceptedPerAttentionHour} feature(s) accepted per hour of it` : ''}; ` +
         `a run occupies ${r.spend.medianOccupiedMinutes} min (median), ${r.spend.medianWorkMinutes} min of work summed over its sessions`
       : 'No finished run has a measured summary yet.',
@@ -398,7 +402,11 @@ function timeReport(v, opts) {
   if (Number.isNaN(since) || Number.isNaN(until)) throw new Usage('--since and --until need dates');
   const only = opts.item ? new Set(v.tree(item(v, opts.item).id)) : null;
   const inScope = (s) => !only || only.has(s.item);
-  const closed = v.spans.filter((s) => s.receipt && !s.conflict.length && inScope(s) && s.end >= since && s.end <= until);
+  // A stretch counts in the period it ended in, once: periods are half-open,
+  // so one ending on the stroke of midnight belongs to the day it starts.
+  const inPeriod = (s) => s.end >= since && s.end < until;
+  const closed = v.spans.filter((s) => s.receipt && s.claim && !s.conflict.length && inScope(s) && inPeriod(s));
+  const unclaimed = v.spans.filter((s) => s.receipt && !s.claim && !s.conflict.length && inScope(s) && inPeriod(s));
   const byItem = {};
   const total = Object.fromEntries([...BUCKETS, 'total'].map((b) => [b, 0]));
   const phases = {};
@@ -417,7 +425,7 @@ function timeReport(v, opts) {
     period: { since: Number.isFinite(since) ? localStamp(since) : null, until: Number.isFinite(until) ? localStamp(until) : null },
     receipts: closed.length, total, work: WORK.reduce((n, b) => n + total[b], 0), phases, items: byItem,
     open: open.map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, since: s.claim.fields.at })),
-    damaged: v.damaged.length, conflicted: v.spans.filter((s) => s.conflict.length).length,
+    damaged: v.damaged.length, conflicted: v.spans.filter((s) => s.conflict.length).length, unclaimed: unclaimed.length,
   };
   if (!opts['no-transcripts']) {
     let rs = null;
@@ -485,7 +493,7 @@ function describeTime(t) {
     }
   }
   if (t.unassigned?.sessions) lines.push(`On this machine only: ${h(t.unassigned.work)} of work in ${t.unassigned.sessions} session(s) that claimed no item; it is on no item and no other machine sees it.`);
-  if (t.damaged || t.conflicted) lines.push(`${t.damaged} damaged and ${t.conflicted} conflicting record(s) are not counted: the gate names them, and the figure is incomplete by them.`);
+  if (t.damaged || t.conflicted || t.unclaimed) lines.push(`${t.damaged} damaged, ${t.conflicted} conflicting and ${t.unclaimed} unclaimed record(s) are not counted: the gate names them, and the figure is incomplete by them.`);
   return lines.join('\n');
 }
 
@@ -833,6 +841,32 @@ function selftest() {
     clock += 120 * 60e3;
     const st = JSON.parse(cli('stalled', '--json'));
     expect('stalled: a run past its promised time with no summary is found', st.some((x) => x.item === 'L' && x.pastForecast) && !st.some((x) => x.item === 'G'));
+
+    // A retry of the summary is one run, not two.
+    postAll([fin.at(-1)]);
+    expect('a summary posted twice is one run', JSON.parse(cli('report', '--json')).finished === 4);
+    // A summary that says spans were open is no reference for a forecast.
+    const openOne = { ...backlog, issues: [...backlog.issues, { id: 'O', title: 'O', type: 'epic', status: 'closed', labels: [], parent: null, blockedBy: [], body: '', updatedAt: T(clock),
+      comments: [{ id: 'o1', at: T(clock), author: 'x', body: fin.at(-1).body.replace('open: 0', 'open: 1') }] }] };
+    expect('a summary written with a span still open is incomplete, and no pace history', finishedRuns(view(openOne)).find((x) => x.item === 'O').partial
+      && !finishedRuns(view(openOne)).find((x) => x.item === 'F').partial);
+    // A receipt nobody claimed is not counted, and the figure says so.
+    const bare = { id: 'U', title: 'Unclaimed', type: 'task', status: 'closed', labels: [], parent: null, blockedBy: [], body: '', updatedAt: T(clock),
+      comments: [{ id: 'u1', at: T(clock), author: 'x', body: formatRecord('receipt', { span: 'dead0000', from: T(c0), to: T(c0 + 600e3), end: 'finished' }, roundTable({ build: { model: 10 } }, 10)) }] };
+    backlog.issues.push(bare);
+    const tu = JSON.parse(cli('time', '--no-transcripts', '--json'));
+    expect('time: a receipt with no claim is left out and named', tu.unclaimed === 1 && tu.receipts === 6);
+    backlog.issues.pop();
+    // A stretch ending at midnight belongs to one day only.
+    const at0 = parseWhen('2026-03-03');
+    const mid = { id: 'M', title: 'Midnight', type: 'task', status: 'closed', labels: [], parent: null, blockedBy: [], body: '', updatedAt: T(clock),
+      comments: [
+        { id: 'm1', at: T(at0 - 600e3), author: 'x', body: formatRecord('claim', { span: 'beef0000', at: T(at0 - 600e3), session: 'claude-code:mid', agent: 'claude-agent:t@m:b#mid', role: 'agent' }) },
+        { id: 'm2', at: T(at0), author: 'x', body: formatRecord('receipt', { span: 'beef0000', from: T(at0 - 600e3), to: T(at0), end: 'finished' }, roundTable({ build: { model: 10 } }, 10)) }] };
+    backlog.issues.push(mid);
+    const day = (d) => JSON.parse(cli('time', '--since', d, '--until', d, '--item', 'M', '--no-transcripts', '--json')).receipts;
+    expect('time: a stretch ending at midnight counts in one day, once', day('2026-03-02') === 0 && day('2026-03-03') === 1);
+    backlog.issues.pop();
 
     const all = spansOf(backlog);
     expect('every record the script printed reads clean, and no span conflicts', !all.damaged.length && all.spans.every((x) => !x.conflict.length));

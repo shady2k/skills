@@ -80,8 +80,8 @@ answers to the one that started it**](references/running.md).
 Every span this session holds ends here with its receipt, by the protocol's
 [**How the work went is kept on the item**](protocol.md): the run script
 ([`runs.mjs`](runs.mjs), run with `node` from this skill's folder, over the
-adapter's export, in the format of [`time-format.mjs`](time-format.mjs)) prints it with `receipt --end` finished, paused, stopped or
-handed-over, as the work left it, measured from this session's transcript (by
+adapter's export, in the format of [`time-format.mjs`](time-format.mjs)) prints it with `receipt --end <end>`, the end being `finished`, `paused`,
+`stopped` or `handed-over` as the work left it, measured from this session's transcript (by
 the ledger beside it, [`ledger.mjs`](ledger.mjs)); post it exactly as printed.
 The coordinator does the same for a worker session it started that ended
 without writing its own. Then `gaps` names every other span that ended with no
@@ -92,7 +92,8 @@ unknown until written there.
 ## 4. Ask how the run went, and keep its lessons
 
 When a feature closes whose run was recorded (a coordinator's claim on it;
-`list` shows them), close the run with `finish` if the run itself did not, and
+`list` shows them), close the run with `finish --item <feature> --result
+<result>` if the run itself did not, and
 ask the owner once, in one message, in plain words:
 
 - did they take the result as it was, after changes of their own, or not at all;
@@ -101,7 +102,8 @@ ask the owner once, in one message, in plain words:
 - did they have to correct the agent, or finish the work for it.
 
 A run that left no summary and passed the time its result was promised for
-(`stalled`) is one that stopped: close it with `finish --result stopped` and
+(`stalled`) is one that stopped: close it with `finish --item <feature>
+--result stopped` and
 say so, rather than leaving it counted as running.
 
 Record the answer with `verdict`, as counts and a short note, posted on the

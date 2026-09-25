@@ -28,7 +28,7 @@ never from scratch. A run already under way continues under a fresh claim of
 the same feature rather than starting over; the run script's `stalled` (below)
 shows the runs that left no summary and passed the time their result was
 promised for, and one of those on this feature is taken over or ended with
-`finish --result stopped`, never left open beside a new one. Where the owner
+`finish --item <feature> --result stopped`, never left open beside a new one. Where the owner
 stopped a session on purpose to test recovery, ask them afterwards for a grade
 and record it with `recovery`: R3 continued correctly, R2 recovered but redid
 work, R1 needed explanations, R0 did not understand where the work stood.

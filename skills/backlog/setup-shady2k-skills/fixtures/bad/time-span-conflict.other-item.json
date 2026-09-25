@@ -1,0 +1,73 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture a receipt on another item than its claim",
+  "issues": [
+    {
+      "id": "S",
+      "title": "Stage",
+      "type": "epic",
+      "status": "active",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN the stage result is independently observable.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "holder": "claude-coordinator:alex@laptop:work#c0"
+    },
+    {
+      "id": "A",
+      "title": "Task A",
+      "type": "task",
+      "status": "submitted",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "delivery": {
+        "revision": "b@A",
+        "evidence": "tests passed"
+      },
+      "comments": [
+        {
+          "id": "c1",
+          "at": "2026-01-29T10:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim\nspan: a0000001\nat: 2026-01-29T10:00:00Z\nsession: claude-code:w1\nagent: claude-worker:alex@laptop:work#w1\nrole: worker"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Task B",
+      "type": "task",
+      "status": "closed",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "comments": [
+        {
+          "id": "c2",
+          "at": "2026-01-29T11:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] receipt\nspan: a0000001\nfrom: 2026-01-29T10:00:00Z\nto: 2026-01-29T11:00:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    24 |    36 |     0 |      0 |    0 |    0 |    60 |\n| total |    24 |    36 |     0 |      0 |    0 |    0 |    60 |"
+        }
+      ]
+    }
+  ],
+  "expect": [
+    "time-span-conflict"
+  ],
+  "expectViolations": [
+    "time-span-conflict|A|span:a0000001"
+  ]
+}
