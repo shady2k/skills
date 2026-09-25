@@ -1,5 +1,7 @@
 # shady2k-skills
 
+**English** · [Русский](README.ru.md)
+
 Sixteen skills for exploring ideas and taking tracked work to accepted results. They work
 with a project's chosen tracker and any harness that reads `SKILL.md`.
 The reasoning and history are in [docs/design.md](docs/design.md).
