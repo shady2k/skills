@@ -77,29 +77,36 @@ or release the coordinator's hold and name who resumes. The worker
 sessions the work started are ended or handed over by [**A started session
 answers to the one that started it**](references/running.md).
 
+Every span this session holds ends here with its receipt, by the protocol's
+[**How the work went is kept on the item**](protocol.md): the run script
+([`runs.mjs`](runs.mjs), run with `node` from this skill's folder, over the
+adapter's export, in the format of [`time-format.mjs`](time-format.mjs)) prints it with `receipt --end` finished, paused, stopped or
+handed-over, as the work left it, measured from this session's transcript (by
+the ledger beside it, [`ledger.mjs`](ledger.mjs)); post it exactly as printed.
+The coordinator does the same for a worker session it started that ended
+without writing its own. Then `gaps` names every other span that ended with no
+receipt: post those it recovers from this machine, and tell the owner, in one
+line each, the ones whose transcripts are on another machine, whose time stays
+unknown until written there.
+
 ## 4. Ask how the run went, and keep its lessons
 
-When a feature closes whose run left a record in the run journal
-([`runs.mjs`](runs.mjs), run with `node` from this skill's folder; `list` shows
-the records, and the ledger beside it, [`ledger.mjs`](ledger.mjs), is where its
-minutes come from), ask the owner once, in one message, in plain words:
+When a feature closes whose run was recorded (a coordinator's claim on it;
+`list` shows them), close the run with `finish` if the run itself did not, and
+ask the owner once, in one message, in plain words:
 
 - did they take the result as it was, after changes of their own, or not at all;
 - was there a question the agent could have answered itself from the project;
 - was there a decision the agent took alone that it should have asked about;
 - did they have to correct the agent, or finish the work for it.
 
-A run that recorded no end and passed the time its result was promised for (`stalled`) is one that
-stopped: end its record with `finish --result stopped` and say so, rather than
-leaving it counted as running.
+A run that left no summary and passed the time its result was promised for
+(`stalled`) is one that stopped: close it with `finish --result stopped` and
+say so, rather than leaving it counted as running.
 
-Record the answer with `verdict`, as counts and a short note. Only the owner
-can judge these; never fill them in yourself. If they skip it, record nothing
-and do not ask again for this feature. Then put `summary`'s numbers on the
-feature as a comment headed `Run measured`, in the project's artifact language,
-where the run did not leave one; where it did, add the verdict to it. Off this
-machine that comment is the whole measured history, so a feature closing
-without it leaves the next estimate to guesswork.
+Record the answer with `verdict`, as counts and a short note, posted on the
+feature. Only the owner can judge these; never fill them in yourself. If they
+skip it, record nothing and do not ask again for this feature.
 
 Then look through its handoff notes, run notes and review findings for traps
 that would cost time again, by the protocol's [**A lesson that outlives the work

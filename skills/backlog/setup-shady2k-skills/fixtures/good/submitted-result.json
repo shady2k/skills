@@ -31,7 +31,21 @@
       "delivery": {
         "revision": "worker-branch@rev-1",
         "evidence": "related tests passed; artifact at retained branch"
-      }
+      },
+      "comments": [
+        {
+          "id": "c9",
+          "at": "2026-01-29T10:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim\nspan: a2600000\nat: 2026-01-29T10:00:00Z\nsession: claude-code:s260\nagent: claude-worker:alex@laptop:work#s260\nrole: worker"
+        },
+        {
+          "id": "c10",
+          "at": "2026-01-29T11:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] receipt\nspan: a2600000\nfrom: 2026-01-29T10:00:00Z\nto: 2026-01-29T11:00:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    24 |    30 |     6 |      0 |    0 |    0 |    60 |\n| total |    24 |    30 |     6 |      0 |    0 |    0 |    60 |"
+        }
+      ]
     }
   ]
 }

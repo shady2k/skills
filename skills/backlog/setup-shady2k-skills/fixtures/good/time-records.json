@@ -1,0 +1,113 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture time records kept whole",
+  "issues": [
+    {
+      "id": "S",
+      "title": "Stage",
+      "type": "epic",
+      "status": "active",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN the stage result is independently observable.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "holder": "claude-coordinator:alex@laptop:work#c0",
+      "comments": [
+        {
+          "id": "c11",
+          "at": "2026-01-29T09:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim\nspan: c0000001\nat: 2026-01-29T09:00:00Z\nsession: claude-code:c0\nagent: claude-coordinator:alex@laptop:work#c0\nrole: coordinator\ndue: 2026-01-29T18:00:00Z\ntasks: 2\nstages: 1\n\n| phase | forecast |\n|-------|---------:|\n| plan  |       30 |\n| build |      120 |\n| total |      150 |"
+        }
+      ]
+    },
+    {
+      "id": "A",
+      "title": "Task A",
+      "type": "task",
+      "status": "submitted",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "delivery": {
+        "revision": "b@A",
+        "evidence": "tests passed"
+      },
+      "comments": [
+        {
+          "id": "c13",
+          "at": "2026-01-29T09:30:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim\nspan: a0000001\nat: 2026-01-29T09:30:00Z\nsession: claude-code:w1\nagent: claude-worker:alex@laptop:work#w1\nrole: worker"
+        },
+        {
+          "id": "c12",
+          "at": "2026-01-29T10:30:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] receipt\nspan: a0000001\nfrom: 2026-01-29T09:30:00Z\nto: 2026-01-29T10:30:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    24 |    30 |     6 |      0 |    0 |    0 |    60 |\n| total |    24 |    30 |     6 |      0 |    0 |    0 |    60 |"
+        },
+        {
+          "id": "retry",
+          "at": "2026-01-29T10:30:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] receipt\nspan: a0000001\nfrom: 2026-01-29T09:30:00Z\nto: 2026-01-29T10:30:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    24 |    30 |     6 |      0 |    0 |    0 |    60 |\n| total |    24 |    30 |     6 |      0 |    0 |    0 |    60 |"
+        },
+        {
+          "id": "e1",
+          "at": "2026-01-29T10:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] event\nspan: a0000001\nat: 2026-01-29T10:00:00Z\nevent: ci\nnote: suite green"
+        },
+        {
+          "id": "h1",
+          "at": "2026-01-29T10:40:00Z",
+          "author": "alex",
+          "body": "Looks good to me."
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Task B",
+      "type": "task",
+      "status": "active",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "holder": "claude-worker:alex@laptop:work#w2",
+      "comments": [
+        {
+          "id": "c14",
+          "at": "2026-01-29T10:35:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim\nspan: b0000001\nat: 2026-01-29T10:35:00Z\nsession: claude-code:w2\nagent: claude-worker:alex@laptop:work#w2\nrole: worker"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "Task C",
+      "type": "task",
+      "status": "closed",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    }
+  ]
+}

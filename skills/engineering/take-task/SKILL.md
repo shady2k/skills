@@ -24,15 +24,14 @@ Take the feature, stage, task or bug the user named; otherwise propose a ready
 feature of the current milestone by name. Find or file the tracked work before
 any implementation. Read its requirements, spec, charter and code. Work already
 `submitted` resumes at integration and an `implemented` stage at acceptance,
-never from scratch. A run already under way continues its record in the run
-journal (`node runs.mjs list`) rather than starting a new one; `stalled` shows
-the runs that recorded no end and which passed the time their result was
+never from scratch. A run already under way continues under a fresh claim of
+the same feature rather than starting over; the run script's `stalled` (below)
+shows the runs that left no summary and passed the time their result was
 promised for, and one of those on this feature is taken over or ended with
-`finish --result stopped` before a new record is started, never left open
-beside it. Where the owner stopped a session on purpose to test recovery, ask
-them afterwards for a grade and record it with `recovery`: R3 continued
-correctly, R2 recovered but redid work, R1 needed explanations, R0 did not
-understand where the work stood.
+`finish --result stopped`, never left open beside a new one. Where the owner
+stopped a session on purpose to test recovery, ask them afterwards for a grade
+and record it with `recovery`: R3 continued correctly, R2 recovered but redid
+work, R1 needed explanations, R0 did not understand where the work stood.
 
 Everything the owner reads follows the protocol's [**Speaking to the
 owner**](references/speaking.md).
@@ -80,7 +79,7 @@ Before the owner leaves, prepare the run so it needs nobody:
   said as a time the owner can hold it to: past it without word the run has
   stopped, by the protocol's **A run that never came back is found**. Give it
   in agent time, by the protocol's **Estimates**, starting from the measured
-  pace: `node runs.mjs pace --tasks <n>`, run from this skill's folder, with
+  pace: `pace --tasks <n>`, which also proposes the forecast by phase, with
   the absence named below. If that is longer than the project lets a branch
   live, the feature is too big for one run: split it
   with the owner through `to-stages` (and `/to-milestone` if the outcome
@@ -110,44 +109,45 @@ decided in the conversation that the record does not yet hold lands in that
 same first write, before the branch starts, by the protocol's **A decision the
 owner gives is kept, not only obeyed**.
 
-**Keep the run's record** in the run journal, [`runs.mjs`](runs.mjs), which
-writes outside the repository. The minutes themselves are not written by hand:
-the record keeps the forecast, the stops, the verdict and which sessions and
-working copies were the run's, and the ledger ([`ledger.mjs`](ledger.mjs),
-beside it) reads back what the harnesses recorded — the model's minutes, the
-tools', what the owner answered, what a run cost and how many lines it wrote,
-including the workers' working copies and subagents, counted only inside the
-run's own start and end, and saying which figures a harness did not record
-rather than calling them zero. It is how
-the owner learns whether runs get cheaper, faster and safer, so write the
-record as things happen, not from memory at the end:
+**Keep the run's record** in the tracker, by the protocol's [**How the work
+went is kept on the item**](protocol.md): the run script,
+[`runs.mjs`](runs.mjs), run with `node` from this skill's folder, reads the
+adapter's export (`--backlog`) and prints each record to post, under the item
+it goes on, in the format of [`time-format.mjs`](time-format.mjs); post it
+through the integration's comment operation exactly as printed. The minutes are
+measured from the transcripts beside the script ([`ledger.mjs`](ledger.mjs)),
+never written by hand. It is how the owner learns whether runs get cheaper,
+faster and safer, so write the records as things happen, not from memory at the
+end:
 
-- on "run": `start` with the feature's title, the preflight's estimate as work
-  and wait minutes, the absence the owner announced as `--away` (or the
-  promised time itself as `--due`), so that the time the result was promised
-  for is on record and `stalled` holds the run to it, and the numbers of tasks
-  and stages;
-- every session that coordinates the run, a fresh coordinator or a resumed
-  run: `session`; the current one is recorded by itself where the harness
-  names it;
-- every working copy made for a worker, when it is made: `session --copy
-  <path>`, so that the sessions in it are this run's and no other's; a copy
-  left unrecorded while another run is open is charged to neither;
-- every stop: `event --kind stop --reason owner` for a decision the owner
-  must make, `--reason missing` for information the project did not have;
-  every decision made alone: `event --kind decision`; every CI run:
-  `event --kind ci`; each with a one-line note;
-- when the pull request is ready or the run ends without one: `finish`, and
-  then `summary`, whose numbers go on the feature in the tracker as a comment
-  headed `Run measured`, written in the project's artifact language. That
-  comment is the only part of the journal another machine, session or agent can
-  read, and what a later estimate rests on when this machine's records are not
-  there. Put the numbers as they are measured; a run that went badly is
-  measured the same as one that went well.
+- on "run": `claim --item <feature> --role coordinator` with the preflight's
+  forecast by phase (`--forecast plan=30,build=120,...`), the absence the owner
+  announced (`--away`, or the promised time itself as `--due`) and the numbers
+  of tasks and stages, so the time the result was promised for is on record and
+  `stalled` holds the run to it. A resumed or fresh coordinator claims the
+  feature again, with no forecast;
+- every claim of a task is made the same way, by the session that will do the
+  work: a worker claims its own leaf with `--role worker`, and its brief says
+  so, and its receipt comes with its result. Claiming the next item prints the
+  receipt of the last one first;
+- every stop: `event --event stop --reason owner` for a decision the owner must
+  make, `--reason missing` for information the project did not have; every
+  decision made alone: `event --event decision`; every CI run: `event --event
+  ci`; each with a one-line note;
+- when the pull request is ready or the run ends without one: `finish --item
+  <feature> --result ...`, which prints this session's receipt and the feature's
+  summary: the forecast against the work by phase, and how long the work
+  occupied, parallel sessions counted once. A summary that says it is partial
+  had a session whose transcript is on another machine; say so. Put the numbers
+  as they are measured; a run that went badly is measured the same as one that
+  went well.
 
-Run it with `node` from this skill's folder; `--help` lists the commands. The
-record is for measuring, not reading, and is never shown to the owner as such.
-If it cannot be written, the run goes on and its report says so.
+Before `finish`, `gaps` names every span of the run that ended with no receipt:
+it prints the receipts it can recover from this machine and names those whose
+transcripts are elsewhere; post the first, and say the second to the owner.
+`--help` lists the commands. The records are for measuring, not reading, and
+are never shown to the owner as such. If one cannot be written, the run goes on
+and its report says so.
 
 Before dispatching implementation, run the integration's feature document check
 against the actual baseline; the first product implementation also needs the
@@ -159,7 +159,8 @@ The feature has one coordinator on one branch, which owns every stage's
 integration and acceptance and may also implement. Claim tasks atomically, or
 have the coordinator assign them one at a time if the tracker cannot. Every
 claim names the agent that does the work in the protocol's full form (role,
-person, machine, branch, session), never the person, and never a bare role.
+person, machine, branch, session), never the person, and never a bare role;
+the run script's `claim` prints that name with the record.
 
 Take stages in the order their real dependencies allow, several at once where
 they are independent. Dispatch independent ready tasks in parallel where
@@ -168,8 +169,10 @@ order, hierarchy or a shared milestone.
 
 Give each worker its task and criterion, the relevant spec, the glossary's
 entries for the parts it touches, dependencies, base revision, owned scope,
-local check commands, the TDD setting, and where its report goes and what it
-holds, by **A started session answers to the one that started it**; record in
+local check commands, the TDD setting, the commands for its claim and its
+receipt (this script's path and the adapter's export), and where its report
+goes and what it holds, by **A started session answers to the one that started
+it**; record in
 the task, as it starts, how to resume it and where its log is. A worker's task fits one session; split one that will not. Use
 isolated checkouts where concurrent writes could collide, and coordinate
 shared generated files, migrations and dependency locks.

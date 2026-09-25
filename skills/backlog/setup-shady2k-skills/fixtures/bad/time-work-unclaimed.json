@@ -1,0 +1,41 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture time-work-unclaimed",
+  "issues": [
+    {
+      "id": "S",
+      "title": "Stage",
+      "type": "epic",
+      "status": "active",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN the stage result is independently observable.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "holder": "claude-coordinator:alex@laptop:work#c0"
+    },
+    {
+      "id": "A",
+      "title": "Task A",
+      "type": "task",
+      "status": "submitted",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "delivery": {
+        "revision": "b@A",
+        "evidence": "tests passed"
+      }
+    }
+  ],
+  "expectViolations": [
+    "time-work-unclaimed|A|"
+  ]
+}

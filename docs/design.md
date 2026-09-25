@@ -728,3 +728,35 @@ stated in the first line. Story points and writes to an outside tracker stay
 out: points are the team's agreed units, and a tracker the set does not own is
 written only on a real request. The sprint's end comes in words rather than as
 a config setting, which would make every project rerun setup.
+
+## 20. How the work went is kept on the item (0.60)
+
+Time was measured well and kept badly: the run journal lived in one machine's
+state directory, so another machine saw only a free-text comment written at a
+feature's close, an open task had no record of when work began, and which
+session worked on what was known only to the journal that recorded it. A
+tracker of the set's own, like beads, was considered and rejected: it would own
+sync, merges and branches, and break "any tracker". So was one comment edited
+in place: some trackers cannot edit comments, and two writers updating one sum
+lose each other's minutes.
+
+The owner decided that nothing about the work is kept on a machine. Every fact
+is a record on the item, in one format (`time-format.mjs`), printed by the run
+script and posted unchanged: the claim starts a span and carries the forecast
+by phase and the promised time; the receipt ends it with the minutes by phase
+and by who spent them, measured from the transcript, never typed; events,
+the feature's summary, the owner's verdict and recovery grades follow the same
+way. Handoff notes for work with no feature became tracker items too.
+
+A review by a second model moved the design in four places. Attribution is the
+claim, not a guess from a working directory: a session holds one item at a
+time, and its next claim ends the last span. Records are append-only and a
+retry is one record, so a span has exactly one receipt. A feature's summary
+carries the time the work occupied, parallel sessions counted once, because
+summed receipts are session clock and the forecast is of the former. And the
+figure every machine shows is the receipts alone; what is open, or on another
+machine, is said beside it as incomplete, never added in. Finding what was
+never written is the gate's (a span that ended with no receipt, handed-in work
+nobody claimed) and the script's (recovery from a local transcript), not an
+agent's memory. A span is not split at midnight: a sync does not need exact
+time per day, so a stretch counts in the period it ended, once.

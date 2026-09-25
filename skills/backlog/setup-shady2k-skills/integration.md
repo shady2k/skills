@@ -28,7 +28,8 @@ are the repository's installation, and each person's plugin and hooks are theirs
 ### Checks and execution
 
 - **Backlog adapter:** <path and export command; historical export when supported>
-- **Rules:** <paths/provenance for check.mjs, check-commits.mjs and check-docs.mjs; verbatim copies or proved ports>
+- **Rules:** <paths/provenance for check.mjs with time-format.mjs beside it, check-commits.mjs and check-docs.mjs; verbatim copies or proved ports>
+- **Work records:** <how the adapter exports each item's `[shady2k-time` comments raw with the tracker's comment id, time and author; the command the run script reads as `--backlog`; how a record is posted unchanged>
 - **Document adapter and gate:** <deterministic export from real docs/tasks; product/feature/acceptance/close commands; or "not installed yet" and the "Title" (id) of its task>
 - **Document policy:** <config source for approval and required checks; protected policy selection>
 - **Document baseline/scope:** <actual target revision, full affected capabilities and complete changed-file enumeration>
@@ -73,7 +74,7 @@ capabilities and their substitutes.
 | submitted | <preserve the worker result and evidence pending integration; clear worker hold> |
 | reopen | <invalidate obsolete integration/acceptance evidence and reassess consumers> |
 | close | <accepted work with stage evidence, or explicit cancellation/duplicate disposition> |
-| comment / edit | <notes, criteria, reparenting, state updates> |
+| comment / edit | <notes, criteria, reparenting, state updates; a work record posted exactly as the run script printed it, never reflowed or edited> |
 | defer / undefer | <review date; reversible metadata changes> |
 | milestone / label | <values read from config> |
 | ready | <open unheld leaves in the stage and checkout; implemented prerequisites satisfied only within that same stage after integration, closed ones everywhere> |

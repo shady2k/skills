@@ -1,0 +1,123 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture time-span-unreceipted",
+  "issues": [
+    {
+      "id": "S",
+      "title": "Stage",
+      "type": "epic",
+      "status": "active",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN the stage result is independently observable.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "holder": "claude-coordinator:alex@laptop:work#c0"
+    },
+    {
+      "id": "A",
+      "title": "Task A",
+      "type": "task",
+      "status": "submitted",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "delivery": {
+        "revision": "b@A",
+        "evidence": "tests passed"
+      },
+      "comments": [
+        {
+          "id": "c26",
+          "at": "2026-01-29T10:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim\nspan: a0000001\nat: 2026-01-29T10:00:00Z\nsession: claude-code:w1\nagent: claude-worker:alex@laptop:work#w1\nrole: worker"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Task B",
+      "type": "task",
+      "status": "active",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "holder": "x",
+      "comments": [
+        {
+          "id": "c27",
+          "at": "2026-01-29T10:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim\nspan: b0000001\nat: 2026-01-29T10:00:00Z\nsession: claude-code:w2\nagent: claude-worker:alex@laptop:work#w2\nrole: worker"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "Task C",
+      "type": "task",
+      "status": "active",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "holder": "y",
+      "comments": [
+        {
+          "id": "c28",
+          "at": "2026-01-29T11:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim\nspan: c0000002\nat: 2026-01-29T11:00:00Z\nsession: claude-code:w2\nagent: claude-worker:alex@laptop:work#w2\nrole: worker"
+        },
+        {
+          "id": "c29",
+          "at": "2026-01-29T12:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim\nspan: c0000003\nat: 2026-01-29T12:00:00Z\nsession: claude-code:w3\nagent: claude-worker:alex@laptop:work#w3\nrole: worker"
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "Task D",
+      "type": "task",
+      "status": "active",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "holder": "z",
+      "comments": [
+        {
+          "id": "c30",
+          "at": "2026-01-29T12:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim\nspan: d0000001\nat: 2026-01-29T12:00:00Z\nsession: claude-code:w4\nagent: claude-worker:alex@laptop:work#w4\nrole: worker"
+        }
+      ]
+    }
+  ],
+  "expectViolations": [
+    "time-span-unreceipted|A|span:a0000001",
+    "time-span-unreceipted|B|span:b0000001",
+    "time-span-unreceipted|C|span:c0000002"
+  ]
+}

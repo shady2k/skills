@@ -9,7 +9,9 @@ import { spawnSync } from 'node:child_process';
 const source = join(dirname(fileURLToPath(import.meta.url)), '../skills/backlog/setup-shady2k-skills');
 const root = mkdtempSync(join(tmpdir(), 'skill-gate-mutations-'));
 const mutations = [
-  ...['dependency-cycle', 'nonleaf-dependency', 'submitted-without-evidence', 'implemented-without-evidence'].map((id) => ({
+  ...['dependency-cycle', 'nonleaf-dependency', 'submitted-without-evidence', 'implemented-without-evidence',
+    'time-record-damaged', 'time-span-conflict', 'time-span-unclaimed', 'time-span-overlap', 'time-span-unreceipted',
+    'time-work-unclaimed'].map((id) => ({
     name: id, file: 'check.mjs', failure: `FAIL  bad/${id}.json`,
     change: (code) => {
       const at = code.indexOf(`id: '${id}'`);
@@ -18,6 +20,12 @@ const mutations = [
       return before + after;
     },
   })),
+  { name: 'time-table-sums', file: 'time-format.mjs', runs: 'check.mjs', failure: 'FAIL  bad/time-record-damaged.json',
+    change: (code) => code.replaceAll('if (s !== table.rows', 'if (false && s !== table.rows') },
+  { name: 'time-retry-is-one-record', file: 'time-format.mjs', runs: 'check.mjs', failure: 'FAIL  good/time-records.json',
+    change: (code) => code.replace('if (!distinct.has(canon(r.body))) distinct.set(canon(r.body), r);', 'distinct.set(r.comment, r);') },
+  { name: 'time-running-span', file: 'check.mjs', failure: 'FAIL  good/time-records.json',
+    change: (code) => code.replace(": item && item.status !== 'active' ? `${s.item} is ${item.status}` : null;", ": `${s.item} is ${item?.status}`;") },
   { name: 'age-correction', file: 'check.mjs', failure: 'FAIL  ages-from: later real work',
     change: (code) => code.replace('old.has(i.id) && after.get(i.id) === i.updatedAt', 'old.has(i.id)') },
   { name: 'commit-missing', file: 'check-commits.mjs', failure: 'FAIL  commits/unlinked.json',
@@ -49,7 +57,7 @@ for (const mutation of mutations) {
   const changed = mutation.change(original);
   if (changed === original) throw new Error(`mutation no longer applies: ${mutation.name}`);
   writeFileSync(path, changed);
-  const run = spawnSync(process.execPath, [path, '--selftest'], { encoding: 'utf8', timeout: 15000 });
+  const run = spawnSync(process.execPath, [join(dir, mutation.runs || mutation.file), '--selftest'], { encoding: 'utf8', timeout: 15000 });
   const killed = run.status === 1 && run.stdout.includes(mutation.failure);
   console.log(`${killed ? 'PASS' : 'FAIL'}  mutation ${mutation.name}: ${killed ? 'caught by intended fixture' : run.error?.message || run.stderr || run.stdout}`);
   if (!killed) failures++;

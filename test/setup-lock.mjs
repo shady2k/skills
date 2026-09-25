@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SETUP = join(ROOT, 'skills/backlog/setup-shady2k-skills');
 const LOCK = join(ROOT, 'test/setup-lock.json');
-const INSTALLED = ['check.mjs', 'check-commits.mjs', 'check-docs.mjs', 'document-format.mjs',
+const INSTALLED = ['check.mjs', 'check-commits.mjs', 'check-docs.mjs', 'document-format.mjs', 'time-format.mjs',
   'integration.md', 'model.md', 'documents.md', 'templates', 'adapters'];
 
 const walk = (p) => (statSync(p).isDirectory() ? readdirSync(p).sort().flatMap((n) => walk(join(p, n))) : [p]);

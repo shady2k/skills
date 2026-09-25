@@ -64,6 +64,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spansOf } from './time-format.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -134,6 +135,27 @@ const hasCriterion = (i) => {
     return (after.match(/[\p{L}\p{N}]{2,}/gu) || []).length >= 3;
   });
 };
+
+// A span that has ended with no receipt: its session claimed something else,
+// its item was claimed again, or its item is no longer being worked on. One
+// still active and claimed by nobody since may simply still be running.
+function unreceipted(m) {
+  const { spans } = spansOf(m);
+  return spans.filter((s) => s.claim && !s.receipt && !s.conflict.length).flatMap((s) => {
+    const item = m.by.get(s.item);
+    const later = spans.find((o) => o !== s && o.claim && o.item === s.item && o.start > s.start);
+    const why = s.next ? `the same session claimed ${s.next.item} at ${s.next.claim.fields.at}`
+      : later ? `${s.item} was claimed again at ${later.claim.fields.at}`
+      : item && item.status !== 'active' ? `${s.item} is ${item.status}` : null;
+    return why ? [{ id: s.item, ref: `span:${s.id}`, note: `span ${s.id} has ended with no receipt: ${why}` }] : [];
+  });
+}
+
+function unclaimedWork(m) {
+  const claimed = new Set(spansOf(m).spans.filter((s) => s.claim).map((s) => s.item));
+  return m.issues.filter((i) => ['submitted', 'implemented'].includes(i.status) && i.type !== 'epic' && !m.children.has(i.id) && !claimed.has(i.id))
+    .map((i) => ({ id: i.id, note: `${i.status} with no claim recorded on it` }));
+}
 
 // ---------------------------------------------------------------- checks
 
@@ -365,6 +387,50 @@ const CHECKS = [
         return [];
       }),
   },
+  {
+    id: 'time-record-damaged',
+    severity: 'error',
+    why: 'A record of how the work went that does not parse, or whose table does not add up, is not counted by anyone, so the time it held is lost while the item looks recorded.',
+    fix: 'Post the record again exactly as the run script printed it, and delete the damaged one. The numbers come from the script; a hand-edited table is what this catches.',
+    run: (m) => spansOf(m).damaged.map((r) => ({ id: r.item, ref: `comment:${r.comment ?? r.body.slice(0, 60)}`, note: r.problems.slice(0, 2).join('; ') })),
+  },
+  {
+    id: 'time-span-conflict',
+    severity: 'error',
+    why: 'One span has one claim and one receipt. Two different ones mean the same minutes are recorded twice, or a receipt was written for someone else\'s span, and no total built on them can be trusted.',
+    fix: 'Keep the record the script printed for this span and delete the other. The same record posted twice by a retry is not a conflict and needs nothing.',
+    run: (m) => spansOf(m).spans.filter((s) => s.conflict.length || (s.claim && s.receipt && Math.abs(Date.parse(s.receipt.fields.from) - s.start) > 60e3))
+      .map((s) => ({ id: s.item, ref: `span:${s.id}`, note: s.conflict.length ? `span ${s.id}: ${s.conflict.join('; ')}` : `span ${s.id}: its receipt starts at ${s.receipt.fields.from}, its claim at ${s.claim.fields.at}` })),
+  },
+  {
+    id: 'time-span-unclaimed',
+    severity: 'error',
+    why: 'A receipt or event whose span was never claimed belongs to no session and no item start, so nothing can say whose time it is or whether it overlaps other work.',
+    fix: 'Post the span\'s claim where it was taken, or remove a record written against a span id that does not exist.',
+    run: (m) => spansOf(m).spans.filter((s) => !s.claim && !s.conflict.length).map((s) => ({ id: s.item, ref: `span:${s.id}`, note: `span ${s.id} has records but no claim` })),
+  },
+  {
+    id: 'time-span-overlap',
+    severity: 'error',
+    why: 'A session works on one item at a time: taking the next ends the one before. A receipt reaching past the session\'s next claim counts the same minutes on two items.',
+    fix: 'Write the receipt again with the run script, which ends the span where the session\'s next claim begins, and delete the one that overlaps.',
+    run: (m) => spansOf(m).spans.filter((s) => s.receipt && s.next && s.end > s.next.start + 60e3)
+      .map((s) => ({ id: s.item, ref: `span:${s.id}`, note: `span ${s.id} ends ${s.receipt.fields.to}, after the same session claimed ${s.next.item} at ${s.next.claim.fields.at}` })),
+  },
+  {
+    id: 'time-span-unreceipted',
+    severity: 'error',
+    why: 'A span that has ended with no receipt is time spent and never recorded. Reports then give a total that looks complete and is not.',
+    fix: 'Write its receipt with the run script on the machine that holds the session\'s transcript, with the end it had. Where no machine has it, say so to the owner; the time stays unknown, not zero.',
+    run: (m) => unreceipted(m),
+  },
+  {
+    id: 'time-work-unclaimed',
+    severity: 'error',
+    why: 'A result handed in with no claim on its task was worked on by nobody the record knows: its time cannot be found, and the gate cannot tell it from work that took none.',
+    fix: 'Post the claim the session made, with its real start, and the receipt for it from the machine that holds the transcript. Work nobody claimed is the gap this names; closing the task does not fill it.',
+    run: (m) => unclaimedWork(m),
+  },
 ];
 
 function bulkClusters(m, threshold) {
@@ -384,7 +450,7 @@ function bulkClusters(m, threshold) {
 
 // The version of the set these rules shipped with. A project holds a COPY of
 // this file, and this is how anybody tells that the copy has fallen behind.
-const RULES_VERSION = '0.28.0';
+const RULES_VERSION = '0.29.0';
 
 const STRENGTHS = ['block', 'block-new', 'report'];
 
@@ -429,6 +495,8 @@ function checkedBacklog(raw, where) {
       throw new Misuse(`${where}: ${i.id} blockedBy must be a list of ids`);
     // An unreadable date makes every age comparison false, which reads as "fresh".
     if (LIVE(i.status) && !Number.isFinite(Date.parse(i.updatedAt))) throw new Misuse(`${where}: ${i.id} has no readable updatedAt`);
+    if (i.comments != null && (!Array.isArray(i.comments) || i.comments.some((c) => !c || typeof c.body !== 'string')))
+      throw new Misuse(`${where}: ${i.id} comments must be a list of { id, at, author, body }`);
   }
   return raw;
 }

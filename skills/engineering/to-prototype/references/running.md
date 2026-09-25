@@ -209,10 +209,9 @@ branch it is for.
 
 **Estimates are agent time.** Estimate as reference-class forecasting does:
 from how long similar work took in this project, measured rather than
-recalled — the run journal's pace where it has enough runs; that journal is
-one machine's, so where it is thin, what finished runs left on their features
-in the tracker; otherwise the tracker's and git's timestamps and how long a CI
-run takes. Calibrate by how far past estimates were off: a model's own sense of
+recalled — the pace finished runs recorded on their features, with the
+forecast by phase it proposes, where there are enough of them; otherwise the
+tracker's and git's timestamps and how long a CI run takes. Calibrate by how far past estimates were off: a model's own sense of
 time runs short, and a developer's hours are the wrong reference class. An
 agent's time goes to waiting (CI runs, reviews, workers, the owner's answers),
 rework after a red check, and diagnosis, so the number is a range of the time

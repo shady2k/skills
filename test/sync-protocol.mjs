@@ -19,6 +19,7 @@ const TAKE = 'skills/engineering/take-task';
 export const SHARED = {
   'protocol.md': SETUP,
   ...Object.fromEntries(readdirSync(join(ROOT, SETUP, 'references')).map((n) => [`references/${n}`, SETUP])),
+  'time-format.mjs': SETUP,
   'runs.mjs': TAKE,
   'ledger.mjs': TAKE,
 };

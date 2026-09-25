@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.28.0
+Setup version: 0.29.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -123,11 +123,29 @@ in the person's name. The person holds only work they do themselves: a
 decision, a manual check, an approval. An agent's name says who can find it:
 its harness and role, the person it works for, the machine, the branch and its
 session, as `<harness>-<role>:<person>@<machine>:<branch>#<session>`, for
-example `claude-worker-2:alex@laptop:fix/login#528e03ed`. The claim's comment
-adds when it started and the checkout's path. A role alone ("coordinator")
+example `claude-worker-2:alex@laptop:fix/login#528e03ed`. The claim is also a
+record on the item, which carries that name, the session and when it started
+(**How the work went is kept on the item**). A role alone ("coordinator")
 names nobody: several run at once on different machines and branches. Where
 the tracker assigns only people's accounts, the person's account holds the task
-and the claim's comment carries the agent's full name.
+and the claim's record carries the agent's full name.
+
+**How the work went is kept on the item.** Every claim, and everything later
+known about the work under it, is a record on the item in the tracker, as the
+run script prints it (`runs.mjs`, in the records' format of
+`time-format.mjs`); nothing about it is kept on a machine, so every machine and
+session reads the same history. A session holds one item at a time: its claim
+starts a span, and claiming the next item ends it. When the session stops
+working on the item (the work is handed in, the session ends, the work stops or
+is handed over) the script writes the span's receipt: what the session spent,
+by phase of the work and by who spent it, measured from its transcript. The
+numbers are the script's; an agent never types, rounds or edits one. Stops,
+decisions taken alone and CI runs are records inside the span; a feature's
+close is its summary, the owner's judgement his verdict. A span that ended with
+no receipt is found by the gate and written from the transcript where it is;
+where no machine has it, its time is unknown, said so, and never zero. A figure
+of time counts the receipts; what is still open is said beside it, as
+incomplete.
 Workers have distinct owners and an atomic claim or a serialized assignment:
 reading back a field that anyone can overwrite is not a lock. If a merge
 changes or fails, reopen the affected work and recheck what depends on it. The

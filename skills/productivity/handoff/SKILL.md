@@ -79,12 +79,14 @@ hash or "Title" (id) instead. What remains is the note.
   about that feature. It is visible from every checkout, machine and worker,
   and it closes with the feature, so it cannot outlive what it describes. A
   newer note replaces an older one for the next agent; do not edit old ones.
-- **Anything else** (an exploration, a conversation before setup, work with no
-  feature): a file outside the repository that survives a restart, in the
-  user's state directory: `~/.local/state/shady2k-skills/handoff/<project>/`,
-  named `<date>-<what it is about>.md`. If the harness cannot write there, use
-  its temporary directory and tell the user the note will not survive a
-  restart or reach another machine.
+- **Anything else** (an exploration, work with no feature), where the project
+  has a backlog integration: an item of its own, filed through `to-backlog` in
+  the ideas lane, titled `Handoff: <what it is about>`, with the note as its
+  body. Nothing is kept on a machine: the tracker is what every checkout,
+  machine and session reads.
+- **With no integration** (a conversation before setup): give the note to the
+  user in the conversation, and say plainly that it is kept nowhere else and
+  will be lost unless they keep it themselves.
 
 **Lessons that outlive this work.** A trap only this work meets belongs to the
 note; one that would cost time in other work too is kept by the protocol's

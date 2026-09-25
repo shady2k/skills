@@ -37,9 +37,7 @@ Do not make the user pick a mode.
 **Always:** README and agent doc; vision, roadmap, charters, current specs,
 glossary and decision records where they exist; the shape of the code, its
 checks and CI; git history, branches, worktrees and uncommitted changes. Git
-history is progress evidence too. Handoff notes for this project in
-`~/.local/state/shady2k-skills/handoff/<project>/`, newest first: what an
-earlier session learned, to weigh against current evidence, not to obey.
+history is progress evidence too.
 
 **Where the project has a backlog integration** (its agent doc points to it):
 read [`protocol.md`](protocol.md) and do its compatibility check. Run the gate
@@ -48,20 +46,22 @@ landed (check other worktrees), a missing runtime, a tracker outage or broken
 wiring. Collect the gate's report, config, charter, outcomes, holds, submitted
 and implemented tasks, stage acceptance records, the newest `Handoff` comment
 on each feature in flight, and the tasks that can start now, using the
-integration's stage- and checkout-aware operation. Where runs were recorded,
-the run journal's `report` and `pace` ([`runs.mjs`](runs.mjs), run with `node`
-from this skill's folder): how past runs went and how long work really takes
-here. Where the owner asks where the project's hours go rather than how one run
-went, the ledger beside it ([`ledger.mjs`](ledger.mjs)) answers over the whole
-project and not only over runs: `time` splits each session's clock into the
-model's, the tools', the waiting inside the agents' turns, the owner answering,
-the owner away and nobody's, which add up to it, names what the agents were
-doing and under which phase of the work where a record shows one, and says
-which figures some sessions did not record (a harness that keeps no cost has
-an unknown cost, not a free one); `sessions` lists what ran, including the
-workers' own working copies and subagents, and how many were working at once. The journal is this machine's; where it is thin or missing, the
-`Run measured` comments on closed features carry the same numbers from wherever
-those runs happened. Its `stalled` names runs that recorded no end and
+integration's stage- and checkout-aware operation, and the open `Handoff` items
+the ideas lane keeps for work with no feature: what an earlier session learned,
+to weigh against current evidence, not to obey. How the work went is on the
+items, by the protocol's **How the work went is kept on the item**, and the run
+script ([`runs.mjs`](runs.mjs), run with `node` from this skill's folder over
+the adapter's export, in the format of [`time-format.mjs`](time-format.mjs))
+reads it the same from every machine: `report` and `pace`, how past runs went
+and how long work really takes here; `time`, where the recorded hours went,
+by phase and by who spent them, with what is still open said beside as
+incomplete, and on this machine only what its open sessions have spent so far
+and time in sessions that claimed nothing. Where the owner asks about this
+machine's sessions themselves, the ledger beside it ([`ledger.mjs`](ledger.mjs))
+reads them whole: `time` and `sessions`, including the workers' own working
+copies and subagents, and which figures a harness did not record (a harness
+that keeps no cost has an unknown cost, not a free one). Its `stalled` names
+runs that left no summary and
 passed the time their result was promised for: report each with what it last did and when, next to the
 hold it left on the work, and offer taking it over or ending its record. For a run
 still inside its forecast, say when its result is due and what the owner's
@@ -181,7 +181,10 @@ week"). Do not ask for it: unnamed, it runs from the start of the previous
 working day (on a Monday, from Friday). Name it in the first line with its
 bounds, so a wrong one is seen at once. Collect over it with the sources of
 section 2: tasks closed in the period, rolled up to their features and stages;
-the runs that started or ended in it; the ledger's `time --since`.
+the runs that started or ended in it; the run script's `time --since`. A
+stretch of work is counted in the period it ended in, once; one begun before
+the period is counted whole and said to be. Time still open, or on a machine
+whose transcripts nobody has written up, makes the figure "at least", said so.
 
 - **Done:** accepted features and finished stages, as what a user can now do,
   and what waits for their acceptance. Tasks are not listed one by one; they

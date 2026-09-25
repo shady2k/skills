@@ -271,7 +271,8 @@ silently, by the protocol's **Speaking to the owner** (never show the kitchen).
 
 **Adapter:** read [model.md](model.md) in full before writing or changing it.
 It exports every status, closed, `submitted` and `implemented` included, real
-dependency edges, holders and recorded merge evidence. Its ready operation
+dependency edges, holders, recorded merge evidence and every work record
+comment, raw, by the protocol's **How the work went is kept on the item**. Its ready operation
 takes the stage and checkout, and whatever it returns can be claimed atomically
 and exclusively with the dependency edges kept; where the tracker's own claim
 refuses some of it (a blocker it does not know is satisfied, for example), the
@@ -281,7 +282,8 @@ to ready or closed. For `block-new`, verify that history can be exported and
 the historical config retrieved; otherwise agree an honest supported strength.
 
 **Checks:** run all three shipped checks in place where they are in the
-project, or copy them unchanged, and record where they came from in the
+project, or copy them unchanged (the backlog rules with
+[`time-format.mjs`](time-format.mjs) beside them, which they read records by), and record where they came from in the
 integration, not inside the copies. Without Node, port all three and prove the
 same fixtures. A matching version does not replace a byte comparison or port
 proof.
@@ -390,7 +392,13 @@ An existing setup runs all of these too, even when versions match.
    release, `implemented`, readiness and an actual claim of a
    dependant in the same stage, through the integration's own claim operation, acceptance across stages and independent ready
    work. Check that `submitted` results survive a handoff without being redone.
-   Check dependency cycles and the exact task-reference parser.
+   Check dependency cycles and the exact task-reference parser. Post a claim
+   record the run script printed on a proof issue, read it back through the
+   adapter's export and see it byte for byte; edit one number in a copy and see
+   the gate name it damaged.
+   Where the project kept run records on a machine before (a state directory
+   of the set's), they are this machine's only: say so to the owner once, and
+   leave them; nothing reads them now.
 3. **Real entry points:** plant a recoverable backlog violation and run the real
    hook; see it fail (or report, at `report` strength), undo, see it clean. Run
    the real commit-message entry point with a missing task, an unknown task and

@@ -22,7 +22,10 @@ An adapter reads whatever the project's tracker holds and prints this:
       "body": "…full description, for the checks that read it…",
       "updatedAt": "2026-09-17T17:05:00Z",
       "createdAt": "2026-08-30T09:12:00Z",
-      "holder": "somebody"
+      "holder": "somebody",
+      "comments": [
+        { "id": "c-9031", "at": "2026-09-17T16:40:00Z", "author": "somebody", "body": "[shady2k-time v1] claim\n…" }
+      ]
     }
   ]
 }
@@ -39,6 +42,7 @@ An adapter reads whatever the project's tracker holds and prints this:
 | `holder`    | who holds it, `null` for nobody; optional  | Omit the key if the tracker cannot say. `null` on an active issue is a violation. |
 | `integration` | `{ "revision": "...", "evidence": "..." } | Required on implemented leaves under a stage; coordinator records the integrated revision and related-check evidence. |
 | `delivery` | `{ "revision": "...", "evidence": "..." } | Required on submitted leaves; durable result revision/location and local-check evidence, before integration. |
+| `comments` | `[{ "id", "at", "author", "body" }]` | The item's comments whose body starts with `[shady2k-time`: the set's records of claims and time, in `time-format.mjs`. Others may be left out. |
 
 ## Execution mapping
 
@@ -96,6 +100,14 @@ them.
 **A native milestone is emitted as a label.** The rules read labels and nothing
 else, so a tracker with a milestone field of its own has the adapter add that
 milestone's name to `labels`, spelled as the config's `milestoneLabels` spell it.
+
+**Every record comment is exported, raw and whole.** A comment starting with
+`[shady2k-time` goes out with the tracker's own stable comment id, its time,
+its author and its body exactly as stored, damaged or not: the gate judges it,
+and a damaged record the adapter dropped is time lost with nothing to say so.
+The run scripts read the same export, so the adapter is how every machine sees
+the same records. Posting a record is the tracker's ordinary comment
+operation, with the text the script printed, unchanged.
 
 **An adapter emits closed issues too.** Several checks need to tell "closed" from
 "absent", and an adapter that filters them makes a deleted issue and a finished
