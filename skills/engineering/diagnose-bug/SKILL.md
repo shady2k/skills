@@ -85,7 +85,10 @@ waiting for it.
 Change one thing at a time, each probe testing one prediction. Prefer a
 debugger to logs; log only where it tells hypotheses apart, never everywhere.
 Mark every temporary line with one unique prefix so one search removes them
-all. For a slowdown, measure first: a baseline, then bisect.
+all. For a slowdown, measure first: a baseline, then bisect. A cause placed
+outside the project, in a dependency, the platform or someone else's code, is
+named only once [**An experiment is not a finding until its control has
+run**](references/deciding.md).
 
 ## 5. Fix, behind a check
 
