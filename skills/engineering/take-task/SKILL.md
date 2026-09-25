@@ -281,7 +281,10 @@ session resumed from its log where the agent can do that.
 ## 6. Accept each stage
 
 With a stage's results merged, run the project's full required checks and the
-stage's DONE WHEN on the assembled revision. Where the stage carries the spec's
+stage's DONE WHEN on the assembled revision, here, through the integration's
+full-check command. Acceptance starts no CI: the pull request stays in progress
+until step 7, and fixes merged after a review stay there too (the protocol's
+**Know what a push starts, and push once**). Where the stage carries the spec's
 place of observation, walk the happy path there yourself the way a person
 reaches it, and record what you saw; a walk you could not make is recorded as
 not made. Then run mutation testing on changed logic within the configured
@@ -321,7 +324,8 @@ own checkout off that branch as soon as the run is submitted, by the protocol's
 few steps of the walk you made, every decision and assumption made alone,
 departures from the spec, review findings, what is not done and the risks left.
 Wait for its checks to go green; fix a red one as part of the run, back in
-progress until the fix is proven locally.
+progress until the fix is proven locally, by the protocol's **CI is not where
+failures are diagnosed**.
 
 Finish the run's record with the pull request. The owner's acceptance is the
 merge. After it, close the tasks, stages and feature through `close-out`, which
