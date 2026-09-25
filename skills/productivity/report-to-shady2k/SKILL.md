@@ -30,12 +30,11 @@ interview. Find out yourself:
   product. Add the user's role as the conversation established it, or the
   set's default where none was: one role, not a choice of two, because it
   decides how deep an explanation had to go;
-- the shape of the situation, enough to rebuild it with made-up data: "about
-  900 open issues, most marked ready; features without a done criterion;
-  dependencies attached to features instead of tasks". The shape is of what
-  the skill met, not of the product: "one feature bundling four building
-  blocks, one of them a store", never what those blocks are, what they keep or
-  how they talk. A product's design identifies it as surely as its name;
+- the shape of the situation, enough to rebuild it with made-up data, and
+  de-identified: a structure is a quasi-identifier, so the report carries the
+  shape of what the skill met (for example, "a large backlog, most of it marked
+  ready, with no done criteria") and never the product's design, its parts,
+  what they keep or how they talk;
 - where in the skill's text the cause probably is, and what change would fix it.
   A rule in a skill's `references/` folder is a copy of one shared rule, found
   in several skills: name the rule and its file once, and propose the change

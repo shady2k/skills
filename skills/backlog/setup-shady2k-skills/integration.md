@@ -32,7 +32,8 @@ are the repository's installation, and each person's plugin and hooks are theirs
 - **Document adapter and gate:** <deterministic export from real docs/tasks; product/feature/acceptance/close commands; or "not installed yet" and the "Title" (id) of its task>
 - **Document policy:** <config source for approval and required checks; protected policy selection>
 - **Document baseline/scope:** <actual target revision, full affected capabilities and complete changed-file enumeration>
-- **Evidence revision:** <how it is computed; the exact paths left out of it: the tracker export, change records, current specs and their catalogue, and nothing else>
+- **Tracker layout:** <where the store lives relative to the branches (outside them, or a file each branch commits); how the tracker at a code revision and its transitions over a commit range are read; where the file stays in the branches, the hook that narrows what a commit carries of it to that branch's own writes. The agent doc's end-of-session step follows this layout, over the tracker's own generic advice>
+- **Evidence revision:** <how it is computed; the exact paths left out of it: the tracker export where it sits in the tree, change records, current specs and their catalogue, and nothing else>
 - **Evidence level:** <records (acceptance record, trusted not verified) or protected (runner/API receipts, revision and digest binding)>
 - **Document synchronization:** <prepare delta replay, verify final tree, publish, archive and close idempotently>
 - **Enforcement boundary:** <protected required CI and tracker transition guard, or explicitly audit-only limits>

@@ -55,18 +55,15 @@ retained decisions and recommended new values in product terms, what ships, for
 whom, at what cost and risk, and the assumptions it rests on. For each
 meaningful choice say why it is recommended and what changing it would do.
 The user approves it as a whole or changes named items. Ask separately, one at
-a time, only about material unknowns or conflicting priorities. Do not re-ask
-what is already decided.
+a time, only about material unknowns or conflicting priorities; what is
+already decided stays decided, by the protocol's [**A decision given is not
+reopened by better analysis**](references/deciding.md).
 
-**A question the owner left open stays open until the owner closes it.** Where
-the conversation asked something ("should this part be done by X or by Y?")
-and nobody answered, the draft either keeps it open, with the outcomes that
-rest on it saying so, or answers it as the agent's own recommendation. Each
-such answer comes first in the summary, named as the agent's, with what goes
-into the milestone because of it, and is approved by name, by the protocol's
-**A decision belongs to whoever made it**. A charter that settles an open
-question silently carries that answer into every outcome, feature and decision
-written after it.
+A question the conversation left open either stays open in the draft, with the
+outcomes that rest on it saying so, or is answered as the agent's own, by
+[**A decision belongs to whoever made it**](references/speaking.md). Each such
+answer comes first in the summary, with what goes into the milestone because of
+it.
 
 The draft covers:
 
@@ -81,16 +78,15 @@ The draft covers:
    Carrying over is a decision, never a default.
 5. **The finding budget**: how many bugs and debts found along the way this
    milestone absorbs before something must leave. Recommend it from the ending
-   milestone's count and the agreed scope; do not add a reserve because some
-   findings closed. Raising it admits more unplanned work and can delay
-   delivery; keeping it means deferring or trading off when it is reached.
+   milestone's count and the agreed scope, as the protocol's findings lane
+   counts it. Raising it admits more unplanned work and can delay delivery; keeping it means deferring or trading off when it is reached.
 6. **The next milestone**, as feature titles only.
 
 ## 3. Write it
 
-Write only after the owner's explicit yes to the summary; silence, or "accept
-it without reading", is not that yes. Without it the charter is kept as a
-draft and the vision and charter are not accepted.
+Write only after the owner's explicit yes to the summary, by the protocol's
+[**A decision belongs to whoever made it**](references/speaking.md). Without
+it the charter is kept as a draft and the vision and charter are not accepted.
 
 - The charter at `<charters directory>/<milestone label>.md`: name, date,
   outcomes with their checks, out, carried over, the finding-budget decision

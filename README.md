@@ -514,6 +514,7 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.58.0** keeps each rule the skills follow as one general practice, named and written once, instead of a retelling of the case that prompted it: overlapping rules are merged, a skill points to the rule rather than repeating it, and nothing an agent did before is lost in the merge. It also stops a tracker kept inside the repository from carrying one branch's task states into another: setup now asks where the tracker lives when work runs on several branches at once, recommends keeping it outside the branches, and the checks read it from there. Projects rerun setup once.
 - **0.57.3** puts one principle behind every conclusion that reaches you: it goes only as far as the evidence behind it, and one not yet checked comes to you as a guess with what would settle it, rather than as a fact.
 - **0.57.2** stops a test the agent wrote from being reported as someone else's bug before it is checked against how your system really runs: until then it reaches you as a guess with the missing check named, nothing is proposed to file with another project on it, and a decision that rests on a single earlier measurement says so.
 - **0.57.1** looks for your earlier answer before asking you anything: the whole feature's tasks, closed work, decision records and past sessions are searched first, a decision found is acted on and written down with where it came from, and a question that does reach you says where the search looked.

@@ -13,8 +13,8 @@ Talk and keep things by the protocol's [**Language**](references/speaking.md).
 
 ## 1. Write the question down
 
-Kept files and commits need their owning task; without a backlog integration,
-experiment in scratch space and ask for setup before kept work.
+The experiment runs in scratch space; anything kept is tracked work, by the
+protocol's [**Tracked work**](references/keeping.md).
 
 Put one paragraph at the top of the prototype: what is being asked, and which
 answer would change the design. A prototype that answers the wrong question is

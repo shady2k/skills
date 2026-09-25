@@ -17,8 +17,8 @@ Talk and keep things by the protocol's [**Language**](references/speaking.md).
 This skill is for **changing** them. Every skill reads the glossary before
 naming things, and takes its names from there rather than coining one.
 
-Keeping changes or committing needs the owning task; without a backlog
-integration, discuss terms without changing files and ask for setup. If
+Changing the glossary or the records is tracked work, by the protocol's
+[**Tracked work**](references/keeping.md). If
 the code and the glossary disagree, investigate; do not redefine the domain to
 fit a bug.
 

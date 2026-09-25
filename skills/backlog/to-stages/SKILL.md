@@ -34,8 +34,8 @@ usable behaviour and criteria, use `to-spec`. For a bug, reuse its requirement
 and regression scenario.
 
 Before drafting, read the open work that would replace what these stages stand
-on, by the protocol's **What would replace the ground is read before anything
-is built on it**: found now, a collision is an edge and a reshaping.
+on, by the protocol's **What would make the work obsolete is read before it is
+paid for**: found now, a collision is an edge and a reshaping.
 
 A standalone task or bug joins the feature and stage it serves. If none exists,
 create the minimal feature and stage in the current slice, with criteria from
@@ -105,7 +105,9 @@ Show a numbered list: title, what it makes true, what it waits for. Explain
 each stage's result, size, real prerequisites and what can run in parallel, in
 terms of the outcome it enables and the cost or risk of changing it. The user
 changes named entries; they do not approve every task or assignment. Ask about
-open product, cost or risk decisions one at a time; do not re-ask approved scope.
+open product, cost or risk decisions one at a time; approved scope stays
+approved, by the protocol's [**A decision given is not reopened by better
+analysis**](references/deciding.md).
 
 ## 5. Publish and prove
 

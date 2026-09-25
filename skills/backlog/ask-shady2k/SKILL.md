@@ -63,12 +63,11 @@ workers' own working copies and subagents, and how many were working at once. Th
 `Run measured` comments on closed features carry the same numbers from wherever
 those runs happened. Its `stalled` names runs that recorded no end and
 passed the time their result was promised for: report each with what it last did and when, next to the
-hold it left on the work, and offer taking it over or ending its record. A run
-still inside its forecast is not a reason to hold the owner: say when its result
-is due and offer what their presence is worth now — a decision waiting, the next
-feature to plan, something to think through — worked, by the protocol's
-[**Come with the material**](references/deciding.md) and [**The owner's time is
-the scarce one**](references/running.md). What waits on the owner, and whether
+hold it left on the work, and offer taking it over or ending its record. For a run
+still inside its forecast, say when its result is due and what the owner's
+presence is worth meanwhile, by the protocol's [**The owner's time is the
+scarce one**](references/running.md) and [**Come with the
+material**](references/deciding.md). What waits on the owner, and whether
 to ask about their time, follows **The session opens with the picture**. The
 evidence behind a decision waiting on the owner is relayed by [**A claim
 reaches only as far as its evidence**](references/deciding.md). Tell
@@ -97,28 +96,28 @@ with the evidence for each.
   work, stranded branches or uncommitted results, and each real blocker with
   what would release it.
 - **Health and risk:** failing, missing or unrun checks; specs or docs out of
-  step with the code; handoff files committed to the repository, which read as
-  instructions long after they stopped being true; deferred findings piling up; setup out of date. Say what
-  each risks for the product.
+  step with the code; handoff notes committed to the repository, which read as
+  current instructions long after they stopped being true (the protocol's
+  **What describes the present is kept true**); deferred findings piling up;
+  setup out of date. Say what each risks for the product.
 - **Beyond the horizon:** deferred work and ideas worth a thought, marked as
   hypotheses. They are not tasks and do not widen the milestone.
 
 ## 4. Ways forward
 
-**Ready is not a reason.** Before a leaf reaches the recommendation, check that
-its result is still wanted, by the protocol's **Ready is not worth doing** and
-**What would replace the ground is read before anything is built on it**: where
-such work is open, the ground is settled first and the leaf waits, however
-ready it is.
+**Ready is not a reason.** Before a leaf reaches the recommendation, check it
+by the protocol's **What would make the work obsolete is read before it is paid
+for**: where such work is open, that work is settled first and the leaf waits,
+however ready it is.
 
 The recommendation is the first row below that applies; its order makes you
 settle the ground and finish what is open before you start anything new. Then
 give two or three real alternatives, each with what it achieves, what it
 unblocks and what waits on it, how long it will roughly take in agent time and
 what that rests on (the protocol's **Estimates**), its budget, what it
-postpones, its risk and whether it can be undone. A way forward whose whole cost
-is half an hour of the owner's attention and whose result is that the rest can
-proceed is reported as that, not as time spent instead of writing code. Include
+postpones, its risk and whether it can be undone; a way forward that costs only
+the owner's attention is costed as that, by **The owner's time is the scarce
+one**. Include
 stopping (`/handoff`) when that is a real option. An alternative outside the
 current milestone is labelled a scope change and goes to `/to-milestone` or
 `to-backlog`; an open idea goes to `brainstorming`. Do not invent work to fill
@@ -168,11 +167,8 @@ start the recommended action.
 
 **A correction he gives is a write, not just a better answer.** When he answers
 the picture with a condition, a refusal or a constraint the record does not
-hold — "I will not do that until X", "we decided against Y", "I told you this
-already" — say what is missing and where it belongs. This skill writes nothing
-itself; the write that keeps it is `to-backlog`'s, done first once he agrees to
-any action, by the protocol's **A decision the owner gives is kept, not only
-obeyed**.
+hold, say what is missing and where it belongs; the write is `to-backlog`'s, by
+the protocol's **A decision the owner gives is kept, not only obeyed**.
 
 ## 6. A report for the team's sync
 

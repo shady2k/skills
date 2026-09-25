@@ -180,7 +180,7 @@ Three kinds of knowledge, three owners:
   `skills/backlog/setup-shady2k-skills/`: `protocol.md` is the core (setup
   version, compatibility, levels, lanes, the horizon, what a clean gate is),
   and `references/` holds the rest by topic (speaking to the owner, deciding,
-  running alone, checks, building). A skill links what it uses, and every linked file,
+  running alone, checks, building, what is kept and where). A skill links what it uses, and every linked file,
   with whatever it links in turn, is copied **into the skill's own folder**,
   because a harness may install one folder at a time. `npm run protocol`
   writes and prunes the copies; `npm test` fails on one that drifted, and on a

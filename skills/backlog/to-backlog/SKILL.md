@@ -25,8 +25,8 @@ read the whole list for its area. If it exists, work on it or extend it; never
 file a second issue beside it.
 
 Then look the other way: is there open work that retires the thing this is in?
-Where there is, settle it by the protocol's **A decision that retires something
-also decides what is filed against it**, and tell the owner once what it costs
+Where there is, settle it by the protocol's **What would make the work obsolete
+is read before it is paid for**, and tell the owner once what it costs
 while the replacement is built.
 
 Done when both searches and the area list come back empty, or you found the
@@ -38,13 +38,13 @@ issue that already covers it.
 | --- | --- |
 | an idea, a wish, a "what if" | the **ideas** lane, with a review date |
 | a bug or debt on the current milestone's path | **finding**: under the stage it serves, with the finding label and the current milestone's label; step 3 first |
-| a defect a required check caught on the way to a merge, fixed to make it green | not a finding: under the work whose merge it blocked, closed by the change that lands with it, no finding label, no budget. What the run leaves unfixed is a finding |
+| a defect a required check caught on the way to a merge, fixed to make it green | not a finding, by the protocol's **A repair the merge waits on is not intake**. What the run leaves unfixed is a finding |
 | a bug or debt off that path | deferred, under its feature, or with no parent if it has none |
 | planned work the charter already names | `to-stages` when breaking it down is authorized; otherwise send it that way. A fix needed to meet an agreed criterion is part of that work, not a finding |
 | work for a later milestone | deferred, with that milestone's label, as a feature title only |
 | a question that blocks building | work, under the stage it blocks; it is not an idea |
 | a question for the owner that blocks nothing now, often met by a run working alone | a decision the owner holds: a leaf under the feature it concerns, open and never active, with no finding label and no budget; its body says what it affects, the agent's recommendation and what holds meanwhile. One about work beyond this milestone goes to the ideas lane, worded as the question |
-| a condition the owner put on when something may be done | onto the thing it governs: into its criterion, and as an edge onto the leaf whose result releases it; the milestone's charter where it governs the whole slice. A comment carries the reason, never the whole record |
+| a condition the owner put on when something may be done | onto the thing it governs, by the protocol's [**A decision the owner gives is kept, not only obeyed**](references/speaking.md) |
 
 A finding that needs its own feature is a scope decision for the owner: join
 the current milestone by an explicit scope and budget change, or wait deferred.
@@ -59,8 +59,9 @@ milestone's findings. Within budget, file it and carry on. At or over budget,
 file it as deferred and bring the decision to the owner: leave it for later, or
 replace named planned work and approve the new count. If they replace, update
 the budget in the config and record the decision in the charter with what was
-displaced. Deferring planned work does not lower the count of findings. Do not
-make an unapproved finding ready; filing it need not wait for the decision.
+displaced; the count is of what the milestone took in, as the protocol's
+findings lane says. Do not make an unapproved finding ready; filing it need
+not wait for the decision.
 
 Where the milestone it would join is already closed and the next one does not
 exist, the protocol's **A finding that does not fit is decided, not parked**
@@ -87,10 +88,11 @@ owner**](references/speaking.md) says.
 
 Create it with the tracker's operations and run the gate. Done when the gate is
 clean; fix a new error with its own `fix` line. A `finding-budget` error means
-step 3 was skipped: satisfy it by step 3's decision, never by taking the item
-out of what the check counts. Then publish by the protocol's [**Sessions and
-landing**](references/running.md): the record waits for the session's one merge.
-Report "Title" (id) with its lane,
-read back from the tracker rather than from what you meant to file, and, for a
-finding, the budget after it: "finding 4 of 5". A finding held for the owner's
+step 3 was skipped: satisfy it with step 3's decision, never around it (the
+protocol's [**A gate that refuses is not routed around**](references/checks.md)).
+Then publish by the protocol's [**Sessions and landing**](references/running.md):
+the record waits for the session's one merge. Report "Title" (id) with its
+lane, read back from the tracker as in the ledger of [**End with the next
+step**](references/speaking.md), and, for a finding, the budget after it:
+"finding 4 of 5". A finding held for the owner's
 decision says so and what it is waiting on.

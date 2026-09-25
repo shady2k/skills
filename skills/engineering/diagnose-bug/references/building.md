@@ -23,31 +23,32 @@ binds instead of being remembered.
 
 **Find before writing.** Before a new component, helper, utility, command or
 module, search the project for one that already does it or nearly does, and
-extend that. A parallel copy of what exists is the commonest way an agent
+extend that; a new script is written only where no command already does its
+job. A parallel copy of what exists is the commonest way an agent
 degrades a codebase: each copy is correct on the day it is written, and they
 drift from then on.
 
 **One surface per capability.** A capability has one way in: one screen, one
-endpoint, one command, one settings file, one script. A change extends that
-way in; it never adds a second beside it — a "v2" page, a parallel endpoint, a
-copy of a screen for one case, a new script that does what a command already
-does, a second place for the same setting, a wrapper that exposes the same
-thing under another name. Two ways in double what must be kept correct, and
-they part until nobody knows which one is real. Where the existing surface
-truly cannot carry the change, replacing it is a decision for the owner, and
-the old one is removed in the same feature, never kept "for compatibility"
-without that decision. A throwaway harness for a diagnosis or a prototype is
-not a surface; it is deleted when its question is answered.
+endpoint, one command, one settings file, one script. A change extends that way
+in; it never adds a second beside it, such as a "v2" page, a parallel endpoint,
+a wrapper under another name or a second place for the same setting. Two ways in
+double what must be kept correct, and they part until nobody knows which one is
+real. Where the existing surface truly cannot carry the change, replacing it is
+a decision for the owner, and the old one is removed in the same feature, never
+kept "for compatibility" without that decision. A throwaway harness for a
+diagnosis or a prototype is not a surface; it is deleted when its question is
+answered.
 
 **One way to do one thing.** Follow the pattern the project already uses. A new
 one comes only as a recorded decision, and moving the old code onto it is its
 own task, filed; two ways side by side are not left behind a change.
 
-**Extract on the third repeat.** Two similar places are tolerable; on the third
-the shared part is extracted. An abstraction written for one case guesses the
-second one, and usually wrong.
+**Extract on the third repeat.** The rule of three: two similar places are
+tolerable; on the third the shared part is extracted. An abstraction written for
+one case guesses the second one, and usually wrong.
 
-**Dependencies point inward.** The product's logic knows nothing of its screen,
+**Dependencies point inward.** The dependency rule of ports and adapters: the
+product's logic knows nothing of its screen,
 its database, its framework or the services it calls; they know it. Each
 outside dependency (storage, queues, external APIs, the clock, randomness)
 sits behind an interface the logic owns, so it can be replaced or faked
@@ -62,8 +63,9 @@ with no return.
 lives in one place and is referenced from there, never repeated as a literal
 across the code. Settings and secrets live outside the code.
 
-**A missing input is an error.** An empty, missing or unreadable input — a
-file, a setting, a list of patterns, a response — stops the work with an error
+**A missing input is an error.** Fail fast, and a guard fails closed: an empty,
+missing or unreadable input (a file, a setting, a configuration, a response)
+stops the work with an error
 that names it and says how to supply it; it never yields a smaller result or a
 pass. A guard that cannot find what it checks against refuses. Code that fails
 open passes every test that hands it its input, and is found only by the day
@@ -87,7 +89,8 @@ or a rebrand is a change of values, not of components.
 
 **Shared frames, not inherited pages.** What pages share (the header, the
 navigation, the margins) is a frame that wraps them, and a page supplies its
-content to it. Pages are composed, never inherited: a change to a base page
+content to it. Composition over inheritance: pages are composed, never
+inherited, because a change to a base page
 breaks its children in ways nobody predicts.
 
 **A component shows; logic lives elsewhere.** Data, state and the calls that

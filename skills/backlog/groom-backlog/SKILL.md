@@ -58,8 +58,9 @@ the evidence first: recently moved issue trees, tasks named in recent commits,
 work genuinely in progress. Propose the features it points to, by name, and
 reuse an agreed slice that still fits. Say what stays live and what waits. Do
 not ask the owner to pick tracker labels or read dependency ids. The slice can
-be confirmed together with step 4's proposal or setup's profile; do not ask
-again for a choice already approved.
+be confirmed together with step 4's proposal or setup's profile; a choice
+already approved stays approved, by the protocol's [**A decision given is not
+reopened by better analysis**](references/deciding.md).
 
 If the config has no current milestone, this step creates one: a label named
 for what ships, written to `currentMilestone` and `milestoneLabels`, and put on

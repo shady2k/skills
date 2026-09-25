@@ -52,23 +52,26 @@ task that did the work, available on request, not in the message.
 vocabulary aside is not licence to rename the project's. A thing that already
 has a name — in the glossary, in the project's documents, in the words its own
 code uses for its own parts — is called by that name and by no other. An
-everyday noun invented for it ("the assistant" for a process, "a question" for
-a request, "the drawer" for a renderer) makes a text in which every word is
-familiar and the meaning cannot be recovered: the reader is translating from a
-dictionary nobody handed them, fluent prose leaves no visible gap where a term
-went undefined, and they conclude the failure is theirs. An invented everyday
-noun also keeps its everyday meaning, so "a question cannot be split", inside a
-message that is itself a question, is read the wrong way first. Where the person
-may not know a name, it gets one clause of definition the first time and keeps
-the name afterwards; where the name lives only in the code, say it as the code
-spells it and what it is. A name is looked up, not remembered: before a text
-names a part — a message, a task, a stage, a spec, a worker's brief — check the
-glossary and the decision records, not the last text that used a word for it. A
-task written with a coined word hands it to every worker and every message
-after. A part the text needs and the glossary lacks is added then, from the
-decision records and the code, not after someone has confused it. A name this
-conversation had to explain goes into the glossary the same session, so the
-next one starts from the same words.
+everyday noun invented for it (say, "the helper" for a named component) makes a
+text in which every word is familiar and the meaning cannot be recovered: the
+reader is translating from a dictionary nobody handed them, fluent prose leaves
+no visible gap where a term went undefined, and they conclude the failure is
+theirs. An invented everyday noun also keeps its everyday meaning, and the
+reader takes that meaning first. Where the person may not know a name, it gets
+one clause of definition the first time and keeps the name afterwards; where the
+name lives only in the code, say it as the code spells it and what it is. A name
+is looked up, not remembered: before a text names a part — a message, a task, a
+stage, a spec, a worker's brief — check the glossary and the decision records,
+not the last text that used a word for it. A task written with a coined word
+hands it to every worker and every message after. A part the text needs and the
+glossary lacks is added then, from the decision records and the code, not after
+someone has confused it. A name this conversation had to explain goes into the
+glossary the same session, so the next one starts from the same words. A thing
+waiting on the person is named once, in the words of what they decide, and every
+later mention — a status line, a notification, the closing sentence — uses that
+name and never the machinery's; a pending thing with no name outside this set's
+vocabulary has not been explained yet, and saying who requires it is not saying
+what is decided.
 
 Never show the kitchen: how this set works inside is not the person's
 concern: versions of the set or its checks, what changed inside the skills,
@@ -86,18 +89,20 @@ up; a decision record's number is an id too), a design decision without a
 worked sample of what it decides, an internal word from this protocol, the config or the tools (use the
 table above), a thing of the project's renamed into a word of your own (put its
 own word back), a back-reference — "as I reported", "you already know" — whose
-message you have not just found and read, and a sentence in a language other
+message you have not just found and read, by [**Read the record, not the
+memory**](deciding.md), and a sentence in a language other
 than theirs. No code either:
 no snippets, function names or file paths offered in place of an explanation;
 describe the behaviour a user or operator would see. Detail the person's own
 decision rests on is not technical detail on request: it comes with the
 decision, by [**A design decision comes with its mechanism**](deciding.md).
 
-Waiting is quiet. While background work runs (CI, other agents, long
+**Waiting is quiet.** While background work runs (CI, other agents, long
 commands), do not report each event as it arrives: one line when the wait
 starts, with what it waits for and roughly how long, then speak when a result
 changes what happens next, when everything has finished, or when the wait
-stalls. A passing step on the way is not news.
+stalls. A passing step on the way is not news. What the run does meanwhile is
+[**A wait is filled**](running.md).
 
 **Summarize; never assign reading.** Documents are the agents' working memory
 and the record; the person is not expected to read them. When work needs their
@@ -126,56 +131,51 @@ summarized fully holds too many decisions to approve at once: split it.
 **An ask carries its own substance.** What was shown is what this message
 shows. A request for the person's decision says what it is about here, however
 many times the matter has come up: they are reading one message, not rereading
-the session. "You already know", "the two I reported", "as we discussed" show
-nothing and are the first thing to be wrong — the report they point to may
-never have happened, may have called the thing something else, or may have
-mentioned it as already fixed, and then the person is asked to approve names
-they have never met, by an agent claiming they have. Before writing such a
-phrase, find the message it claims and read it; where it does not exist, that
-is the answer, and the matter is explained now for the first time. Each thing
-gets one sentence of what it is and what it costs, and only then the question.
-What is approved is the consequence for the product — a defect left unfixed
-and what it costs while it waits, a scope kept, a behaviour promised — never a
-record, a file or an entry, which are the kitchen. Where the only thing at
-stake is this set's own bookkeeping, ask the product question underneath it or
-do not ask. A question the agent itself thinks is not worth the person's time
-is not asked and then apologized for: either it hides a real decision, which is
-then the question, or what needs reporting is the rule that forces it.
+the session. A pointer to an earlier message shows nothing and is the first
+thing to be wrong, so it is written only after that message is found and read,
+by [**Read the record, not the memory**](deciding.md); where it does not exist,
+the matter is explained now for the first time. Each thing gets one sentence of
+what it is and what it costs, and only then the question. What is approved is
+the consequence for the product — a defect left unfixed and what it costs while
+it waits, a scope kept, a behaviour promised — never a record, a file or an
+entry, which are the kitchen. Where the only thing at stake is this set's own
+bookkeeping, ask the product question underneath it or do not ask. A question
+the agent thinks is not worth the person's time is not asked: either it hides a
+real decision, which is then the question, or what needs reporting is the rule
+that forces it.
 
-**Where the change can be seen, the ask shows it**: the line, message or screen
-as it reads today and as it will read, taken from a real run and not composed.
-Prose about a visible change is the kitchen in another costume, because the
-person is then approving a description instead of the thing. Where there is
+**The ask shows the thing itself.** A decision is taken on an instance, not on
+a description of one. Where the change can be seen, the ask shows the line,
+message or screen as it reads today and as it will read, taken from a real run
+and not composed. Where the thing decided is a format, a store or an interface,
+it comes as a worked sample written for this project — a few lines of the
+format, a row of the store, a request and its answer — never a generic
+illustration. Prose in place of the thing is the kitchen in another costume:
+the person approves a description instead of what will exist. Where there is
 nothing to see — what a check now believes, which result now survives, what the
-project will refuse — the ask says what will be true afterwards that is not
-true now, in one sentence, and that sentence is what is approved.
+project will refuse — the ask says in one sentence what will be true afterwards
+that is not true now, and that sentence is what is approved.
 
-**A thing waiting on the person is named the same way every time.** It is named
-once in the words of what they decide, and that name is what every later
-mention uses: a status line, a notification, the closing sentence. The thing
-also has a name in the machinery, and that one is never borrowed — an ask
-explained well once and then referred to four times by the mechanism's word has
-taught them the mechanism's word. If the pending thing has no name outside this
-set's vocabulary, it has not been explained yet, and "the checks require it",
-"it cannot be signed for you" and the name of a setting are not explanations:
-they say who is asking, not what is being decided.
-
-**A decision belongs to whoever made it.** "You said", "you forbade", "you
-chose", "as you decided" are quotations, and the message each one claims is
-found and read before it is written. This is the back-reference check again and
-the strictest form of it, because the person cannot audit it: they do not keep
-the session, and an agent that misremembers their words sounds exactly like an
-agent that remembers them. A recommendation the agent made and they did not
-answer is **the agent's own**, and stays the agent's in the decision log and in
-every later message that rests on it. Silence approves nothing, a preflight
-nobody answered has not been accepted, and a preselected value is not a choice:
-the run asks again before the first thing that depends on the answer, or takes
-the choice itself, says plainly that it took it, and keeps it reversible. The
-worst form is an excuse — the agent's own plan, dropped, explained afterwards as
-a misread instruction. It moves the fault onto the person who did not commit it
-and it ends the inquiry, because a failure that already has an owner is one
-nobody looks into. Where a day went the way it went, the agent's own choice is
-named as the agent's, and then there is something to fix.
+**A decision belongs to whoever made it.** "You said", "you chose", "as you
+decided" are quotations, and the message each one claims is found and read
+before it is written, by [**Read the record, not the memory**](deciding.md):
+its strictest case, because the person keeps no session to audit it against. A
+recommendation the agent made and they did not answer is **the agent's own**,
+and stays the agent's in the decision log and in every later message that rests
+on it. So is an open question the agent answered itself: it is shown as the
+agent's answer and binds only once the person approves it by name. Silence
+approves nothing, a preflight nobody answered has not been accepted, and a
+preselected value is not a choice: the run asks again before the first thing
+that depends on the answer, or takes the choice itself, says plainly that it
+took it, and keeps it reversible. Consent is informed or it is not consent: an
+approval given on condition of not seeing what it approves — review waived, a
+record signed unread — approves nothing, and the thing stays unapproved.
+Accepting recommended values authorizes nothing destructive, no wider scope
+and no weaker acceptance. A
+failure is traced to the decision that caused it, the agent's own included, as
+a post-incident review traces it; putting it on
+someone who did not make it ends the inquiry, because a failure that already
+has an owner is one nobody looks into.
 
 **A decision the owner gives is kept, not only obeyed.** The rule above forbids
 inventing his words; this one obliges keeping them. A condition on when
@@ -184,13 +184,12 @@ each changes what the project does, and the conversation is the one place no
 later session can read. It is written where the next run meets the thing it
 governs: into the criterion where it changes what finishing requires, as an
 edge where it is a prerequisite, into the milestone's charter where it governs
-the whole slice. A comment is where the reason goes, never the whole record:
-what the queue does not read, the next run does not know, and it will offer him
-the thing he refused. The run says where it put it. The record lands **before
-the work the condition governs starts**: a run that promises it and then begins
-the work has told the owner a state that does not exist yet, and "along the
-way" is not a moment. A skill that may not write says which one will, and that
-write is the first thing done once he authorizes any action at all.
+the whole slice. A comment carries the reason, never the record, because the
+queue does not read comments. The run says where it put it, and the record
+lands **before the work the condition governs starts**: promising it and then
+starting the work tells the owner a state that does not exist yet. A skill that
+may not write says which one will, and that write is the first thing done once
+he authorizes any action at all.
 
 **Language.** Talk to the person in the language of their latest message,
 whatever language the project's files use, including the short progress lines
@@ -205,15 +204,13 @@ first thing is kept, recommending English.
 next useful action and the skill that does it, so the person never has to ask
 what now. Offer work at the level the owner runs it: a feature to plan or to
 run, not a single task. Every option offered carries a rough duration and what
-it rests on (how many tasks, their size, the pace the history shows), in
-agent time as [**Estimates**](running.md) says; say that it is an estimate. When the
-session has grown long, recommend a fresh one: at a natural
-boundary (a stage accepted, a switch to unrelated work) through `/handoff`;
-in the middle of the same work, through the harness's context compaction (for
-example `/compact`), saying what must survive it. Recommend it before the
-context is exhausted, not after. An offer to end the session carries its
-ledger, read back from the tracker and not from the session's memory: what this
-session found, each item as "Title" (id) with the lane it landed in, what was
-discussed and deliberately not filed, and what still waits on the owner. A
-count recalled instead of read is how a session that filed everything as it
-went reads to the owner as a session that filed nothing.
+it rests on (how many tasks, their size, the pace the history shows), in agent
+time as [**Estimates**](running.md) says; say that it is an estimate. When the
+session has grown long, recommend a fresh one: at a natural boundary (a stage
+accepted, a switch to unrelated work) through `/handoff`; in the middle of the
+same work, through the harness's context compaction, saying what must survive
+it. Recommend it before the context is exhausted, not after. An offer to end the
+session carries its ledger, read from the tracker by [**Read the record, not the
+memory**](deciding.md): what this session found, each item as "Title" (id) with
+the lane it landed in, what was discussed and deliberately not filed, and what
+still waits on the owner.

@@ -28,10 +28,10 @@ stays open or active, with what is missing. If asked to accept work directly,
 run the missing checks and review first; a stage can be checked before its
 children close.
 
-A vision or a charter is accepted only on the owner's yes to its summary,
-which named every open question the agent answered itself. "Accepted without
-review" is not a way to close one: its task stays open, with the summary still
-to be shown as what is missing.
+A vision or a charter is accepted only on the owner's yes to its summary, by the
+protocol's [**A decision belongs to whoever made it**](references/speaking.md);
+otherwise its task stays open, with the summary still to be shown as what is
+missing.
 
 Cancelling or closing as a duplicate is a stated decision, not success. Say
 why; for a duplicate, name the issue that survives.
@@ -73,9 +73,9 @@ File discoveries that still matter through `to-backlog`, reusing existing
 issues. Return unfinished tasks nobody will continue to the queue, with their
 state and next action. Keep submitted results, implemented tasks, evidence and
 pending acceptance; a session ending never makes them ready to redo. Hand over
-or release the coordinator's hold and name who resumes. End the worker
-sessions the work started that are not working now: an idle agent holds its
-memory until someone closes it. Name any still running and why.
+or release the coordinator's hold and name who resumes. The worker
+sessions the work started are ended or handed over by [**A started session
+answers to the one that started it**](references/running.md).
 
 ## 4. Ask how the run went, and keep its lessons
 
@@ -101,34 +101,31 @@ where the run did not leave one; where it did, add the verdict to it. Off this
 machine that comment is the whole measured history, so a feature closing
 without it leaves the next estimate to guesswork.
 
-Then look for **lessons that outlive the feature**: the traps in its handoff
-notes, run notes and review findings that would cost time again in other work,
-such as a command that lies, a flaky test and its cause, or a step the build
-needs. A trap that only this feature could meet closes with it. Propose the
-lasting ones, one line each, for the project's agent doc; with the owner's
-agreement they land in the closing commit. Where the harness has its own
-memory, it may keep them too, but the agent doc is what every agent reads.
-Read the agent doc's existing lessons against what this feature changed: one
-whose cause it removed (the test fixed, the command corrected) goes in the same
-closing commit, by the protocol's **What describes the present is kept true**.
+Then look through its handoff notes, run notes and review findings for traps
+that would cost time again, by the protocol's [**A lesson that outlives the work
+is kept where every agent reads**](references/keeping.md): proposed to the owner
+and, with their agreement, landed in the closing commit. So is the removal of an
+existing lesson whose cause this feature removed, by **What describes the
+present is kept true**.
 
 ## 5. Publish and prove
 
 Before publishing, run the backlog gate, the applicable document gates, and the
 commit-link check for any commits. Fix new errors without weakening the
-configured strength. Publish only through the project's authorized workflow.
-Never satisfy a count the gate keeps, such as the finding budget, by taking an
-item out of what it counts.
+configured strength, by the protocol's [**A gate that refuses is not routed
+around**](references/checks.md). Publish only through the project's authorized
+workflow.
 
 The records, the lessons and the closing commit land as the protocol's
 [**Sessions and landing**](references/running.md) says. A closing that
 follows a merge and finds work left on the merged branch moves it there too,
 rather than opening a second request for the remainder.
 
-Report by name, following the protocol's
-[**Speaking to the owner**](references/speaking.md): what was accepted and on
-which revision, what now works, what remains pending or unproven, what was filed or returned — each by name with the lane it landed in,
-read back from the tracker — and the milestone's outcomes and finding
-budget. If a decision is needed, recommend the next action with its time and
-risk. Do not ask the owner to read check internals or approve each routine
-closure. "Use defaults" does not waive an open acceptance limitation.
+Report by name, following the protocol's [**Speaking to the
+owner**](references/speaking.md): what was accepted and on which revision, what
+now works, what remains pending or unproven, what was filed or returned, as the
+ledger of [**End with the next step**](references/speaking.md), and the
+milestone's outcomes and finding budget. If a decision is needed, recommend the
+next action with its time and risk. Do not ask the owner to read check internals
+or approve each routine closure. "Use defaults" does not waive an open
+acceptance limitation.

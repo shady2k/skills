@@ -27,12 +27,12 @@ any implementation. Read its requirements, spec, charter and code. Work already
 never from scratch. A run already under way continues its record in the run
 journal (`node runs.mjs list`) rather than starting a new one; `stalled` shows
 the runs that recorded no end and which passed the time their result was
-promised for, and one of those on this feature is taken over or ended with `finish --result stopped` before a
-new record is started, never left open beside it. When the owner
-is testing recovery (they stopped a session on purpose and ask this one to
-continue), ask them afterwards for a grade and record it with `recovery`:
-R3 continued correctly, R2 recovered but redid work, R1 needed explanations,
-R0 did not understand where the work stood.
+promised for, and one of those on this feature is taken over or ended with
+`finish --result stopped` before a new record is started, never left open
+beside it. Where the owner stopped a session on purpose to test recovery, ask
+them afterwards for a grade and record it with `recovery`: R3 continued
+correctly, R2 recovered but redid work, R1 needed explanations, R0 did not
+understand where the work stood.
 
 Everything the owner reads follows the protocol's [**Speaking to the
 owner**](references/speaking.md).
@@ -79,33 +79,20 @@ Before the owner leaves, prepare the run so it needs nobody:
 - how long the run will likely take and when the pull request can be expected,
   said as a time the owner can hold it to: past it without word the run has
   stopped, by the protocol's **A run that never came back is found**. Give it
-  in agent time, with what the estimate rests on (the protocol's **Estimates**:
-  the agents' work plus the waits inside it, the owner's answers included).
-  Start from the measured pace: `node runs.mjs pace --tasks <n>`, run from
-  this skill's folder, gives the range of minutes similar runs **occupied**
-  here (the agents working, waiting on checks, reviews and workers, the owner
-  answering; parallel workers counted once), the range of clock they ran over,
-  and how far past estimates were off; quote the occupied range and correct
-  your estimate by it. The clock also holds the owner's time away, which is in
-  no estimate: size the work by what runs occupied, and promise the result by
-  that plus the absence he names below. The journal is this machine's; where it says
-  there is too little history, read the `Run measured` comments on features
-  closed before, through the integration's comment operation, and estimate from
-  those. Only with neither, say the number is a guess. If that is longer than
-  the project lets a branch live, the feature is too big for one run: split it
+  in agent time, by the protocol's **Estimates**, starting from the measured
+  pace: `node runs.mjs pace --tasks <n>`, run from this skill's folder, with
+  the absence named below. If that is longer than the project lets a branch
+  live, the feature is too big for one run: split it
   with the owner through `to-stages` (and `/to-milestone` if the outcome
   changes) first;
 - **when the owner expects to be away, and for how long**, by the protocol's
   **The owner's time is the scarce one**;
-- **what the checks will demand at the end, established now and not at the
-  push**: run the integration's gate against the work as it stands and read
-  what a refusal would ask for, the document side included. Where it wants
-  something this project has never had — a first capability document, a record
-  never written here, an approval only the owner can give — that is work with a
-  cost, and it belongs in this batch. An approval is **taken** here, by
-  **Autonomy**, put as one sentence of what will be true afterwards that is not
-  true now. A demand met at the push is met with no slack left, which is where
-  the cheap way out starts to look reasonable;
+- **what the checks will demand at the end**, by the protocol's **What a gate
+  will demand is known before the work starts**: run the integration's gate
+  against the work as it stands, the document side included; what it asks for
+  that the project has never had is work with a cost in this batch, and an
+  approval it needs is taken here, by **Autonomy**, put as one sentence of
+  what will be true afterwards that is not true now;
 - how to reach the owner when the run stops, if the harness can notify.
 
 Bring all of it as **one batch**, each item with a recommendation and its
@@ -196,26 +183,21 @@ breaks**), and the mutation command for changed files with the time it may
 take. A kind of finding the review returns twice in this run goes into every
 later worker's brief.
 
-**A worker commits only its own paths.** It stages what it changed by name and
-reads the staged list before committing; a broad add in a checkout another
-agent also writes in commits that agent's work under the wrong task. A
-coordinator that dispatches a worker into its own checkout commits its own
-changes first, and commits each later write there at once rather than leaving
-it in the working tree.
+Workers commit by the protocol's **An agent commits only what it wrote**. A
+coordinator that dispatches a worker
+into its own checkout commits its own changes first, and each later write there
+at once.
 
-Before any worker starts, check which agent and model will actually run it
-against the task's risk and the agreed execution settings; a harness may pick
-its own default. If it is weaker than the task needs, switch it before
-starting; never find out after the worker is already writing.
+At dispatch, confirm the agent and model that will actually run each worker
+match the agreed execution settings and the task's risk, and switch before it
+starts where they do not.
 
 Nothing runs unbounded: every worker, review or long command is bounded and
-watched by the protocol's **Silence is not progress** and **The bound is the
-forecast**.
+watched by the protocol's **Silence is not progress**.
 
-Before a leaf is started, check it by the protocol's **Ready is not worth
-doing**; a decision of this run that retires what other open leaves are written
-against settles them with it, by **A decision that retires something also
-decides what is filed against it**.
+Before a leaf is started, and whenever a decision of this run retires what
+other open leaves are written against, apply the protocol's **What would make
+the work obsolete is read before it is paid for**.
 
 Anything put to the owner mid-run follows the protocol's [**Come with the
 material**](references/deciding.md), and a design choice **A design decision
@@ -272,14 +254,11 @@ mark the task `implemented`. Its dependants in this stage can start now;
 dependants in other stages wait for that stage's acceptance. Implemented work
 never goes back to ready.
 
-Then end the worker session that produced it: an idle agent keeps its process
-and memory for as long as it is left open, and nothing else ends it. Keep its
-working copy until the stage is accepted, beside the resume record its task
-already holds. Work that comes back goes to a fresh worker given the rework and that log,
-or to the old session resumed from its log where the agent can do that, never
-to a session kept running in case. A worker that failed or stopped for a
-decision stays open until that is settled: its screen is the only record of
-what it ran.
+Then end the worker session that produced it, by the protocol's **A started
+session answers to the one that started it**. Keep its working copy until the
+stage is accepted, beside the resume record its task already holds. Work that
+comes back goes to a fresh worker given the rework and that log, or to the old
+session resumed from its log where the agent can do that.
 
 - A gap you know how to close: decide, and record the decision and its
   assumptions in the decision log. It goes into the pull request.
@@ -331,23 +310,22 @@ builds on an accepted one; the owner is not asked between stages.
 
 When every stage is accepted, run the full checks and the feature's end-to-end
 criterion once more on the final branch, and walk the feature's happy path once
-more at the place the spec named: behaviour nothing reaches is not done,
-however green the checks (the protocol's **Reached, not just built**). Then
-bring the feature's **one pull request** to review through the project's
-authorized workflow, starting its CI once in the way this repository's CI
-allows (the protocol's **Know what a push starts**). Move the coordinator's own
-checkout off that branch as soon as the run is submitted, by the protocol's
-**A submitted branch is frozen**. Write its report as the
-protocol's **Autonomy** describes: what users can now do, how to check it
-yourself as the few steps of the walk you made, every decision and assumption
-made alone, departures from the spec,
-review findings, what is not done and the risks left. Wait for its checks to go
-green; fix a red one as part of the run, back in progress until the fix is
-proven locally.
+more at the place the spec named: behaviour nothing reaches is not done, however
+green the checks (the protocol's **Reached, not just built**). Then bring the
+feature's **one pull request** to review through the project's authorized
+workflow, starting its CI once in the way this repository's CI allows (the
+protocol's **Know what a push starts, and push once**). Move the coordinator's
+own checkout off that branch as soon as the run is submitted, by the protocol's
+**A submitted branch is frozen**. Write its report as the protocol's
+**Autonomy** describes: what users can now do, how to check it yourself as the
+few steps of the walk you made, every decision and assumption made alone,
+departures from the spec, review findings, what is not done and the risks left.
+Wait for its checks to go green; fix a red one as part of the run, back in
+progress until the fix is proven locally.
 
 Finish the run's record with the pull request. The owner's acceptance is the
 merge. After it, close the tasks, stages and feature through `close-out`, which
-also asks the owner how the run went, and remove the checkouts and branches
-this run created. A run that stops or hands over ends every worker session it
-started that is not working now, and names the ones still running. Commit links and a clean backlog are required but
-never replace checking the behaviour.
+also asks the owner how the run went, and remove the checkouts and branches this
+run created. A run that stops or hands over settles its worker sessions by **A
+started session answers to the one that started it**. Commit links and a clean
+backlog are required but never replace checking the behaviour.

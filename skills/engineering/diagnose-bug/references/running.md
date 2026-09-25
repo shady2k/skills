@@ -17,9 +17,8 @@ finished text, which does not exist yet and which he was never going to read.
 A record binds itself to what he approved, so that the agent's own working on
 it afterwards — the reasoning, which check covers which requirement, a rewrite
 after review — does not send anybody back to him, and a change to what he
-decided does. An approval that can only be given at the end is one the batch
-cannot hold, and then the run is certain to stop him after he has gone, on the
-one thing this rule exists to prevent. This is the one place where
+decided does. An approval that can only be given at the end cannot be taken
+in the batch, and so stops the run after he has gone. This is the one place where
 questions come as a batch: gathering them while the owner is present is cheaper
 than stopping later. A preflight that goes unanswered has not been accepted; by
 [**A decision belongs to whoever made it**](speaking.md), every recommendation in it is still
@@ -76,7 +75,8 @@ the run cannot read.
 flight owes the owner the state of it before it owes them an answer: what is
 running, what it last did, what waits and on whom. It reads that from the
 traces the work leaves — the tracker, the branches and their checks, the
-holds, the workers' own logs — and not by asking the agents at work: a
+holds, the workers' own logs — by [**Read the record, not the
+memory**](deciding.md), and not by asking the agents at work: a
 question to a running agent costs its context and returns what it believes
 about itself. Messaging one is the second step, for when the traces are silent
 or disagree, by **A run that never came back is found**.
@@ -102,6 +102,7 @@ answer. Where nothing is ready, say so, with what is being waited for and when
 it is due, rather than holding the session open in silence. Waiting is the
 state of one job, never the state of the run. What fills a wait never lands on
 what is being waited for: a wait restarted by its own filler is waited twice.
+What the owner hears meanwhile is [**Waiting is quiet**](speaking.md).
 
 **Sessions and landing.** The owner opens the agent in the main checkout and
 talks; talking changes nothing, and a conversation that keeps nothing leaves
@@ -139,15 +140,24 @@ After the owner merges, the agent closes the work and removes the checkouts
 and branches it created.
 
 **Silence is not progress.** Work that runs out of sight — handed to another
-agent, a long command — gets a timeout and a liveness probe, on these terms.
-The hard bound is set before it starts, from what similar work took. That it
-started is proved, never assumed: looked at once in the first minutes (output
-arriving, a file growing, processor time moving). It never goes through
-anything that holds its output until the end, where "never started" looks
-exactly like "still thinking". Once the wait passes what that work has taken
-before, the liveness check comes before any further waiting, and what it shows
-is said plainly. A hung worker taken for a slow one is waited on until the
-owner asks, and that hour is spent by both.
+agent, a long command — runs under a watchdog: a deadline and a heartbeat, both
+set before it starts. The deadline is the estimate made for that work, by
+**Estimates**, not a generous round number chosen so that nothing ever trips
+it. The deadline is the
+estimate's upper end. The heartbeat is a sign of life (output arriving, a file
+growing, processor time moving), read never through anything that holds its
+output until the end, where "never started" looks exactly like "still
+thinking". It is looked at in the first minutes, so that a start is proved and
+never assumed, and again whenever the wait passes what that work typically
+takes, before any further waiting, with what it shows said plainly. Past the
+deadline the overrun is a fact about the work,
+not a reason to wait: never wait on to see whether it finishes, never start it
+again hoping for a better run, and never raise the bound to make the step pass.
+Stop it, find out why it took longer, and file that as a finding like any
+other failure this run owns. Durations are tracked as performance regressions
+are: how long tests, a compile, a check or any other operation takes is
+recorded with its result, compared with what the same work took before, and a
+change explained, green or not.
 
 **A started session answers to the one that started it.** Every session one
 agent starts for another — a worker, a reviewer, a coordinator started by a
@@ -162,10 +172,8 @@ session above it — works to the same contract, whatever starts it:
   so that nothing half-written is ever read as an answer. A session that stops
   to wait on anyone writes its report before it waits.
 - It has finished when its report exists and its agent has stopped working;
-  either alone proves nothing. A line on its screen is never the signal: the
-  brief that asks for the line is in its context, and it repeats the line while
-  still thinking. Neither is an idle status, which is also how it looks before
-  it starts.
+  either alone proves nothing, and neither does anything the session shows
+  about itself, which it can show before it starts or while still working.
 - How to resume it is recorded with its task when it starts, not when it ends:
   a session that dies takes the chance to record it with it.
 - The one that started it ends it once the report is collected and the result
@@ -175,25 +183,14 @@ session above it — works to the same contract, whatever starts it:
 
 **A run that never came back is found, not assumed.** An unattended run cannot
 report its own death; what it leaves behind is a hold that stops moving and a
-record with no end. So before it goes unattended it says when its result is
-due, and past that time silence means it stopped, not that it is working. Every
+record with no end. So before it goes unattended its deadline, by **Silence is
+not progress**, is recorded where others can read it, and past that time
+silence means it stopped, not that it is working. Every
 session that looks at the work afterwards — the next coordinator, orientation,
 closing out — names each run that passed its forecast with no end recorded,
 with what it last did and when, and offers to take it over or to end its
 record. None of them reads a taken task with a dead run behind it as work in
 progress.
-
-**The bound is the forecast, and an overrun is a defect.** The time given to
-work that runs out of sight is the estimate made for that work, by
-**Estimates**, not a generous round number chosen so that nothing ever trips
-it. Passing it is a fact about the work: never wait on to see whether it
-finishes, never start it again hoping for a better run, and never raise the
-bound to make the step pass. Stop it, find out why it took longer, and file
-that as a finding like any other failure this run owns. Durations are tracked
-as performance regressions are: how long tests, a compile, a check or any
-other operation takes is recorded with its result, compared with what the same
-work took before, and a change explained. A suite that went from four minutes
-to eleven has said something, green or not.
 
 **A submitted branch is frozen.** Once its pull request is open and its run
 has started, a branch carries only what review sends back to it: the fix for
@@ -202,29 +199,26 @@ meanwhile — a tracker record, a document, the next stage's plan, another
 feature's work — waits for the merge or joins the session's landing branch,
 which asks for one merge at the end and not one apiece (**Sessions and
 landing**). A push there
-restarts every job, so it costs the owner a whole round on the merge they are
+restarts every job, the case of a wait restarted by its own filler (**A wait is
+filled**), so it costs the owner a whole round on the merge they are
 waiting for, and the check evidence an acceptance names is then a different
 commit's than the one that merges. When the run is submitted, the working
 checkout moves off that branch, so that what is done next cannot land there
 by default; where the harness cannot, every push until the merge names the
 branch it is for.
 
-**Estimates are agent time.** An agent writes in minutes what takes a
-developer hours; its time goes to waiting (CI runs, reviews, workers, the
-owner's answers), rework after a red check, and diagnosis. Estimate from this
-project's own history, measured rather than recalled: the run journal's pace
-where it has enough runs (how long similar runs occupied, and how far past
-estimates were off);
-that journal is one machine's, so where it is thin the same numbers are read
-from what finished runs left on their features in the tracker; otherwise the
-tracker's and git's timestamps and how long a CI run takes.
-Correct an estimate by how far past ones were off; a model's own sense of time
-runs short. Give the number as a range of the time the work occupies, the
-agent's work plus the waits inside it, the owner's answers among them ("about
-twenty to forty minutes of work, then two CI runs of half an hour"). The
-owner's time away is in no estimate: its length is his to choose, and the time
-a result is promised for adds the absence he announced. Never estimate by how
-long a developer would take; with no history, say the number is a guess and
+**Estimates are agent time.** Estimate as reference-class forecasting does:
+from how long similar work took in this project, measured rather than
+recalled — the run journal's pace where it has enough runs; that journal is
+one machine's, so where it is thin, what finished runs left on their features
+in the tracker; otherwise the tracker's and git's timestamps and how long a CI
+run takes. Calibrate by how far past estimates were off: a model's own sense of
+time runs short, and a developer's hours are the wrong reference class. An
+agent's time goes to waiting (CI runs, reviews, workers, the owner's answers),
+rework after a red check, and diagnosis, so the number is a range of the time
+the work occupies with those waits inside it. The owner's time away is in no
+estimate: its length is his to choose, and the time a result is promised for
+adds the absence he announced. With no history, say the number is a guess and
 what it rests on.
 
 When work grows well past the

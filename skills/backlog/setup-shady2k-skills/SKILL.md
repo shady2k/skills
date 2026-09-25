@@ -64,7 +64,13 @@ get the user's choice before installing it unless that was already authorized.
 This may be the one decision needed before the rest of the profile. A tracker
 stored in the repository is a valid choice for a small project; no product is
 required. Check it can represent the protocol, natively or through documented
-adapter metadata. Never treat an unreachable tracker as absent or replace one
+adapter metadata. Where the store lives in the repository, an existing one
+included, its layout is part of the choice, by the protocol's [**State every
+branch shares is not versioned inside one**](protocol.md): where work runs on
+more than one branch or checkout at a time, recommend keeping the store
+outside the branches, or else a hook that narrows what a commit carries of it,
+and say what each changes for the checks. Record the choice in the
+integration. Never treat an unreachable tracker as absent or replace one
 without a decision.
 
 **The setup task comes first.** Before any repository change, find or create
@@ -108,7 +114,9 @@ title, grouped by what will happen to them.
 
 The user accepts the profile or names the entries to change. Approval settles
 all its choices at once; do not confirm rows again. "Use the recommended
-values" means: choose defaults from evidence, say what you chose and continue.
+values" means: choose defaults from evidence, say what you chose and continue;
+it authorizes only that, by the protocol's **A decision belongs to whoever
+made it**.
 Base capacity and budgets on real resources, review capacity, observed test
 times and the project's risk policy, not invented numbers.
 
@@ -133,16 +141,13 @@ questionnaire**.
   harness, hooks connected in every clone, and CI enforcing the checks on
   everyone's commits. Team is a decision for the team, not only for this
   person: say so. A rerun keeps the recorded answer. Check the plugin's own
-  installation scope where the harness shows it: the skills should reach every
-  checkout and worktree of this repository. In Claude Code that is `project`
-  scope installed from the main checkout (or `user` if the person wants them
-  everywhere); an install made inside one worktree or at `local` leaves the
-  others without the skills or on an older version. Recommend removing such
-  stray installs, and restarting sessions after installing or updating. The
-  harness's plugin list shows where each was made; one left by a deleted
-  worktree is removed from a recreated empty folder; uninstalling at project
-  scope inside a worktree rewrites the committed shared settings there, so
-  restore that file afterwards.
+  installation scope where the harness shows it: every checkout and worktree of
+  this repository should see the skills at one version, so the install is made
+  at the scope that covers them all (in Claude Code, `project` from the main
+  checkout, or `user` for everywhere). An install that reaches only some
+  checkouts is drift: recommend removing it by the harness's own instructions,
+  leaving the shared settings as they were, and restarting sessions after
+  installing or updating.
 - **Artifact language:** the language of documents, tasks, commit messages
   and code comments. Always a question on first setup, even inside an accepted
   profile: recommend English and show which language the existing files and
@@ -170,13 +175,10 @@ questionnaire**.
   needs no machine of theirs. The preflight of each feature run confirms it.
 - **How changes reach the main line:** whether it accepts a direct push or
   requires a pull request, which checks it requires and how long they take.
-  Found by looking, recorded, never asked again. Where a protected main line runs
-  a long CI even for changes to documents and the tracker alone, recommend,
-  as a separate task, letting CI skip product checks for such changes.
-  Where CI gives no way to keep unfinished work from a full run (it runs on
-  every push, or on draft pull requests too), recommend, as a separate task,
-  one that fits the project, such as skipping drafts: otherwise each push of
-  work in progress costs a full run.
+  Found by looking, recorded, never asked again. Where CI runs product checks
+  on changes that cannot touch the product, or gives unfinished work no way to
+  skip a full run, recommend fixing it as a separate task, by the protocol's
+  **Cheapest check first** and **Know what a push starts, and push once**.
 - **Diagnosability:** whether the project has recorded conventions for log
   levels, request and trace ids and error causes, and whether its CI shows a
   failure's cause on the first screen and keeps logs and artifacts. Where not,
@@ -194,9 +196,8 @@ questionnaire**.
   mutation testing of changed logic, its time budget and what to do with a
   meaningful survivor. Without tooling, agree an explicit alternative or an
   escalation at acceptance; a skipped mutation check is never "passed".
-  Required checks follow what a change can touch: a change that cannot touch
-  product code (documents, process tooling) does not run the product's test
-  suites. Show the cost of each long check, so the owner sees what it buys.
+  Required checks follow what a change can touch, by **Cheapest check first**.
+  Show the cost of each long check, so the owner sees what it buys.
 - **Review:** another model where available, a stated fallback otherwise, and
   whether independent review is required for acceptance. Two agents on the
   same model are not another model.
@@ -220,8 +221,8 @@ questionnaire**.
 
 ## 3. Write or repair the integration
 
-Where other agents share a checkout, install on a separate branch or worktree:
-a shared index lets another agent commit your staged files. Never delete
+Where other agents share a checkout, install on a separate branch or worktree,
+by the protocol's **An agent commits only what it wrote**. Never delete
 branches, worktrees or files this run did not create, even merged ones; list
 them and propose it instead.
 
@@ -260,18 +261,17 @@ The execution numbers are examples, not choices. `findingBudget` and
 The config holds only choices the whole team shares. It records no
 installation state: the installed checks' versions on the main line are the
 repository's installation, and each person's plugin, hooks and runtime are
-their own, checked directly. An older config's `setupStatus`, `setupVersion`
-and `setupVerifiedAt` are removed in this setup's landing, silently: the set's
-own bookkeeping is never news for the owner.
+their own, checked directly. An older config's `setupStatus`,
+`setupVersion` and `setupVerifiedAt` are removed in this setup's landing,
+silently, by the protocol's **Speaking to the owner** (never show the kitchen).
 
 **Adapter:** read [model.md](model.md) in full before writing or changing it.
 It exports every status, closed, `submitted` and `implemented` included, real
 dependency edges, holders and recorded merge evidence. Its ready operation
-takes the stage and checkout, and whatever it returns can be claimed: a
-tracker that refuses to claim or start an issue with an open blocker gets a
-recorded way to claim a same-stage dependant of an implemented prerequisite
-that stays atomic and keeps the edge, since setting only an assignee leaves
-the work looking open and the claim no longer exclusive. A tracker without native `implemented` or
+takes the stage and checkout, and whatever it returns can be claimed atomically
+and exclusively with the dependency edges kept; where the tracker's own claim
+refuses some of it (a blocker it does not know is satisfied, for example), the
+adapter records a way that keeps both. A tracker without native `implemented` or
 `submitted` statuses gets an explicit, stored mapping, never a silent mapping
 to ready or closed. For `block-new`, verify that history can be exported and
 the historical config retrieved; otherwise agree an honest supported strength.
@@ -289,11 +289,10 @@ and how to fix it, readable by a contributor who has never heard of the set.
 
 **Connecting a clone** is one committed command, written with the wiring and
 named in the integration: it sets the hooks, filters and tracker import a clone
-needs and checks every local file a hook reads, is safe to rerun, and fails
-with what is missing instead of connecting half. A list of manual steps is
-what a second machine skips one of. Every hook this setup writes, and every
-guard the project adds beside them (a privacy guard in a public repository,
-say), follows the protocol's [**A missing input is an
+needs and checks every local file a hook reads, is safe to rerun, and fails with
+what is missing instead of connecting half. Every hook this setup writes, and
+every guard the project adds beside them (a privacy guard in a public
+repository, say), follows the protocol's [**A missing input is an
 error**](references/building.md): one that cannot find its patterns, config or
 runtime refuses the commit and names the connect command.
 
@@ -316,9 +315,8 @@ Before enforcement starts, do what adoption owes there: record the work already
 in flight as exempt, with its descendants inheriting the exemption when it is
 split later; seed the capability catalogue with its directory and one document
 from the template; and tell the owner what the gate costs and what the first
-behaviour change after it includes, in hours. Enforcement that starts without
-these meets its first real branch at a push, hours in, and the cheapest exit
-there is a bypass. Run `product` and `feature`
+behaviour change after it includes, in hours, by the protocol's **What a gate
+will demand is known before the work starts**. Run `product` and `feature`
 before the first product implementation, `feature` for new changes,
 `acceptance` for stage evidence and `close` before current docs are accepted.
 CI picks the actual transition and lists every affected document; neither a

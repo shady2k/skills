@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.26.0
+Setup version: 0.27.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -22,6 +22,9 @@ file, read when a step needs it:
 - [building.md](references/building.md): how the product's code is shaped —
   one surface per capability, replaceable boundaries, screens from components
   and tokens, tests that survive a refactoring;
+- [keeping.md](references/keeping.md): what is tracked, what a session must
+  not keep only to itself, exploration versus commitment, and lessons that
+  outlive the work;
 - [starting.md](references/starting.md): a project from an empty folder, with
   not even an idea, to its first planned feature;
 - [tz-gost.md](references/tz-gost.md): drafting a ТЗ or a ПМИ by Russian
@@ -79,16 +82,27 @@ next milestone exists as feature titles; anything further lives in the vision.
 wears; everything else is deferred. The current milestone is read from the
 gate's config each time.
 
-**What would replace the ground is read before anything is built on it.** Before
-a feature or a stage is planned, and again before its stage is accepted, read
-the open work of this milestone and the next that would retire or replace what
-it stands on: the component it extends, the representation it adds to, the
-decision record it rests on. Where such work exists, the two are an edge with
-its reason, and one of them is reshaped before either is built. The case this
-catches is two pieces of open work each adding its own representation of the
-same thing, and it is found by reading a sibling issue, never by building. A
-stage whose result is replaced by work already in the queue is paid for twice:
-once to build it, once to take it out.
+**What would make the work obsolete is read before it is paid for.** This is
+change impact analysis. Before a feature, a stage or a
+leaf is planned or started, and again before a stage is accepted, read the
+decisions taken since it was filed and the open work of this milestone and the
+next that would retire or replace what it stands on: the component it extends,
+the representation it adds to, the decision record it rests on. That is found
+by reading the neighbouring work, never by building. Where a decision already
+retired it, it is settled as below. Where open work would, the two are an edge
+with its reason, and one of them is reshaped before either is built. Ready
+says only that nothing blocks it; whether its result is still wanted is this
+question, and an answer about order ("nothing depends on it") is not an answer
+to it.
+
+**A decision that retires something also decides what is filed against it.**
+The same analysis, at the moment of the decision: when a decision replaces a component, a
+representation or a form, every open leaf and finding against the old one is
+settled in the same session: closed as moot, naming the decision that retired
+it, or rewritten against the requirement that survives, which is different
+work at a different cost. Filing a finding is not a promise to fix it; it buys
+only that the fault is known and counted. Work whose result is replaced is paid
+for twice: once to build it, once to take it out.
 
 **Ready** means an open leaf that nobody holds and whose required results are
 available. A closed prerequisite counts. An `implemented` prerequisite counts
@@ -96,13 +110,6 @@ only inside the same stage, once its revision is merged into the consumer's
 checkout and its related checks pass; across stages it must be accepted and
 closed. So the adapter's ready operation takes the stage and checkout revision,
 not just "are the blockers closed".
-
-**Ready is not worth doing.** Ready says that nothing blocks a leaf. It does not
-say its result is still wanted. Before work starts, check that what it produces
-survives the decisions taken since it was filed. "Nothing depends on it" and "it
-is independent of that question" are answers about order, never about worth; a
-run that offers either as its reason to start has answered a question nobody
-asked.
 
 **Execution and acceptance.** A worker claims a leaf (takes a hold on it),
 checks its change and records it as `submitted`, with where the result lives
@@ -120,8 +127,7 @@ example `claude-worker-2:alex@laptop:fix/login#528e03ed`. The claim's comment
 adds when it started and the checkout's path. A role alone ("coordinator")
 names nobody: several run at once on different machines and branches. Where
 the tracker assigns only people's accounts, the person's account holds the task
-and the claim's comment carries the agent's full name. This file wins over an
-older integration doc that describes holders differently.
+and the claim's comment carries the agent's full name.
 Workers have distinct owners and an atomic claim or a serialized assignment:
 reading back a field that anyone can overwrite is not a lock. If a merge
 changes or fails, reopen the affected work and recheck what depends on it. The
@@ -131,11 +137,25 @@ parent has its own criterion too.
 
 **Parallelism.** Independent leaves, stages and features may run at once;
 serialize only for a real prerequisite, a conflicting write or an exclusive
-resource, and never for hierarchy, list order or a shared milestone. Each stage
+resource, and never for hierarchy, list order or a shared milestone: the order
+work was listed in is not a dependency. Each stage
 has its own merge and acceptance and does not wait for unrelated features.
 Inside a stage, merge results as they arrive so dependants can start. Use
 separate checkouts where changes can collide; generated files and dependency
 locks count as collisions.
+
+**An agent commits only what it wrote.** Where agents share a checkout, each
+stages the paths it changed by name and commits only those; a broad add sweeps
+another agent's work into the wrong task.
+
+**State every branch shares is not versioned inside one.** A branch carries
+what it delivers. The tracker is one state for all of them, so a snapshot of
+it committed on a branch carries every other run's states with its own, and
+landing it claims work the main line does not hold. Where the store lives in
+the repository, it is kept outside the branches (a ref no branch contains, or a
+server), or what a branch commits of it is narrowed to that branch's own writes
+by a hook, never by a rule someone has to remember. The integration says which,
+and every check that reads the tracker reads it that way.
 
 **Two lanes outside the flow.**
 
@@ -144,9 +164,10 @@ locks count as collisions.
 - **Findings**: bugs and debt found during a milestone. Each wears the finding
   label **and the label of the milestone it was filed in**, so a feature
   carried forward does not bring old findings into the new budget. The charter
-  sets that budget. A finding over budget goes to the next milestone, or
-  displaces something only by the owner's explicit decision; it never jumps to
-  the front silently.
+  sets that budget, which counts what the milestone took in, not how many
+  findings are still open: closing or deferring items does not return any of
+  it. A finding over budget is decided by **A finding that does not fit is
+  decided, not parked**; it never jumps to the front silently.
 
 **A repair the merge waits on is not intake.** The budget counts what the
 milestone chose to absorb, and a defect a required check catches on the way to
@@ -167,21 +188,12 @@ yet: then there is no lane the run may pick on its own. Deferring it with a
 review date is one of the answers to that question, not the way around asking
 it, and the owner gives it. Put the answers that exist with what each costs:
 displace named planned work and approve the new count, open the next slice now,
-or hold it knowingly until one opens. What the finding costs while it waits
-comes before any counting; where people or their data are living with the fault
-now, that is the first sentence, and a counter that measures only intake never
-decides urgency. A run that parks such a finding and reports the parking
+or hold it knowingly until one opens. The answer is triaged by
+impact, as risk management does: what the finding costs while it waits comes
+before any counting, and where people or their data live with the fault now,
+that is the first sentence; a counter that measures only intake never decides
+urgency. A run that parks such a finding and reports the parking
 afterwards has taken the owner's decision.
-
-**A decision that retires something also decides what is filed against it.**
-When a decision replaces a component, a representation or a form, every open
-leaf and finding against the old one is settled in the same session instead of
-staying in the queue: closed as moot, naming the decision that retired it, or
-rewritten against the requirement that survives, which is different work at a
-different cost. Filing a finding is not a promise to fix it; what filing buys is
-that the fault is known and counted. A fix that lands in code already scheduled
-for replacement is paid for twice and reviewed twice, and the behaviour it
-repairs has to be repaired again in the replacement.
 
 **Labels.** Every live issue, features and stages included, wears exactly one
 area label: the area that owns the behaviour.
@@ -189,11 +201,9 @@ area label: the area that owns the behaviour.
 **Edges.** A blocking edge records a required result or a conflict, with its
 reason and what releases it, on the leaf that needs it. A cross-stage edge
 points at the concrete leaf that produces the result; that stage must be
-accepted before outside consumers are released. Never chain features or
-stages just because they were listed in order — which is about order, and
-never about a thing that genuinely cannot be done yet. An outcome that waits
-on another outcome is one of those, and it is recorded rather than left in
-prose: the edge sits on the leaf that needs it and points at the leaf whose
+accepted before outside consumers are released. Features and stages are
+chained only as **Parallelism** allows. An outcome that waits on another
+outcome is recorded as an edge rather than left in prose: the edge sits on the leaf that needs it and points at the leaf whose
 result releases it, the one that puts the awaited thing in the person's hands.
 Where no such leaf exists yet, it is written first — the acceptance of the
 producing outcome — and the edge points at that. Importance is priority; "later"
@@ -205,31 +215,11 @@ releases unfinished holds and keeps `submitted` and `implemented` work with its
 evidence; submitted results resume at merging, not implementation. Pending
 acceptance is not abandonment. A handoff names who owns the next action.
 
-**Tracked work.** Before implementing or changing the repository, find or file
-the task. Every commit names one or more existing leaf tasks by the project's
-convention, including research, documentation, prototypes and setup; initial
-setup files its own task before any gate exists. Read-only discussion needs no
-issue until it produces work to keep. The commit check verifies links; a clean
-backlog does not.
-
-**Nothing of value stays only in this session.** A conversation is the one
-place work cannot be recovered from: its files are uncommitted, what it found
-is unfiled, and what it learned is in nobody's memory but the agent's. Version
-control's status is the test of that, and it is read rather than recalled. When
-a piece of work ends, and always before offering to stop, hand over, compact or
-start a fresh session, name what this session changed that no commit holds,
-which task each change belongs to, and what would carry it; where there is no
-task, filing one is the next step offered, as **Tracked work** says. What the
-session learned and has nowhere else to live goes through `handoff` the same
-way. Say each thing once, not in every message: this is a duty to leave nothing
-behind, not a checklist to recite. A session that changed files and ended with
-none of it said has lost the work, whatever stopped it.
-
-**Exploration is not admission.** Discussion, imagination and read-only
-research may end with no result, task or document. A hypothesis is not an
-approved requirement, and a scratch experiment does not authorize production
-use. Product and feature gates start at the commitment to keep an
-implementation, not at thinking.
+What is tracked, what a session may not keep to itself, where exploration ends
+and a commitment starts, and the lessons that outlive the work are
+[keeping.md](references/keeping.md)'s: **Tracked work**, **Nothing of value
+stays only in this session**, **Exploration is not admission** and **A lesson
+that outlives the work is kept where every agent reads**.
 
 **Living documents.** The vision gives direction. The roadmap explains intended
 outcomes and order, without copying tracker status or creating dependencies.

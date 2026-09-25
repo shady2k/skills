@@ -44,11 +44,11 @@ it in parallel, add load, narrow the timing. One in two is
 workable; one in a hundred is not.
 
 If you cannot build one, say what is missing and narrow the options with
-existing logs, captures, code reading or small experiments. Keep facts apart
-from hypotheses; do not call a cause proved without evidence that rules out
-the others. Ask for a missing artifact or access when needed; adding
-instrumentation to production needs permission. A slow or rare failure is
-still worth pursuing even if it never fits a seconds-long loop.
+existing logs, captures, code reading or small experiments, and name a cause
+only by [**A claim reaches only as far as its
+evidence**](references/deciding.md). Ask for a missing artifact or access when
+needed; adding instrumentation to production needs permission. A slow or rare
+failure is still worth pursuing even if it never fits a seconds-long loop.
 
 Evidence the product or its checks do not give is added first, by the
 protocol's **Failures explain themselves**. Whether the bug predates the current
@@ -57,7 +57,7 @@ work changes nothing, by **A red check is this run's work**.
 A failure seen in CI gets its loop built here, by **CI is not where failures
 are diagnosed**. The loop is the cheapest check that shows the failure, and
 once the fix holds it widens one step at a time, by **Cheapest check first**
-and **Push once**.
+and **Know what a push starts, and push once**.
 
 Ask the user only for evidence you cannot get yourself. Speak to the role the
 protocol's **Speaking to the owner** assumes: say what the observation will
@@ -85,16 +85,14 @@ waiting for it.
 Change one thing at a time, each probe testing one prediction. Prefer a
 debugger to logs; log only where it tells hypotheses apart, never everywhere.
 Mark every temporary line with one unique prefix so one search removes them
-all. For a slowdown, measure first: a baseline, then bisect. A cause is
-named by [**A claim reaches only as far as its
-evidence**](references/deciding.md).
+all. For a slowdown, measure first: a baseline, then bisect.
 
 ## 5. Fix, behind a check
 
 For diagnosis only, return the cause or the remaining hypotheses, the evidence
-and the proposed fix. For an approved fix, find or file its task through the
-backlog integration **before** implementing; without an integration, ask for
-setup before keeping changes. The original symptom stays the fix's criterion.
+and the proposed fix. An approved fix is tracked work before it is implemented,
+by the protocol's [**Tracked work**](references/keeping.md). The original
+symptom stays the fix's criterion.
 
 Turn the minimised repro into a failing check **at the boundary where the bug
 really happens** (a public interface, endpoint or command where the behaviour

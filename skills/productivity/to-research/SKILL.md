@@ -33,8 +33,8 @@ The brief:
 5. **When to stop and how much to spend:** what evidence would settle it, how
    much digging is justified, and how an unresolved result is reported.
 
-Keeping a note or committing it needs its owning task; without a backlog
-integration, research stays read-only or in scratch space and asks for setup.
+Keeping a note is tracked work, by the protocol's [**Tracked
+work**](references/keeping.md).
 An unavailable source is a limitation, not a citation. Independent questions
 can be researched in parallel without holding up the rest of the design.
 

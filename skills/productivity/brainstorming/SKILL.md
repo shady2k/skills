@@ -30,12 +30,11 @@ Tell from the conversation what the user wants; do not offer a menu of modes.
 - **Decide** (the user wants to commit, or approved work hits an important
   unknown): settle only what the next step needs, not every future question.
 
-A suggestion is not an approved requirement, a scratch experiment is not
-production code, and a discussion is not a start of work. "Let's build it"
-changes the workflow; "interesting" does not. Discussion needs no setup or
-tracker; keeping files or commits needs a task that owns them and a backlog
-integration, and without one, ask the user to run setup first. Do not file
-issues or save notes just because the conversation ended.
+Discussion commits to nothing, by the protocol's [**Exploration is not
+admission**](references/keeping.md): "let's build it" changes the workflow;
+"interesting" does not. It needs no setup or tracker; keeping anything is
+[**Tracked work**](references/keeping.md). Do not file issues or save notes
+just because the conversation ended.
 
 A decision the user gives is the exception, and it is not "talking": a
 hypothesis is dropped when the conversation ends, a decision is kept by the
@@ -99,16 +98,17 @@ written until the owner wants something kept.
 
 ## When a decision is actually needed
 
-Read earlier decisions first. For setup or configuration, propose one coherent
-set of settings (what stays, what changes, what each is for, why, and its
-effect on time, cost and risk) that the user accepts or changes by named items;
-"use the defaults" does not permit destructive actions, more scope or weaker
-acceptance.
+Look for the user's earlier answer first, by the protocol's [**A question is
+searched for before it is asked**](references/deciding.md). For setup or
+configuration, propose one coherent set of settings (what stays, what changes,
+what each is for, why, and its effect on time, cost and risk) that the user
+accepts or changes by named items; accepting it authorizes only what it says,
+by [**A decision belongs to whoever made it**](references/speaking.md).
 
 For an important open trade-off, say why it matters now, recommend an option
 and give real alternatives with their consequences. Ask the question that
 unblocks the next step, not every question in the design. Do not pit your
-favourite against straw men. Do not ask again for approval already given.
+favourite against straw men.
 
 A choice about the design comes as the protocol's [**A design decision comes
 with its mechanism**](references/deciding.md) says. Once the user has decided,

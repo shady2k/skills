@@ -48,10 +48,8 @@ Anything left half-done is a trap the next agent cannot see.
   That comment is the handoff for work in an issue; point at it, do not repeat
   it. If `close-out` could not finish because the gate or tracker would not
   run, the document says which tasks were left taken and why. What you tell the
-  user about what this session filed — how many, which, and the lane each one
-  landed in — is read back from the tracker, never counted from the
-  conversation; the protocol's **End with the next step** holds that ledger.
-  Anything discussed and deliberately not filed is named there too.
+  user this session filed is the ledger of the protocol's [**End with the next
+  step**](references/speaking.md).
 - **Running things:** background commands, other agents, branches or worktrees
   you created. Say which still run and who collects them.
 - **Stage acceptance:** keep where submitted results are, the base and merged
@@ -88,15 +86,12 @@ hash or "Title" (id) instead. What remains is the note.
   its temporary directory and tell the user the note will not survive a
   restart or reach another machine.
 
-**Lessons that outlive this work.** A trap belongs to the note; a lesson that
-would cost time in other work too (a command that lies, a flaky test and its
-cause, a step the build needs, a way the tools mislead) belongs in the
-project's agent doc, which every agent reads. When the session met such
-lessons, propose them to the user, one line each; when it met none, say
-nothing, never ask "any lessons?" as a ritual. With their agreement, add them
-where the session's tracked work can carry the change; otherwise put them in
-the note under "Lessons for the agent doc", so the next session or
-`close-out` lands them.
+**Lessons that outlive this work.** A trap only this work meets belongs to the
+note; one that would cost time in other work too is kept by the protocol's
+[**A lesson that outlives the work is kept where every agent
+reads**](references/keeping.md). Where no tracked work in this session can
+carry it, it goes in the note under "Lessons for the agent doc", so the next
+session or `close-out` lands it.
 
 If the workspace already holds handoff files that were committed, do not add
 to them. Name them to the user as stale instructions and recommend removing
@@ -118,7 +113,9 @@ already the tracker's next step. Then the two or three after it, if known.
 What this session verified beyond what the tracker and the pull request say,
 each with how: a command and its result, a test, a file read. What was only
 reported, assumed or partly checked goes in a separate list headed "not
-verified". Uncommitted work: where it sits and how ready it is.
+verified", by the protocol's [**A claim reaches only as far as its
+evidence**](references/deciding.md). Uncommitted work: where it sits and how
+ready it is.
 
 ## Decisions
 

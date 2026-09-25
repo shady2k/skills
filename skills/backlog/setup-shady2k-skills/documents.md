@@ -146,9 +146,12 @@ and those are the hours in which a bypass starts to look reasonable.
 ## A commit owes a record for what it delivers
 
 Where the wrapper judges a range of commits, it asks which change covers the
-work each commit **delivers**, not every task the commit names. Code, documents
-and a tracker transition that claims a result (submitted, implemented or
-closed) deliver work: without a change behind them they are refused. A commit
+work the range **delivers**, not every task a commit names. Code, documents
+and a tracker transition in the range that claims a result (submitted,
+implemented or closed) deliver work: without a change behind them they are
+refused. Where the tracker's transitions are read from — the commits, or the
+store's own history over the range — is the integration's to say, by where the
+store lives; the rule is the same either way. A commit
 that touches only the tracker and files a task, comments on it or edits its
 fields delivers nothing, and needs no change, whatever state the task is in
 and whichever milestone it is on. Draw the line by the delivered states, all of
@@ -199,8 +202,11 @@ digits, dot, underscore, colon or dash, starting with a letter/digit.
 **What the revision binds.** It is a receipt's pin, so it is fixed by a rule,
 never by judging what a change touches: a wrong judgement there weakens every
 receipt silently. It covers the tree **except what this gate reads and verifies
-itself on every run**: the tracker's export, the change records, the current
-specs and their capability catalogue. Those are checked by structure and
+itself on every run**: the tracker's state, the change records, the current
+specs and their capability catalogue. Where the tracker's export sits in the
+tree, that is a path left out; where the store lives outside the branches, the
+integration says how the tracker at a revision is read (for example, the newest
+snapshot published no later than it), and nothing in the tree stands for it. Those are checked by structure and
 replay each time, so no receipt needs to cover them, and leaving them inside
 means the closing commit that updates the catalogue, or a task filed during the
 run, stales evidence that nothing about it touched. The wrapper names the

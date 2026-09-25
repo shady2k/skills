@@ -57,7 +57,7 @@ performed again.
    deferred get wired, and what every later feature is reached through.
 8. **Then the ordinary flow:** a feature per key journey, run in parallel where
    they are independent and ordered only by a real prerequisite or conflict,
-   which is recorded as an edge, never by the order the milestone lists them.
+   which is recorded as an edge.
 
 Nothing is written before step 4 unless the owner asks for it: steps 1 to 3
 are conversation, and what they found enters the vision when there is one.
