@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.27.0
+Setup version: 0.28.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -169,18 +169,27 @@ and every check that reads the tracker reads it that way.
   it. A finding over budget is decided by **A finding that does not fit is
   decided, not parked**; it never jumps to the front silently.
 
-**A repair the merge waits on is not intake.** The budget counts what the
-milestone chose to absorb, and a defect a required check catches on the way to
-a merge was chosen by nobody: the branch cannot land while it is red, no
-version of the milestone skips it, and the time is spent whatever the item is
-called. It is filed under the work whose merge it blocked and closed by the
-change that lands with it, with no finding label and against no budget, and
-the report names it as a repair that merge waited on. The finding is what the
-run leaves behind: the wider fault the red check exposed, the part deliberately
-not fixed, the fix that needs a decision the owner keeps. The test is the check
-itself, red on this branch and green after this change, not how large the
-repair felt. Counting a repair the rules ordered anyway buys nothing, and makes
-doing it dearer than hiding it.
+**Only what the milestone chose is intake.** The budget prices the scope the
+milestone chose to absorb; work nobody chose, which is done whatever it is
+called, is charged to the work it serves and not to that budget. Two kinds
+are always of that sort:
+
+- **A repair the merge waits on:** a defect a required check catches on the
+  way to a merge. The branch cannot land while it is red, and no version of
+  the milestone skips it. It is filed under the work whose merge it blocked, a
+  feature or the setup alike, and closed by the change that lands with it; the
+  report names it as a repair that merge waited on. The test is the check
+  itself, red on this branch and green after this change, not how large the
+  repair felt.
+- **Upkeep of the installation:** a fault in what the set installs to run this
+  way of working — its checks, hooks, connect command, and the CI wiring that
+  decides which checks a change owes. It is filed under the setup task and fixed
+  as part of landing it, or of the next setup run.
+
+Either is filed with no finding label and against no budget. The finding is
+what such work leaves behind: the wider fault it exposed, the part deliberately
+not fixed, the fix that needs a decision the owner keeps. Counting work the
+rules ordered anyway buys nothing, and makes doing it dearer than hiding it.
 
 **A finding that does not fit is decided, not parked.** The budget is spent, or
 the milestone it would join is already closed and the next one does not exist

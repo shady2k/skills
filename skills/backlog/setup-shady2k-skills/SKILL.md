@@ -75,7 +75,9 @@ without a decision.
 
 **The setup task comes first.** Before any repository change, find or create
 the setup task in the tracker; it owns installation, cleanup and their commits
-even before the gate exists. An interrupted or failed run leaves its work on
+even before the gate exists. It is live work of the current milestone:
+it carries that milestone's label and never the finding label, so what is filed
+under it is in the slice and spends no budget. An interrupted or failed run leaves its work on
 its branch and its task; the main line keeps its previous installation until
 landing. If tracker access fails even for this task, stop, report the failure
 and say setup must be rerun.
@@ -176,8 +178,10 @@ questionnaire**.
 - **How changes reach the main line:** whether it accepts a direct push or
   requires a pull request, which checks it requires and how long they take.
   Found by looking, recorded, never asked again. Where CI runs product checks
-  on changes that cannot touch the product, or gives unfinished work no way to
-  skip a full run, recommend fixing it as a separate task, by the protocol's
+  on changes that cannot touch the product (documents, the tracker, the set's
+  own hooks and scripts), or gives unfinished work no way to skip a full run,
+  recommend fixing it as a task under the setup task, by the protocol's **Only
+  what the milestone chose is intake**, by the protocol's
   **Cheapest check first** and **Know what a push starts, and push once**.
 - **Diagnosability:** whether the project has recorded conventions for log
   levels, request and trace ids and error causes, and whether its CI shows a
@@ -428,6 +432,10 @@ only for landing steps not already authorized.
 Shared hooks may already run in checkouts without the new files. Let through,
 visibly, only a tree that never had this installation; a missing or broken
 gate in a configured tree is an error, not a bypass.
+
+A required check red on the setup's own pull request is a repair that merge
+waits on, filed under the setup task, by the protocol's **Only what the
+milestone chose is intake**.
 
 Land once, only after all required proofs (proof 6 only when the document
 gate is wired). The landed checks carry the setup version, so nothing is

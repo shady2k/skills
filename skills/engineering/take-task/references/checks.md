@@ -14,7 +14,8 @@ main line is fixed there by its own small pull request, since it blocks
 everyone, and the report names it as a fixed earlier failure. Only a fix
 that needs an architectural change or other decision the [**Autonomy**](running.md) rules
 reserve for the owner stops for them. What the run fixes to make the check
-green is filed as the protocol's **A repair the merge waits on**, never as a finding.
+green is filed as a repair the merge waits on, by the protocol's **Only what
+the milestone chose is intake**, never as a finding.
 
 **A check is never rerun to find out why it failed.** A failure is diagnosed by
 root-cause analysis, not by repeating the experiment: a rerun answers only

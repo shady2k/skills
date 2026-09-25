@@ -38,7 +38,7 @@ issue that already covers it.
 | --- | --- |
 | an idea, a wish, a "what if" | the **ideas** lane, with a review date |
 | a bug or debt on the current milestone's path | **finding**: under the stage it serves, with the finding label and the current milestone's label; step 3 first |
-| a defect a required check caught on the way to a merge, fixed to make it green | not a finding, by the protocol's **A repair the merge waits on is not intake**. What the run leaves unfixed is a finding |
+| a defect a required check caught on the way to a merge, fixed to make it green; or a fault in the set's own checks, hooks, connect command or their CI wiring | not a finding, by the protocol's **Only what the milestone chose is intake**: under the work whose merge it blocks, or under the setup task. What the work leaves unfixed is a finding |
 | a bug or debt off that path | deferred, under its feature, or with no parent if it has none |
 | planned work the charter already names | `to-stages` when breaking it down is authorized; otherwise send it that way. A fix needed to meet an agreed criterion is part of that work, not a finding |
 | work for a later milestone | deferred, with that milestone's label, as a feature title only |
@@ -52,8 +52,8 @@ Joining the slice gives a feature no dependencies on other features.
 
 ## 3. A finding spends the budget
 
-First check it is one: a repair a required check forced on the way to a merge
-spends no budget, by the protocol's **A repair the merge waits on is not
+First check it is one: a repair a merge waits on, or upkeep of the installation,
+spends no budget, by the protocol's **Only what the milestone chose is
 intake**. Then read the finding budget from the config and count the
 milestone's findings. Within budget, file it and carry on. At or over budget,
 file it as deferred and bring the decision to the owner: leave it for later, or

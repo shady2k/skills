@@ -141,7 +141,7 @@ const CHECKS = [
   {
     id: 'idea-blocks-work',
     severity: 'error',
-    why: 'An idea that blocks a build is not an idea, it is an undecided question, and it belongs in the work it is blocking. Five brainstorms were found holding live epics.',
+    why: 'An idea that blocks a build is not an idea, it is an undecided question, and it belongs in the work it is blocking.',
     fix: 'Either the question is on the path — file it as work under the epic it gates — or it is not, and the edge goes.',
     run: (m, cfg) =>
       m.issues.flatMap((i) =>
@@ -155,7 +155,7 @@ const CHECKS = [
   {
     id: 'idea-in-queue',
     severity: 'error',
-    why: 'An idea reachable as work is offered as work. Three reached the queue through provenance edges, which gate nothing and so never stopped them.',
+    why: 'An idea reachable as work is offered as work. An edge that only records where it came from gates nothing, so it does not stop that.',
     fix: 'Defer it. An idea costs nothing while it waits and is closed without regret when it stops being interesting.',
     run: (m, cfg) =>
       m.issues
@@ -197,7 +197,7 @@ const CHECKS = [
   {
     id: 'off-milestone-open',
     severity: 'error',
-    why: 'Everything live belongs to the current milestone; whatever does not is deferred. Otherwise the queue offers next quarter\'s feature as today\'s work, and a parentless issue filed by hand is how a groomed backlog grows back into 665 roots while every other check stays green. 802 issues were deferred in one pass for having been planned past that horizon.',
+    why: 'Everything live belongs to the current milestone; whatever does not is deferred. Otherwise the queue offers next quarter\'s feature as today\'s work, and a parentless issue filed by hand is how a groomed backlog grows back into a heap of roots while every other check stays green.',
     fix: 'Defer it, with its own milestone label intact if it has one, so it comes back whole. If it is on the current milestone\'s path, give it the parent it serves.',
     run: (m, cfg) =>
       m.issues.flatMap((i) => {
@@ -212,7 +212,7 @@ const CHECKS = [
   {
     id: 'stale-hold',
     severity: 'error',
-    why: 'Active means somebody is holding it now. An unheld issue left active is invisible to the ready queue and to every colleague looking for work; 82 of 83 were stale.',
+    why: 'Active means somebody is holding it now. An unheld issue left active is invisible to the ready queue and to every colleague looking for work.',
     fix: 'Set it back to open the minute you stop holding it.',
     run: (m, cfg, ctx) =>
       m.issues.flatMap((i) => {
@@ -238,7 +238,7 @@ const CHECKS = [
   {
     id: 'label-vocabulary',
     severity: 'error',
-    why: 'A vocabulary enforced only by prose drifts. One repository declared a closed list in its contract and held about seventy labels in the tree.',
+    why: 'A vocabulary enforced only by prose drifts. A closed list declared only in a document is soon outgrown by the labels actually used.',
     fix: 'Map it onto a declared label, or add it to the config deliberately.',
     run: (m, cfg) => {
       const known = new Set([
@@ -276,7 +276,7 @@ const CHECKS = [
     id: 'finding-budget',
     severity: 'error',
     why: 'Bugs and debt found mid-milestone go to the front one at a time, each reasonable, and push the feature out by a fortnight nobody decided on. The charter declares how many the milestone absorbs.',
-    fix: 'The ways that do the work are the owner\'s to give: displace named planned work and raise the budget in config and the charter decision, open the next milestone for it, or hold it knowingly with a review date. Deferring it yourself to make the number fit, dropping its milestone label or narrowing it shrinks the count instead, and leaves a record saying the fault is not there. A repair a required check forced on the way to a merge is not intake at all: file it under the work whose merge it blocked, with no finding label. Deferring planned work alone does not change this count.',
+    fix: 'The ways that do the work are the owner\'s to give: displace named planned work and raise the budget in config and the charter decision, open the next milestone for it, or hold it knowingly with a review date. Deferring it yourself to make the number fit, dropping its milestone label or narrowing it shrinks the count instead, and leaves a record saying the fault is not there. A repair a required check forced on the way to a merge, and upkeep of the set\'s own checks, hooks and their CI wiring, are not intake at all: file them under the work whose merge they block, or under the setup task, with no finding label. Deferring planned work alone does not change this count.',
     run: (m, cfg) => {
       if (cfg.findingBudget == null) return [];
       const marks = cfg.findingLabels || [];
@@ -384,7 +384,7 @@ function bulkClusters(m, threshold) {
 
 // The version of the set these rules shipped with. A project holds a COPY of
 // this file, and this is how anybody tells that the copy has fallen behind.
-const RULES_VERSION = '0.27.0';
+const RULES_VERSION = '0.28.0';
 
 const STRENGTHS = ['block', 'block-new', 'report'];
 
