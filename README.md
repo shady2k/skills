@@ -514,6 +514,7 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.57.3** puts one principle behind every conclusion that reaches you: it goes only as far as the evidence behind it, and one not yet checked comes to you as a guess with what would settle it, rather than as a fact.
 - **0.57.2** stops a test the agent wrote from being reported as someone else's bug before it is checked against how your system really runs: until then it reaches you as a guess with the missing check named, nothing is proposed to file with another project on it, and a decision that rests on a single earlier measurement says so.
 - **0.57.1** looks for your earlier answer before asking you anything: the whole feature's tasks, closed work, decision records and past sessions are searched first, a decision found is acted on and written down with where it came from, and a question that does reach you says where the search looked.
 - **0.57.0** connects a fresh clone of your repository with one command instead of a list of manual steps, makes every local guard refuse a commit when it cannot find what it checks against, lets a task start as soon as the task it waits for is built within the same stage even where the tracker blocks it, and stops closing a task from invalidating check results that nothing in it touched. Projects rerun setup once.

@@ -69,11 +69,9 @@ is due and offer what their presence is worth now — a decision waiting, the ne
 feature to plan, something to think through — worked, by the protocol's
 [**Come with the material**](references/deciding.md) and [**The owner's time is
 the scarce one**](references/running.md). What waits on the owner, and whether
-to ask about their time, follows **The session opens with the picture**. A
-decision waiting on the owner that rests on a recorded finding is relayed with
-how far that finding was established, by [**An experiment is not a finding
-until its control has run**](references/deciding.md), and so is any
-reproduction written while following up on it. Tell
+to ask about their time, follows **The session opens with the picture**. The
+evidence behind a decision waiting on the owner is relayed by [**A claim
+reaches only as far as its evidence**](references/deciding.md). Tell
 an owner actively running acceptance from abandoned work.
 
 **Without an integration, or with an outdated one:** say so and continue from

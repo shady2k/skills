@@ -69,38 +69,25 @@ fault and not late insight: it cost a round for every message that held the
 mechanism back. All of this is for a decision that is **open**: once it is
 given, there are no options to offer.
 
-**A reading is not a fact until its edges are read.** How often something
-happened, how long it went on or what it stopped with, taken from a log, a
-capture or a dump, is a claim about the whole record, and a run of consecutive
-lines is a truncated sample of it. Before saying it, read how many there are,
-the first and the last, what ends the record and what lies outside it, and
-give the span the evidence covers with the finding. Duration and coincidence
-("for hours", "stopped exactly when the other thing happened") are claims about
-the edges, which a sample never holds, and the ones a story wants to be true.
-The more a reading explains — the more it ties one failure to another — the
-more it is worth the minute that checks it, and it is checked before it becomes the
-frame of the work: before a task is written on it, before it enters a
-document, before it reaches the owner at all. A fact later found false is
-corrected everywhere it went and not only in the conversation — the record
-already merged, the task, any conclusion built on it — each named as wrong
-rather than quietly reworded.
-
-**An experiment is not a finding until its control has run.** A reproduction
-the agent wrote shows what happens in the harness, not in the product; a
-controlled experiment is what tells the two apart. Before saying that a
-dependency, a platform or someone else's code is at fault, run it again under
-the conditions the real system runs in, and once with the harness's own
-shortcuts taken away: a loop that never lets the runtime do its housekeeping, a
-setting nobody chose, a result seen once. A finding someone else recorded is
-weighed the same way: one measurement, never repeated and with the named cause
-never isolated, is a lead. Until the control has run, the claim reaches the
-owner as a hypothesis with the missing control named; it frames no decision as
-settled, and no outward-facing action is proposed on it (an issue filed with
-another project, a public comment, a report on a colleague's work). Where a
-recorded finding frames a decision waiting on the owner, the message says how
-far it was established: measured once, cause not isolated, or repeated and
-isolated. The minute a control costs is small next to a recommendation that
-flips between two messages.
+**A claim reaches only as far as its evidence.** A finding says more than was
+observed: a count, a span or a coincidence read from part of a record is a
+claim about the whole record, and a cause is a claim that nothing else
+produces the effect. Evidence covers what was observed, and only under the
+conditions it was observed in. So before a claim is made, find where its
+evidence stops. A record is read to its edges: how many entries there are, the
+first and the last, what ends it and what lies outside it, and the finding
+comes with the span it covers. A cause is tested against a control that
+differs only in the suspected factor, under the conditions the real system
+works in, and seen more than once; the alternatives that would produce the same
+observation, the method of observing among them, are ruled out rather than
+left unasked. The more a claim explains, and the further outside the work it
+places the fault, the more it is worth the check, and it is checked before it
+frames anything: a task, a document, a message to the owner, anything sent
+outside the project. A claim not yet checked, one's own or one inherited from
+a record, travels as a hypothesis with what would settle it. A fact later
+found false is corrected everywhere it went and not only in the conversation —
+the record already merged, the task, any conclusion built on it — each named as
+wrong rather than quietly reworded.
 
 **A decision given is not reopened by better analysis.** When the owner has
 decided, the work resumes. Detail found afterwards — a sharper account of what
