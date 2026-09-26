@@ -520,6 +520,25 @@ function gaps(v, opts) {
   return { recover, elsewhere };
 }
 
+/**
+ * The claim a session made and never wrote, typically one that ran before the
+ * set wrote claims at all: dated at the start its transcript on this machine
+ * shows, and marked recovered. It carries no forecast, since one written
+ * afterwards forecasts nothing; `gaps` then writes the span's receipt.
+ */
+function recoveredClaim(v, it, me, role, opts) {
+  if (!opts.session) throw new Usage('a recovered claim is another session\'s: name it with --harness and --session');
+  if (opts.forecast || opts.due !== undefined || opts.away !== undefined) throw new Usage('a recovered claim carries no forecast: one written afterwards forecasts nothing');
+  const at = parseWhen(opts.at ?? '');
+  if (!Number.isFinite(at)) throw new Usage('--at <time> is required: the start the transcript shows');
+  const raw = rawOf(opts, me.key);
+  if (!raw) throw new NotHere(`the transcript of ${me.key} is not on this machine: its claim is recovered where it is`);
+  if (at < raw.first - 60e3 || at > raw.last) throw new Usage(`--at ${localStamp(at)} is outside the session's transcript, ${localStamp(raw.first)} to ${localStamp(raw.last)}`);
+  if (v.spans.some((s) => s.claim && s.session === me.key && s.item === it.id)) throw new Usage(`${me.key} already has a claim on ${it.id}`);
+  const fields = { span: newSpanId(), at: iso(at), session: me.key, agent: agentName(me, role, opts), role, note: opts.note, recovered: iso(nowMs()) };
+  return { item: it.id, body: formatRecord('claim', fields, null) };
+}
+
 // ---- commands ----------------------------------------------------------------
 
 const FLAGS = ['json', 'no-transcripts', 'recovered'];
@@ -575,6 +594,8 @@ export function run(argv) {
       const role = need(opts, 'role', ROLES);
       const me = thisSession(opts);
       const out = [];
+      if (opts.recovered) return post([recoveredClaim(b, it, me, role, opts)], opts);
+      if (opts.at !== undefined) throw new Usage('--at is only for a claim recovered from a transcript (--recovered): a claim made now is dated now');
       for (const s of mineOpen(b, me.key)) {
         if (s.item === it.id) throw new Usage(`this session already holds span ${s.id} on ${it.id}`);
         // Taking the next item ends the span on the last one: its receipt goes first.
@@ -681,6 +702,8 @@ records to post, each under the item it goes on; post each body exactly as print
 runs.mjs claim --item <id> --role coordinator|worker|agent [--forecast phase=min,...] [--away <min> | --due <time>]
                 [--tasks N] [--stages N] [--basis <text>] [--note <text>]
   the claim that starts a span; first, the receipt of this session's open span on another item
+runs.mjs claim --recovered --item <id> --role <role> --harness <h> --session <id> --at <time> [--note <text>]
+  the claim another session made and never wrote, at the start its transcript here shows; then gaps
 runs.mjs receipt [--span <id>] --end paused|finished|handed-over|stopped [--reason owner|missing|other] [--note <text>] [--recovered]
   what the span spent, measured from this machine's transcript (exit 3 when it is not here)
 runs.mjs event [--span <id>] --event stop|decision|ci [--reason owner|missing|other] [--note <text>]
@@ -867,6 +890,29 @@ function selftest() {
     const day = (d) => JSON.parse(cli('time', '--since', d, '--until', d, '--item', 'M', '--no-transcripts', '--json')).receipts;
     expect('time: a stretch ending at midnight counts in one day, once', day('2026-03-02') === 0 && day('2026-03-03') === 1);
     backlog.issues.pop();
+
+    // Work handed in by a session that ran before the set wrote claims: its
+    // claim is recovered at the start its transcript shows, then its receipt.
+    const oldStart = c0 - 3 * 86400e3;
+    transcript('old', worked(oldStart, 45));
+    backlog.issues.push({ id: 'P', title: 'Handed in before', type: 'task', status: 'implemented', labels: [], parent: null, blockedBy: [], body: '', updatedAt: T(clock) });
+    const oldAs = ['--harness', 'claude-code', '--session', 'old', '--agent', 'claude-worker:t@m:b#old'];
+    const rc = parseRecord(act('claim', '--recovered', '--item', 'P', '--role', 'worker', '--at', T(oldStart + 60e3), ...oldAs)[0].body);
+    expect('claim --recovered: dated at the transcript\'s start, not now, and marked recovered', !rc.problems.length
+      && Date.parse(rc.fields.at) === oldStart + 60e3 && Date.parse(rc.fields.recovered) === clock && !rc.table);
+    const rg = JSON.parse(cli('gaps', '--json')).recover.filter((x) => x.item === 'P');
+    const rr = rg.length === 1 && parseRecord(rg[0].body);
+    expect('claim --recovered: gaps then writes its receipt, to where the transcript stops', rr && !rr.problems.length
+      && rr.fields.from === rc.fields.at && Date.parse(rr.fields.to) === oldStart + 45 * 60e3);
+    postAll(rg);
+    const p2 = ['--item', 'P', '--role', 'worker', '--backlog', file, '--project', 'demo'];
+    expect('misuse: a claim dated in the past without --recovered', misuse(['claim', ...p2, '--at', T(oldStart), ...as('z')]));
+    // On an item the session holds no claim on, so only the rule named can refuse.
+    const p3 = ['--item', 'A', '--role', 'worker', '--backlog', file, '--project', 'demo'];
+    expect('misuse: a recovered claim outside its transcript', misuse(['claim', '--recovered', ...p3, '--at', T(oldStart - 86400e3), ...oldAs]));
+    expect('misuse: a recovered claim with a forecast', misuse(['claim', '--recovered', ...p3, '--at', T(oldStart), '--forecast', 'build=5', ...oldAs]));
+    expect('misuse: a recovered claim the session already has', misuse(['claim', '--recovered', ...p2, '--at', T(oldStart), ...oldAs]));
+    expect('claim --recovered: a transcript on another machine is exit 3, not a guess', misuse(['claim', '--recovered', ...p2, '--at', T(oldStart), '--harness', 'codex', '--session', 'far'], NotHere));
 
     const all = spansOf(backlog);
     expect('every record the script printed reads clean, and no span conflicts', !all.damaged.length && all.spans.every((x) => !x.conflict.length));

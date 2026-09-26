@@ -242,6 +242,7 @@ them and propose it instead.
   "ideaLabels": ["idea"], "ideaTitlePrefixes": [],
   "findingLabels": ["finding"], "findingBudget": null,
   "staleDays": 14, "holdDays": 2, "bulkCluster": 20,
+  "timeRecordsExempt": [],
   "execution": {
     "development": "<tdd | test-after>",
     "runMode": "<inline | subagents | worker-sessions | cloud>",
@@ -262,6 +263,8 @@ them and propose it instead.
 
 The execution numbers are examples, not choices. `findingBudget` and
 `currentMilestone` stay null only while no live slice is admitted.
+`timeRecordsExempt` is written once, when time records are adopted (step 2 of
+the proofs), and only shrinks after.
 The config holds only choices the whole team shares. It records no
 installation state: the installed checks' versions on the main line are the
 repository's installation, and each person's plugin, hooks and runtime are
@@ -399,6 +402,16 @@ An existing setup runs all of these too, even when versions match.
    Where the project kept run records on a machine before (a state directory
    of the set's), they are this machine's only: say so to the owner once, and
    leave them; nothing reads them now.
+   **Adopting time records**, on the first installation that carries them:
+   work is in flight that sessions on the older set took, and they wrote no
+   claims. Find every active, submitted or implemented leaf with no claim
+   record. Where the transcript of the session that took it is on this
+   machine, read it for when the item was taken, write the claim with the run
+   script's `claim --recovered` at that start and post it, then post its
+   receipt from `gaps`. List the rest in `timeRecordsExempt`, and tell the
+   owner once that their time stays unknown. This happens at adoption only: an
+   exemption follows the task tree, and work handed in unclaimed later gets
+   the rule's own fix, never a place on the list.
 3. **Real entry points:** plant a recoverable backlog violation and run the real
    hook; see it fail (or report, at `report` strength), undo, see it clean. Run
    the real commit-message entry point with a missing task, an unknown task and
