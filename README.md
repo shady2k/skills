@@ -514,6 +514,7 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.64.1** keeps task numbers out of what you read: work is named by what it is, and a number appears only where you have to find, type or approve it yourself.
 - **0.64.0** takes a run's time from its coordinator, which waits while its workers work: the coordinator's claim on the feature covers every task its workers hand in. A worker's own time is an optional detail of effort; a worker in another harness writes nothing and nothing is recovered for it, and a worker whose time is unknown no longer makes the run incomplete. This replaces 0.63.0's claim written for every worker at handover. Projects rerun setup once.
 - **0.63.0** counts the time of workers running in omp, as it does for Claude Code and Codex. Where no machine has a session's record at all, the work is closed with its time unknown and the reason, instead of blocking the check or being filled in by hand, and reports say the figure is at least this. A coordinator writes a worker's claim at the moment it hands the task over, whatever the worker runs in. Projects rerun setup once.
 - **0.62.0** recovers the time of work whose session ran in a working copy that was since removed: its transcript is found by the task it names. A problem found during setup is filed beside the setup task instead of under it, so the setup can still be accepted. And an earlier session that has stopped is no longer reported as one waiting for your answer: the agent takes its work over.

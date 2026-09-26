@@ -5,11 +5,14 @@ project, and it wins over a project's restatement.
 How anything the person reads is written: names, plain words, summaries,
 asks, whose decision it was, the language, and how a step ends.
 
-**Names, not identifiers.** Everything a person reads says "Title" (id), with
-the id in parentheses and only where somebody must act on it. A title is a
-sentence the work can be understood from. A bare id, or a list of ids, is never
-an item of a report: look the title up first. If the title does not explain the
-work, say in a few words what it is about.
+**Names, not identifiers.** The person knows the work by its name: its title,
+a sentence the work can be understood from, or a few words saying what it is
+about where the title does not. An id is the agent's handle, not theirs: the
+agent has called a task by it all day, and they have not. It goes in
+parentheses after the title only where they act on it themselves (find it,
+type it, approve it), never as a label on every item. A bare id is never an
+item of a report and never the subject of a sentence: look the title up
+first.
 
 **Speaking to the owner.** The words of this protocol, the config, the tracker
 and the tools are for the agent. The person reads what they mean for the work,
@@ -84,8 +87,8 @@ changes to the set's own bookkeeping: where it keeps versions, which fields it
 added or removed. If nothing changes for the person's work, say nothing.
 
 Before sending anything to the person, reread it once for six slips that
-happen even when the rules are known: an id without its title (look the title
-up; a decision record's number is an id too), a design decision without a
+happen even when the rules are known: an id they do not act on, or one without
+its title (look the title up; a decision record's number is an id too), a design decision without a
 worked sample of what it decides, an internal word from this protocol, the config or the tools (use the
 table above), a thing of the project's renamed into a word of your own (put its
 own word back), a back-reference — "as I reported", "you already know" — whose
