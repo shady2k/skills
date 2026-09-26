@@ -444,6 +444,11 @@ An existing setup runs all of these too, even when versions match.
    independent changes still pass, that a task split from an exempt one is
    still exempt, and that each refusal names what would make it green. Adopt only the legacy scope affected now;
    an old plan or a model's summary is not verified state.
+   What each required check does not read is the agent's to find from the
+   check's own command, not the owner's to supply, and is shown with the
+   profile as a routine choice: an entry only where the command cannot reach
+   the path. Prove it on two commits: a prose edit leaves that check's receipt
+   standing, an edit to a file it reads stales it.
 
 Keep the proof evidence with the setup task. A tracker outage, missing runtime,
 stale integration or failed hook is a specific repair, not a reason to discard

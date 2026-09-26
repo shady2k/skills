@@ -159,6 +159,12 @@ them: exempting everything except `closed` lets a tracker-only commit mark work
 implemented with nothing behind it. Prove both sides on real commits, a filed
 finding passing and a delivered state refused, before enforcement starts.
 
+A change that has closed on the target is judged once. A later commit that
+names one of its tasks (the closing note, a follow-up in the same area)
+delivers nothing to it and does not bring it back into the range, where it
+would owe fresh receipts for work landed hours before. Later work on the same
+task is a change of its own.
+
 A wrapper that demands a record for filing gets empty records ("found, filed,
 nothing changed") signed so the push can pass, and a signature that stands
 under nothing stops meaning anything under the next record. A record like that
@@ -192,6 +198,7 @@ digits, dot, underscore, colon or dash, starting with a letter/digit.
 | --- | --- |
 | `phase` | `product`, `feature`, `acceptance`, `close`; chosen by the wrapper for the actual transition, never author-selected to weaken a check |
 | `revision` | checked source revision or reproducible content digest; changing checked inputs changes it |
+| `checkRevisions` | optional; `{id, revision}` for each check whose policy entry names what it does not read: the digest of what it does read, by `checkRevision` in `document-format.mjs` |
 | `project.mode` | `new` or `existing`, from established project setup, not inferred from an empty export |
 | `project.vision` | strings `audience`, `problem`, `outcome`, `exclusions` |
 | `project.milestone` | `id`, `outcomes` (strings), `exclusions`; export from charter/config, not another owner of current values |
@@ -211,6 +218,22 @@ replay each time, so no receipt needs to cover them, and leaving them inside
 means the closing commit that updates the catalogue, or a task filed during the
 run, stales evidence that nothing about it touched. The wrapper names the
 excluded paths in the integration and nothing else is left out.
+
+**A receipt stands for what its check reads.** One revision for every check
+makes a typo in a README stale a test suite no test of which reads it, and a
+seventeen-minute suite then runs again on unchanged code; a discipline whose
+honest path costs that on every edit breeds the bypass it exists to stop. So a
+check's policy entry may say what it does **not** read (`ignores`: path
+patterns, `docs/` or `*.md`), and its receipt is pinned to the digest of the
+rest (`checkRevision(lsTree, {exclude, ignores})`, over `git ls-tree -r
+--full-tree` at the revision, with the revision's own exclusions). The list
+names what is left out, never what is read, and starts empty: an entry
+forgotten costs one run, an entry wrong leaves a receipt standing on inputs
+that changed, so an entry goes in only where the check's own command shows it
+cannot read that path (a Go test suite and the Markdown beside it). It is part
+of the policy, so changing it stales every receipt, and no run narrows it to
+save itself a check. A check with no list reads the whole revision, as
+before.
 
 Requirement: `{id, title, statement, scenarios}`. Each scenario has
 `{id, given, when, then}` strings. IDs are unique within capability/requirement.
@@ -272,7 +295,7 @@ records to protected when it gains CI, without rewriting its documents.
 
 ### Policy and receipts (separate trust domains)
 
-Policy: `{schemaVersion: 1, requireApproval, requiredChecks: [{id, kind, appliesTo?}]}`.
+Policy: `{schemaVersion: 1, requireApproval, requiredChecks: [{id, kind, appliesTo?, ignores?}]}`.
 Kinds: `static`, `test`, `mutation`, `review`, `manual`. The configured list must
 not be empty; setup establishes actual full checks, mutation/review requirements
 and approved fallbacks. Kind labels are descriptive, not proof of what ran.
@@ -284,9 +307,14 @@ which may not touch product code, does not owe the product's test suites; it
 owes review and the checks of what it does change (for example the tooling's
 own tests). Every kind must still owe at least one check (`empty-policy`).
 
-Evidence: `{schemaVersion: 1, revision, policyDigest, approvals, checks}`.
-Approval: `{changeDigest, reference}`. Check: `{id, status, reference}` where
-status is `passed`, `failed`, `skipped` or `unsupported`. The wrapper retrieves
+Evidence: `{schemaVersion: 1, revision?, policyDigest, approvals, checks}`.
+Approval: `{changeDigest, reference}`. Check: `{id, status, reference,
+revision?}` where status is `passed`, `failed`, `skipped` or `unsupported`, and
+`revision` is the one its check read when it ran; a check without its own
+falls back to the evidence's. A receipt is stale where that differs from the
+check's pin in the export (`checkRevisions`, else `revision`), and only that
+receipt: the others stand. A policy entry with `ignores` and no pin in the
+export is `unpinned-check`. The wrapper retrieves
 and verifies runner/approval records; references identify the actual evidence.
 An approval's reference records the summary the owner was shown, since that is
 what they approved, not the document text they were not asked to read.

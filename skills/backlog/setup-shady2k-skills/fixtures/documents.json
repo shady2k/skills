@@ -1056,6 +1056,190 @@
           "value": null
         }
       ]
+    },
+    {
+      "name": "a-prose-edit-leaves-receipts-standing",
+      "expected": [],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "policy/requiredChecks/0/ignores",
+          "value": [
+            "*.md",
+            "docs/"
+          ]
+        },
+        {
+          "path": "policy/requiredChecks/1/ignores",
+          "value": [
+            "*.md",
+            "docs/"
+          ]
+        },
+        {
+          "path": "policy/requiredChecks/2/ignores",
+          "value": [
+            "*.md",
+            "docs/"
+          ]
+        },
+        {
+          "path": "model/revision",
+          "value": "candidate-2"
+        },
+        {
+          "path": "model/checkRevisions",
+          "value": [
+            {
+              "id": "full",
+              "revision": "reads-1"
+            },
+            {
+              "id": "mutation",
+              "revision": "reads-1"
+            },
+            {
+              "id": "review",
+              "revision": "reads-1"
+            },
+            {
+              "id": "export-test",
+              "revision": "reads-1"
+            }
+          ]
+        },
+        {
+          "path": "evidence/checks/0/revision",
+          "value": "reads-1"
+        },
+        {
+          "path": "evidence/checks/1/revision",
+          "value": "reads-1"
+        },
+        {
+          "path": "evidence/checks/2/revision",
+          "value": "reads-1"
+        },
+        {
+          "path": "evidence/checks/3/revision",
+          "value": "reads-1"
+        }
+      ]
+    },
+    {
+      "name": "a-change-to-what-a-check-reads-stales-its-receipt",
+      "expected": [
+        "stale-evidence"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "policy/requiredChecks/0/ignores",
+          "value": [
+            "*.md",
+            "docs/"
+          ]
+        },
+        {
+          "path": "policy/requiredChecks/1/ignores",
+          "value": [
+            "*.md",
+            "docs/"
+          ]
+        },
+        {
+          "path": "policy/requiredChecks/2/ignores",
+          "value": [
+            "*.md",
+            "docs/"
+          ]
+        },
+        {
+          "path": "model/revision",
+          "value": "candidate-2"
+        },
+        {
+          "path": "model/checkRevisions",
+          "value": [
+            {
+              "id": "full",
+              "revision": "reads-2"
+            },
+            {
+              "id": "mutation",
+              "revision": "reads-1"
+            },
+            {
+              "id": "review",
+              "revision": "reads-1"
+            },
+            {
+              "id": "export-test",
+              "revision": "reads-1"
+            }
+          ]
+        },
+        {
+          "path": "evidence/checks/0/revision",
+          "value": "reads-1"
+        },
+        {
+          "path": "evidence/checks/1/revision",
+          "value": "reads-1"
+        },
+        {
+          "path": "evidence/checks/2/revision",
+          "value": "reads-1"
+        },
+        {
+          "path": "evidence/checks/3/revision",
+          "value": "reads-1"
+        }
+      ]
+    },
+    {
+      "name": "a-check-that-reads-everything-stales-on-any-edit",
+      "expected": [
+        "stale-evidence"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "model/revision",
+          "value": "candidate-2"
+        }
+      ]
+    },
+    {
+      "name": "unpinned-check",
+      "expected": [
+        "unpinned-check"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "policy/requiredChecks/0/ignores",
+          "value": [
+            "*.md"
+          ]
+        }
+      ]
     }
   ]
 }

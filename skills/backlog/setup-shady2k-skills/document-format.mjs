@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 // Reference reader for the shipped Markdown templates, not a parser for all formats.
 // Project adapters may reuse these functions; syntax errors must fail their export.
 const idPattern = '[a-zA-Z0-9][a-zA-Z0-9_.:-]*';
@@ -98,4 +99,51 @@ export function parseCapability(text) {
   if (!new RegExp(`^${idPattern}$`).test(capability.id) || !capability.title) throw new Error('missing/invalid capability identity');
   for (const r of capability.requirements) r.statement = statements.get(r).join('\n').trim();
   return capability;
+}
+
+// ---- what a check reads ---------------------------------------------------
+
+// A path pattern: `*` inside one name, `**` across folders, `?` one character.
+// A pattern with no slash matches a name at any depth (`*.md`); one ending in
+// a slash matches everything under that folder (`docs/`).
+export function pathMatcher(pattern) {
+  let p = String(pattern).trim();
+  if (!p) throw new Error('an empty path pattern');
+  if (p.endsWith('/')) p += '**';
+  const anywhere = !p.includes('/');
+  if (p.startsWith('/')) p = p.slice(1);
+  let re = '';
+  for (let i = 0; i < p.length; i++) {
+    const ch = p[i];
+    if (ch === '*' && p[i + 1] === '*') {
+      i++;
+      if (p[i + 1] === '/') { i++; re += '(?:.*/)?'; } else re += '.*';
+    } else if (ch === '*') re += '[^/]*';
+    else if (ch === '?') re += '[^/]';
+    else re += ch.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  }
+  const rx = new RegExp(`^${anywhere ? '(?:.*/)?' : ''}${re}$`);
+  return (path) => rx.test(path);
+}
+
+/**
+ * The revision one check's receipt is pinned to: a digest of every file it
+ * reads at a commit, given as `git ls-tree -r --full-tree <rev>` prints it.
+ * `exclude` is what the gate verifies itself on every run (the revision's own
+ * exclusions, the same for every check); `ignores` is what the policy says
+ * this check does not read. Leaving out a file a check does read is the one
+ * mistake that weakens a receipt, so the list names what is left out and
+ * starts empty: forgetting an entry only costs a run.
+ */
+export function checkRevision(lsTree, { exclude = [], ignores = [] } = {}) {
+  const skip = [...exclude, ...ignores].map(pathMatcher);
+  const entries = [];
+  for (const line of String(lsTree).split('\n')) {
+    if (!line.trim()) continue;
+    const m = /^(\d+) (\w+) ([0-9a-f]+)\t(.+)$/.exec(line);
+    if (!m) throw new Error(`not a line of git ls-tree: ${line.slice(0, 80)}`);
+    if (skip.some((f) => f(m[4]))) continue;
+    entries.push(`${m[1]} ${m[3]} ${m[4]}`);
+  }
+  return createHash('sha256').update(entries.sort().join('\n')).digest('hex');
 }

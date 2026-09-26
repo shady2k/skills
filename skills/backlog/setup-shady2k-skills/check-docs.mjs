@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const RULES_VERSION = '0.32.0';
+export const RULES_VERSION = '0.33.0';
 const here = dirname(fileURLToPath(import.meta.url));
 const object = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
 const canonical = (x) => Array.isArray(x) ? x.map(canonical) : object(x)
@@ -46,6 +46,9 @@ const changeSchema = {
 const modelSchema = {
   schemaVersion: enumeration(1), phase: enumeration('product', 'feature', 'acceptance', 'close'),
   revision: 'string',
+  // A check that says what it does not read is pinned to a revision of its
+  // own inputs; the wrapper computes each (document-format.mjs, checkRevision).
+  checkRevisions: optional(array({ id: 'id', revision: 'string' })),
   project: {
     mode: enumeration('new', 'existing'),
     vision: { audience: 'string', problem: 'string', outcome: 'string', exclusions: 'string' },
@@ -59,12 +62,13 @@ const policySchema = {
   requiredChecks: array({
     id: 'id', kind: enumeration('static', 'test', 'mutation', 'review', 'manual'),
     appliesTo: optional(array(enumeration('behavior', 'no-behavior', 'supporting'))),
+    ignores: optional(array('string')),
   }),
 };
 const evidenceSchema = {
-  schemaVersion: enumeration(1), revision: 'string', policyDigest: 'string',
+  schemaVersion: enumeration(1), revision: optional('string'), policyDigest: 'string',
   approvals: array({ changeDigest: 'string', reference: 'string' }),
-  checks: array({ id: 'id', status: enumeration('passed', 'failed', 'skipped', 'unsupported'), reference: 'string' }),
+  checks: array({ id: 'id', status: enumeration('passed', 'failed', 'skipped', 'unsupported'), reference: 'string', revision: optional('string') }),
 };
 
 function schema(x, rule, path) {
@@ -112,7 +116,8 @@ const WHY = {
   'unsynced-current': 'current equals the accepted baseline before closure, and the replayed change at closure',
   'uncovered-requirement': 'every changed or preserved requirement names at least one check that proves it',
   'missing-approval': 'this change digest needs an approval carrying a reference',
-  'stale-evidence': 'receipts must be for this revision and this policy: run the checks again on the current revision',
+  'stale-evidence': 'a receipt stands for the revision of what its check reads, under this policy: run that check again on the current revision',
+  'unpinned-check': 'the policy says what this check does not read, so the export carries a revision of its own inputs for it (checkRevisions): the wrapper computes it with checkRevision',
   'unproved-check': 'this check needs a receipt with status passed and a reference',
 };
 
@@ -232,12 +237,16 @@ export function checkDocuments(model, policy, evidence = null) {
       && present(a.reference)), 'change');
   }
   if (model.phase === 'acceptance' || model.phase === 'close') {
-    check('stale-evidence', !evidence || evidence.revision !== model.revision
-      || evidence.policyDigest !== digest(policy), 'evidence');
+    check('stale-evidence', !evidence || evidence.policyDigest !== digest(policy), 'evidence');
     const needed = new Set([...applicable.map((c) => c.id), ...change.coverage.flatMap((c) => c.checks)]);
+    // Each receipt stands for what its own check reads. A check that says
+    // nothing about its inputs reads the whole revision, as before.
+    const pinOf = (id) => model.checkRevisions?.find((r) => r.id === id)?.revision;
+    for (const c of policy.requiredChecks) check('unpinned-check', (c.ignores?.length ?? 0) > 0 && !pinOf(c.id), `policy/${c.id}`);
     for (const id of needed) {
       const receipt = evidence?.checks.find((c) => c.id === id);
       check('unproved-check', !receipt || receipt.status !== 'passed' || !present(receipt.reference), id);
+      if (evidence && receipt) check('stale-evidence', (receipt.revision ?? evidence.revision) !== (pinOf(id) ?? model.revision), id);
     }
   }
   return violations;

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { checkDocuments, decided, digest, fixtureCases } from '../skills/backlog/setup-shady2k-skills/check-docs.mjs';
-import { parseCapability, parseVision, parseMilestone } from '../skills/backlog/setup-shady2k-skills/document-format.mjs';
+import { checkRevision, parseCapability, parseVision, parseMilestone, pathMatcher } from '../skills/backlog/setup-shady2k-skills/document-format.mjs';
 
 const script = new URL('../skills/backlog/setup-shady2k-skills/check-docs.mjs', import.meta.url);
 const scratch = mkdtempSync(join(tmpdir(), 'document-gate-test-'));
@@ -20,6 +20,27 @@ const save = (name, value) => {
 for (const c of fixtureCases()) test(`fixture ${c.name}`, () => {
   if (c.expected.includes('invalid-input')) assert.throws(() => checkDocuments(c.model, c.policy, c.evidence));
   else assert.deepEqual([...new Set(checkDocuments(c.model, c.policy, c.evidence).map((v) => v.id))].sort(), [...c.expected].sort());
+});
+
+test('a path pattern: a bare name anywhere, a folder with its contents, * within one name', () => {
+  const cases = [['*.md', 'README.md', true], ['*.md', 'docs/a/b.md', true], ['*.md', 'main.go', false],
+    ['docs/', 'docs/x/y.go', true], ['docs/', 'cmd/docs/x', false], ['**/testdata/**', 'a/testdata/b.md', true],
+    ['cmd/*.go', 'cmd/a.go', true], ['cmd/*.go', 'cmd/x/a.go', false], ['a.b', 'axb', false], ['.github/', '.github/ci.yml', true]];
+  for (const [pattern, path, want] of cases) assert.equal(pathMatcher(pattern)(path), want, `${pattern} ~ ${path}`);
+  assert.throws(() => pathMatcher(' '));
+});
+
+test('a check\'s revision moves with what it reads, and only with that', () => {
+  const tree = '100644 blob aaaa\tREADME.md\n100644 blob bbbb\tmain.go\n100644 blob cccc\t.beads/issues.jsonl\n';
+  const opts = { exclude: ['.beads/'], ignores: ['*.md'] };
+  const base = checkRevision(tree, opts);
+  assert.equal(checkRevision(tree.replace('aaaa', 'dddd'), opts), base, 'a prose edit');
+  assert.equal(checkRevision(tree.replace('cccc', 'dddd'), opts), base, 'the tracker');
+  assert.notEqual(checkRevision(tree.replace('bbbb', 'dddd'), opts), base, 'a code edit');
+  assert.notEqual(checkRevision(`${tree}100644 blob eeee\tnew.go\n`, opts), base, 'a new file');
+  assert.notEqual(checkRevision(tree.replace('100644 blob bbbb', '100755 blob bbbb'), opts), base, 'a mode change');
+  assert.notEqual(checkRevision(tree.replace('aaaa', 'dddd'), { exclude: ['.beads/'] }), checkRevision(tree, { exclude: ['.beads/'] }), 'a check that reads everything');
+  assert.throws(() => checkRevision('not a tree line'));
 });
 
 test('digests are key-order independent, content-sensitive', () => {
