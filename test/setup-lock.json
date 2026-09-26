@@ -1,9 +1,9 @@
 {
-  "setupVersion": "0.31.0",
+  "setupVersion": "0.32.0",
   "files": {
-    "check.mjs": "7c3725f4ad43ecbcd408424c4d649d813c5cba63b75741e073c72f022f9673d5",
-    "check-commits.mjs": "5c6c4395fe384004788ee6062b8f5b6a3f4cf5e082f89d6d92015a1d269d9895",
-    "check-docs.mjs": "4247eb5a703163177f152eb9746b9381b9fb32c21b2412976eaefbeb0eb6a442",
+    "check.mjs": "0a1acee37a68303deafb07c960aff46b458cc4290edc247a0134543375c790e6",
+    "check-commits.mjs": "7ef4a225e2ba665e44b84cec83ab460fd310e1e9346dc453e6d01ad7fec5736c",
+    "check-docs.mjs": "39265ef35ea5b43319c114e791595f2accc2c309bc85b1b0fe638d4a6cbd5665",
     "document-format.mjs": "9aba90c251d02fddc52d831342f8d8755a05a61ad4b11177e50f0f8f37dfce9d",
     "time-format.mjs": "ece1c1e8d39ee2a164c6a3296796f27d2934592ec1425f77bc8abc11bf53308a",
     "integration.md": "9d231e5689907b25598cf82aeac31eeaac4a8cae76525863739972b12a5cb641",

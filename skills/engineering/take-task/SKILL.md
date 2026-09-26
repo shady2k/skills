@@ -126,14 +126,13 @@ end:
   of tasks and stages, so the time the result was promised for is on record and
   `stalled` holds the run to it. A resumed or fresh coordinator claims the
   feature again, with no forecast;
-- every claim of a task is made the same way, when the task is handed over: a
-  worker that runs the set claims its own leaf with `--role worker`, and its
-  brief says so, and its receipt comes with its result. For a worker that does
-  not (another harness, a bare agent in a pane), the coordinator writes the
-  claim at the moment it hands the task over, naming the worker's session with
-  `--harness` and `--session`: that moment is on record only then, and a
-  claim recovered later has to be dated from a transcript. Claiming the next
-  item prints the receipt of the last one first;
+- the coordinator's claim on the feature covers what its workers hand in, by
+  the protocol's **A run's time is its coordinator's clock**. A worker that
+  runs the set claims its own leaf with `--role worker`, and its brief says
+  so, and its receipt comes with its result: that adds its effort by phase.
+  A worker that does not (another harness, a bare agent in a pane) records
+  nothing, and nothing is recovered for it. Claiming the next item prints the
+  receipt of the last one first;
 - every stop: `event --event stop --reason owner` for a decision the owner must
   make, `--reason missing` for information the project did not have; every
   decision made alone: `event --event decision`; every CI run: `event --event
@@ -151,9 +150,10 @@ it prints the receipts it can recover from this machine and names those whose
 transcripts are elsewhere; post the first, and say the second to the owner.
 Where no machine has a transcript (a machine wiped, a harness that keeps
 none), close its span with `receipt --unknown` and the reason in its note, and
-say so: the time stays unknown, never guessed. A task handed in with no claim
-at all gets `claim --recovered`, dated by its transcript, or where there is
-none by the record that shows when it was handed over (`--basis`).
+say so: the time stays unknown, never guessed. Where it is a worker's, it
+leaves the run whole. A task handed in outside any claimed run gets `claim
+--recovered`, dated by its transcript, or where there is none by the record
+that shows when it was handed over (`--basis`).
 `--help` lists the commands. The records are for measuring, not reading, and
 are never shown to the owner as such. If one cannot be written, the run goes on
 and its report says so.

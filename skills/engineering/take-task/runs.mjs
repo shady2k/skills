@@ -181,7 +181,10 @@ function summaryFor(v, feature, opts, { result, pr, note, extra = [] }) {
   const cols = ['forecast', 'work', ...BUCKETS, 'total'];
   const rows = {};
   const add = (p, c, n) => { const r = (rows[p] ||= Object.fromEntries(cols.map((k) => [k, 0]))); r[c] += n; };
-  const unknown = receipts.filter((r) => r.fields.unknown === 'yes').length;
+  // The run's clock is its coordinator's: a worker whose time is unknown or
+  // elsewhere leaves its effort by phase short, never the run incomplete.
+  const worker = new Set(spans.filter((s) => s.claim.fields.role === 'worker').map((s) => s.id));
+  const unknown = receipts.filter((r) => r.fields.unknown === 'yes' && !worker.has(r.fields.span)).length;
   for (const r of receipts.filter((x) => x.table))
     for (const [p, row] of Object.entries(r.table.rows)) {
       if (p === 'total') continue;
@@ -204,7 +207,7 @@ function summaryFor(v, feature, opts, { result, pr, note, extra = [] }) {
   const stretches = [];
   for (const s of spans) {
     const raw = rawOf(opts, s.session, s.item);
-    if (!raw) { missing++; continue; }
+    if (!raw) { if (!worker.has(s.id)) missing++; continue; }
     const to = Math.max(s.start, endOf(s, raw));
     const family = raws(opts).filter((r) => r === raw || rootKey(r, opts) === s.session);
     for (const r of family) {
@@ -212,7 +215,7 @@ function summaryFor(v, feature, opts, { result, pr, note, extra = [] }) {
       if (m) stretches.push(...m.occupied);
     }
   }
-  const occupied = spans.length > missing ? round(minutes(span(union(stretches)))) : null;
+  const occupied = stretches.length ? round(minutes(span(union(stretches)))) : null;
   const fields = {
     at: iso(nowMs()), result, started: iso(first), elapsed: round(minutes(nowMs() - first)),
     spans: spans.length, open: open.length, missing,
@@ -989,6 +992,22 @@ function selftest() {
     expect('time: a span of unknown time is named apart, not added', tz.unknown.some((u) => u.item === 'demo-z9') && !tz.items['demo-z9']);
     expect('time: the text says the figure is at least this', /whose time is unknown/.test(cli('time', '--no-transcripts')));
     expect('misuse: a claim dated by another record while the transcript is here', misuse(['claim', '--recovered', '--item', 'demo-q70', '--role', 'worker', '--at', T(oldStart), ...oldAs, '--basis', 'x', '--backlog', file, '--project', 'demo']));
+    // A run is its coordinator's clock: its worker's time unknown leaves the
+    // effort short, not the run incomplete, and the run still makes a pace.
+    backlog.issues.push({ id: 'K', title: 'Run with a lost worker', type: 'epic', status: 'active', labels: [], parent: null, blockedBy: [], body: '', updatedAt: T(clock) },
+      { id: 'K1', title: 'Leaf', type: 'task', status: 'implemented', labels: [], parent: 'K', blockedBy: [], body: '', updatedAt: T(clock) });
+    const kStart = clock;
+    act('claim', '--item', 'K', '--role', 'coordinator', '--forecast', 'build=20', ...as('sK'));
+    transcript('sK', worked(kStart, 30));
+    clock = kStart + 60e3;
+    const kw = parseRecord(act('claim', '--item', 'K1', '--role', 'worker', '--harness', 'omp', '--session', 'lost2', '--agent', 'omp-worker:t@m:b#lost2')[0].body);
+    act('receipt', '--span', kw.fields.span, '--end', 'finished', '--unknown', '--note', 'its machine was wiped');
+    clock = kStart + 31 * 60e3;
+    const ks = parseRecord(act('finish', '--item', 'K', '--result', 'pull-request', ...as('sK')).at(-1).body);
+    expect('finish: a worker whose time is unknown leaves the run whole on its coordinator\'s clock', !ks.problems.length
+      && ks.fields.missing === '0' && !ks.fields.unknown && !ks.fields['occupied-partial'] && Number(ks.fields.occupied) === 30
+      && !finishedRuns(view(backlog)).find((r) => r.item === 'K').partial);
+
     // A span whose transcript is here is measured, never closed as unknown.
     backlog.issues.push({ id: 'demo-h1', title: 'Measured', type: 'task', status: 'implemented', labels: [], parent: null, blockedBy: [], body: '', updatedAt: T(clock) });
     transcript('here2', goneRows('demo-h1', demo), demo);

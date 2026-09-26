@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.31.0
+Setup version: 0.32.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -146,6 +146,12 @@ no receipt is found by the gate and written from the transcript where it is;
 where no machine has it, its time is unknown, said so, and never zero. A figure
 of time counts the receipts; what is still open is said beside it, as
 incomplete.
+
+**A run's time is its coordinator's clock.** While a worker works, the
+coordinator is waiting on it, so its claim on the feature or stage covers
+every leaf its workers hand in. A worker's own span, where it records one,
+adds only its effort by phase; one missing or unknown leaves that effort short,
+never the run incomplete.
 Workers have distinct owners and an atomic claim or a serialized assignment:
 reading back a field that anyone can overwrite is not a lock. If a merge
 changes or fails, reopen the affected work and recheck what depends on it. The

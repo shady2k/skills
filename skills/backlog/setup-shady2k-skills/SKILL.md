@@ -409,7 +409,7 @@ An existing setup runs all of these too, even when versions match.
    **Adopting time records**, on the first installation that carries them:
    work is in flight that sessions on the older set took, and they wrote no
    claims. Find every active, submitted or implemented leaf with no claim
-   record. Where the transcript of the session that took it is on this
+   record on it or on the feature or stage above it. Where the transcript of the session that took it is on this
    machine, read it for when the item was taken, write the claim with the run
    script's `claim --recovered` at that start and post it, then post its
    receipt from `gaps`. A transcript whose working copy was removed is found

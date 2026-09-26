@@ -164,9 +164,21 @@ function exemptFromRecords(m, cfg, id) {
   return false;
 }
 
+// A run's time is its coordinator's clock: a claim on the feature or stage
+// covers every leaf its workers hand in under it. A worker's own claim adds
+// its effort by phase, and nothing requires it.
+function claimedAbove(m, claimed, id) {
+  const seen = new Set();
+  for (let cur = id; cur && !seen.has(cur); cur = m.by.get(cur)?.parent) {
+    if (claimed.has(cur)) return true;
+    seen.add(cur);
+  }
+  return false;
+}
+
 function unclaimedWork(m, cfg) {
   const claimed = new Set(spansOf(m).spans.filter((s) => s.claim).map((s) => s.item));
-  return m.issues.filter((i) => ['submitted', 'implemented'].includes(i.status) && i.type !== 'epic' && !m.children.has(i.id) && !claimed.has(i.id) && !exemptFromRecords(m, cfg, i.id))
+  return m.issues.filter((i) => ['submitted', 'implemented'].includes(i.status) && i.type !== 'epic' && !m.children.has(i.id) && !claimedAbove(m, claimed, i.id) && !exemptFromRecords(m, cfg, i.id))
     .map((i) => ({ id: i.id, note: `${i.status} with no claim recorded on it` }));
 }
 
@@ -440,8 +452,8 @@ const CHECKS = [
   {
     id: 'time-work-unclaimed',
     severity: 'error',
-    why: 'A result handed in with no claim on its task was worked on by nobody the record knows: its time cannot be found, and the gate cannot tell it from work that took none.',
-    fix: 'On the machine that holds the session\'s transcript, recover its claim with the run script, at the start the transcript shows, and then its receipt. Where no machine has it, recover the claim at the start another record shows, naming that record, close it with a receipt of unknown time, and say so to the owner. Work in flight when time records were adopted is listed as exempt by setup at that moment, never later to quiet this. Closing the task does not fill the gap.',
+    why: 'A result handed in with no claim on its task, or on the feature or stage it belongs to, was worked on by nobody the record knows: its time cannot be found, and the gate cannot tell it from work that took none.',
+    fix: 'Work a coordinator ran is covered by its claim on the feature or stage: where that claim is missing, recover it. Otherwise, on the machine that holds the session\'s transcript, recover its claim with the run script, at the start the transcript shows, and then its receipt. Where no machine has it, recover the claim at the start another record shows, naming that record, close it with a receipt of unknown time, and say so to the owner. Work in flight when time records were adopted is listed as exempt by setup at that moment, never later to quiet this. Closing the task does not fill the gap.',
     run: (m, cfg) => unclaimedWork(m, cfg),
   },
 ];
@@ -463,7 +475,7 @@ function bulkClusters(m, threshold) {
 
 // The version of the set these rules shipped with. A project holds a COPY of
 // this file, and this is how anybody tells that the copy has fallen behind.
-const RULES_VERSION = '0.31.0';
+const RULES_VERSION = '0.32.0';
 
 const STRENGTHS = ['block', 'block-new', 'report'];
 
