@@ -134,7 +134,7 @@ function measureSpan(raw, from, to) {
 
 function receiptFor(v, s, opts, { end, reason, note, recovered = false, at = nowMs() }) {
   const raw = rawOf(opts, s.session, s.item);
-  if (!raw) throw new NotHere(`the transcript of ${s.session} (${s.claim.fields.agent}) is not on this machine: its receipt is written where it is`);
+  if (!raw) throw new NotHere(`the transcript of ${s.session} (${s.claim.fields.agent}) is not on this machine: its receipt is written where it is, or closed with --unknown where no machine has it`);
   const from = s.start;
   const to = Math.max(from, endOf(s, raw, at));
   const { table, whole } = measureSpan(raw, from, to);
@@ -181,7 +181,8 @@ function summaryFor(v, feature, opts, { result, pr, note, extra = [] }) {
   const cols = ['forecast', 'work', ...BUCKETS, 'total'];
   const rows = {};
   const add = (p, c, n) => { const r = (rows[p] ||= Object.fromEntries(cols.map((k) => [k, 0]))); r[c] += n; };
-  for (const r of receipts)
+  const unknown = receipts.filter((r) => r.fields.unknown === 'yes').length;
+  for (const r of receipts.filter((x) => x.table))
     for (const [p, row] of Object.entries(r.table.rows)) {
       if (p === 'total') continue;
       for (const b of BUCKETS) add(p, b, row[b]);
@@ -216,7 +217,7 @@ function summaryFor(v, feature, opts, { result, pr, note, extra = [] }) {
     at: iso(nowMs()), result, started: iso(first), elapsed: round(minutes(nowMs() - first)),
     spans: spans.length, open: open.length, missing,
     occupied: occupied ?? undefined, 'occupied-partial': missing && occupied !== null ? 'yes' : undefined,
-    forecast: haveForecast ? rows.total.forecast : undefined, pr, note,
+    forecast: haveForecast ? rows.total.forecast : undefined, unknown: unknown || undefined, pr, note,
   };
   return { item: feature.id, body: formatRecord('summary', fields, { columns: cols, rows }) };
 }
@@ -247,7 +248,7 @@ function finishedRuns(v) {
       item: sm.item, result: sm.fields.result, occupied: n('occupied'),
       // A summary written while spans were still open, or with a transcript
       // on another machine, is an incomplete run and no reference for another.
-      partial: sm.fields['occupied-partial'] === 'yes' || n('open') > 0 || n('missing') > 0,
+      partial: sm.fields['occupied-partial'] === 'yes' || n('open') > 0 || n('missing') > 0 || n('unknown') > 0,
       forecast: n('forecast'), elapsed: n('elapsed'), tasks: claim?.fields.tasks ? Number(claim.fields.tasks) : null,
       table: sm.table.rows,
     };
@@ -406,8 +407,12 @@ function timeReport(v, opts) {
   const inScope = (s) => !only || only.has(s.item);
   // A stretch counts in the period it ended in, once: periods are half-open,
   // so one ending on the stroke of midnight belongs to the day it starts.
-  const inPeriod = (s) => s.end >= since && s.end < until;
-  const closed = v.spans.filter((s) => s.receipt && s.claim && !s.conflict.length && inScope(s) && inPeriod(s));
+  // One closed with its time unknown counts where it is known to have ended,
+  // or else where it began.
+  const inPeriod = (s) => { const at = s.end ?? s.start; return at >= since && at < until; };
+  const ended = v.spans.filter((s) => s.receipt && s.claim && !s.conflict.length && inScope(s) && inPeriod(s));
+  const closed = ended.filter((s) => !s.unknown);
+  const unknown = ended.filter((s) => s.unknown);
   const unclaimed = v.spans.filter((s) => s.receipt && !s.claim && !s.conflict.length && inScope(s) && inPeriod(s));
   const byItem = {};
   const total = Object.fromEntries([...BUCKETS, 'total'].map((b) => [b, 0]));
@@ -427,6 +432,7 @@ function timeReport(v, opts) {
     period: { since: Number.isFinite(since) ? localStamp(since) : null, until: Number.isFinite(until) ? localStamp(until) : null },
     receipts: closed.length, total, work: WORK.reduce((n, b) => n + total[b], 0), phases, items: byItem,
     open: open.map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, since: s.claim.fields.at })),
+    unknown: unknown.map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, since: s.claim.fields.at, why: s.receipt.fields.note })),
     damaged: v.damaged.length, conflicted: v.spans.filter((s) => s.conflict.length).length, unclaimed: unclaimed.length,
   };
   if (!opts['no-transcripts']) {
@@ -494,6 +500,10 @@ function describeTime(t) {
       lines.push(`  ${o.item}, ${o.agent}, since ${localStamp(Date.parse(o.since))}${here ? `: so far ${h(here.work)} of work, measured on this machine only` : ': its transcript is not on this machine'}`);
     }
   }
+  if (t.unknown?.length) {
+    lines.push(`Not in these figures either: ${t.unknown.length} stretch(es) whose time is unknown, since no machine has their transcript, so the figure is at least this:`);
+    for (const u of t.unknown) lines.push(`  ${u.item}, ${u.agent}, from ${localStamp(Date.parse(u.since))}: ${u.why}`);
+  }
   if (t.unassigned?.sessions) lines.push(`On this machine only: ${h(t.unassigned.work)} of work in ${t.unassigned.sessions} session(s) that claimed no item; it is on no item and no other machine sees it.`);
   if (t.damaged || t.conflicted || t.unclaimed) lines.push(`${t.damaged} damaged, ${t.conflicted} conflicting and ${t.unclaimed} unclaimed record(s) are not counted: the gate names them, and the figure is incomplete by them.`);
   return lines.join('\n');
@@ -526,7 +536,10 @@ function gaps(v, opts) {
  * The claim a session made and never wrote, typically one that ran before the
  * set wrote claims at all: dated at the start its transcript on this machine
  * shows, and marked recovered. It carries no forecast, since one written
- * afterwards forecasts nothing; `gaps` then writes the span's receipt.
+ * afterwards forecasts nothing; `gaps` then writes the span's receipt. Where
+ * no machine has the transcript, the start is the one another record shows,
+ * named in --basis (the tracker's claim of the item, the message that handed
+ * it over), and the span is closed with a receipt of unknown time.
  */
 function recoveredClaim(v, it, me, role, opts) {
   if (!opts.session) throw new Usage('a recovered claim is another session\'s: name it with --harness and --session');
@@ -534,16 +547,29 @@ function recoveredClaim(v, it, me, role, opts) {
   const at = parseWhen(opts.at ?? '');
   if (!Number.isFinite(at)) throw new Usage('--at <time> is required: the start the transcript shows');
   const raw = rawOf(opts, me.key, it.id);
-  if (!raw) throw new NotHere(`the transcript of ${me.key} is not on this machine: its claim is recovered where it is`);
-  if (at < raw.first - 60e3 || at > raw.last) throw new Usage(`--at ${localStamp(at)} is outside the session's transcript, ${localStamp(raw.first)} to ${localStamp(raw.last)}`);
+  if (!raw && !opts.basis) throw new NotHere(`the transcript of ${me.key} is not on this machine: its claim is recovered where it is, or, where no machine has it, from another record that dates it (--basis)`);
+  if (raw && opts.basis) throw new Usage('the transcript is here: the claim is dated by it, not by another record');
+  if (raw && (at < raw.first - 60e3 || at > raw.last)) throw new Usage(`--at ${localStamp(at)} is outside the session's transcript, ${localStamp(raw.first)} to ${localStamp(raw.last)}`);
   if (v.spans.some((s) => s.claim && s.session === me.key && s.item === it.id)) throw new Usage(`${me.key} already has a claim on ${it.id}`);
-  const fields = { span: newSpanId(), at: iso(at), session: me.key, agent: agentName(me, role, opts), role, note: opts.note, recovered: iso(nowMs()) };
+  const fields = { span: newSpanId(), at: iso(at), session: me.key, agent: agentName(me, role, opts), role, basis: opts.basis, note: opts.note, recovered: iso(nowMs()) };
   return { item: it.id, body: formatRecord('claim', fields, null) };
+}
+
+/**
+ * A span whose transcript no machine has: closed, with its time unknown and
+ * the reason said. It ends where the session's next claim began, where there
+ * is one, and nowhere a figure would have to be invented.
+ */
+function unknownReceipt(v, s, opts, { end, reason, note }) {
+  if (rawOf(opts, s.session, s.item)) throw new Usage(`the transcript of ${s.session} is here: its receipt is measured, not unknown`);
+  if (!note) throw new Usage('--note says why the time is unknown: where the session ran, and why its transcript is on no machine');
+  const fields = { span: s.id, from: iso(s.start), to: s.next ? iso(s.next.start) : undefined, end, reason, note, unknown: 'yes' };
+  return { item: s.item, body: formatRecord('receipt', fields, null) };
 }
 
 // ---- commands ----------------------------------------------------------------
 
-const FLAGS = ['json', 'no-transcripts', 'recovered'];
+const FLAGS = ['json', 'no-transcripts', 'recovered', 'unknown'];
 
 function parseArgs(rest) {
   const opts = {};
@@ -625,6 +651,7 @@ export function run(argv) {
       if (s.receipt) throw new Usage(`span ${s.id} already has its receipt`);
       const end = need(opts, 'end', ENDS);
       if (opts.reason !== undefined) need(opts, 'reason', REASONS);
+      if (opts.unknown) return post([unknownReceipt(b, s, opts, { end, reason: opts.reason, note: opts.note })], opts);
       return post([receiptFor(b, s, opts, { end, reason: opts.reason, note: opts.note, recovered: opts.recovered })], opts);
     }
     case 'event': {
@@ -704,10 +731,13 @@ records to post, each under the item it goes on; post each body exactly as print
 runs.mjs claim --item <id> --role coordinator|worker|agent [--forecast phase=min,...] [--away <min> | --due <time>]
                 [--tasks N] [--stages N] [--basis <text>] [--note <text>]
   the claim that starts a span; first, the receipt of this session's open span on another item
-runs.mjs claim --recovered --item <id> --role <role> --harness <h> --session <id> --at <time> [--note <text>]
-  the claim another session made and never wrote, at the start its transcript here shows; then gaps
+runs.mjs claim --recovered --item <id> --role <role> --harness <h> --session <id> --at <time> [--basis <record>] [--note <text>]
+  the claim another session made and never wrote, at the start its transcript here shows; then gaps.
+  Where no machine has the transcript, at the start the record named in --basis shows; then receipt --unknown
 runs.mjs receipt [--span <id>] --end paused|finished|handed-over|stopped [--reason owner|missing|other] [--note <text>] [--recovered]
   what the span spent, measured from this machine's transcript (exit 3 when it is not here)
+runs.mjs receipt --span <id> --end ... --unknown --note <why>
+  closes a span whose transcript no machine has: its time unknown, the reason said
 runs.mjs event [--span <id>] --event stop|decision|ci [--reason owner|missing|other] [--note <text>]
 runs.mjs finish --item <feature> --result pull-request|abandoned|stopped [--pr <url>] [--note <text>]
   this session's receipt, then the feature's summary: forecast against work by phase, occupied time
@@ -729,6 +759,8 @@ function selftest() {
   const savedNow = Date.now;
   process.env.CLAUDE_CONFIG_DIR = join(home, 'claude');
   process.env.CODEX_HOME = join(home, 'codex');
+  process.env.PI_CODING_AGENT_DIR = join(home, 'omp');
+  delete process.env.PI_CODING_AGENT_SESSION_DIR;
   for (const [, key] of HERE) delete process.env[key];
   const failures = [];
   const expect = (name, ok) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures.push(name); };
@@ -940,6 +972,30 @@ function selftest() {
     sh(['init', '-q', '-b', 'main'], other);
     transcript('elsewhere', goneRows('demo-q70', other), other);
     expect('claim --recovered: a transcript from another repository is not taken, whatever it names', misuse(['claim', '--recovered', '--item', 'demo-q70', '--role', 'coordinator', '--at', T(goneStart), '--harness', 'claude-code', '--session', 'elsewhere', '--backlog', file, '--project', 'demo'], NotHere));
+    // A worker whose transcript no machine has: its claim dated by the
+    // record that handed it the item, its span closed with its time unknown.
+    backlog.issues.push({ id: 'demo-z9', title: 'Done where nothing kept it', type: 'task', status: 'implemented', labels: [], parent: null, blockedBy: [], body: '', updatedAt: T(clock) });
+    const lostAs = ['--harness', 'omp', '--session', 'lost', '--agent', 'omp-worker:t@m:b#lost'];
+    const zArgs = ['claim', '--recovered', '--item', 'demo-z9', '--role', 'worker', '--at', T(goneStart), ...lostAs];
+    writeFileSync(file, JSON.stringify(backlog));
+    expect('claim --recovered: no transcript and no other record to date it is exit 3', misuse([...zArgs, '--backlog', file, '--project', 'demo'], NotHere));
+    const zc = parseRecord(act(...zArgs, '--basis', 'the tracker\'s claim of demo-z9, when it was handed over')[0].body);
+    expect('claim --recovered --basis: dated by the record it names, and marked recovered', !zc.problems.length && Date.parse(zc.fields.at) === goneStart && /handed over/.test(zc.fields.basis) && zc.fields.recovered);
+    expect('gaps: a span no machine can measure is named, not guessed', JSON.parse(cli('gaps', '--json')).elsewhere.some((e) => e.item === 'demo-z9'));
+    expect('misuse: a receipt of unknown time without its reason', misuse(['receipt', '--span', zc.fields.span, '--end', 'finished', '--unknown', '--backlog', file, '--project', 'demo']));
+    const zu = parseRecord(act('receipt', '--span', zc.fields.span, '--end', 'finished', '--unknown', '--note', 'the worker\'s machine was wiped')[0].body);
+    expect('receipt --unknown: closes the span with no figures and its reason', !zu.problems.length && zu.fields.unknown === 'yes' && !zu.table && zu.fields.from === zc.fields.at);
+    const tz = JSON.parse(cli('time', '--no-transcripts', '--json'));
+    expect('time: a span of unknown time is named apart, not added', tz.unknown.some((u) => u.item === 'demo-z9') && !tz.items['demo-z9']);
+    expect('time: the text says the figure is at least this', /whose time is unknown/.test(cli('time', '--no-transcripts')));
+    expect('misuse: a claim dated by another record while the transcript is here', misuse(['claim', '--recovered', '--item', 'demo-q70', '--role', 'worker', '--at', T(oldStart), ...oldAs, '--basis', 'x', '--backlog', file, '--project', 'demo']));
+    // A span whose transcript is here is measured, never closed as unknown.
+    backlog.issues.push({ id: 'demo-h1', title: 'Measured', type: 'task', status: 'implemented', labels: [], parent: null, blockedBy: [], body: '', updatedAt: T(clock) });
+    transcript('here2', goneRows('demo-h1', demo), demo);
+    const hc = parseRecord(act('claim', '--recovered', '--item', 'demo-h1', '--role', 'worker', '--at', T(goneStart), '--harness', 'claude-code', '--session', 'here2', '--agent', 'claude-worker:t@m:b#here2')[0].body);
+    writeFileSync(file, JSON.stringify(backlog));
+    expect('misuse: a receipt of unknown time for a span whose transcript is here', misuse(['receipt', '--span', hc.fields.span, '--end', 'finished', '--unknown', '--note', 'x', '--backlog', file, '--project', 'demo']));
+    postAll(JSON.parse(cli('gaps', '--json')).recover.filter((x) => x.item === 'demo-h1'));
 
     const all = spansOf(backlog);
     expect('every record the script printed reads clean, and no span conflicts', !all.damaged.length && all.spans.every((x) => !x.conflict.length));
@@ -978,7 +1034,7 @@ function selftest() {
 }
 
 function sumTotals(backlog) {
-  return spansOf(backlog).spans.filter((s) => s.receipt).reduce((n, s) => n + s.receipt.table.rows.total.total, 0);
+  return spansOf(backlog).spans.filter((s) => s.receipt?.table).reduce((n, s) => n + s.receipt.table.rows.total.total, 0);
 }
 
 function main() {

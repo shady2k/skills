@@ -34,6 +34,8 @@ export class Usage extends Error {}
 
 const claudeHome = () => process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude');
 const codexHome = () => process.env.CODEX_HOME || join(homedir(), '.codex');
+const ompSessions = () => process.env.PI_CODING_AGENT_SESSION_DIR
+  || join(process.env.PI_CODING_AGENT_DIR || join(homedir(), '.omp', 'agent'), 'sessions');
 
 const parseTime = (s) => (typeof s === 'number' ? s : s ? Date.parse(s) : NaN);
 const minutes = (ms) => ms / 60e3;
@@ -603,6 +605,105 @@ export function readCodex(path) {
   };
 }
 
+// omp names its tools in lower case; read as the harnesses the tables know.
+const OMP_TOOLS = { bash: 'Bash', read: 'Read', edit: 'Edit', write: 'Write', grep: 'Grep', glob: 'Glob', task: 'Task', ask: 'AskUserQuestion', todo: 'TodoWrite', web_search: 'WebSearch', vibe_spawn: 'Agent', vibe_send: 'SendMessage', vibe_wait: 'wait', vibe_list: 'ListAgents' };
+
+/**
+ * An omp session. Every model call carries when it started, when it
+ * completed, its tokens and its cost; every tool call its start and its
+ * result. A turn runs from a message on the user's side to the model's last
+ * answer in it. Who is on the user's side is whoever drives the pane, the
+ * owner or a coordinator; a subagent's messages are its parent's, and never
+ * the owner's. A subagent keeps its transcript in its parent's folder.
+ */
+export function readOmp(path, parent = null) {
+  const all = rows(path);
+  const meta = all.find((d) => d.type === 'session') || {};
+  const use = new Map();
+  const turns = [];
+  const owner = [];
+  const gens = [];
+  const pairs = [];
+  const phase = phaser();
+  const tokens = noTokens();
+  let usage = false;
+  let costUSD = 0;
+  let priced = false;
+  let open = null;
+  let lastAt = NaN;
+  const endTurn = (at) => { if (open && at > open.start) turns.push({ start: open.start, end: at }); open = null; };
+
+  for (const d of all) {
+    const at = parseTime(d.timestamp);
+    if (!Number.isFinite(at)) continue;
+    if (d.type === 'custom' && d.customType === 'tool_execution_start') {
+      const u = use.get(d.data?.toolCallId);
+      const started = parseTime(d.data?.startedAt);
+      if (u && Number.isFinite(started)) u.start = started;
+      continue;
+    }
+    if (d.type !== 'message') continue;
+    const m = d.message || {};
+    const parts = Array.isArray(m.content) ? m.content : [];
+    if (m.role === 'user') {
+      endTurn(lastAt);
+      open = { start: at };
+      phase.owner();
+      if (!parent) { owner.push({ at }); gens.push({ owner: true, at }); }
+      lastAt = at;
+      continue;
+    }
+    if (m.role === 'assistant') {
+      const start = parseTime(m.timestamp);
+      const end = Math.max(at, parseTime(m.completedAt) || at);
+      const from = Number.isFinite(start) && start <= end ? start : end;
+      open ||= { start: from };
+      if (m.usage) {
+        usage = true;
+        tokens.input += m.usage.input || 0;
+        tokens.output += m.usage.output || 0;
+        tokens.thinking += m.usage.reasoningTokens || 0;
+        tokens.cacheRead += m.usage.cacheRead || 0;
+        if (typeof m.usage.cost?.total === 'number') { costUSD += m.usage.cost.total; priced = true; }
+      }
+      const calls = parts.filter((c) => c.type === 'toolCall');
+      for (const c of calls) {
+        const hit = SKILL_READ.exec(JSON.stringify(c.arguments ?? ''));
+        if (hit) phase.skill(PHASES[hit[1]]);
+      }
+      const kinds = calls.map((c) => category(OMP_TOOLS[c.name] || c.name, c.arguments));
+      const kind = strongest(kinds);
+      const g = { start: from, end, kind, phase: phase.of(kind) };
+      gens.push(g);
+      calls.forEach((c, k) => use.set(c.id, { start: end, name: c.name, kind: kinds[k], gen: g }));
+      if (m.stopReason !== 'toolUse') endTurn(end);
+      lastAt = end;
+      continue;
+    }
+    if (m.role === 'toolResult') {
+      const u = use.get(m.toolCallId);
+      if (u) {
+        pairs.push({ start: Math.min(u.start, at), end: at, kind: u.kind, name: u.name, id: m.toolCallId, gen: u.gen, phase: u.gen.phase });
+        use.delete(m.toolCallId);
+      }
+      lastAt = at;
+    }
+  }
+  endTurn(lastAt);
+
+  const stamps = all.map((d) => parseTime(d.timestamp)).filter(Number.isFinite);
+  if (!stamps.length) return null;
+  return {
+    harness: 'omp', schema: 'omp', path, cwd: meta.cwd || null, hints: {},
+    id: meta.id || basename(path, '.jsonl').replace(/^.*_/, ''),
+    parent, parentTool: null,
+    first: stamps.reduce((a, b) => Math.min(a, b)), last: stamps.reduce((a, b) => Math.max(a, b)),
+    turns, owner, gens: gens.filter((g) => !g.owner && Number.isFinite(g.start)), pairs,
+    totals: null, costUSD: priced ? costUSD : null, linesAdded: null, linesRemoved: null, costIn: priced ? 'own' : 'unknown',
+    tokens: usage ? tokens : null, tokensFrom: 'harness', harnessClock: null,
+  };
+}
+
 // ---- the buckets -----------------------------------------------------------
 
 // Where records of different things overlap, the more specific wins: a
@@ -820,6 +921,7 @@ function where(harness, path) {
     const meta = first.find((d) => d.type === 'session_meta')?.payload || {};
     return { cwd: meta.cwd || null, hints: { remote: meta.git?.repository_url || null } };
   }
+  if (harness === 'omp') return { cwd: first.find((d) => d.type === 'session')?.cwd || null, hints: {} };
   return { cwd: first.find((d) => d.cwd)?.cwd || null, hints: {} };
 }
 
@@ -856,6 +958,8 @@ export function transcriptOf(key, item) {
     if (existsSync(root)) for (const dir of readdirSync(root)) if (existsSync(join(root, dir, `${sid}.jsonl`))) paths.push(join(root, dir, `${sid}.jsonl`));
   } else if (harness === 'codex') {
     for (const f of files(join(codexHome(), 'sessions'), 4)) if (f.name.includes(sid)) paths.push(f.path);
+  } else if (harness === 'omp') {
+    for (const f of files(ompSessions(), 1)) if (f.name.endsWith(`_${sid}.jsonl`)) paths.push(f.path);
   }
   const named = new RegExp(`(?<![\\w.-])${item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-]|\\.\\w)`);
   for (const path of paths) {
@@ -863,7 +967,7 @@ export function transcriptOf(key, item) {
       const { cwd } = where(harness, path);
       if (cwd && existsSync(resolve(cwd))) continue;
       if (!named.test(readFileSync(path, 'utf8'))) continue;
-      const raw = harness === 'codex' ? readCodex(path) : readClaude(path);
+      const raw = harness === 'codex' ? readCodex(path) : harness === 'omp' ? readOmp(path) : readClaude(path);
       if (raw && raw.id === sid) return Object.assign(raw, { by: 'names the item', role: 'side copy' });
     } catch { /* unreadable */ }
   }
@@ -887,6 +991,13 @@ export function collect(project, { since, until, repo } = {}) {
         else if (parts.length === 3 && parts[1] === 'subagents') candidates.push({ ...f, harness: 'claude-code', sub: true });
       }
   for (const f of files(join(codexHome(), 'sessions'), 4)) candidates.push({ ...f, harness: 'codex' });
+  // omp: <folder>/<stamp>_<id>.jsonl, its subagents in <folder>/<stamp>_<id>/.
+  const omp = ompSessions();
+  for (const f of files(omp, 2)) {
+    const parts = f.path.slice(omp.length + 1).split(sep);
+    if (parts.length === 2) candidates.push({ ...f, harness: 'omp' });
+    else if (parts.length === 3) candidates.push({ ...f, harness: 'omp', parent: parts[1].replace(/^.*_/, '') });
+  }
 
   const seen = [];
   for (const c of candidates) {
@@ -919,6 +1030,7 @@ export function collect(project, { since, until, repo } = {}) {
     let raw;
     try {
       if (c.harness === 'codex') raw = readCodex(c.path);
+      else if (c.harness === 'omp') raw = readOmp(c.path, c.parent || null);
       else {
         let sub = null;
         if (c.sub) {
@@ -1188,6 +1300,8 @@ function selftest() {
   const savedCwd = process.cwd();
   process.env.CLAUDE_CONFIG_DIR = join(home, 'claude');
   process.env.CODEX_HOME = join(home, 'codex');
+  process.env.PI_CODING_AGENT_DIR = join(home, 'omp');
+  delete process.env.PI_CODING_AGENT_SESSION_DIR;
   const failures = [];
   const expect = (name, ok) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures.push(name); };
   const T = (min, sec = 0) => new Date(Date.parse('2026-01-01T10:00:00Z') + min * 60e3 + sec * 1e3).toISOString();
@@ -1473,6 +1587,42 @@ function selftest() {
     expect('a Codex task\'s phase does not outlive the task', s.role === 'subagent'
       && Math.round(s.phases.plan?.kinds.analyze * 60) === 120 && Math.round(s.phases.unattributed?.kinds.analyze * 60) === 120);
 
+    // An omp session: each model call carries its own start and end, each
+    // tool its start and result; its cost is its own. A subagent in its
+    // folder is its parent's, and speaks for nobody.
+    const at = (min, sec = 0) => Date.parse(T(min, sec));
+    const ompCall = (id, name, args, start, end) => ({ type: 'message', timestamp: T(end), message: { role: 'assistant', timestamp: at(start), completedAt: at(end),
+      stopReason: name ? 'toolUse' : 'stop', usage: { input: 100, output: 10, reasoningTokens: 5, cacheRead: 0, cost: { total: 0.25 } },
+      content: name ? [{ type: 'toolCall', id, name, arguments: args }] : [{ type: 'text', text: 'done' }] } });
+    const ompResult = (id, name, start, end) => [
+      { type: 'custom', customType: 'tool_execution_start', timestamp: T(start), data: { toolCallId: id, toolName: name, startedAt: T(start) } },
+      { type: 'message', timestamp: T(end), message: { role: 'toolResult', toolCallId: id, toolName: name, timestamp: at(end), content: [] } },
+    ];
+    const ompDir = join(home, 'omp', 'sessions', '-w-demo');
+    write(join(ompDir, '2026-01-01T13-20-00-000Z_omp1.jsonl'), [
+      { type: 'session', id: 'omp1', timestamp: T(200), cwd: demo },
+      { type: 'message', timestamp: T(200), message: { role: 'user', timestamp: at(200), content: [{ type: 'text', text: 'fix it' }] } },
+      ompCall('r', 'read', { path: 'skills/diagnose-bug/SKILL.md' }, 200, 202),
+      ...ompResult('r', 'read', 202, 203),
+      ompCall('b', 'bash', { command: 'npm test' }, 203, 205),
+      // The tool started a minute after the model asked for it: that minute
+      // is not the tool's.
+      ...ompResult('b', 'bash', 206, 215),
+      ompCall(null, null, null, 215, 216),
+      { type: 'custom_message', customType: 'advisor', timestamp: T(216), content: 'not the owner' },
+    ]);
+    write(join(ompDir, '2026-01-01T13-20-00-000Z_omp1', 'sub.jsonl'), [
+      { type: 'session', id: 'omp1sub', timestamp: T(201), cwd: demo },
+      { type: 'message', timestamp: T(201), message: { role: 'user', timestamp: at(201), content: [{ type: 'text', text: 'scout' }] } },
+      ompCall(null, null, null, 201, 202),
+    ]);
+    s = findSessions('demo').find((x) => x.id === 'omp1');
+    expect('an omp session: its clock, the owner once, model and tools from their own stamps', s && s.harness === 'omp' && s.ownerMessages === 1
+      && Math.round(s.modelMinutes) === 5 && Math.round(s.toolMinutes) === 10 && adds(s));
+    expect('an omp session: a skill read names the phase, and its cost is its own', s.phases.debug?.model > 0 && s.costUSD === 0.75 && s.costIn === 'own');
+    const sub = findSessions('demo').find((x) => x.id === 'omp1sub');
+    expect('an omp subagent is its parent\'s, and speaks for nobody', sub && sub.role === 'subagent' && sub.parent === 'omp1' && sub.ownerMessages === 0);
+
     // Unknown figures are left out of the totals and counted.
     const l = ledger('demo');
     expect('the ledger says how many sessions carry no cost', l.costUnknown >= 1 && l.linesUnknown >= 1);
@@ -1536,7 +1686,7 @@ function selftest() {
 
       const load = (name, cwd) => readFileSync(join(FIX, name), 'utf8').split('\n').filter(Boolean)
         .map((line) => JSON.parse(line.replaceAll('/fixture/cwd', cwd)));
-      const fresh = () => { rmSync(join(home, 'claude'), { recursive: true, force: true }); rmSync(join(home, 'codex'), { recursive: true, force: true }); };
+      const fresh = () => { for (const d of ['claude', 'codex', 'omp']) rmSync(join(home, d), { recursive: true, force: true }); };
       fresh();
 
       // Codex, the current shape: owner and agent speak through items and

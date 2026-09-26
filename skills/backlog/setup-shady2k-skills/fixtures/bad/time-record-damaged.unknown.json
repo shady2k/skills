@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture a receipt of unknown time without its reason, and one with figures",
+  "issues": [
+    {
+      "id": "S",
+      "title": "Stage",
+      "type": "epic",
+      "status": "active",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN the stage result is independently observable.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "holder": "claude-coordinator:alex@laptop:work#c0"
+    },
+    {
+      "id": "A",
+      "title": "Task A",
+      "type": "task",
+      "status": "submitted",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "delivery": {
+        "revision": "b@A",
+        "evidence": "tests passed"
+      },
+      "comments": [
+        {
+          "id": "k1",
+          "at": "2026-01-30T09:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim\nspan: u0000001\nat: 2026-01-29T10:00:00Z\nsession: omp:w9\nagent: omp-worker:alex@laptop:work#w9\nrole: worker\nbasis: the tracker's claim of the item at 10:00, dispatched to a worker whose transcript is on no machine\nrecovered: 2026-01-30T09:00:00Z"
+        },
+        {
+          "id": "k2",
+          "at": "2026-01-30T09:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] receipt\nspan: u0000001\nfrom: 2026-01-29T10:00:00Z\nend: finished\nunknown: yes"
+        },
+        {
+          "id": "k3",
+          "at": "2026-01-30T09:01:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] receipt\nspan: u0000002\nfrom: 2026-01-29T12:00:00Z\nend: finished\nnote: guessed\nunknown: yes\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    10 |     0 |     0 |      0 |    0 |    0 |    10 |\n| total |    10 |     0 |     0 |      0 |    0 |    0 |    10 |"
+        }
+      ]
+    }
+  ],
+  "expect": [
+    "time-record-damaged",
+    "time-span-unreceipted"
+  ],
+  "expectViolations": [
+    "time-record-damaged|A|comment:k2",
+    "time-record-damaged|A|comment:k3",
+    "time-span-unreceipted|A|span:u0000001"
+  ]
+}

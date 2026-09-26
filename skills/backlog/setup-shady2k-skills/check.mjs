@@ -311,7 +311,7 @@ const CHECKS = [
     id: 'finding-budget',
     severity: 'error',
     why: 'Bugs and debt found mid-milestone go to the front one at a time, each reasonable, and push the feature out by a fortnight nobody decided on. The charter declares how many the milestone absorbs.',
-    fix: 'The ways that do the work are the owner\'s to give: displace named planned work and raise the budget in config and the charter decision, open the next milestone for it, or hold it knowingly with a review date. Deferring it yourself to make the number fit, dropping its milestone label or narrowing it shrinks the count instead, and leaves a record saying the fault is not there. A repair a required check forced on the way to a merge, and upkeep of the set\'s own checks, hooks and their CI wiring, are not intake at all: file them under the work whose merge they block, or under the setup task, with no finding label. Deferring planned work alone does not change this count.',
+    fix: 'The ways that do the work are the owner\'s to give: displace named planned work and raise the budget in config and the charter decision, open the next milestone for it, or hold it knowingly with a review date. Deferring it yourself to make the number fit, dropping its milestone label or narrowing it shrinks the count instead, and leaves a record saying the fault is not there. A repair a required check forced on the way to a merge, and upkeep of the set\'s own checks, hooks and their CI wiring, are not intake at all: file them with the work whose merge they block, or with the setup task (under it where it is a container, beside it where it is a leaf), with no finding label. Deferring planned work alone does not change this count.',
     run: (m, cfg) => {
       if (cfg.findingBudget == null) return [];
       const marks = cfg.findingLabels || [];
@@ -434,14 +434,14 @@ const CHECKS = [
     id: 'time-span-unreceipted',
     severity: 'error',
     why: 'A span that has ended with no receipt is time spent and never recorded. Reports then give a total that looks complete and is not.',
-    fix: 'Write its receipt with the run script on the machine that holds the session\'s transcript, with the end it had. Where no machine has it, say so to the owner; the time stays unknown, not zero.',
+    fix: 'Write its receipt with the run script on the machine that holds the session\'s transcript, with the end it had. Where no machine has it, close the span with the run script\'s receipt of unknown time, the reason in its note, and say so to the owner: the time stays unknown, not zero.',
     run: (m) => unreceipted(m),
   },
   {
     id: 'time-work-unclaimed',
     severity: 'error',
     why: 'A result handed in with no claim on its task was worked on by nobody the record knows: its time cannot be found, and the gate cannot tell it from work that took none.',
-    fix: 'On the machine that holds the session\'s transcript, recover its claim with the run script, at the start the transcript shows, and then its receipt. Where no machine has it, say so to the owner; the time stays unknown. Work in flight when time records were adopted is listed as exempt by setup at that moment, never later to quiet this. Closing the task does not fill the gap.',
+    fix: 'On the machine that holds the session\'s transcript, recover its claim with the run script, at the start the transcript shows, and then its receipt. Where no machine has it, recover the claim at the start another record shows, naming that record, close it with a receipt of unknown time, and say so to the owner. Work in flight when time records were adopted is listed as exempt by setup at that moment, never later to quiet this. Closing the task does not fill the gap.',
     run: (m, cfg) => unclaimedWork(m, cfg),
   },
 ];
@@ -463,7 +463,7 @@ function bulkClusters(m, threshold) {
 
 // The version of the set these rules shipped with. A project holds a COPY of
 // this file, and this is how anybody tells that the copy has fallen behind.
-const RULES_VERSION = '0.30.0';
+const RULES_VERSION = '0.31.0';
 
 const STRENGTHS = ['block', 'block-new', 'report'];
 

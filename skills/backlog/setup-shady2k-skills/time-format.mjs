@@ -69,7 +69,7 @@ export const SCHEMA = {
   },
   receipt: {
     need: { span: TEXT, from: TIME, to: TIME, end: oneOf(ENDS) },
-    may: { reason: oneOf(REASONS), note: TEXT, recovered: TIME, cut: oneOf(['yes']) },
+    may: { reason: oneOf(REASONS), note: TEXT, recovered: TIME, cut: oneOf(['yes']), unknown: oneOf(['yes']) },
     table: { columns: [...BUCKETS, 'total'] },
   },
   event: {
@@ -78,7 +78,7 @@ export const SCHEMA = {
   },
   summary: {
     need: { at: TIME, result: oneOf(RESULTS), started: TIME, elapsed: INT, spans: INT, open: INT, missing: INT },
-    may: { occupied: INT, 'occupied-partial': oneOf(['yes']), forecast: INT, pr: TEXT, note: TEXT },
+    may: { occupied: INT, 'occupied-partial': oneOf(['yes']), forecast: INT, unknown: INT, pr: TEXT, note: TEXT },
     table: { columns: ['forecast', 'work', ...BUCKETS, 'total'], unknown: ['forecast'] },
   },
   verdict: {
@@ -148,7 +148,10 @@ export function parseRecord(body) {
 function validate(kind, fields, table, schema) {
   const out = [];
   const known = { ...schema.need, ...schema.may };
-  for (const k of Object.keys(schema.need)) if (!(k in fields) || fields[k] === '') out.push(`${k} is missing`);
+  // A receipt of unknown time closes its span with no figures: no table, and
+  // no end where nothing dates one, but always the reason in its note.
+  const unknown = kind === 'receipt' && fields.unknown === 'yes';
+  for (const k of Object.keys(schema.need)) if ((!(k in fields) || fields[k] === '') && !(unknown && k === 'to')) out.push(`${k} is missing`);
   for (const [k, v] of Object.entries(fields)) {
     const type = known[k];
     if (!type) { out.push(`${k} is not a key of a ${kind}`); continue; }
@@ -160,6 +163,11 @@ function validate(kind, fields, table, schema) {
   if (kind === 'receipt' && Number.isFinite(Date.parse(fields.from)) && Number.isFinite(Date.parse(fields.to))
     && Date.parse(fields.to) < Date.parse(fields.from)) out.push('to is before from');
   if (kind === 'event' && fields.event === 'stop' && !fields.reason) out.push('a stop needs its reason');
+  if (unknown) {
+    if (table) out.push('a receipt of unknown time carries no table');
+    if (!fields.note) out.push('a receipt of unknown time says why in its note');
+    return out;
+  }
   if (!schema.table) {
     if (table) out.push(`a ${kind} carries no table`);
     return out;
@@ -315,7 +323,9 @@ export function spansOf(backlog) {
     s.item = s.claim?.item ?? s.receipt?.item ?? s.events[0]?.item ?? null;
     s.session = s.claim?.fields.session ?? null;
     s.start = s.claim ? Date.parse(s.claim.fields.at) : null;
-    s.end = s.receipt ? Date.parse(s.receipt.fields.to) : null;
+    s.end = s.receipt?.fields.to ? Date.parse(s.receipt.fields.to) : null;
+    // A span closed with its time unknown: ended, and in no figure.
+    s.unknown = s.receipt?.fields.unknown === 'yes';
   }
   // A session holds one span at a time: the next claim it makes ends the one
   // before, whether or not that one's receipt was written yet.

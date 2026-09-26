@@ -414,7 +414,7 @@ An existing setup runs all of these too, even when versions match.
    script's `claim --recovered` at that start and post it, then post its
    receipt from `gaps`. A transcript whose working copy was removed is found
    by the item it names; one the script still refuses is not "missing", and
-   the owner is told which. List the rest in `timeRecordsExempt`, and tell the
+   the owner is told which. The script reads Claude Code, Codex and omp. List the rest in `timeRecordsExempt`, and tell the
    owner once that their time stays unknown. This happens at adoption only: an
    exemption follows the task tree, and work handed in unclaimed later gets
    the rule's own fix, never a place on the list.

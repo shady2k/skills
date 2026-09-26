@@ -87,7 +87,8 @@ The coordinator does the same for a worker session it started that ended
 without writing its own. Then `gaps` names every other span that ended with no
 receipt: post those it recovers from this machine, and tell the owner, in one
 line each, the ones whose transcripts are on another machine, whose time stays
-unknown until written there.
+unknown until written there. One whose transcript no machine has is closed
+with `receipt --unknown`, the reason in its note.
 
 ## 4. Ask how the run went, and keep its lessons
 
