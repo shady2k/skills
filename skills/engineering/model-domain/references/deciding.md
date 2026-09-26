@@ -126,4 +126,9 @@ needs correcting. A handoff note is read the same way, and so is another
 session's transcript: it says what was true when it was read, and the owner may
 have decided since. Before advising anybody from one — another agent included —
 read the current state of the work, or the advice arrives asking for a decision
-that has already been given.
+that has already been given. Whether that session is still alive is not in its
+transcript at all: one that ends on a question reads the same whether it waits
+for an answer or was closed an hour ago. Ask what can show it running, the
+harness's list of live sessions or agents; where nothing does, it has ended.
+And an owner who starts the same work again in a new session has answered
+already: take its work over from what it left, never send them back to it.

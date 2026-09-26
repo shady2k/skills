@@ -19,7 +19,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { hostname, tmpdir, userInfo } from 'node:os';
 import { join } from 'node:path';
 import {
-  Usage, collect, localStamp, measure, parseWhen, projectName, recordedShapes, span, union,
+  Usage, collect, localStamp, measure, parseWhen, projectName, recordedShapes, span, transcriptOf, union,
 } from './ledger.mjs';
 import {
   ACCEPTED, BUCKETS, ENDS, EVENTS, GRADES, PHASES, REASONS, RESULTS, ROLES, WORK,
@@ -96,7 +96,9 @@ function raws(opts) {
   if (!rawCache) rawCache = collect(projectName(opts.project, opts.repo), { repo: opts.repo });
   return rawCache;
 }
-const rawOf = (opts, key) => raws(opts).find((r) => `${r.harness}:${r.id}` === key) || null;
+// A session placed in the project by git, or else one whose working copy is
+// gone and whose transcript names the item the record is on.
+const rawOf = (opts, key, item) => raws(opts).find((r) => `${r.harness}:${r.id}` === key) || (item ? transcriptOf(key, item) : null);
 
 // Where a span ends: its receipt; else the session's next claim, which ends it
 // whether or not its receipt was written; else now, or wherever the session's
@@ -131,7 +133,7 @@ function measureSpan(raw, from, to) {
 }
 
 function receiptFor(v, s, opts, { end, reason, note, recovered = false, at = nowMs() }) {
-  const raw = rawOf(opts, s.session);
+  const raw = rawOf(opts, s.session, s.item);
   if (!raw) throw new NotHere(`the transcript of ${s.session} (${s.claim.fields.agent}) is not on this machine: its receipt is written where it is`);
   const from = s.start;
   const to = Math.max(from, endOf(s, raw, at));
@@ -200,7 +202,7 @@ function summaryFor(v, feature, opts, { result, pr, note, extra = [] }) {
   let missing = 0;
   const stretches = [];
   for (const s of spans) {
-    const raw = rawOf(opts, s.session);
+    const raw = rawOf(opts, s.session, s.item);
     if (!raw) { missing++; continue; }
     const to = Math.max(s.start, endOf(s, raw));
     const family = raws(opts).filter((r) => r === raw || rootKey(r, opts) === s.session);
@@ -433,7 +435,7 @@ function timeReport(v, opts) {
     if (rs) {
       // What the open spans' sessions have spent so far, where they ran here.
       out.localOpen = open.flatMap((s) => {
-        const raw = rawOf(opts, s.session);
+        const raw = rawOf(opts, s.session, s.item);
         if (!raw) return [];
         const to = Math.max(s.start, endOf(s, raw));
         const t = measureSpan(raw, s.start, to).table.rows.total;
@@ -442,7 +444,7 @@ function timeReport(v, opts) {
       // Sessions on this machine in the period, outside every span of theirs.
       const claimed = new Map();
       for (const s of v.spans.filter((x) => x.claim && !x.conflict.length)) {
-        const raw = rawOf(opts, s.session);
+        const raw = rawOf(opts, s.session, s.item);
         claimed.set(s.session, [...(claimed.get(s.session) || []), { start: s.start, end: endOf(s, raw) }]);
       }
       let unassigned = 0;
@@ -510,7 +512,7 @@ function gaps(v, opts) {
     const later = v.spans.some((o) => o !== s && o.claim && o.item === s.item && o.start > s.start);
     const status = v.by.get(s.item)?.status;
     let raw = null;
-    try { raw = rawOf(opts, s.session); } catch (e) { if (!(e instanceof Usage)) throw e; }
+    try { raw = rawOf(opts, s.session, s.item); } catch (e) { if (!(e instanceof Usage)) throw e; }
     const stopped = raw ? at - raw.last > 15 * 60e3 : false;
     const ended = s.next || later || status !== 'active' || stopped;
     if (!ended) continue;
@@ -531,7 +533,7 @@ function recoveredClaim(v, it, me, role, opts) {
   if (opts.forecast || opts.due !== undefined || opts.away !== undefined) throw new Usage('a recovered claim carries no forecast: one written afterwards forecasts nothing');
   const at = parseWhen(opts.at ?? '');
   if (!Number.isFinite(at)) throw new Usage('--at <time> is required: the start the transcript shows');
-  const raw = rawOf(opts, me.key);
+  const raw = rawOf(opts, me.key, it.id);
   if (!raw) throw new NotHere(`the transcript of ${me.key} is not on this machine: its claim is recovered where it is`);
   if (at < raw.first - 60e3 || at > raw.last) throw new Usage(`--at ${localStamp(at)} is outside the session's transcript, ${localStamp(raw.first)} to ${localStamp(raw.last)}`);
   if (v.spans.some((s) => s.claim && s.session === me.key && s.item === it.id)) throw new Usage(`${me.key} already has a claim on ${it.id}`);
@@ -913,6 +915,31 @@ function selftest() {
     expect('misuse: a recovered claim with a forecast', misuse(['claim', '--recovered', ...p3, '--at', T(oldStart), '--forecast', 'build=5', ...oldAs]));
     expect('misuse: a recovered claim the session already has', misuse(['claim', '--recovered', ...p2, '--at', T(oldStart), ...oldAs]));
     expect('claim --recovered: a transcript on another machine is exit 3, not a guess', misuse(['claim', '--recovered', ...p2, '--at', T(oldStart), '--harness', 'codex', '--session', 'far'], NotHere));
+    // A session whose working copy was removed and pruned, in a folder that
+    // also holds other repositories: git cannot place it, and its transcript
+    // naming the item is what places it.
+    const gone = join(home, 'w', 'wt-gone');
+    const goneStart = c0 - 2 * 86400e3;
+    const goneRows = (id, cwd = gone) => worked(goneStart, 30, cwd).map((r, k) => (k ? r : { ...r, message: { content: `take ${id}` } }));
+    transcript('gone', goneRows('demo-q7'), gone);
+    backlog.issues.push({ id: 'demo-q7', title: 'Handed in from a removed copy', type: 'task', status: 'implemented', labels: [], parent: null, blockedBy: [], body: '', updatedAt: T(clock) });
+    backlog.issues.push({ id: 'demo-q70', title: 'Named nowhere', type: 'task', status: 'implemented', labels: [], parent: null, blockedBy: [], body: '', updatedAt: T(clock) });
+    const goneAs = ['--harness', 'claude-code', '--session', 'gone', '--agent', 'claude-coordinator:t@m:b#gone'];
+    const gq = parseRecord(act('claim', '--recovered', '--item', 'demo-q7', '--role', 'coordinator', '--at', T(goneStart), ...goneAs)[0].body);
+    expect('claim --recovered: a removed working copy\'s transcript that names the item is found', !gq.problems.length && Date.parse(gq.fields.at) === goneStart);
+    const gg = JSON.parse(cli('gaps', '--json')).recover.filter((x) => x.item === 'demo-q7');
+    expect('claim --recovered: and gaps writes its receipt from it', gg.length === 1 && Date.parse(parseRecord(gg[0].body).fields.to) === goneStart + 30 * 60e3);
+    postAll(gg);
+    expect('claim --recovered: a removed copy\'s transcript that never names the item is not taken', misuse(['claim', '--recovered', '--item', 'demo-q70', '--role', 'coordinator', '--at', T(goneStart), ...goneAs, '--backlog', file, '--project', 'demo'], NotHere));
+    // Ids that only resemble the item name another one.
+    transcript('near', goneRows('demo-q70, xdemo-q7 and demo-q7.1', join(home, 'w', 'wt-near')), join(home, 'w', 'wt-near'));
+    expect('claim --recovered: a transcript naming only ids that resemble the item is not taken', misuse(['claim', '--recovered', '--item', 'demo-q7', '--role', 'coordinator', '--at', T(goneStart), '--harness', 'claude-code', '--session', 'near', '--backlog', file, '--project', 'demo'], NotHere));
+    // One whose working copy is on disk, in another repository, is not this project's.
+    const other = join(home, 'w', 'other');
+    mkdirSync(other, { recursive: true });
+    sh(['init', '-q', '-b', 'main'], other);
+    transcript('elsewhere', goneRows('demo-q70', other), other);
+    expect('claim --recovered: a transcript from another repository is not taken, whatever it names', misuse(['claim', '--recovered', '--item', 'demo-q70', '--role', 'coordinator', '--at', T(goneStart), '--harness', 'claude-code', '--session', 'elsewhere', '--backlog', file, '--project', 'demo'], NotHere));
 
     const all = spansOf(backlog);
     expect('every record the script printed reads clean, and no span conflicts', !all.damaged.length && all.spans.every((x) => !x.conflict.length));

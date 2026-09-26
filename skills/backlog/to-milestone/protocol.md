@@ -194,17 +194,22 @@ are always of that sort:
 
 - **A repair the merge waits on:** a defect a required check catches on the
   way to a merge. The branch cannot land while it is red, and no version of
-  the milestone skips it. It is filed under the work whose merge it blocked, a
-  feature or the setup alike, and closed by the change that lands with it; the
-  report names it as a repair that merge waited on. The test is the check
-  itself, red on this branch and green after this change, not how large the
-  repair felt.
+  the milestone skips it. It is filed with the work whose merge it blocked, a
+  feature or the setup alike, and closed by the change that lands with it,
+  whose record lists it; the report names it as a repair that merge waited on.
+  The test is the check itself, red on this branch and green after this
+  change, not how large the repair felt.
 - **Upkeep of the installation:** a fault in what the set installs to run this
   way of working — its checks, hooks, connect command, and the CI wiring that
-  decides which checks a change owes. It is filed under the setup task and fixed
-  as part of landing it, or of the next setup run.
+  decides which checks a change owes. It is filed with the setup task and
+  fixed as part of landing it, or of the next setup run.
 
-Either is filed with no finding label and against no budget. The finding is
+**Filed with** means under that work where it is a container, and beside it
+where it is a leaf: under the same parent, with its milestone label, linked
+back to it as where it was found. A child turns a leaf into a container, and
+the leaf's own records (its claim, the change record that lists it) stop
+describing it: filing a fault must never change whether the work it was found
+in can be accepted. Either is filed with no finding label and against no budget. The finding is
 what such work leaves behind: the wider fault it exposed, the part deliberately
 not fixed, the fix that needs a decision the owner keeps. Counting work the
 rules ordered anyway buys nothing, and makes doing it dearer than hiding it.

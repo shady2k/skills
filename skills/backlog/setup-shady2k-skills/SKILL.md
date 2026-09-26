@@ -55,7 +55,9 @@ in it. Progress lines follow the same plain-words rule as everything else.
 
 Read the agent docs and their tracker references, any existing installation,
 hooks, CI, runtime, current work and worktrees. An installation left on another
-branch is reconciled and landed, not duplicated.
+branch is reconciled and landed by this run, not duplicated, and not handed
+back to the session that left it, by the protocol's **Read the record, not the
+memory**.
 
 **An existing tracker:** verify reading, export and writing through its own
 documentation. **No tracker:** recommend one, weighing portability, offline
@@ -77,7 +79,9 @@ without a decision.
 the setup task in the tracker; it owns installation, cleanup and their commits
 even before the gate exists. It is live work of the current milestone:
 it carries that milestone's label and never the finding label, so what is filed
-under it is in the slice and spends no budget. An interrupted or failed run leaves its work on
+with it is in the slice and spends no budget. It stays a leaf: what is found
+during setup is filed beside it, by the protocol's **Only what the milestone
+chose is intake**. An interrupted or failed run leaves its work on
 its branch and its task; the main line keeps its previous installation until
 landing. If tracker access fails even for this task, stop, report the failure
 and say setup must be rerun.
@@ -180,7 +184,7 @@ questionnaire**.
   Found by looking, recorded, never asked again. Where CI runs product checks
   on changes that cannot touch the product (documents, the tracker, the set's
   own hooks and scripts), or gives unfinished work no way to skip a full run,
-  recommend fixing it as a task under the setup task, by the protocol's **Only
+  recommend fixing it as a task filed with the setup task, by the protocol's **Only
   what the milestone chose is intake**, by the protocol's
   **Cheapest check first** and **Know what a push starts, and push once**.
 - **Diagnosability:** whether the project has recorded conventions for log
@@ -408,7 +412,9 @@ An existing setup runs all of these too, even when versions match.
    record. Where the transcript of the session that took it is on this
    machine, read it for when the item was taken, write the claim with the run
    script's `claim --recovered` at that start and post it, then post its
-   receipt from `gaps`. List the rest in `timeRecordsExempt`, and tell the
+   receipt from `gaps`. A transcript whose working copy was removed is found
+   by the item it names; one the script still refuses is not "missing", and
+   the owner is told which. List the rest in `timeRecordsExempt`, and tell the
    owner once that their time stays unknown. This happens at adoption only: an
    exemption follows the task tree, and work handed in unclaimed later gets
    the rule's own fix, never a place on the list.
@@ -455,7 +461,7 @@ visibly, only a tree that never had this installation; a missing or broken
 gate in a configured tree is an error, not a bypass.
 
 A required check red on the setup's own pull request is a repair that merge
-waits on, filed under the setup task, by the protocol's **Only what the
+waits on, filed with the setup task, by the protocol's **Only what the
 milestone chose is intake**.
 
 Land once, only after all required proofs (proof 6 only when the document

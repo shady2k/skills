@@ -839,6 +839,38 @@ function laterHints(path) {
 }
 
 /**
+ * A session's transcript found by its id alone, for a record on an item that
+ * already names the session. Its working copy is gone and sat where nothing
+ * places it, so the folder cannot say whose it is; the transcript naming the
+ * item is the evidence instead. One whose working copy is still on disk is
+ * placed by git and never by this.
+ */
+export function transcriptOf(key, item) {
+  const at = String(key).indexOf(':');
+  const harness = key.slice(0, at);
+  const sid = key.slice(at + 1);
+  if (!sid || !item) return null;
+  const paths = [];
+  if (harness === 'claude-code') {
+    const root = join(claudeHome(), 'projects');
+    if (existsSync(root)) for (const dir of readdirSync(root)) if (existsSync(join(root, dir, `${sid}.jsonl`))) paths.push(join(root, dir, `${sid}.jsonl`));
+  } else if (harness === 'codex') {
+    for (const f of files(join(codexHome(), 'sessions'), 4)) if (f.name.includes(sid)) paths.push(f.path);
+  }
+  const named = new RegExp(`(?<![\\w.-])${item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-]|\\.\\w)`);
+  for (const path of paths) {
+    try {
+      const { cwd } = where(harness, path);
+      if (cwd && existsSync(resolve(cwd))) continue;
+      if (!named.test(readFileSync(path, 'utf8'))) continue;
+      const raw = harness === 'codex' ? readCodex(path) : readClaude(path);
+      if (raw && raw.id === sid) return Object.assign(raw, { by: 'names the item', role: 'side copy' });
+    } catch { /* unreadable */ }
+  }
+  return null;
+}
+
+/**
  * Every session of this project that either harness left on this machine,
  * read but not yet measured. Claude's subagents are read from the folder of
  * the session that started them; Codex's are sessions of their own that name

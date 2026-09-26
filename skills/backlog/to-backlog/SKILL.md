@@ -38,7 +38,7 @@ issue that already covers it.
 | --- | --- |
 | an idea, a wish, a "what if" | the **ideas** lane, with a review date |
 | a bug or debt on the current milestone's path | **finding**: under the stage it serves, with the finding label and the current milestone's label; step 3 first |
-| a defect a required check caught on the way to a merge, fixed to make it green; or a fault in the set's own checks, hooks, connect command or their CI wiring | not a finding, by the protocol's **Only what the milestone chose is intake**: under the work whose merge it blocks, or under the setup task. What the work leaves unfixed is a finding |
+| a defect a required check caught on the way to a merge, fixed to make it green; or a fault in the set's own checks, hooks, connect command or their CI wiring | not a finding, by the protocol's **Only what the milestone chose is intake**: with the work whose merge it blocks, or with the setup task: under it where it is a container, beside it where it is a leaf. What the work leaves unfixed is a finding |
 | a bug or debt off that path | deferred, under its feature, or with no parent if it has none |
 | planned work the charter already names | `to-stages` when breaking it down is authorized; otherwise send it that way. A fix needed to meet an agreed criterion is part of that work, not a finding |
 | work for a later milestone | deferred, with that milestone's label, as a feature title only |
