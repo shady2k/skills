@@ -133,7 +133,8 @@ rather than opening a second request for the remainder.
 
 Report by name, following the protocol's [**Speaking to the
 owner**](references/speaking.md): what was accepted and on which revision, what
-now works, what remains pending or unproven, what was filed or returned, as the
+now works, what remains pending or unproven (for a feature left open, first
+what users or the owner still cannot rely on, before any stage or task), what was filed or returned, as the
 ledger of [**End with the next step**](references/speaking.md), and the
 milestone's outcomes and finding budget. If a decision is needed, recommend the
 next action with its time and risk. Do not ask the owner to read check internals

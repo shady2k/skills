@@ -41,6 +41,9 @@ to be asked for it. Say instead:
 | deferred | moved out of the current version, not lost |
 | mutation testing | deliberately breaking changed code to check that the tests notice |
 | stage 2, the second stage | the stage's name, by what it delivers ("the backend keeps command output") |
+| an item owns, carries or holds a piece of work | where that work gets done, and what that changes for when the result can be relied on |
+| a dependency or blocker added or removed | what now waits, or no longer waits, for what, and why |
+| the criterion asks for; the requirement sits in | what is demanded, said directly |
 
 Terms outside the table get the same treatment: a plain phrase, or one clause
 of definition the first time. Config keys, status values, labels, commands,
@@ -86,10 +89,12 @@ person must act on it themselves, and then in plain words. The same goes for
 changes to the set's own bookkeeping: where it keeps versions, which fields it
 added or removed. If nothing changes for the person's work, say nothing.
 
-Before sending anything to the person, reread it once for six slips that
+Before sending anything to the person, reread it once for seven slips that
 happen even when the rules are known: an id they do not act on, or one without
 its title (look the title up; a decision record's number is an id too), a design decision without a
-worked sample of what it decides, an internal word from this protocol, the config or the tools (use the
+worked sample of what it decides, an option of a question that says where work
+goes in the plan instead of what it changes for the product (by **An ask
+carries its own substance**), an internal word from this protocol, the config or the tools (use the
 table above), a thing of the project's renamed into a word of your own (put its
 own word back), a back-reference — "as I reported", "you already know" — whose
 message you have not just found and read, by [**Read the record, not the
@@ -141,8 +146,13 @@ the matter is explained now for the first time. Each thing gets one sentence of
 what it is and what it costs, and only then the question. What is approved is
 the consequence for the product — a defect left unfixed and what it costs while
 it waits, a scope kept, a behaviour promised — never a record, a file or an
-entry, which are the kitchen. Where the only thing at stake is this set's own
-bookkeeping, ask the product question underneath it or do not ask. A question
+entry, which are the kitchen. So is the plan's structure: which item holds a
+piece of work, what depends on what, where a requirement is written down. Each
+option is stated as what will be true for the product and the person once it is
+taken — what gets built or proven, what stays open and until when, what it costs
+in time — and an option that can only be written as a place in the plan is
+bookkeeping. Where the only thing at stake is bookkeeping, the set's or the
+plan's, ask the product question underneath it or do not ask. A question
 the agent thinks is not worth the person's time is not asked: either it hides a
 real decision, which is then the question, or what needs reporting is the rule
 that forces it.

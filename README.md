@@ -514,6 +514,7 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.65.1** asks your decisions in terms of the product: each option says what will be built or proven, what stays open and for how long, not which task or stage the work goes to. When a feature stays open after a close, the report starts with what you still cannot rely on.
 - **0.65.0** stops the document check from re-running your tests over edits they never read: each check can say what it does not read (the docs, Markdown), and its result then stands until something it does read changes. A change that has landed and closed is no longer judged again because a later commit mentions its task. Projects rerun setup once.
 - **0.64.1** keeps task numbers out of what you read: work is named by what it is, and a number appears only where you have to find, type or approve it yourself.
 - **0.64.0** takes a run's time from its coordinator, which waits while its workers work: the coordinator's claim on the feature covers every task its workers hand in. A worker's own time is an optional detail of effort; a worker in another harness writes nothing and nothing is recovered for it, and a worker whose time is unknown no longer makes the run incomplete. This replaces 0.63.0's claim written for every worker at handover. Projects rerun setup once.
