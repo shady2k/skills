@@ -128,7 +128,7 @@ implement again. Stopping preserves these states and their next action.
 
 ## 4. Ownership and executable guarantees
 
-The set owns the protocol and three portable checks. The project owns the
+The set owns the protocol and four portable checks. The project owns the
 tracker adapter, message parser, configuration, commands and local/CI wiring.
 Tracker usage is documented once in the project's tracker doc, with the
 integration section adding only what this protocol needs.
@@ -587,7 +587,7 @@ summary lists those decisions so any can be overruled. Not taken: the reference'
 
 - Validate the complete 0.8 workflow on real projects and tracker capabilities,
   including a project with no tracker and an older installed integration.
-- Port all three checks on a project without Node and run their fixture corpus.
+- Port all four checks on a project without Node and run their fixture corpus.
 - Harness-specific session/update hooks; the current update instruction and
   compatibility guard do not claim to implement them.
 - The historical wiki renderer and how expired deferred review dates should

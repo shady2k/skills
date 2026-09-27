@@ -326,7 +326,12 @@ builds on an accepted one; the owner is not asked between stages.
 When every stage is accepted, run the full checks and the feature's end-to-end
 criterion once more on the final branch, and walk the feature's happy path once
 more at the place the spec named: behaviour nothing reaches is not done, however
-green the checks (the protocol's **Reached, not just built**). Then bring the
+green the checks (the protocol's **Reached, not just built**). Run the
+present-documents check against the merge base, by the protocol's **What
+describes the present is kept true**: fix every path this branch left dead in
+the documents, read each document it names to read against the code, and file
+the older drift it lists through `to-backlog` as one debt item, unless one is
+already open. Then bring the
 feature's **one pull request** to review through the project's authorized
 workflow, starting its CI once in the way this repository's CI allows (the
 protocol's **Know what a push starts, and push once**). Move the coordinator's

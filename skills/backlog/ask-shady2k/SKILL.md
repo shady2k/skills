@@ -96,7 +96,9 @@ with the evidence for each.
   work, stranded branches or uncommitted results, and each real blocker with
   what would release it.
 - **Health and risk:** failing, missing or unrun checks; specs or docs out of
-  step with the code; handoff notes committed to the repository, which read as
+  step with the code, seen through the present-documents check where the
+  integration names it (run over the main line, with it as its own base, every
+  dead path it lists is older drift); handoff notes committed to the repository, which read as
   current instructions long after they stopped being true (the protocol's
   **What describes the present is kept true**); deferred findings piling up;
   setup out of date. Say what each risks for the product.

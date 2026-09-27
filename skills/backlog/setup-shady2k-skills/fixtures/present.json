@@ -1,0 +1,1134 @@
+{
+  "cases": [
+    {
+      "name": "clean",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "The entry is `src/app.js`, helpers in [util](../src/lib/util.js) and `src/lib/`; see `README.md`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "The entry is `src/app.js`, helpers in [util](../src/lib/util.js) and `src/lib/`; see `README.md`."
+            }
+          ]
+        }
+      },
+      "expected": []
+    },
+    {
+      "name": "change-removed-what-it-names",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Helpers live in `src/lib/util.js`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Helpers live in `src/lib/util.js`."
+            }
+          ]
+        }
+      },
+      "expected": [
+        "dead-reference docs/architecture.md src/lib/util.js"
+      ]
+    },
+    {
+      "name": "change-added-a-path-never-there",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Entry: `src/app.js`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Entry: `src/ap.js`."
+            }
+          ]
+        }
+      },
+      "expected": [
+        "unknown-path docs/architecture.md src/ap.js"
+      ]
+    },
+    {
+      "name": "change-broke-a-link",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "See [the entry](../src/app.js)."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml",
+            "lib/app.js"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "See [the entry](../src/app.js)."
+            }
+          ]
+        }
+      },
+      "expected": [
+        "dead-reference docs/architecture.md ../src/app.js"
+      ]
+    },
+    {
+      "name": "older-drift-is-debt",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Billing is in `src/billing/`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Billing is in `src/billing/`."
+            }
+          ]
+        }
+      },
+      "expected": [
+        "old-dead docs/architecture.md src/billing"
+      ]
+    },
+    {
+      "name": "older-drift-beside-a-new-one",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "`src/billing/` and `src/app.js`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "`src/billing/` and `src/app.js`."
+            }
+          ]
+        }
+      },
+      "expected": [
+        "old-dead docs/architecture.md src/billing",
+        "dead-reference docs/architecture.md src/app.js"
+      ]
+    },
+    {
+      "name": "found-under-another-root",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Tokens: `internal/auth`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Tokens: `internal/auth`."
+            }
+          ]
+        }
+      },
+      "expected": []
+    },
+    {
+      "name": "slashed-words-that-are-not-paths",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Replies are `application/json`, merged to `origin/main`, ratio `1/2`, and/or `feat/new-thing`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Replies are `application/json`, merged to `origin/main`, ratio `1/2`, and/or `feat/new-thing`."
+            }
+          ]
+        }
+      },
+      "expected": []
+    },
+    {
+      "name": "bare-name-once-it-existed",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Settings in `config.yaml`; built with `Next.js`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Settings in `config.yaml`; built with `Next.js`."
+            }
+          ]
+        }
+      },
+      "expected": [
+        "dead-reference docs/architecture.md config.yaml"
+      ]
+    },
+    {
+      "name": "fences-and-placeholders-are-examples",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "```markdown\nSee [the old one](../src/nothing.js) in `src/nothing/here.js`.\n```\nA change lives in `docs/changes/<change>/change.md`, tests in `src/**/*.test.js`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "```markdown\nSee [the old one](../src/nothing.js) in `src/nothing/here.js`.\n```\nA change lives in `docs/changes/<change>/change.md`, tests in `src/**/*.test.js`."
+            }
+          ]
+        }
+      },
+      "expected": []
+    },
+    {
+      "name": "uncovered-area",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "The app is in `src/app.js`; the backend's `internal/auth` issues tokens."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "The app is in `src/app.js`; the backend's `internal/auth` issues tokens."
+            }
+          ]
+        },
+        "areas": [
+          "backend",
+          "src",
+          "tools"
+        ]
+      },
+      "expected": [
+        "uncovered-area tools"
+      ]
+    },
+    {
+      "name": "area-holding-the-document-is-covered",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Everything is in `src/app.js`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Everything is in `src/app.js`."
+            }
+          ]
+        },
+        "areas": [
+          "docs",
+          "src"
+        ]
+      },
+      "expected": []
+    },
+    {
+      "name": "aged-document",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "`src/app.js`"
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "`src/app.js`"
+            }
+          ]
+        },
+        "churn": [
+          {
+            "document": "docs/architecture.md",
+            "commits": 25
+          }
+        ],
+        "churnLimit": 20
+      },
+      "expected": [
+        "aged-document docs/architecture.md 25"
+      ]
+    },
+    {
+      "name": "recent-document",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "`src/app.js`"
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "`src/app.js`"
+            }
+          ]
+        },
+        "churn": [
+          {
+            "document": "docs/architecture.md",
+            "commits": 19
+          }
+        ],
+        "churnLimit": 20
+      },
+      "expected": []
+    },
+    {
+      "name": "churn-switched-off",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "`src/app.js`"
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "`src/app.js`"
+            }
+          ]
+        },
+        "churn": [
+          {
+            "document": "docs/architecture.md",
+            "commits": 500
+          }
+        ],
+        "churnLimit": 0
+      },
+      "expected": []
+    },
+    {
+      "name": "ignored-names",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Served at `src/api/users`; built into `src/dist/app.js`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Served at `src/api/users` and `src/api/orders`; built into `src/dist/app.js`."
+            }
+          ]
+        },
+        "ignores": [
+          "src/api/**",
+          "src/dist/"
+        ]
+      },
+      "expected": []
+    },
+    {
+      "name": "change-added-a-broken-link",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "x"
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "See [entry](../src/ap.js)."
+            }
+          ]
+        }
+      },
+      "expected": [
+        "dead-reference docs/architecture.md ../src/ap.js"
+      ]
+    },
+    {
+      "name": "statement-of-absence",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "x"
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Decisions live in `docs/`, never `docs/adr/`."
+            }
+          ]
+        }
+      },
+      "expected": [
+        "unknown-path docs/architecture.md docs/adr"
+      ]
+    },
+    {
+      "name": "what-git-ignores",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "x"
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "The local store is `src/.cache/db` and `.env.local`."
+            }
+          ]
+        },
+        "untracked": [
+          "src/.cache/db"
+        ]
+      },
+      "expected": []
+    },
+    {
+      "name": "a-note-that-the-change-removed-a-path",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "The app is `src/app.js`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "The app is `src/app.js`; `src/lib/` was removed."
+            }
+          ]
+        }
+      },
+      "expected": [
+        "unknown-path docs/architecture.md src/lib"
+      ]
+    },
+    {
+      "name": "a-span-beside-its-document",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Entry: `../src/app.js`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Entry: `../src/app.js`."
+            }
+          ]
+        }
+      },
+      "expected": [
+        "dead-reference docs/architecture.md ../src/app.js"
+      ]
+    },
+    {
+      "name": "the-root-folder-gone-a-nested-one-left",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml",
+            "scripts/release.sh",
+            "pkg/b/scripts/gen.sh"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Releases: `scripts/`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml",
+            "pkg/b/scripts/gen.sh"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Releases: `scripts/`."
+            }
+          ]
+        }
+      },
+      "expected": [
+        "dead-reference docs/architecture.md scripts"
+      ]
+    },
+    {
+      "name": "found-at-its-end-before-and-after",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Tokens: `internal/auth`."
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Tokens: `internal/auth`."
+            }
+          ]
+        }
+      },
+      "expected": []
+    },
+    {
+      "name": "examples-are-not-links",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "x"
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "Write `[see](docs/gone.md)` for a link.\n\n    [indented](../gone.md)\n\n<!-- [hidden](../gone.md)\n[also](../gone2.md) -->\n[^1]: See the RFC.\n"
+            }
+          ]
+        }
+      },
+      "expected": []
+    },
+    {
+      "name": "a-list-item-continues-with-four-spaces",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "x"
+            }
+          ]
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": [
+            {
+              "path": "docs/architecture.md",
+              "text": "- Entry points:\n\n    see [the old one](../src/gone.js)\n"
+            }
+          ]
+        }
+      },
+      "expected": [
+        "dead-reference docs/architecture.md ../src/gone.js"
+      ]
+    },
+    {
+      "name": "no-present-document",
+      "input": {
+        "base": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": []
+        },
+        "head": {
+          "tree": [
+            "src/app.js",
+            "src/lib/util.js",
+            "backend/internal/auth/token.go",
+            "tools/gen/main.go",
+            "README.md",
+            "docs/architecture.md",
+            "config.yaml"
+          ],
+          "documents": []
+        }
+      },
+      "expected": [
+        "invalid-input"
+      ]
+    }
+  ],
+  "references": [
+    {
+      "name": "links",
+      "text": "[a](docs/a.md#part) [b](https://x.io/y) [c](#local) ![img](img/p.png \"t\")\n[d]: ../d.md",
+      "expected": [
+        "link docs/a.md",
+        "link img/p.png",
+        "link ../d.md"
+      ]
+    },
+    {
+      "name": "code-spans",
+      "text": "`src/a.js:42` `./tools/x` `lib/` `npm run test` `--flag` `/etc/hosts` `<name>/x` `*.md` `pkg.json` `v1.2`",
+      "expected": [
+        "path src/a.js",
+        "path tools/x",
+        "path lib",
+        "name pkg.json"
+      ]
+    },
+    {
+      "name": "link-text-read-once",
+      "text": "[`src/a.js`](src/a.js)",
+      "expected": [
+        "link src/a.js"
+      ]
+    },
+    {
+      "name": "footnotes-and-comments",
+      "text": "[^1]: See the RFC.\n<!-- `src/a.js` -->\n[real]: docs/b.md",
+      "expected": [
+        "link docs/b.md"
+      ]
+    }
+  ]
+}

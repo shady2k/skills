@@ -453,6 +453,7 @@ the separate backlog gate enforces structure.
 | `stale-edge` (warning) | absent or long-untouched prerequisites needing review |
 | `check-commits.mjs` | unlinked commits or links to absent issues/containers |
 | `check-docs.mjs` | unfinished required fields, missing scenarios/task links, conflicting or stale deltas, missing coverage, stale/missing receipts and unsynchronized current requirements |
+| `check-present.mjs` | a path the agent doc, glossary, architecture or current specs name that the change removed, or a link it broke; older dead paths, code no document mentions and documents left behind are reported |
 
 The backlog strength is chosen at setup: `block-new` blocks introduced errors
 and reports old debt, `block` blocks every error, `report` only reports policy
@@ -514,6 +515,7 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.66.0** notices when the documents agents act on stop matching the code: a pull request that removes or moves a path the agent doc, glossary, architecture or current specs name, or breaks a link in them, is refused until the document is fixed in it, whoever opened it. Older drift is reported and filed as debt rather than fixed inside unrelated work, with the code no document mentions and the documents left behind while files came and went. Projects rerun setup once to name those documents.
 - **0.65.1** asks your decisions in terms of the product: each option says what will be built or proven, what stays open and for how long, not which task or stage the work goes to. When a feature stays open after a close, the report starts with what you still cannot rely on.
 - **0.65.0** stops the document check from re-running your tests over edits they never read: each check can say what it does not read (the docs, Markdown), and its result then stands until something it does read changes. A change that has landed and closed is no longer judged again because a later commit mentions its task. Projects rerun setup once.
 - **0.64.1** keeps task numbers out of what you read: work is named by what it is, and a number appears only where you have to find, type or approve it yourself.

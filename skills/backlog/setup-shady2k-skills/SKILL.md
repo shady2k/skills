@@ -15,7 +15,8 @@ Everything the user reads, and the role it is pitched at, follows the
 protocol's [**Speaking to the owner**](references/speaking.md).
 
 The set owns [the protocol](protocol.md), [the backlog rules](check.mjs),
-[the commit check](check-commits.mjs) and [the normalized model](model.md).
+[the commit check](check-commits.mjs), [the present-documents
+check](check-present.mjs) and [the normalized model](model.md).
 The project owns its config, tracker adapter, check commands and wiring.
 
 ## Show progress
@@ -223,6 +224,15 @@ questionnaire**.
   where CI can really block a merge. Recommend wiring it in this setup only if
   it fits; otherwise it becomes its own stage, and work continues meanwhile
   with documents checked by reading.
+  Name the documents that **describe the present** (the agent doc, the
+  glossary, the architecture, the current capability specs) for the
+  present-documents check in [documents.md](documents.md), found from the
+  project, not asked: a pull request that leaves one naming a path it removed
+  is refused, and older drift is reported and filed as debt. Say what that
+  means for the owner: a stale document shows up when a pull request is opened,
+  with the paths it names that are gone, instead of months later. Where the
+  first run already finds old drift, say how much, and that it becomes debt,
+  not part of setup.
   Choose how **every commit** names its task, setup, documentation, research
   and prototypes included, and how merge and revert commits keep that link;
   they are not silent exemptions.
@@ -247,6 +257,8 @@ them and propose it instead.
   "findingLabels": ["finding"], "findingBudget": null,
   "staleDays": 14, "holdDays": 2, "bulkCluster": 20,
   "timeRecordsExempt": [],
+  "presentDocuments": ["<the agent doc, glossary, architecture, current specs>"],
+  "presentAreas": [""], "presentIgnores": [], "presentChurnCommits": 20,
   "execution": {
     "development": "<tdd | test-after>",
     "runMode": "<inline | subagents | worker-sessions | cloud>",
@@ -288,10 +300,11 @@ adapter records a way that keeps both. A tracker without native `implemented` or
 to ready or closed. For `block-new`, verify that history can be exported and
 the historical config retrieved; otherwise agree an honest supported strength.
 
-**Checks:** run all three shipped checks in place where they are in the
+**Checks:** run all four shipped checks in place where they are in the
 project, or copy them unchanged (the backlog rules with
-[`time-format.mjs`](time-format.mjs) beside them, which they read records by), and record where they came from in the
-integration, not inside the copies. Without Node, port all three and prove the
+[`time-format.mjs`](time-format.mjs) beside them, which they read records by,
+and the present-documents check with [`document-format.mjs`](document-format.mjs)), and record where they came from in the
+integration, not inside the copies. Without Node, port all four and prove the
 same fixtures. A matching version does not replace a byte comparison or port
 proof.
 
@@ -321,6 +334,14 @@ Locally it checks the pending message; CI checks every newly introduced commit
 and fails if it unexpectedly finds none. Links resolve against all relevant
 tasks, closed ones included. This check is mandatory whatever the backlog's
 strength. Test the parsing on real linked and unlinked messages.
+
+**Wiring the present-documents check:** it runs where a pull request is
+opened and in CI on every pull request, against the merge base, so one opened
+outside the set is checked too; a refusal names each path and what fixes it.
+Run it once over the main line's history to see what it already reports:
+paths that are not this tree's (routes, generated folders) go into
+`presentIgnores` now, and the older drift it lists is filed as one debt item,
+not fixed in setup.
 
 **Wiring the document gate:** build the deterministic export and the wrapper
 for the agreed evidence level, described in [documents.md](documents.md).
@@ -389,7 +410,8 @@ An existing setup runs all of these too, even when versions match.
 
 1. **Shipped checks:** from this skill's directory run
    `node check.mjs --selftest --config <project-config>`,
-   `node check-commits.mjs --selftest` and `node check-docs.mjs --selftest`
+   `node check-commits.mjs --selftest`, `node check-docs.mjs --selftest` and
+   `node check-present.mjs --selftest`
    (the first uses its fixture config for the rules and the project config for
    portability). Compare installed copies byte for byte; ports run the corpus.
 2. **Tracker and adapter:** compare counts per status and ready leaves with the
@@ -423,8 +445,10 @@ An existing setup runs all of these too, even when versions match.
    the real commit-message entry point with a missing task, an unknown task and
    a valid leaf. Verify both CI range calculations on representative
    revisions. Run the connect command in a scratch clone and see its hooks
-   fire; take away a file a hook reads and see the commit refused. Never
-   publish test commits.
+   fire; take away a file a hook reads and see the commit refused. On a
+   scratch branch, move a file a present document names and see the
+   present-documents check refuse it with that path; move it back, see it
+   clean. Never publish test commits.
 4. **Execution commands:** each configured command exists and starts in the
    declared environment, proved the cheapest way that shows it works. Run a
    full suite only when that command has never been proved here, or it or its
@@ -457,7 +481,7 @@ earlier answers.
 ## 5. Land and record the verified version
 
 Land through the project's authorized workflow and check from the checkout
-people use: docs reachable, all three checks run, hooks installed in that
+people use: docs reachable, all four checks run, hooks installed in that
 clone. A separate branch alone is **written and proved, not installed**. Ask
 only for landing steps not already authorized.
 

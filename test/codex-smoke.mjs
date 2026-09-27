@@ -123,7 +123,7 @@ try {
     const cache = join(state, installed.installedPath.slice(codexState.length + 1));
     for (const file of skillFiles)
       assert.deepEqual(readFileSync(join(cache, file)), readFileSync(join(root, file)), `cache preserved ${file}`);
-    for (const script of ['check.mjs', 'check-commits.mjs', 'check-docs.mjs']) {
+    for (const script of ['check.mjs', 'check-commits.mjs', 'check-docs.mjs', 'check-present.mjs']) {
       const result = spawnSync(process.execPath, [join(cache, 'skills/backlog/setup-shady2k-skills', script), '--version'], { encoding: 'utf8' });
       assert.equal(result.status, 0);
       assert.equal(result.stdout.trim(), setupVersion);

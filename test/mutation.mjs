@@ -16,7 +16,7 @@ const mutations = [
     change: (code) => {
       const at = code.indexOf(`id: '${id}'`);
       const before = code.slice(0, at);
-      const after = code.slice(at).replace('run: (m) =>', 'run: (m) => [] ||');
+      const after = code.slice(at).replace(/run: \((m(?:, cfg)?)\) =>/, 'run: ($1) => [] ||');
       return before + after;
     },
   })),
@@ -44,6 +44,24 @@ const mutations = [
   })),
   { name: 'documents-applies-to', file: 'check-docs.mjs', failure: 'FAIL  documents/check-for-other-kind:',
     change: (code) => code.replace('!c.appliesTo || c.appliesTo.includes(change.kind)', 'true') },
+  ...[['old-debt', "was && was.how === false ? 'old-dead'", "false ? 'old-dead'", 'older-drift-is-debt'],
+    ['removed-path', 'const dead = v.how === false ||', 'const dead =', 'change-removed-what-it-names'],
+    ['a-link-says-it-exists', "v.ref.kind === 'link' || ", '', 'change-added-a-broken-link'],
+    ['not-a-path', "if (first !== '..' && !seen.segments.has(first)) return null;", '', 'slashed-words-that-are-not-paths'],
+    ['fences', 'if (mark && !comment) { fence = mark[1]; continue; }', '', 'fences-and-placeholders-are-examples'],
+    ['ignores', 'ignored.some((m) => m(r.text)) || ', '', 'ignored-names'],
+    ['untracked', " || placesOf(r, doc).some((p) => untracked.has(p))", '', 'what-git-ignores'],
+    ['uncovered', 'if (!inside && ', 'if (false && ', 'uncovered-area'],
+    ['aged', 'c.commits >= limit', 'false', 'aged-document'],
+    ['exact-then-tail', "(was?.how === 'exact' && v.how === 'tail')", 'false', 'the-root-folder-gone-a-nested-one-left'],
+    ['spans-before-links', 'line = line.replace(/(`+)([^`]+?)\\1(?!`)/g', 'line.replace(/(`+)([^`]+?)\\1(?!`)/g', 'examples-are-not-links'],
+    ['comments', "const open = rest.indexOf('<!--');", 'const open = -1;', 'examples-are-not-links'],
+    ['indented-code', '(indented || (blank && !listed))', 'false', 'examples-are-not-links'],
+    ['list-continuation', '(indented || (blank && !listed))', '(indented || blank)', 'a-list-item-continues-with-four-spaces'],
+    ['note-of-removal', "(was && was.how === 'exact') ? 'dead-reference'", "true ? 'dead-reference'", 'a-note-that-the-change-removed-a-path']].map(([id, from, to, fixture]) => ({
+    name: `present-${id}`, file: 'check-present.mjs', failure: `FAIL  present/${fixture}`,
+    change: (code) => code.replace(from, to),
+  })),
   { name: 'documents-schema', file: 'check-docs.mjs', failure: 'FAIL  documents/unknown-field:',
     change: (code) => code.replace("schema(model, modelSchema, 'model');", '// model schema deliberately disabled') },
 ];

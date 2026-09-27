@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.33.0
+Setup version: 0.34.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -32,7 +32,7 @@ file, read when a step needs it:
 
 **Compatibility before writes.** Before changing the tracker or the repository,
 compare this setup version with the repository's installation: the `--version`
-of its three installed checks, which must agree with each other.
+of its four installed checks, which must agree with each other.
 
 - **Equal:** go on, once this clone is connected (its hooks active, its runtime
   present). If it is not, ask the user to run `/setup-shady2k-skills`, which in
@@ -283,6 +283,16 @@ tests, and a stage is not accepted while one of them is known to be wrong. A
 statement found stale outside such a change is corrected by the work that found
 it, as a repair, and named in its report. Keeping them short is part of keeping
 them true: an entry nobody would miss is removed, not archived.
+
+The part a machine can see is checked where a pull request is opened and in
+CI, by the present-documents check over the documents the config lists: a
+path one of them already named that this change removed, or a link in them
+that does not resolve, refuses the pull request until the document is fixed
+in it. Older drift the check
+lists (paths dead before the change, code no document mentions, a document
+left behind while files came and went under it) is filed as one debt item, not
+fixed inside unrelated work; a document it names to read is read against the
+code before the pull request is opened.
 
 The document gate runs separately from the backlog's strength. It checks
 product intent before the first implementation, feature readiness before work

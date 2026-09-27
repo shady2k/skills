@@ -170,6 +170,49 @@ nothing changed") signed so the push can pass, and a signature that stands
 under nothing stops meaning anything under the next record. A record like that
 is a defect of the wrapper, fixed there, never a form to fill.
 
+## Documents that describe the present stay in step with the tree
+
+`check-present.mjs` holds the protocol's **What describes the present is kept
+true** where it can be computed. The config lists which documents describe the
+present (`presentDocuments`, path patterns: the agent doc, the glossary, the
+architecture, the current capability specs); nothing guesses them. It reads a
+change's base and head from git and compares what those documents name with
+what the tree has:
+
+- **A dead reference the change made refuses it.** A link whose target the
+  head does not have (a link says its target exists), or a path in a code
+  span that the document named before the change, which the change removed.
+  The document is fixed in the same change: pointed at what replaced the path,
+  or the statement removed. A span the change adds about a path it removed
+  ("`src/legacy/` was removed") is reported, not refused.
+- **What predates the change is reported, never refused**: references already
+  dead at the base, paths neither side ever had (a typo, a plan, or a
+  statement that a path is absent), code areas no listed document mentions
+  (`presentAreas`: the folders whose subfolders are areas, the top level by
+  default), and a document untouched while files were added, removed or
+  renamed under what it names in `presentChurnCommits` commits (20 by
+  default; 0 turns it off). The run that meets older drift files it as debt;
+  it is not fixed inside unrelated work.
+- **What is not a path of this tree** (an API route, a generated folder) goes
+  into `presentIgnores`; what git ignores is skipped by itself.
+
+A reference is what is written as one: a link, or a code span with a slash
+that starts with a name the tree has had; a bare file name once the tree has
+had a file of that name. A span is read beside its document, then from the
+root, then as the end of a longer path. Prose, code blocks, HTML comments and
+placeholders are examples and are not read. It judges names, not claims: that a module still does what a
+document says is found by reading, and the report says which documents to read.
+
+```sh
+node check-present.mjs --selftest
+node check-present.mjs --config <project-config> --base <merge-base> [--head <rev>] [--json]
+```
+
+Exit 0 means no dead reference this change made (`new errors: 0`), 1 means
+some, 2 means invalid input or invocation, an empty `presentDocuments` or none
+of them at the head included. It runs when a pull request is opened and in CI
+on every pull request, against its merge base, whoever opened it.
+
 ## Executable contract
 
 `check-docs.mjs` is a third portable check. Once the project has wired it, it is
