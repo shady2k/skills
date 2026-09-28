@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.35.0
+Setup version: 0.36.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -27,6 +27,9 @@ file, read when a step needs it:
   outlive the work;
 - [starting.md](references/starting.md): a project from an empty folder, with
   not even an idea, to its first planned feature;
+- [judging.md](references/judging.md): handing a batch of judgements to Jev,
+  where the project consented — where it helps, which answers are taken, what
+  is masked, and how its accuracy is measured on request;
 - [tz-gost.md](references/tz-gost.md): drafting a ТЗ or a ПМИ by Russian
   standards from the living documents, when a customer requires one.
 

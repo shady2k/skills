@@ -21,8 +21,10 @@ protocol (levels, lanes, the horizon, what a clean gate is) is
 
 Duplicates are usually paraphrases, not copies. Search for the **behaviour** in
 two different phrasings, then for the words. If you cannot phrase it two ways,
-read the whole list for its area. If it exists, work on it or extend it; never
-file a second issue beside it.
+read the whole list for its area. Where the area's list is too long to read,
+it may be narrowed first by the protocol's [**The agent decides where Jev
+helps**](references/judging.md); whether one is a duplicate is still yours. If
+it exists, work on it or extend it; never file a second issue beside it.
 
 Then look the other way: is there open work that retires the thing this is in?
 Where there is, settle it by the protocol's **What would make the work obsolete

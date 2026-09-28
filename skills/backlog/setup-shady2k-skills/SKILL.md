@@ -207,6 +207,26 @@ questionnaire**.
   escalation at acceptance; a skipped mutation check is never "passed".
   Required checks follow what a change can touch, by **Cheapest check first**.
   Show the cost of each long check, so the owner sees what it buys.
+- **Jev:** whether this project's text may be sent to Jev, a fast decision
+  model the agent can hand a batch of judgements to, and where its key is, by
+  the protocol's [**A project's text goes to Jev only with that project's
+  consent**](references/judging.md). Always a question on first setup and
+  whenever the config has no answer, asked of each project on its own; a rerun
+  keeps the recorded answer. Say what it buys (long logs, transcripts and many
+  items sorted in seconds for cents, the agent reading only what Jev is unsure
+  of), what it costs (a key, cents per batch), and where the text goes: through
+  OpenRouter to TypeSafe, or to TypeSafe directly, and TypeSafe keeps what it
+  receives unless the project has a zero-retention agreement with it. Say what
+  is masked before sending and that masking goes by shape and misses what has
+  none. Recommend no where the code is not the owner's to send out; otherwise
+  the owner's call. Find where the key is (an environment variable, a file, or
+  a secrets store read by a command) and ask only if it cannot be found; never
+  read the key into the conversation. Where it is, is this machine's, not the
+  project's: write it, with the owner's agreement, to the file `jev.mjs` reads
+  it from (named at the top of [`jev.mjs`](jev.mjs)), never into the config. Where the
+  tracker's item ids have one shape, record it so ids are masked. In team
+  scope each person keeps their own key's place, and a person without one
+  simply works without Jev.
 - **Review:** another model where available, a stated fallback otherwise, and
   whether independent review is required for acceptance. Two agents on the
   same model are not another model.
@@ -270,6 +290,12 @@ them and propose it instead.
     "reviewPreference": "different-model",
     "reviewFallback": "<same-model independent reviewer | disclosed self-review | escalate>"
   },
+  "jev": {
+    "consent": false,
+    "route": "<openrouter | typesafe>",
+    "idPattern": "<the tracker's item id shape, as a regular expression>",
+    "maskPatterns": []
+  },
   "scope": "<personal | team>",
   "artifactLanguage": "en",
   "projectWords": ["<project names>"],
@@ -277,6 +303,9 @@ them and propose it instead.
 }
 ```
 
+`maskPatterns` adds the project's own `{name, pattern}` to what is masked
+and can only add; a pattern that could hang on a long text is refused. With
+`consent` false the rest may be absent.
 The execution numbers are examples, not choices. `findingBudget` and
 `currentMilestone` stay null only while no live slice is admitted.
 `timeRecordsExempt` is written once, when time records are adopted (step 2 of
@@ -362,7 +391,7 @@ closure; at the records level disclose that records are trusted, and build no
 forgery defences. JSON alone proves no evidence is genuine.
 If it is not wired in this setup, file its task in the current milestone and
 record in the integration that the gate is not installed yet, naming that
-task. Setup still completes; wiring the gate later reruns proof 6.
+task. Setup still completes; wiring the gate later reruns proof 7.
 
 **New projects:** conversation may come before setup with no files or issues,
 by the protocol's [**Starting from nothing**](references/starting.md). In a
@@ -458,10 +487,18 @@ An existing setup runs all of these too, even when versions match.
    and the reviewer or its fallback. Report every proof not performed. A
    failure needs a repair or an agreed, supported change of settings, not a
    success stamp.
-5. **Current state:** run the gate on the cleaned live backlog. Keep the age
+5. **Jev**, where the project consented: from this skill's directory,
+   `node jev.mjs status --config <project-config>` says it is available,
+   proved by one call about a fixed sentence that carries no project text
+   (its refusal names what is missing: consent, the key's place, the key, or
+   the route); for the `typesafe` route this is the first proof it works at all. Run `jev.mjs mask` over a
+   real sample holding an item id and a name, and see both replaced. A failed
+   proof leaves consent recorded and says Jev is unavailable until it is fixed.
+   Without consent, see `status` refuse.
+6. **Current state:** run the gate on the cleaned live backlog. Keep the age
    snapshots from before and after cleanup and use their bounded correction.
    Show the result, remaining debt, the strength and any limits.
-6. **Documents**, once the document gate is wired: run the recoverable
+7. **Documents**, once the document gate is wired: run the recoverable
    entry-point proofs in documents.md: a
    missing scenario in the real format, a stale source requirement, a wrong
    task, stale or missing receipts and an unsynchronized closure. Check that
@@ -495,7 +532,7 @@ A required check red on the setup's own pull request is a repair that merge
 waits on, filed with the setup task, by the protocol's **Only what the
 milestone chose is intake**.
 
-Land once, only after all required proofs (proof 6 only when the document
+Land once, only after all required proofs (proof 7 only when the document
 gate is wired). The landed checks carry the setup version, so nothing is
 committed after landing: check the target checkout, record the proof on the
 setup task, and the installation is done.

@@ -47,7 +47,11 @@ If you cannot build one, say what is missing and narrow the options with
 existing logs, captures, code reading or small experiments, and name a cause
 only by [**A claim reaches only as far as its
 evidence**](references/deciding.md). Ask for a missing artifact or access when
-needed; adding instrumentation to production needs permission. A slow or rare
+needed; adding instrumentation to production needs permission. Where the
+project has a backlog integration and agreed to Jev, logs, failures or captures
+too many or too long to read may be sorted by it first, by the protocol's
+[**The agent decides where Jev helps**](references/judging.md); the cause is
+still named only from what you read. A slow or rare
 failure is still worth pursuing even if it never fits a seconds-long loop.
 
 Evidence the product or its checks do not give is added first, by the

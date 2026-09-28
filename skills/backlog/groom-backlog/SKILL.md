@@ -85,6 +85,10 @@ proposal as **counts by kind**, not a list of issues:
 - tasks held under the person's name that an agent is actually doing: moved
   to that agent, since the holder is whoever does the work.
 
+Sorting hundreds of issues into these kinds is the batch the protocol's
+[**The agent decides where Jev helps**](references/judging.md) describes; the
+proposal is still yours, and what the owner sees is the same.
+
 For each kind, say what it means, why, how it affects current work and how to
 undo it. The owner accepts the whole proposal or pulls items back by name.
 **Nothing is closed or deleted.** Do not take work away from someone active,

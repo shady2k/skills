@@ -365,7 +365,8 @@ reason:
 3. **Agree the settings**: first, whether the process is for you alone or for
    everyone in the repository; then one recommended profile to accept or adjust, and
    an explicit question about which language documents, tasks, commit messages
-   and code comments are written in (English recommended). Needs you once.
+   and code comments are written in (English recommended), and whether this
+   project's text may be sent to Jev, a fast decision model (below). Needs you once.
 4. **Connect the checks**: hooks, CI and the tracker adapter. No input from you.
 5. **Prove it works**: makes the checks fire on planted problems. No input from you.
 6. **Finish**: lands the installation; may ask your approval to merge it.
@@ -378,6 +379,22 @@ after setup; work does not wait for it.
 
 A rerun after an update is shorter: earlier answers are kept, and only new
 settings and the proofs are redone.
+
+**Jev, if you want it.** Setup asks each project whether its text may be sent
+to [Jev](https://typesafe.ai), TypeSafe's decision model, and where its key
+is. With it, an agent hands over batches of judgements it would otherwise
+read its way through: which of hundreds of issues a new one duplicates, which
+of many failures share a cause, which work a long transcript or log belongs
+to. Measured on this repository's own history, it attributed 25 of 26 sessions
+to the right one of 81 issues in under a second each, for about a cent in
+total. Its answer is taken only where it is sure; the rest the agent reads
+itself. Secrets are removed, and hosts, issue ids and the people the
+repository knows replaced, before anything is sent; this goes by shape, so a
+name nobody recorded or a secret with no recognisable form can still get
+through. The key stays on your machine, never in the project. The text goes through OpenRouter to TypeSafe, or to TypeSafe
+directly, and TypeSafe keeps it unless you have a zero-retention agreement
+with it. Without consent or a key nothing changes. How accurate it is on your
+project is measured when you ask.
 
 ### What setup verifies
 
@@ -515,6 +532,7 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.68.0** adds Jev, a fast decision model, as an option each project agrees to or not at setup: the agent may hand it batches of judgements over material it would otherwise read in full (long logs, transcripts, many issues), takes its answer only where it is sure and reads the rest itself. Everything sent is masked first: secrets removed, people, hosts and issue ids replaced. How accurate it is on your project is measured when you ask. Projects rerun setup (0.36.0) to answer the new question.
 - **0.67.0** stops refusing a push that carries two finished pieces of work: each is judged where it was finished, not at the last commit, so work done in a row leaves the machine without anything being checked less strictly. Projects rerun setup (0.35.0) so their push check follows. Decisions about how the checks themselves judge work are no longer put to you; you hear what is held back and until when, and are asked only if something would be checked less strictly. A task whose title is in the set's own words is named by what it means for your work.
 - **0.66.0** notices when the documents agents act on stop matching the code: a pull request that removes or moves a path the agent doc, glossary, architecture or current specs name, or breaks a link in them, is refused until the document is fixed in it, whoever opened it. Older drift is reported and filed as debt rather than fixed inside unrelated work, with the code no document mentions and the documents left behind while files came and went. Projects rerun setup once to name those documents.
 - **0.65.1** asks your decisions in terms of the product: each option says what will be built or proven, what stays open and for how long, not which task or stage the work goes to. When a feature stays open after a close, the report starts with what you still cannot rely on.

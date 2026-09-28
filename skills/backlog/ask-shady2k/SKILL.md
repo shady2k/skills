@@ -29,6 +29,11 @@ Do not make the user pick a mode.
   we", "what are our options"): the full picture of sections 3 and 4.
 - **A report for the team's sync** ("for the standup", "what was done since
   yesterday", "over the weekend"): section 6 instead of the picture.
+- **How well Jev judges here** ("is Jev right", "does it lie"), where the
+  project agreed to it: build cases from the project's history and replay
+  them, by the protocol's [**How well Jev does here is measured when the user
+  asks**](references/judging.md); report per kind of judgement, in the
+  owner's terms, and nothing else of the picture.
 - **Free discussion**: `brainstorming`, with no setup or tracker needed.
   Evidence-only questions: `to-research`. Thinking commits to nothing.
 
