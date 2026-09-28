@@ -71,6 +71,11 @@ pass. A guard that cannot find what it checks against refuses. Code that fails
 open passes every test that hands it its input, and is found only by the day
 the input is not there. Where several independent things are wrong, all of
 them are reported in one run, not only the first.
+An empty result that was computed is not a missing input: a push whose
+commits the remote already holds introduces none, and the guard says so and
+passes. What fails closed is the enumeration that could not be made, or came
+back empty where something had to be there; the two are told apart by what
+was asked, never by the count alone.
 
 **Same input, same output.** What a person or a check compares does not depend
 on the locale, the order a directory or map is read in, the clock or the

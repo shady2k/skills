@@ -360,7 +360,19 @@ only policy violations (exit 1), not a broken command.
 **Wiring the commit check:** it runs in commit-msg and CI. The project adapter
 turns the chosen message convention into the input of `check-commits.mjs`.
 Locally it checks the pending message; CI checks every newly introduced commit
-and fails if it unexpectedly finds none. Links resolve against all relevant
+and fails if it unexpectedly finds none.
+
+**What a push introduces** is what the range checks read (the commit check, the
+document gate's range, the backlog gate's baseline), in the pre-push hook and
+in CI alike: for each pushed ref, the commits of its tip, a tag peeled to its
+commit, that no ref the remote already has reaches, never a merge-base taken
+as a baseline for a ref the remote does not have yet. A tag, or a new branch,
+on a commit the remote already holds introduces nothing: the entry point says
+"introduces no commits: nothing to check" for that ref and passes, by the
+protocol's [**A missing input is an error**](references/building.md), which
+refuses only what could not be read. Refused as before: a hook given no ref
+lines, a range git cannot compute, and a pull request or push whose CI
+enumeration comes back empty although its head differs from its base. Links resolve against all relevant
 tasks, closed ones included. This check is mandatory whatever the backlog's
 strength. Test the parsing on real linked and unlinked messages.
 
@@ -473,7 +485,10 @@ An existing setup runs all of these too, even when versions match.
    hook; see it fail (or report, at `report` strength), undo, see it clean. Run
    the real commit-message entry point with a missing task, an unknown task and
    a valid leaf. Verify both CI range calculations on representative
-   revisions. Run the connect command in a scratch clone and see its hooks
+   revisions. Through the real pre-push entry point, on a scratch remote: a
+   tag, and a new branch, on a commit the remote already holds pass with
+   "nothing to check"; a tag or branch carrying a new commit without a task
+   link is refused; a hook given no ref lines is refused. Run the connect command in a scratch clone and see its hooks
    fire; take away a file a hook reads and see the commit refused. On a
    scratch branch, move a file a present document names and see the
    present-documents check refuse it with that path; move it back, see it
