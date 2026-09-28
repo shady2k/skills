@@ -167,6 +167,18 @@ the agent thinks is not worth the person's time is not asked: either it hides a
 real decision, which is then the question, or what needs reporting is the rule
 that forces it.
 
+**Written for someone who was not there.** What the agent read — code, logs,
+measurements, the tracker, earlier sessions — is its own, however long it has
+been in the conversation's context. A word is known to the person only if they
+used it themselves or were told in plain words what it means; a term picked up
+while investigating is defined in one clause where it first reaches them, or
+replaced, and a number comes as what someone using the product would notice.
+A message read after a gap (a return, a preflight, a run's report, an answer
+to a recommendation given hours ago) opens with what the matter is and why it
+is up now, in the product's terms, before any finding or correction. Before
+sending, read it as the person who was away: a sentence that needs the session
+to make sense is rewritten, not sent.
+
 **The ask shows the thing itself.** A decision is taken on an instance, not on
 a description of one. Where the change can be seen, the ask shows the line,
 message or screen as it reads today and as it will read, taken from a real run

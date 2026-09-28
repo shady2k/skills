@@ -95,7 +95,10 @@ Before the owner leaves, prepare the run so it needs nobody:
 - how to reach the owner when the run stops, if the harness can notify.
 
 Bring all of it as **one batch**, each item with a recommendation and its
-consequence, for the owner to accept whole or change by item. Record the
+consequence, for the owner to accept whole or change by item. It opens with
+what the feature gives users and where it stands, by the protocol's **Written
+for someone who was not there**: the owner may have agreed to the run hours
+ago and read none of what preflight found. Record the
 answers in the feature's decision log. End by saying either "ready to run
 alone" or exactly what is missing. Delegated choices cover routine details,
 not new scope, spending or weaker acceptance.
