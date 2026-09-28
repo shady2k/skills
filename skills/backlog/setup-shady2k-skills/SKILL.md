@@ -472,7 +472,9 @@ An existing setup runs all of these too, even when versions match.
    check's own command, not the owner's to supply, and is shown with the
    profile as a routine choice: an entry only where the command cannot reach
    the path. Prove it on two commits: a prose edit leaves that check's receipt
-   standing, an edit to a file it reads stales it.
+   standing, an edit to a file it reads stales it. On a scratch branch, finish
+   two changes one after the other and judge the range that carries both: it
+   passes, and breaking the earlier change's receipt refuses it.
 
 Keep the proof evidence with the setup task. A tracker outage, missing runtime,
 stale integration or failed hook is a specific repair, not a reason to discard

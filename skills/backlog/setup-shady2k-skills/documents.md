@@ -165,6 +165,17 @@ delivers nothing to it and does not bring it back into the range, where it
 would owe fresh receipts for work landed hours before. Later work on the same
 task is a change of its own.
 
+A range that delivers several changes judges each where it was finished: at
+its own last commit in the range, against the revision just before its first
+one there. Judged at the tip, an earlier change owes receipts for code a later
+one wrote, and judged against the target, a later change finds the earlier
+one's requirements unknown; each is clean in its place, and the push carrying
+both is refused with nothing to fix. A change whose commits interleave with
+another's, or begin before the range, is judged as before, at the tip against
+the target. Nothing is waived: a later commit that breaks an earlier change is
+part of a change of its own, which brings its own receipts at its own last
+commit.
+
 A wrapper that demands a record for filing gets empty records ("found, filed,
 nothing changed") signed so the push can pass, and a signature that stands
 under nothing stops meaning anything under the next record. A record like that

@@ -12,7 +12,9 @@ agent has called a task by it all day, and they have not. It goes in
 parentheses after the title only where they act on it themselves (find it,
 type it, approve it), never as a label on every item. A bare id is never an
 item of a report and never the subject of a sentence: look the title up
-first.
+first. A title written in this set's own words is no name of theirs either,
+however faithfully translated: the item is named by what it means for their
+work (what is held back, what breaks), and the title stays in the tracker.
 
 **Speaking to the owner.** The words of this protocol, the config, the tracker
 and the tools are for the agent. The person reads what they mean for the work,
@@ -87,11 +89,19 @@ task's own id, open questions about how agents split their work. Say only what
 it means for their work and their product. Name such a thing only when the
 person must act on it themselves, and then in plain words. The same goes for
 changes to the set's own bookkeeping: where it keeps versions, which fields it
-added or removed. If nothing changes for the person's work, say nothing.
+added or removed. If nothing changes for the person's work, say nothing. So
+it goes for how the set's checks judge work (at which revision, over which
+commits, what counts as proof): getting that right is the agent's, and never a
+decision put to the person. What they hear is its consequence: what is held
+back and until when, and whether anything is now checked less strictly; only
+the last, a loss of rigour, is theirs to approve. A word of the kitchen the
+person rejects is not swapped for a plainer one: the plainer word names the
+same thing, and the thing was not theirs to hear.
 
 Before sending anything to the person, reread it once for seven slips that
 happen even when the rules are known: an id they do not act on, or one without
-its title (look the title up; a decision record's number is an id too), a design decision without a
+its title (look the title up; a decision record's number is an id too; a title
+in this set's words is said by its consequence), a design decision without a
 worked sample of what it decides, an option of a question that says where work
 goes in the plan instead of what it changes for the product (by **An ask
 carries its own substance**), an internal word from this protocol, the config or the tools (use the
