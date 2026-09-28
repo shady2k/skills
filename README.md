@@ -26,6 +26,7 @@ A green backlog is not evidence that the code works.
 - [Installation and updates](#installation-and-updates)
   - [Claude Code](#claude-code)
   - [Codex](#codex)
+  - [omp](#omp)
   - [Other agents / standalone skills](#other-agents--standalone-skills)
   - [Joining a repository that already uses the set](#joining-a-repository-that-already-uses-the-set)
   - [What setup takes](#what-setup-takes)
@@ -199,10 +200,10 @@ unrelated changes, new scope or publishing anything.
 
 ## Installation and updates
 
-Choose your agent: [Claude Code](#claude-code) · [Codex](#codex) ·
+Choose your agent: [Claude Code](#claude-code) · [Codex](#codex) · [omp](#omp) ·
 [Other agents / standalone skills](#other-agents--standalone-skills).
 
-If you use both Claude Code and Codex, install the plugin separately in each.
+If you use more than one of Claude Code, Codex and omp, install the plugin separately in each.
 Within one agent, use either the plugin or standalone skill files (including
 development symlinks), not both: otherwise the same skills appear twice.
 
@@ -312,6 +313,47 @@ date, run `$shady2k-skills:setup-shady2k-skills` there; most updates need no set
 
 See [Codex installation details](docs/codex.md) for local checkouts,
 compatibility notes and isolated installation tests.
+
+### omp
+
+#### Install
+
+Run these commands in your terminal (verified with omp `18.1.17`):
+
+```bash
+omp plugin marketplace add shady2k/skills
+omp plugin install shady2k-skills@shady2k
+```
+
+This installs for you in every repository (`--scope user`, the default), which
+is what the set needs: omp's `project` scope is kept per checkout, so each
+worktree would start without the skills or on an old version. omp can also
+load plugins from Claude Code's own list, if you turned that on; install
+through omp anyway, so that its updates reach you.
+
+Start a new omp session in the target project, then run setup in the chat.
+Set aside time for it: see [What setup takes](#what-setup-takes).
+
+```text
+/skill:setup-shady2k-skills
+```
+
+Invoke other skills the same way, for example `/skill:take-task`.
+
+#### Update
+
+In your terminal:
+
+```bash
+omp plugin marketplace update shady2k
+omp plugin upgrade shady2k-skills@shady2k
+```
+
+Start a new session. If a skill then says the project's installation is out of
+date, run `/skill:setup-shady2k-skills` there; most updates need no setup.
+
+See [omp installation details](docs/omp.md) for local checkouts and isolated
+installation tests.
 
 ### Other agents / standalone skills
 
@@ -532,6 +574,7 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.72.0** supports omp as a third agent beside Claude Code and Codex: it installs the plugin as it is, and its updates now reach you too, because the catalog carries the plugin's version, which omp's upgrade of every plugin and its startup check go by. Setup recommends omp's `user` scope, the one every worktree sees.
 - **0.71.0** tells the workers of a feature run about Jev, where the project agreed to it: each worker's instructions now carry how to call it and when to trust it, so a worker can hand it a batch (which search hits are real uses, which failing tests share a cause, a long test log) and read only what Jev is unsure of. Before, only the coordinating agent knew Jev was there, and that agent rarely has such batches.
 - **0.70.0** lets Jev help the time records, where a project agreed to it: a session whose working copy is gone and whose conversation never names the task it was recorded on can now be placed on that task when Jev is sure it worked on it, and the receipt says so. A session Jev is unsure of, or would place on two tasks, is named for the agent to read instead. Without Jev everything works as before: only a conversation that names the task places it.
 - **0.69.0** stops refusing a push that brings nothing new: a version tag, or a new branch, on a commit the remote already holds now passes with "nothing to check", instead of being refused as if the check could not read its input and leaving only a way around the hook. A push with new commits is checked as before. Projects rerun setup (0.37.0) so their hooks and CI count a push's new commits this way.

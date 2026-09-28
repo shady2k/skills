@@ -26,6 +26,11 @@ changing packaging;
 it installs and updates an isolated Git marketplace without network or personal
 configuration changes. See `docs/codex.md`.
 
+omp installs the Claude Code plugin as it is, from the same catalog. The
+catalog entry carries the plugin's version, because omp upgrades by it; `npm
+run bump` keeps it equal to `plugin.json`. Run `npm run test:omp` (Linux,
+bubblewrap and omp) before every push too. See `docs/omp.md`.
+
 **Two versions.** The **plugin version** (both plugin manifests and `package.json`)
 goes up in every commit that changes what a skill does: an installed plugin
 updates by version, so a change pushed under the old number reaches nobody.

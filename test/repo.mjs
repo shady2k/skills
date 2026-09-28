@@ -124,6 +124,9 @@ for (const n of ['productivity/brainstorming', 'engineering/model-domain', 'engi
 const version = JSON.parse(readFileSync(join(ROOT, '.claude-plugin/plugin.json'), 'utf8')).version;
 const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).version;
 if (version !== pkg) fail(`plugin versions differ: plugin.json ${version}, package.json ${pkg}`);
+const catalogVersion = JSON.parse(readFileSync(join(ROOT, '.claude-plugin/marketplace.json'), 'utf8')).plugins.find((p) => p.name === 'shady2k-skills')?.version;
+// omp upgrades by the catalog entry's version; without it an update reaches nobody there.
+if (catalogVersion !== version) fail(`the marketplace entry's version is ${catalogVersion}, plugin.json's ${version}`);
 // The plugin version moves with every change; the setup version only when a
 // project's installation must be redone. The checks carry the setup version.
 const setupVersion = (protocol.match(/^Setup version: (.+)$/m) || [])[1];

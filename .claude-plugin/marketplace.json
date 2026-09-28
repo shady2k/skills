@@ -8,6 +8,7 @@
   "plugins": [
     {
       "name": "shady2k-skills",
+      "version": "0.72.0",
       "source": "./",
       "description": "Plan a feature together, then let the agent build it on its own up to one pull request, with honest backlog checks and plain-language reports.",
       "category": "productivity",

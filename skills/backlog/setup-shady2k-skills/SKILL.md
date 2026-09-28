@@ -151,7 +151,8 @@ questionnaire**.
   installation scope where the harness shows it: every checkout and worktree of
   this repository should see the skills at one version, so the install is made
   at the scope that covers them all (in Claude Code, `project` from the main
-  checkout, or `user` for everywhere). An install that reaches only some
+  checkout, or `user` for everywhere; in omp, `user`, since its `project` is
+  kept per checkout). An install that reaches only some
   checkouts is drift: recommend removing it by the harness's own instructions,
   leaving the shared settings as they were, and restarting sessions after
   installing or updating.

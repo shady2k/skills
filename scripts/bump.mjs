@@ -42,6 +42,19 @@ for (const f of manifests) {
   }
   writeFileSync(path, bumped);
 }
+// omp compares the catalog entry's version when it upgrades every plugin, and
+// Claude Code refuses an entry that disagrees with plugin.json.
+{
+  const path = join(ROOT, '.claude-plugin/marketplace.json');
+  const text = readFileSync(path, 'utf8');
+  const current = JSON.parse(text).plugins.find((p) => p.name === 'shady2k-skills')?.version;
+  const bumped = text.replace(`"version": "${current}"`, `"version": "${next}"`);
+  if (!current || !later(next, current) || bumped === text) {
+    console.error(`.claude-plugin/marketplace.json: the entry's version is ${current}; ${next} is not later or could not be written`);
+    process.exit(1);
+  }
+  writeFileSync(path, bumped);
+}
 
 if (setupNext) {
   const protocol = join(SETUP, 'protocol.md');
