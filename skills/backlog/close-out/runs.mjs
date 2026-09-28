@@ -19,7 +19,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { hostname, tmpdir, userInfo } from 'node:os';
 import { join } from 'node:path';
 import {
-  Usage, collect, localStamp, measure, parseWhen, projectName, recordedShapes, span, transcriptOf, union,
+  Usage, collect, conversationOf, localStamp, measure, parseWhen, projectName, recordedShapes, span, transcriptOf, union, unnamedTranscripts,
 } from './ledger.mjs';
 import {
   ACCEPTED, BUCKETS, ENDS, EVENTS, GRADES, PHASES, REASONS, RESULTS, ROLES, WORK,
@@ -97,8 +97,101 @@ function raws(opts) {
   return rawCache;
 }
 // A session placed in the project by git, or else one whose working copy is
-// gone and whose transcript names the item the record is on.
-const rawOf = (opts, key, item) => raws(opts).find((r) => `${r.harness}:${r.id}` === key) || (item ? transcriptOf(key, item) : null);
+// gone and whose transcript names the item the record is on, or that Jev was
+// sure worked on it.
+const judged = new Set();
+const rawOf = (opts, key, item) => raws(opts).find((r) => `${r.harness}:${r.id}` === key) || (item ? transcriptOf(key, item, { judged }) : null);
+
+// ---- asking Jev where the text does not say ----------------------------------
+
+/**
+ * Where the project agreed to Jev (the gate config, --config) and it is
+ * available here, a gone working copy's transcript that never names the item
+ * its record is on is put to Jev: did this session work on this item? Only a
+ * sure yes places it; a sure no and an unsure answer leave it where it was,
+ * and the unsure ones are named for the agent to read. Without --config, or
+ * without consent, a key or the module, nothing is asked and nothing changes:
+ * the text match alone decides, as it always did.
+ */
+export async function askJev(argv, { ask = null } = {}) {
+  const [command, ...rest] = argv;
+  const opts = parseArgs(rest);
+  const out = { asked: 0, placed: [], unsure: [], failed: null };
+  if (!opts.config || !['claim', 'receipt', 'finish', 'gaps', 'time'].includes(command)) return out;
+  if ((command === 'claim' && !opts.recovered) || opts['no-transcripts'] || opts.unknown) return out;
+  let jev;
+  try { jev = await import('./jev.mjs'); } catch { return out; }
+  let config;
+  try { config = JSON.parse(readFileSync(opts.config, 'utf8')); } catch { throw new Usage(`cannot read the gate config ${opts.config}`); }
+  try { jev.settings(config); } catch (e) { if (e instanceof jev.Unavailable) return out; throw new Usage(`the gate config's jev entry: ${e.message}`); }
+  let v;
+  let placed;
+  try {
+    v = view(readBacklog(opts.backlog));
+    placed = new Set(raws(opts).map((r) => `${r.harness}:${r.id}`));
+  } catch { return out; }
+  // Only the spans this command measures.
+  let spans = [];
+  if (command === 'claim') {
+    if (opts.harness && opts.session && opts.item) spans = [{ session: `${opts.harness}:${opts.session}`, item: opts.item }];
+  } else if (command === 'receipt') {
+    try { spans = [spanOf(v, opts)]; } catch { return out; }
+  } else if (command === 'finish') {
+    const me = thisSession(opts, { need: false });
+    spans = me && v.by.has(opts.item) ? mineOpen(v, me.key).filter((s) => v.tree(opts.item).includes(s.item)) : [];
+  } else {
+    spans = openSpans(v).filter((s) => command !== 'time' || !opts.item || s.item === opts.item);
+  }
+  // A session is placed on one item or none: asked about several, only an
+  // answer that picks exactly one of them places it.
+  const bySession = new Map();
+  for (const s of spans) {
+    if (placed.has(s.session) || !v.by.has(s.item)) continue;
+    const list = bySession.get(s.session) || bySession.set(s.session, []).get(s.session);
+    if (!list.includes(s.item)) list.push(s.item);
+  }
+  const questions = [];
+  for (const [key, items] of bySession)
+    for (const item of items)
+      for (const tr of unnamedTranscripts(key, item)) {
+        const text = conversationOf(tr.path);
+        if (text.trim()) questions.push({ key, item, text });
+      }
+  const yes = new Map();
+  try {
+    for (const item of [...new Set(questions.map((q) => q.item))]) {
+      const it = v.by.get(item);
+      const { answers } = await (ask || jev.ask)({ config, kind: 'check',
+        items: questions.filter((q) => q.item === item).map((q) => ({ id: `${q.key}\t${q.item}`, text: q.text })),
+        text: 'Did this agent session work on the tracker item described in the context (take it, build, fix, review or hand it in)?',
+        options: { true: 'The session worked on this item.', false: 'The session worked on something else.' },
+        context: `Item ${it.id}: ${it.title}\n\n${it.body || it.description || ''}` });
+      out.asked += answers.length;
+      for (const a of answers) {
+        const key = a.id.split('\t')[0];
+        if (a.settled && a.answer === 'true') yes.set(key, [...(yes.get(key) || []), a.id]);
+        else if (!a.settled) out.unsure.push(a.id);
+      }
+    }
+  } catch (e) {
+    // Jev is a help here, never a condition: whatever went wrong, the text alone decides, as before.
+    out.failed = e instanceof jev.Unavailable ? e.message : 'Jev could not be asked';
+    return { ...out, placed: [], unsure: [] };
+  }
+  for (const [, ids] of yes) {
+    if (ids.length === 1) { judged.add(ids[0]); out.placed.push(ids[0]); } else out.unsure.push(...ids);
+  }
+  return out;
+}
+
+/** One command, as the command line runs it: Jev first where it may help, then the command. */
+export async function commandLine(args, { ask = null, err = (s) => console.error(s) } = {}) {
+  const j = await askJev(args, { ask });
+  const text = run(args);
+  if (j.failed) err(`Jev was not used (${j.failed}); a transcript that does not name its item is not placed.`);
+  if (j.unsure.length) err(`Jev could not tell whether these sessions worked on these items; read them to decide:\n${j.unsure.map((u) => `  ${u.replace('\t', ' on ')}`).join('\n')}`);
+  return text;
+}
 
 // Where a span ends: its receipt; else the session's next claim, which ends it
 // whether or not its receipt was written; else now, or wherever the session's
@@ -138,6 +231,7 @@ function receiptFor(v, s, opts, { end, reason, note, recovered = false, at = now
   const from = s.start;
   const to = Math.max(from, endOf(s, raw, at));
   const { table, whole } = measureSpan(raw, from, to);
+  if (raw.by === 'Jev judged it the item\'s') note = [note, 'the transcript never names this item; Jev judged the session worked on it'].filter(Boolean).join('; ');
   const fields = { span: s.id, from: iso(from), to: iso(to), end, reason, note, recovered: recovered ? iso(nowMs()) : undefined, cut: whole ? undefined : 'yes' };
   return { item: s.item, body: formatRecord('receipt', fields, table) };
 }
@@ -749,13 +843,15 @@ runs.mjs recovery --item <id> --grade R0|R1|R2|R3 [--from <harness>] [--to <harn
 runs.mjs gaps      spans that ended with no receipt: recovered here, or named where they are not
 runs.mjs time [--since <date>] [--until <date>] [--item <id>] [--no-transcripts]
 runs.mjs stalled | pace [--tasks N] | report | list
+Where the project agreed to Jev, --config <gate config> lets it place a session whose working copy is gone and whose
+transcript never names the item: only a sure yes counts, and the ones it is unsure of are named on stderr.
 The current session is found by itself where the harness names it; else --harness <h> --session <id>.
 Transcripts belong to the project by its git repository: [--project <name>] [--repo <path>]. Add --json for data.
 Exit 0 done, 2 misuse, 3 the transcript is on another machine.`;
 
 // ---- self-test -----------------------------------------------------------------
 
-function selftest() {
+async function selftest() {
   const home = mkdtempSync(join(tmpdir(), 'runs-selftest-'));
   const saved = { ...process.env };
   const savedCwd = process.cwd();
@@ -966,6 +1062,108 @@ function selftest() {
     expect('claim --recovered: and gaps writes its receipt from it', gg.length === 1 && Date.parse(parseRecord(gg[0].body).fields.to) === goneStart + 30 * 60e3);
     postAll(gg);
     expect('claim --recovered: a removed copy\'s transcript that never names the item is not taken', misuse(['claim', '--recovered', '--item', 'demo-q70', '--role', 'coordinator', '--at', T(goneStart), ...goneAs, '--backlog', file, '--project', 'demo'], NotHere));
+    // With Jev, where the project agreed to it: the same transcript, which
+    // never names demo-q70, is placed on it only by a sure yes. The request
+    // goes through the real module, masking and all; only the service is faked.
+    const jev = await import('./jev.mjs');
+    const cfg = join(home, 'gate.json');
+    const seen = [];
+    const service = (verdict) => async (url, init) => {
+      const body = JSON.parse(init.body);
+      seen.push(body);
+      return { ok: true, status: 200, text: async () => JSON.stringify({ answers: { q: { type: 'noul', noul: verdict } }, usage: { cost: 0 } }) };
+    };
+    const viaJev = (verdict) => (a) => jev.ask({ ...a, fetchImpl: service(verdict), keyReader: () => 'k', people: [] });
+    const q70 = ['claim', '--recovered', '--item', 'demo-q70', '--role', 'coordinator', '--at', T(goneStart), ...goneAs, '--backlog', file, '--project', 'demo'];
+    writeFileSync(cfg, JSON.stringify({ jev: { consent: true, idPattern: 'demo-q[0-9]+' } }));
+    writeFileSync(file, JSON.stringify(backlog));
+    judged.clear();
+    rawCache = null;
+    let j = await askJev([...q70, '--config', cfg], { ask: viaJev(0.5) });
+    expect('Jev: an unsure answer places nothing and is named for the agent', j.asked === 1 && !j.placed.length && j.unsure.length === 1 && misuse(q70, NotHere));
+    expect('Jev: the item and the session go masked, the item described by its title', seen.length === 1
+      && !JSON.stringify(seen[0]).includes('demo-q7') && JSON.stringify(seen[0]).includes('Named nowhere'));
+    judged.clear();
+    rawCache = null;
+    j = await askJev([...q70, '--config', cfg], { ask: viaJev(0.02) });
+    expect('Jev: a sure no places nothing and asks the agent nothing', j.asked === 1 && !j.placed.length && !j.unsure.length && misuse(q70, NotHere));
+    judged.clear();
+    rawCache = null;
+    const errs = [];
+    const jq = parseRecord(postAll(JSON.parse(await commandLine([...q70, '--config', cfg, '--json'], { ask: viaJev(0.99), err: (s) => errs.push(s) })))[0].body);
+    expect('Jev: a sure yes places the transcript that never names the item, through the command line', !errs.length && !jq.problems.length && Date.parse(jq.fields.at) === goneStart);
+    rawCache = null;
+    writeFileSync(file, JSON.stringify(backlog));
+    const jg = JSON.parse(run(['gaps', '--json', '--backlog', file, '--project', 'demo'])).recover.filter((x) => x.item === 'demo-q70');
+    expect('Jev: its receipt says Jev placed it', jg.length === 1 && /Jev judged/.test(parseRecord(jg[0].body).fields.note || ''));
+    judged.clear();
+    rawCache = null;
+    seen.length = 0;
+    writeFileSync(cfg, JSON.stringify({ jev: { consent: false } }));
+    j = await askJev(['gaps', '--backlog', file, '--project', 'demo', '--config', cfg], { ask: viaJev(0.99) });
+    expect('Jev: without the project\'s consent nothing is asked, and the text alone decides', j.asked === 0 && !seen.length
+      && JSON.parse(cli('gaps', '--json')).elsewhere.some((x) => x.item === 'demo-q70'));
+    j = await askJev(['gaps', '--backlog', file, '--project', 'demo'], { ask: viaJev(0.99) });
+    expect('Jev: without --config nothing is asked', j.asked === 0 && !seen.length);
+    judged.clear();
+    // A Codex session whose copy is gone, beside a file that only has its id
+    // in its name; and what is read of it is the conversation, once, without
+    // what the harness put on the owner's side.
+    writeFileSync(cfg, JSON.stringify({ jev: { consent: true, idPattern: 'demo-q[0-9]+' } }));
+    const cxGone = join(home, 'w', 'wt-cx');
+    const codexDir = join(home, 'codex', 'sessions', '2026', '02', '27');
+    mkdirSync(codexDir, { recursive: true });
+    const cxRows = (id) => [
+      { type: 'session_meta', timestamp: T(goneStart), payload: { id, cwd: cxGone } },
+      { type: 'response_item', timestamp: T(goneStart + 1000), payload: { type: 'message', role: 'user', content: [{ type: 'input_text', text: '# AGENTS.md instructions for this folder' }] } },
+      { type: 'event_msg', timestamp: T(goneStart + 2000), payload: { type: 'user_message', message: 'make the export quote its cells' } },
+      { type: 'response_item', timestamp: T(goneStart + 2000), payload: { type: 'message', role: 'user', content: [{ type: 'input_text', text: 'make the export quote its cells' }] } },
+      { type: 'event_msg', timestamp: T(goneStart + 60000), payload: { type: 'agent_message', message: 'quoted, tests pass' } },
+    ].map((r) => JSON.stringify(r)).join('\n');
+    writeFileSync(join(codexDir, 'rollout-2026-02-27T10-00-00-cx1.jsonl'), cxRows('cx1'));
+    writeFileSync(join(codexDir, 'rollout-2026-02-27T11-00-00-cx1-decoy.jsonl'), cxRows('cx1-decoy'));
+    const un = unnamedTranscripts('codex:cx1', 'demo-q71');
+    expect('Jev: only the session itself is put to it, not a file that merely has its id in its name', un.length === 1 && un[0].path.endsWith('-cx1.jsonl'));
+    const said = un.length ? conversationOf(un[0].path) : '';
+    expect('Jev: what is read is the conversation, once, without the harness\'s own text',
+      said.split('quote its cells').length === 2 && /AGENT: quoted/.test(said) && !/AGENTS\.md/.test(said));
+    const claudeSaid = join(home, 'said.jsonl');
+    writeFileSync(claudeSaid, [
+      { type: 'user', isMeta: true, message: { content: 'meta text' } },
+      { type: 'user', message: { content: '<local-command-caveat>Caveat: generated</local-command-caveat>' } },
+      { type: 'user', message: { content: 'please fix the rows' } },
+      { type: 'assistant', message: { content: [{ type: 'tool_use', id: 'x', name: 'Bash', input: { command: 'cat .env' } }, { type: 'text', text: 'fixed' }] } },
+      { type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'x', content: 'SECRET=1' }] } },
+    ].map((r) => JSON.stringify(r)).join('\n'));
+    const cs = conversationOf(claudeSaid);
+    expect('Jev: from Claude, neither meta rows, the harness\'s notes nor tools go', cs === 'OWNER: please fix the rows\n\nAGENT: fixed');
+    // Asked about two items for one session, a yes to both places neither.
+    for (const id of ['demo-q71', 'demo-q72']) {
+      backlog.issues.push({ id, title: `Twin ${id}`, type: 'task', status: 'active', labels: [], parent: null, blockedBy: [], body: '', updatedAt: T(clock),
+        comments: [{ id: `c${++posted}`, at: T(clock), author: 'agent', body: formatRecord('claim', { span: newSpanId(), at: T(goneStart), session: 'codex:cx1', agent: 'codex-worker:t@m:b#cx1', role: 'worker' }, null) }] });
+    }
+    writeFileSync(file, JSON.stringify(backlog));
+    judged.clear();
+    rawCache = null;
+    const twinErr = [];
+    const twin = JSON.parse(await commandLine(['gaps', '--json', '--backlog', file, '--project', 'demo', '--config', cfg], { ask: viaJev(0.99), err: (s) => twinErr.push(s) }));
+    const asked = [];
+    judged.clear();
+    rawCache = null;
+    await askJev(['time', '--item', 'demo-q71', '--backlog', file, '--project', 'demo', '--config', cfg], { ask: async (a) => { asked.push(a.context); return { answers: [] }; } });
+    expect('Jev: a command asks only about what it measures', asked.length === 1 && /Twin demo-q71/.test(asked[0]));
+    expect('Jev: a session it places on two items is placed on neither, and both are named', !twin.recover.some((x) => x.item.startsWith('demo-q7') && x.item !== 'demo-q70')
+      && twinErr.some((s) => /demo-q71/.test(s) && /demo-q72/.test(s)));
+    judged.clear();
+    rawCache = null;
+    const failErr = [];
+    let failed = null;
+    try { await commandLine(['gaps', '--json', '--backlog', file, '--project', 'demo', '--config', cfg], { ask: async () => { throw new Error('status 422'); }, err: (s) => failErr.push(s) }); } catch (e) { failed = e; }
+    expect('Jev: when asking it fails, the command still runs, as without it, and says Jev was not used', !failed && failErr.some((s) => /not used/.test(s)));
+    for (const id of ['demo-q71', 'demo-q72']) backlog.issues.splice(backlog.issues.findIndex((i) => i.id === id), 1);
+    writeFileSync(file, JSON.stringify(backlog));
+    judged.clear();
+    rawCache = null;
     // Ids that only resemble the item name another one.
     transcript('near', goneRows('demo-q70, xdemo-q7 and demo-q7.1', join(home, 'w', 'wt-near')), join(home, 'w', 'wt-near'));
     expect('claim --recovered: a transcript naming only ids that resemble the item is not taken', misuse(['claim', '--recovered', '--item', 'demo-q7', '--role', 'coordinator', '--at', T(goneStart), '--harness', 'claude-code', '--session', 'near', '--backlog', file, '--project', 'demo'], NotHere));
@@ -1056,12 +1254,12 @@ function sumTotals(backlog) {
   return spansOf(backlog).spans.filter((s) => s.receipt?.table).reduce((n, s) => n + s.receipt.table.rows.total.total, 0);
 }
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   if (args[0] === '--selftest') return selftest();
   if (!args.length || args[0] === '--help') { console.log(HELP); return args.length ? 0 : 2; }
   try {
-    console.log(run(args));
+    console.log(await commandLine(args));
     return 0;
   } catch (e) {
     if (e instanceof NotHere) { console.error(e.message); return 3; }
@@ -1071,4 +1269,4 @@ function main() {
   }
 }
 
-process.exitCode = main();
+process.exitCode = await main();

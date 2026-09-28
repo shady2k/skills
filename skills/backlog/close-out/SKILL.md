@@ -88,7 +88,12 @@ without writing its own. Then `gaps` names every other span that ended with no
 receipt: post those it recovers from this machine, and tell the owner, in one
 line each, the ones whose transcripts are on another machine, whose time stays
 unknown until written there. One whose transcript no machine has is closed
-with `receipt --unknown`, the reason in its note.
+with `receipt --unknown`, the reason in its note. Where the project agreed to Jev, give the script the gate config
+(`--config`): a session whose working copy is gone and whose transcript never
+names the item its record is on is then put to Jev, and placed only on a sure
+yes, by the protocol's [**Its answer is taken only where it is
+sure**](references/judging.md); the ones it is unsure of are named, and you
+read those yourself. Without it the transcript naming the item decides alone.
 
 ## 4. Ask how the run went, and keep its lessons
 

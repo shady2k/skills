@@ -940,18 +940,8 @@ function laterHints(path) {
   return hints;
 }
 
-/**
- * A session's transcript found by its id alone, for a record on an item that
- * already names the session. Its working copy is gone and sat where nothing
- * places it, so the folder cannot say whose it is; the transcript naming the
- * item is the evidence instead. One whose working copy is still on disk is
- * placed by git and never by this.
- */
-export function transcriptOf(key, item) {
-  const at = String(key).indexOf(':');
-  const harness = key.slice(0, at);
-  const sid = key.slice(at + 1);
-  if (!sid || !item) return null;
+// The transcripts on this machine a session key names.
+function transcriptPaths(harness, sid) {
   const paths = [];
   if (harness === 'claude-code') {
     const root = join(claudeHome(), 'projects');
@@ -961,17 +951,101 @@ export function transcriptOf(key, item) {
   } else if (harness === 'omp') {
     for (const f of files(ompSessions(), 1)) if (f.name.endsWith(`_${sid}.jsonl`)) paths.push(f.path);
   }
-  const named = new RegExp(`(?<![\\w.-])${item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-]|\\.\\w)`);
+  return paths;
+}
+
+const splitKey = (key) => {
+  const at = String(key).indexOf(':');
+  return { harness: String(key).slice(0, at), sid: String(key).slice(at + 1) };
+};
+
+const namesItem = (item) => new RegExp(`(?<![\\w.-])${item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-]|\\.\\w)`);
+
+/**
+ * A session's transcript found by its id alone, for a record on an item that
+ * already names the session. Its working copy is gone and sat where nothing
+ * places it, so the folder cannot say whose it is; the transcript naming the
+ * item is the evidence instead, or, where the project agreed to Jev and it
+ * was sure, Jev's judgement that the session worked on the item (`judged`
+ * holds those, as "key TAB item"). One whose working copy is still on disk is
+ * placed by git and never by this.
+ */
+export function transcriptOf(key, item, { judged = null } = {}) {
+  const { harness, sid } = splitKey(key);
+  if (!sid || !item) return null;
+  const paths = transcriptPaths(harness, sid);
+  const named = namesItem(item);
+  const byJev = judged?.has(`${key}\t${item}`);
   for (const path of paths) {
     try {
       const { cwd } = where(harness, path);
       if (cwd && existsSync(resolve(cwd))) continue;
-      if (!named.test(readFileSync(path, 'utf8'))) continue;
-      const raw = harness === 'codex' ? readCodex(path) : harness === 'omp' ? readOmp(path) : readClaude(path);
-      if (raw && raw.id === sid) return Object.assign(raw, { by: 'names the item', role: 'side copy' });
+      const by = named.test(readFileSync(path, 'utf8')) ? 'names the item' : byJev ? 'Jev judged it the item\'s' : null;
+      if (!by) continue;
+      const raw = readRaw(harness, path);
+      if (raw && raw.id === sid && (by === 'names the item' || !raw.parent)) return Object.assign(raw, { by, role: 'side copy' });
     } catch { /* unreadable */ }
   }
   return null;
+}
+
+/**
+ * The transcripts `transcriptOf` would take but for the item not being named in
+ * them: a gone working copy's, of this session. These are the ones worth
+ * asking Jev about; everything else is already settled by git or by the text.
+ */
+export function unnamedTranscripts(key, item) {
+  const { harness, sid } = splitKey(key);
+  if (!sid || !item) return [];
+  const named = namesItem(item);
+  const out = [];
+  for (const path of transcriptPaths(harness, sid)) {
+    try {
+      const { cwd } = where(harness, path);
+      if (cwd && existsSync(resolve(cwd))) continue;
+      if (named.test(readFileSync(path, 'utf8'))) continue;
+      // Only the session itself: a file that merely has its id in its name,
+      // or a subagent of it, is another transcript.
+      const raw = readRaw(harness, path);
+      if (raw && raw.id === sid && !raw.parent) out.push({ harness, path });
+    } catch { /* unreadable */ }
+  }
+  return out;
+}
+
+const readRaw = (harness, path) => (harness === 'codex' ? readCodex(path) : harness === 'omp' ? readOmp(path) : readClaude(path));
+
+/**
+ * What the owner and the agent said to each other in a transcript, without
+ * the tools' input and output or what the harness put on the owner's side:
+ * the part a reader, or Jev, judges the work by. A very long one keeps its
+ * beginning and its end, where the work is taken and handed in.
+ */
+export const CONVERSATION_CHARS = 240000;
+export function conversationOf(path, max = CONVERSATION_CHARS) {
+  const said = [];
+  const blocks = (content) => (typeof content === 'string' ? [content]
+    : Array.isArray(content) ? content.filter((b) => ['text', 'input_text', 'output_text'].includes(b?.type) && typeof b.text === 'string').map((b) => b.text) : []);
+  const all = rows(path);
+  // A Codex rollout says each message twice, as an event and as an item; the events are read where they exist.
+  const events = all.some((d) => d.type === 'event_msg' && (d.payload?.type === 'user_message' || d.payload?.type === 'agent_message'));
+  for (const d of all) {
+    if (d.isSidechain || d.isMeta) continue;
+    const p = d.payload || {};
+    let who = null;
+    let texts = [];
+    if (d.type === 'user' || d.type === 'assistant') { who = d.type; texts = blocks(d.message?.content); }
+    else if (d.type === 'message' && ['user', 'assistant'].includes(d.message?.role)) { who = d.message.role; texts = blocks(d.message.content); }
+    else if (events && d.type === 'event_msg' && (p.type === 'user_message' || p.type === 'agent_message')) { who = p.type === 'user_message' ? 'user' : 'assistant'; texts = [String(p.message ?? '')]; }
+    else if (!events && d.type === 'response_item' && p.type === 'message' && ['user', 'assistant'].includes(p.role)) { who = p.role; texts = blocks(p.content); }
+    for (const x of texts) {
+      if (!x.trim()) continue;
+      if (who === 'user' && (HARNESS_TEXT.test(x) || CODEX_INJECTED.test(x) || /^\s*<command-/.test(x))) continue;
+      said.push(`${who === 'user' ? 'OWNER' : 'AGENT'}: ${x}`);
+    }
+  }
+  const text = said.join('\n\n');
+  return text.length <= max ? text : `${text.slice(0, max / 2)}\n\n[... the middle of the session is left out ...]\n\n${text.slice(-max / 2)}`;
 }
 
 /**

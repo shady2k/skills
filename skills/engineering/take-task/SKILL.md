@@ -116,7 +116,13 @@ adapter's export (`--backlog`) and prints each record to post, under the item
 it goes on, in the format of [`time-format.mjs`](time-format.mjs); post it
 through the integration's comment operation exactly as printed. The minutes are
 measured from the transcripts beside the script ([`ledger.mjs`](ledger.mjs)),
-never written by hand. It is how the owner learns whether runs get cheaper,
+never written by hand. Where the project agreed to Jev, give the script the gate config
+(`--config`): a session whose working copy is gone and whose transcript never
+names the item its record is on is then put to Jev, and placed only on a sure
+yes, by the protocol's [**Its answer is taken only where it is
+sure**](references/judging.md); the ones it is unsure of are named, and you
+read those yourself. Without it the transcript naming the item decides alone.
+It is how the owner learns whether runs get cheaper,
 faster and safer, so write the records as things happen, not from memory at the
 end:
 
