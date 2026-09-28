@@ -201,6 +201,17 @@ breaks**), and the mutation command for changed files with the time it may
 take. A kind of finding the review returns twice in this run goes into every
 later worker's brief.
 
+**Where the project agreed to Jev, the brief carries it too**: a worker that
+does not run the set learns of it nowhere else, and the batches it is good at
+(which search hits are real call sites, which failures share a cause, a long
+test or bench log) arise mostly in a worker's task. Give the commands whole,
+[`jev.mjs`](jev.mjs) by its absolute path in this skill's folder with the gate
+config, `status` once before the first `ask`, and, in the brief's own words,
+the protocol's [**The agent decides where Jev helps**](references/judging.md)
+(batches and long material, never a single call), **Its answer is taken only
+where it is sure** and **Nothing hard to reverse rests on Jev's word alone**.
+Where `status` refuses, the worker reads for itself and does not report it.
+
 Workers commit by the protocol's **An agent commits only what it wrote**. A
 coordinator that dispatches a worker
 into its own checkout commits its own changes first, and each later write there
