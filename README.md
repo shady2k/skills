@@ -2,24 +2,86 @@
 
 **English** · [Русский](README.ru.md)
 
-Sixteen skills for exploring ideas and taking tracked work to accepted results. They work
-with a project's chosen tracker and any harness that reads `SKILL.md`.
-The reasoning and history are in [docs/design.md](docs/design.md).
+**Plan a feature with your agent in the evening. Accept a green pull request in
+the morning.**
 
-Skills guide dialogue and decisions; portable checks enforce the backlog's shape,
-commit links and document lifecycle. The project owns its adapters and wiring, proved during setup.
-A green backlog is not evidence that the code works.
+Sixteen skills that turn you from the person driving an agent step by step into
+the owner of a product agents build. You decide what to build and whether the
+result is right; the agents plan it with you, build it without you and report
+in plain words. They work with Claude Code, Codex, omp and any agent that reads
+`SKILL.md`, and with the tracker your project already uses.
+
+## What you get
+
+- **Whole features built while you are away.** Before you leave, `take-task`
+  brings every decision the run will need as one list with recommendations and
+  a time estimate. Then it builds the feature on its own branch: parallel
+  workers, tests first where you agreed, an independent review (by another
+  model where one is available), every red check fixed. It stops only for a
+  real fork — architecture, an expensive mistake, behaviour beyond the spec —
+  and reaches you with a ready decision.
+- **One pull request to accept.** It says what users can now do, how to try it
+  yourself, every decision taken without you, what review found and what is not
+  done. Merging is your acceptance; the agent closes the tasks and cleans up.
+- **Always know where you stand.** Ask "what next?" or "where are we?" at any
+  moment: `ask-shady2k` reads the project, the tracker and the git history and
+  gives the product's picture, progress, what is stuck and the ways forward with
+  their consequences, with one recommendation. It changes nothing, and it also
+  writes your standup.
+- **A backlog that stays a queue.** Checks, not good intentions: a commit
+  without its task, or a change that breaks the backlog, is rejected before it
+  lands. A bug you mention is filed at once but does not jump the queue: each
+  version has a budget for new bugs, and anything beyond it waits for your
+  decision, never the agent's.
+- **Decisions, not documents.** You are never asked to read a spec to approve
+  it. A question comes already worked: what was looked at, the options with
+  their cost, the agent's recommendation and the strongest case against it, in
+  your language and your project's own names. No task numbers, no internal
+  statuses, no progress chatter while a run is healthy.
+- **Specs that say what the system does now.** Documents live in `docs/` beside
+  the code, kept by capability; accepted work is merged into them, so they never
+  turn into a pile of old plans.
+- **Estimates from your own history**, in agent time, measured on this project,
+  with what they rest on and a word when work outgrows them.
+- **Any session picks the work up.** Everything agreed is in the repository, not
+  in the chat, and `handoff` keeps what only the conversation knew.
+- **A thinking partner, not a questionnaire.** `brainstorming` brings its own
+  ideas and counterexamples and disagrees with reasons; a conversation may end
+  with nothing written, and nothing is left behind.
+- **Fits what you already have.** Your tracker stays yours; Superpowers, Spec
+  Kit or OpenSpec documents are mapped in place. Setup proves every check really
+  fires before it calls the installation done.
+
+**What it does not promise.** A green backlog is not evidence that the code
+works. The checks enforce the backlog's shape, commit links and the document
+lifecycle; they do not prove behaviour, truthful test evidence or that the
+right scope was chosen. That is what review and your acceptance are for.
+
+## Quick start
+
+In Claude Code, from your project's main checkout:
+
+```bash
+claude plugin marketplace add shady2k/skills
+claude plugin install shady2k-skills@shady2k --scope project
+```
+
+Start a new session there and run `/shady2k-skills:setup-shady2k-skills`. After
+that, just ask "what next?". For Codex, omp and other agents, and for the
+choice of scope, see [Installation and updates](#installation-and-updates).
+Setup takes from under an hour for a new project to a few sessions for a large
+neglected backlog: see [What setup takes](#what-setup-takes).
 
 ## Contents
 
-- [Why it exists](#why-it-exists)
-  - [Start with `ask-shady2k`, almost every time](#start-with-ask-shady2k-almost-every-time)
+- [What you get](#what-you-get)
+- [Quick start](#quick-start)
+- [How a day with it looks](#how-a-day-with-it-looks)
 - [How your work changes](#how-your-work-changes)
   - [The path of work, end to end](#the-path-of-work-end-to-end)
-  - [What reaches you, and what does not](#what-reaches-you-and-what-does-not)
+  - [Start with `ask-shady2k`, almost every time](#start-with-ask-shady2k-almost-every-time)
   - [Bugs, ideas and interruptions](#bugs-ideas-and-interruptions)
   - [What you no longer do](#what-you-no-longer-do)
-  - [How a day with it looks](#how-a-day-with-it-looks)
 - [Skills](#skills)
   - [Started on your request](#started-on-your-request)
   - [Started when the work calls for it](#started-when-the-work-calls-for-it)
@@ -31,6 +93,7 @@ A green backlog is not evidence that the code works.
   - [Joining a repository that already uses the set](#joining-a-repository-that-already-uses-the-set)
   - [What setup takes](#what-setup-takes)
   - [What setup verifies](#what-setup-verifies)
+- [Why it exists](#why-it-exists)
 - [How the flow works inside](#how-the-flow-works-inside)
 - [What the checks enforce](#what-the-checks-enforce)
 - [Documents: direction, current state and changes](#documents-direction-current-state-and-changes)
@@ -38,49 +101,24 @@ A green backlog is not evidence that the code works.
 - [Credits](#credits)
 - [Development](#development)
 
-## Why it exists
+## How a day with it looks
 
-The set grew out of the owner's own project, built through agents, and the
-problems it had there.
+**In the evening, planning.** Open the agent in the project's main folder and
+just talk: "what next?" or "I have an idea". Talking changes nothing; if it
+leads nowhere, close the session and nothing is left behind. When something is
+worth keeping, the agent moves into a separate working copy by itself, so your
+main branch stays clean. You shape the idea, the spec and the stages together.
+Before you leave, the agent brings every decision the work will need as one
+list with recommendations, and says roughly how long the run will take and
+when to expect the pull request. You answer, say "run", and go.
 
-- **Light skills oblige nothing.** A skill can be invoked at any moment or
-  never, and when nobody invokes it no process is followed. Heavier frameworks
-  did not fix that; they only made each step more expensive.
-- **The tracker became a dump.** Most open issues were marked ready, and most
-  of those "in progress" had not been touched for days. A status that is false
-  almost every time is not a status, and a queue where nearly everything is
-  ready cannot tell anyone what to do next.
-- **Work planned too far ahead went stale.** Many epics were created in advance
-  and lost their point before their turn came. Epics did not fit a session and
-  ran for days.
-- **Findings jumped the queue.** Bugs and architectural gaps found mid-feature
-  were put at the front and pushed the feature out by weeks.
-- **Names, not identifiers.** A person does not remember issue numbers; agents
-  kept talking as if they did.
-- **Losing the thread.** After a break, or in an unfamiliar project, nobody
-  could say at a glance what the product already does, how far the milestone has
-  come, what is stuck and what the sensible next step is. The tracker holds the
-  facts but not that picture.
+**While you are away.** The agent builds the whole feature on its own branch.
+Small gaps it decides itself and writes down; a real fork stops that part of
+the work and reaches you with a ready decision to make.
 
-So the set keeps the skills light and puts the obligations in checks: a gate
-that fails on a broken backlog, commits that must name their task, documents
-that must be ready before work starts. The details and the history of each
-decision are in [docs/design.md](docs/design.md).
-
-### Start with `ask-shady2k`, almost every time
-
-`ask-shady2k` answers the question behind the last problem: where are we, and
-what now? It reads the project, the tracker when there is one and the git
-history, then gives the product's picture, progress, the current state, risks
-and the ways forward with their consequences, and recommends one action by
-name. It is read-only, so running it costs nothing but a moment and never
-changes anything.
-
-Run it at the start of a session, after a break, after a stage is accepted,
-when you open a project you have not seen in a while, and whenever you are not
-sure what comes next. Ask "what next?" for a short answer, or "where are we?"
-for the full picture. Skip it only when you already know the exact task
-(`take-task`) or just want to think something through (`brainstorming`).
+**The next day, acceptance.** A green pull request says what was built, how to
+try it yourself and what the agent decided without you. You try it; merging is
+your acceptance, and the agent closes the tasks and cleans up.
 
 ## How your work changes
 
@@ -107,20 +145,20 @@ work up.
 Between those: `ask-shady2k` tells you where the project stands and what to do
 next whenever you come back; `handoff` keeps the thread when a session ends.
 
-### What reaches you, and what does not
+### Start with `ask-shady2k`, almost every time
 
-- **Decisions, already worked.** A question comes with what was looked at, the
-  options with their cost, the agent's recommendation and the strongest case
-  against it. Design choices come with the architecture they live in: the parts,
-  who owns what, what happens when one fails.
-- **Summaries, not documents.** You are never asked to read a spec to approve
-  it: you get its substance, the decisions and assumptions, the risks and cost,
-  in your language and your project's own names. The documents are for the
-  agents and the record.
-- **Estimates in agent time**, measured from this project's history, with what
-  they rest on, and a word when work outgrows them.
-- **Not the kitchen:** no task ids without titles, no internal statuses, no
-  progress chatter while a run is healthy.
+`ask-shady2k` answers the question you will ask most often: where are we, and
+what now? It reads the project, the tracker when there is one and the git
+history, then gives the product's picture, progress, the current state, risks
+and the ways forward with their consequences, and recommends one action by
+name. It is read-only, so running it costs nothing but a moment and never
+changes anything.
+
+Run it at the start of a session, after a break, after a stage is accepted,
+when you open a project you have not seen in a while, and whenever you are not
+sure what comes next. Ask "what next?" for a short answer, or "where are we?"
+for the full picture. Skip it only when you already know the exact task
+(`take-task`) or just want to think something through (`brainstorming`).
 
 ### Bugs, ideas and interruptions
 
@@ -141,25 +179,6 @@ a stuck agent, or keep a document in step with the code by hand. Checks, not
 good intentions, keep the tracker honest: a commit without its task or a change
 that breaks the backlog is rejected before it lands, and once the document
 check is installed, so is a feature whose spec is not ready.
-
-### How a day with it looks
-
-**In the evening, planning.** Open the agent in the project's main folder and
-just talk: "what next?" or "I have an idea". Talking changes nothing; if it
-leads nowhere, close the session and nothing is left behind. When something is
-worth keeping, the agent moves into a separate working copy by itself, so your
-main branch stays clean. You shape the idea, the spec and the stages together.
-Before you leave, the agent brings every decision the work will need as one
-list with recommendations, and says roughly how long the run will take and
-when to expect the pull request. You answer, say "run", and go.
-
-**While you are away.** The agent builds the whole feature on its own branch.
-Small gaps it decides itself and writes down; a real fork stops that part of
-the work and reaches you with a ready decision to make.
-
-**The next day, acceptance.** A green pull request says what was built, how to
-try it yourself and what the agent decided without you. You try it; merging is
-your acceptance, and the agent closes the tasks and cleans up.
 
 ## Skills
 
@@ -459,6 +478,35 @@ on (connecting your clone first if needed, a few minutes); newer means the
 repository's installation needs updating through setup; older means you update
 your plugin. Most plugin updates change no setup version and need nothing. This is a first-use guard and an update
 instruction, not a claim that every harness runs an automatic update hook.
+
+## Why it exists
+
+The set grew out of the owner's own project, built through agents, and the
+problems it had there.
+
+- **Light skills oblige nothing.** A skill can be invoked at any moment or
+  never, and when nobody invokes it no process is followed. Heavier frameworks
+  did not fix that; they only made each step more expensive.
+- **The tracker became a dump.** Most open issues were marked ready, and most
+  of those "in progress" had not been touched for days. A status that is false
+  almost every time is not a status, and a queue where nearly everything is
+  ready cannot tell anyone what to do next.
+- **Work planned too far ahead went stale.** Many epics were created in advance
+  and lost their point before their turn came. Epics did not fit a session and
+  ran for days.
+- **Findings jumped the queue.** Bugs and architectural gaps found mid-feature
+  were put at the front and pushed the feature out by weeks.
+- **Names, not identifiers.** A person does not remember issue numbers; agents
+  kept talking as if they did.
+- **Losing the thread.** After a break, or in an unfamiliar project, nobody
+  could say at a glance what the product already does, how far the milestone has
+  come, what is stuck and what the sensible next step is. The tracker holds the
+  facts but not that picture.
+
+So the set keeps the skills light and puts the obligations in checks: a gate
+that fails on a broken backlog, commits that must name their task, documents
+that must be ready before work starts. The details and the history of each
+decision are in [docs/design.md](docs/design.md).
 
 ## How the flow works inside
 
