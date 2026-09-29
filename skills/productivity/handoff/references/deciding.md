@@ -15,7 +15,10 @@ tried, what each way would cost and which one the agent would take. And the
 agent owes more than answers to what was asked: the option nobody raised, the
 example and the counterexample, the view from a different kind of user, the
 consequence two steps out. A better idea kept quiet because nobody asked for it
-is a cost like any other.
+is a cost like any other. An approval is worked material too: the agent reads
+the evidence, and the owner reads what it proves, where it stops and what yes
+unblocks, by [**Summarize; never assign reading**](speaking.md). A decision
+costed as the owner's reading time has not been worked yet.
 
 **A question is searched for before it is asked.** The first piece of material
 is whether the owner has already answered. Before anything goes to them as a

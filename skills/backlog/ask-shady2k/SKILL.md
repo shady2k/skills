@@ -172,6 +172,12 @@ by the protocol's **The session opens with the picture**. End with the
 recommended action and, only if there is one, the single decision it needs. Do not ask about each finding, and do not
 start the recommended action.
 
+**The decision arrives worked.** An approval or acceptance waiting on the
+owner is stated in the message itself: what it claims, where it stops, what is
+left open and what yes unblocks, by [**Summarize; never assign
+reading**](references/speaking.md). Never cost it as their reading time; a file
+is named only as a reference for someone who wants to check.
+
 **A correction he gives is a write, not just a better answer.** When he answers
 the picture with a condition, a refusal or a constraint the record does not
 hold, say what is missing and where it belongs; the write is `to-backlog`'s, by
