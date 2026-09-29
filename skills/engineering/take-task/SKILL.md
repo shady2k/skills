@@ -112,6 +112,14 @@ decided in the conversation that the record does not yet hold lands in that
 same first write, before the branch starts, by the protocol's **A decision the
 owner gives is kept, not only obeyed**.
 
+**Where the project agreed to Jev, find out at the start whether it is here**:
+[`jev.mjs`](jev.mjs) `status` with the gate config, once. A run is where piles
+arise, and a coordinator that does not know Jev is available reads every pile
+itself. Where it is, apply the protocol's [**The agent decides where Jev
+helps**](references/judging.md) every time you are about to read many items or
+a long text to answer one question of each; the steps below name where a run
+meets that most. Where `status` refuses, read for yourself and say nothing.
+
 **Keep the run's record** in the tracker, by the protocol's [**How the work
 went is kept on the item**](protocol.md): the run script,
 [`runs.mjs`](runs.mjs), run with `node` from this skill's folder, reads the
@@ -210,10 +218,14 @@ does not run the set learns of it nowhere else, and the batches it is good at
 test or bench log) arise mostly in a worker's task. Give the commands whole,
 [`jev.mjs`](jev.mjs) by its absolute path in this skill's folder with the gate
 config, `status` once before the first `ask`, and, in the brief's own words,
-the protocol's [**The agent decides where Jev helps**](references/judging.md)
-(batches and long material, never a single call), **Its answer is taken only
-where it is sure** and **Nothing hard to reverse rests on Jev's word alone**.
-Where `status` refuses, the worker reads for itself and does not report it.
+the protocol's [**The agent decides where Jev helps**](references/judging.md):
+what Jev is (one question asked of each item, answered from a list given in
+advance), the four conditions under which it pays, its test before reading a
+pile, and the worker's moments of that shape in this task (the search before
+a change, a failing suite, a long log), never a single call. Add **Its answer
+is taken only where it is sure** and **Nothing hard to reverse rests on Jev's
+word alone**. Where `status` refuses, the worker reads for itself and does not
+report it.
 
 Workers commit by the protocol's **An agent commits only what it wrote**. A
 coordinator that dispatches a worker
@@ -303,7 +315,11 @@ session resumed from its log where the agent can do that.
   owner that blocks nothing is filed there as a decision they hold, and the
   pull request's report names it by title. Making this
   feature meet its own criteria is part of the work, not a finding.
-- A stubborn failure goes to `diagnose-bug` within the current task.
+- A stubborn failure goes to `diagnose-bug` within the current task. Where
+  several checks fail after a merge, or the workers' reports hold more doubts
+  and notes than you would read at once, sorting them by cause or by whether
+  they touch this stage is Jev's shape, by **The agent decides where Jev
+  helps**.
 - A red check, including one that looks older than this work, follows the
   protocol's **A red check is this run's work** and **A check is never rerun to
   find out why it failed**. Its repair rides with this work by **A repair the
@@ -320,7 +336,10 @@ until step 7, and fixes merged after a review stay there too (the protocol's
 place of observation, walk the happy path there yourself the way a person
 reaches it, and record what you saw; a walk you could not make is recorded as
 not made. Then run mutation testing on changed logic within the configured
-time budget. Investigate survivors that matter, telling apart equivalent mutations, missing tests and tool failures.
+time budget. Investigate survivors that matter, telling apart equivalent mutations, missing tests and tool failures;
+many survivors, a long log of the full checks, or a review's many findings
+(which are real, which repeat one already handled) are piles of Jev's shape by
+**The agent decides where Jev helps**, and you read what it leaves unsettled.
 Unsupported tools, timeouts and skipped checks are reported as such, never as
 passed. Use the project's agreed fallback; without one, stop as for a decision
 that needs the owner.

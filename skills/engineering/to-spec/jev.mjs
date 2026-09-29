@@ -9,8 +9,9 @@
  * short code spans, alone it was worse than the regex already there (it reads
  * literally), and its confidence was right at the ends (below 0.05: 125 of
  * 125; above 0.95: 50 of 51) and useless in the middle (0.5 to 0.8: 0 of 7).
- * So an answer is SETTLED only at the ends, and the rest goes back to the
- * agent, which reads that item itself.
+ * So an answer is SETTLED only at the ends, 0.9 and above (for a check, also
+ * 0.1 and below), and the rest goes back to the agent, which reads that item
+ * itself. The band from 0.9 to 0.95 was not measured apart; replay counts it.
  *
  * NOTHING LEAVES UNMASKED. Every text is masked here, on every call, and
  * nothing the caller passes turns it off: secrets are removed; people, hosts,
@@ -51,7 +52,7 @@ import { isAbsolute, join, resolve, sep } from 'node:path';
 import { runInNewContext } from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
-export const SETTLED = 0.95;
+export const SETTLED = 0.9;
 const MODEL = 'typesafe/jev-1.13';
 const ROUTES = {
   // Proved against the live service when this was written.
@@ -295,7 +296,8 @@ export function reading(q, answer) {
   if (q.type === 'noul') {
     const p = answer.noul;
     if (!unit(p)) throw new Malformed('a check answered without a probability');
-    return { answer: p >= 0.5 ? 'true' : 'false', p: p >= 0.5 ? p : 1 - p, settled: p >= SETTLED || p <= 1 - SETTLED };
+    const sure = p >= 0.5 ? p : 1 - p;
+    return { answer: p >= 0.5 ? 'true' : 'false', p: sure, settled: sure >= SETTLED };
   }
   const probs = answer.probabilities;
   const given = Object.keys(q.criteria);
@@ -486,6 +488,10 @@ async function selftest() {
   check('a confident answer is settled', r1.settled, r1);
   check('the middle goes back to the agent', !r2.settled, r2);
   check('a confident no is settled as false', r3.settled && r3.answer === 'false' && r3.p === 0.98, r3);
+  check('a choice at the threshold is settled', reading(cq, { choice: 'a', probabilities: { a: 0.9, b: 0.1, none: 0 } }).settled);
+  check('a choice just below the threshold goes back to the agent', !reading(cq, { choice: 'a', probabilities: { a: 0.89, b: 0.11, none: 0 } }).settled);
+  check('a check at either threshold is settled', reading({ type: 'noul' }, { noul: 0.9 }).settled && reading({ type: 'noul' }, { noul: 0.1 }).settled);
+  check('a check just inside either threshold goes back to the agent', !reading({ type: 'noul' }, { noul: 0.89 }).settled && !reading({ type: 'noul' }, { noul: 0.11 }).settled);
   check('an answer outside the options is malformed', throws(() => reading(cq, { choice: 'zzz', probabilities: { a: 0.99 } }), Malformed));
   check('a probability out of range is malformed', throws(() => reading(cq, { choice: 'a', probabilities: { a: 7, b: 0, none: 0 } }), Malformed));
   check('probabilities for only some answers are malformed', throws(() => reading(cq, { choice: 'a', probabilities: { a: 0.99 } }), Malformed));

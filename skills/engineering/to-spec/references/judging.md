@@ -17,24 +17,57 @@ Text reaches Jev only through `jev.mjs`, never through a request of the
 agent's own, because that is where it is masked.
 
 **The agent decides where Jev helps, from what it is good at.** A step need
-not name it; any step may use it when the work has this shape:
+not name it; any step may use it when the work has this shape, and the agent
+looks for that shape itself whenever it is about to read a pile. Jev is a
+classifier: it reads one item at a time and says which of a few answers, given
+in advance, fits it, and how sure it is. It does not remember one item while
+reading the next, compare them, compute or write. What it saves is the agent's
+reading: an item it settles is one the agent never opens, in seconds and for a
+fraction of a cent. So it pays in proportion to the reading it takes off the
+agent, and most where all four of these hold:
 
-- **Many judgements of one kind**, each a pick from answers known in advance:
-  which of these search hits are real call sites, which failed tests share one
-  cause, which open items duplicate a new one, which files a change touches,
-  which of the owner's past sessions answered this question already.
-- **Long material to sort or attribute**, which it would cost the agent much
-  of its context to read: logs, transcripts, long diffs, many item bodies.
-  Measured on this set's own history: which of 81 items each of 26 sessions
-  worked on, 25 right, the right one among its first three every time, at 0.6
-  seconds and a cent for all of them, where reading them would have taken more
-  context than an agent has.
+- **One question, asked of every item, with its answers known before
+  looking.** The question and its answers are framed once, whatever the
+  number of items; "is this a real call of X: a call / a mention in a comment
+  or a string / a different X" is such a question, "what is wrong here" is
+  not.
+- **Each item takes reading for meaning, not matching.** Where a rule already
+  decides (a pattern, a parser, a status field), the rule is cheaper and
+  better: Jev reads literally and loses to it.
+- **The items are many, or long.** About ten or more, or one text too long to
+  read without spending much of the context, cut into items along its own
+  seams: a log by test or by step, a transcript by session, a diff by file.
+- **A wrong answer costs only a second look.** Only its sure answers are
+  used and the rest come back to the agent, so Jev decides the order and the
+  amount of the agent's reading, never an outcome.
+
+The test before reading a pile: could it be put as one question with a short
+list of answers, and would the agent otherwise open every item to answer it?
+Then it goes to Jev first, and the agent reads what comes back unsettled.
+Examples of that shape:
+
+- **Sorting search hits or files:** which of these hits are real call sites,
+  which files a change touches, which of the configs set this option.
+- **Grouping failures and findings:** which failed tests or checks share one
+  cause among the causes already suspected, which of a review's findings
+  repeat one already handled, which are about code this change did not touch.
+- **Matching against what is already recorded:** which open items duplicate a
+  new one, which of the owner's past sessions answered this question already,
+  which item each session or commit worked on.
+- **Long material to attribute or filter:** a long test, build or bench log,
+  transcripts, long diffs, many item bodies. Measured on this set's own
+  history: which of 81 items each of 26 sessions worked on, 25 right, the
+  right one among its first three every time, at 0.6 seconds and a cent for
+  all of them, where reading them would have taken more context than an agent
+  has.
 
 And it is the wrong tool for:
 
 - **One judgement in the flow of work.** Framing the question costs more than
   answering it, and the agent already holds the context; Jev is also weaker
   than the agent on any single hard call.
+- **A question about several items together**, such as which two conflict or
+  what order they go in: Jev sees one at a time. Put it per item or read it.
 - **Short, literal items that a rule already decides.** Over 312 short spans
   Jev alone was worse than the regex already there: it reads literally, so a
   command that contains a file name looked like a path to it.
@@ -42,9 +75,11 @@ And it is the wrong tool for:
   not compute or write.
 
 **Its answer is taken only where it is sure.** `jev.mjs` marks an answer
-settled only at the ends of its confidence, where it was measured right (below
-0.05: 125 of 125; above 0.95: 50 of 51); in the middle it was right 0 times of
-7. A settled answer is used as it is; every other item goes back to the agent,
+settled at a probability of 0.9 or more (and, for a yes or no, 0.1 or less).
+Measured, its ends were right (below 0.05: 125 of 125; above 0.95: 50 of 51)
+and its middle wrong (0.5 to 0.8: 0 of 7); the band from 0.9 to 0.95 was not
+measured apart, and a replay counts it in the project's own cases. A settled
+answer is used as it is; every other item goes back to the agent,
 who reads it and decides. Every choice has a way out, "none", which the module
 adds, because without one Jev picks something, confidently. The answers' names
 are written as plain descriptions of what each means: renaming them changed a
