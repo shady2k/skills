@@ -5,10 +5,12 @@
 **Plan a feature with your agent in the evening. Accept a green pull request in
 the morning.**
 
-Sixteen skills that turn you from the person driving an agent step by step into
-the owner of a product agents build. You decide what to build and whether the
-result is right; the agents plan it with you, build it without you and report
-in plain words. They work with Claude Code, Codex, omp and any agent that reads
+Sixteen skills for working as a
+[product engineer](https://shady2k.ru/posts/product-engineer-role/) (in
+Russian): an engineer whose work ends not at the merge but at whether users
+solved their problem. You stop driving an agent step by step. You decide what
+to build and what counts as working; the agents plan it with you, write the
+code without you and report in plain words. They work with Claude Code, Codex, omp and any agent that reads
 `SKILL.md`, and with the tracker your project already uses.
 
 ## What you get
@@ -122,9 +124,10 @@ your acceptance, and the agent closes the tasks and cleans up.
 
 ## How your work changes
 
-You stop driving the agent step by step and start working as the owner of a
-product that agents build: you decide what to build and whether the result is
-right; they plan with you, build without you, and report in plain words. The
+You stop driving the agent step by step and start working as a product
+engineer whose code agents write: you own what gets built and what counts as
+working, down to whether users got what they needed; they plan with you, build
+without you, and report in plain words. The
 repository, not the chat, holds everything agreed, so any session can pick the
 work up.
 
