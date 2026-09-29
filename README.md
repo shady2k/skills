@@ -461,7 +461,7 @@ project is measured when you ask.
 
 Every setup invocation rechecks the entire installation, including one whose
 version matches. It selects and initializes a tracker if needed, snapshots and
-cleans an existing queue with the owner, preserves valid prior choices, verifies
+cleans an existing queue with you, preserves valid prior choices, verifies
 adapters and execution commands, proves local/CI hooks and lands the result.
 New settings are presented as one recommended profile: what each controls, why
 it is recommended and the consequences of changing it. Accept the profile or
@@ -481,8 +481,8 @@ instruction, not a claim that every harness runs an automatic update hook.
 
 ## Why it exists
 
-The set grew out of the owner's own project, built through agents, and the
-problems it had there.
+I built this set for my own project, which agents build, out of the problems I
+ran into there.
 
 - **Light skills oblige nothing.** A skill can be invoked at any moment or
   never, and when nobody invokes it no process is followed. Heavier frameworks
@@ -503,7 +503,7 @@ problems it had there.
   come, what is stuck and what the sensible next step is. The tracker holds the
   facts but not that picture.
 
-So the set keeps the skills light and puts the obligations in checks: a gate
+So I keep the skills light and put the obligations in checks: a gate
 that fails on a broken backlog, commits that must name their task, documents
 that must be ready before work starts. The details and the history of each
 decision are in [docs/design.md](docs/design.md).
