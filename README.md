@@ -451,8 +451,9 @@ read its way through: which of hundreds of issues a new one duplicates, which
 of many failures share a cause, which work a long transcript or log belongs
 to. Measured on this repository's own history, it attributed 25 of 26 sessions
 to the right one of 81 issues in under a second each, for about a cent in
-total. Its answer is taken only where it is sure; the rest the agent reads
-itself. Secrets are removed, and hosts, issue ids and the people the
+total. The agent sees it as a tool in its list and hands it the file a search
+or a run wrote, not text it has already read. Its answer is taken only where
+it is sure; the rest the agent reads itself. Secrets are removed, and hosts, issue ids and the people the
 repository knows replaced, before anything is sent; this goes by shape, so a
 name nobody recorded or a secret with no recognisable form can still get
 through. The key stays on your machine, never in the project. The text goes through OpenRouter to TypeSafe, or to TypeSafe
@@ -625,6 +626,7 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.77.0** gives the agents Jev as a tool they see, where a project agreed to it. Over three days of feature runs no agent asked it anything: it reached them as a paragraph to recall and a command to assemble, and neither the coordinators nor the workers did. Now Claude Code, Codex and omp list it among their tools; the agent names the file a search or a run wrote and gets back what Jev was sure of and the few lines left for it to read, without reading the pile first. In Claude Code, allow the tool once in your own settings, or every call waits for your approval; setup offers it.
 - **0.76.0** brings an open decision from a stopped run with its mechanism. A run's note used to reach you as options without the scenario behind them, and each question you asked was the first time the agent read the code. Now the code is read before the message, by a background reader where it is long; what the note claims is checked there or marked as unconfirmed; and when no role is recorded, the agent looks at how you have worked on the project before falling back to the default.
 - **0.75.0** brings a decision waiting on you already worked out. An orientation used to hand you an acceptance as reading: a document section, a test file, review comments, costed as your reading time. Now the message itself says what you are approving: what it claims, where it stops, what stays open and what yes unblocks. Files are named only for someone who wants to check.
 - **0.74.0** gets Jev used where it pays, where a project agreed to it. A feature run used to make no call to it at all: when to use it was written down only in a file the agents never opened, and no step of a run named it. Now the coordinating agent checks at the start whether Jev is available, and the steps where a run meets piles of material name it: many failures after a merge, surviving mutations, a review's findings, a long log. What Jev is best at is explained in terms of the work instead of only by examples: the same question asked of many items, with its answers known in advance, where each item has to be read for meaning; the agent reads only what Jev is unsure of. Jev's answer now counts as sure from 0.9 instead of 0.95, so the agent has less left to read itself.

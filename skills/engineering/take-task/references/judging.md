@@ -10,11 +10,20 @@ each project whether it may be used, and records the answer in the gate
 config; a key on the machine permits nothing by itself. Where the key is, is
 the machine's, kept outside the project, since a committed place to read it
 from could be edited to run anything on whoever reads it.
-Before the first use in a session, [`jev.mjs`](../jev.mjs) `status` says whether
-it is available here, with one call that carries no project text. Where it is not, the agent reads the material itself, as
-it always did, and says nothing about it: an unavailable helper is not news.
-Text reaches Jev only through `jev.mjs`, never through a request of the
-agent's own, because that is where it is masked.
+
+**Jev is a tool the agent sees, not a rule it must recall.** Where the set is
+installed, the agent's tool list carries `ask_each`, a tool the set ships: it
+is handed the pile (a file of search or run output cut by line or by a
+separator, several files, or a short list) and the question, and returns what
+Jev settled and what is left to read. Where a harness lists no such tool,
+[`jev.mjs`](../jev.mjs) by its path (in Claude Code also the `jev` command the
+set puts on the path) does the same from a shell; before its first use in a session, its `status`
+says whether Jev is available here, with one call that carries no project
+text. All three find the project's config themselves and are one module, so
+text reaches Jev only through it, never through a request of the agent's own,
+because that is where it is masked. Where Jev is unavailable, the tool or
+`status` says so once, and the agent reads the material itself, as it always
+did, and says nothing about it: an unavailable helper is not news.
 
 **The agent decides where Jev helps, from what it is good at.** A step need
 not name it; any step may use it when the work has this shape, and the agent
@@ -44,6 +53,9 @@ agent, and most where all four of these hold:
 The test before reading a pile: could it be put as one question with a short
 list of answers, and would the agent otherwise open every item to answer it?
 Then it goes to Jev first, and the agent reads what comes back unsettled.
+The pile goes by name, not by content: a search or a run writes its output to
+a file and the file is what Jev is given, since a pile the agent reads in
+order to hand it over is a pile already read.
 Examples of that shape:
 
 - **Sorting search hits or files:** which of these hits are real call sites,

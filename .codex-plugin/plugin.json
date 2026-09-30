@@ -1,6 +1,6 @@
 {
   "name": "shady2k-skills",
-  "version": "0.76.0",
+  "version": "0.77.0",
   "description": "Plan a feature with your agent, then let it build the feature on its own up to one pull request, with checks, review and plain-language reports.",
   "author": {
     "name": "shady2k",
@@ -8,6 +8,18 @@
   },
   "repository": "https://github.com/shady2k/skills",
   "skills": "./skills/",
+  "mcpServers": {
+    "jev": {
+      "command": "node",
+      "args": [
+        "./mcp/jev-server.mjs"
+      ],
+      "cwd": ".",
+      "env_vars": [
+        "PWD"
+      ]
+    }
+  },
   "interface": {
     "displayName": "shady2k skills",
     "shortDescription": "From an idea to a merged pull request",

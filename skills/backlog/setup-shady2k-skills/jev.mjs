@@ -31,11 +31,11 @@
  * kept in $XDG_CONFIG_HOME/shady2k-skills/jev.json (~/.config by default) as
  * {"key": {"env": name} | {"file": path} | {"command": [program, ...args]}}.
  *
- *   node jev.mjs status  --config <gate-config>
- *   node jev.mjs ask     --config <gate-config> --question <text> --options <json>
+ *   node jev.mjs status  [--config <gate-config>]   (found in the working copy when left out)
+ *   node jev.mjs ask     [--config <gate-config>] --question <text> --options <json>
  *                        [--kind choice|check] [--context <text>]   < items.jsonl
  *   node jev.mjs replay  (same as ask; every item also carries "truth")
- *   node jev.mjs mask    --config <gate-config>                      < text
+ *   node jev.mjs mask    [--config <gate-config>]                    < text
  *   node jev.mjs --selftest
  *
  * items.jsonl: one {"id": ..., "text": ...} per line. --options is a JSON object
@@ -227,6 +227,27 @@ export function settings(config) {
     words: [...(config.projectWords || []), ...(config.trackerWords || [])] };
   masker(s); // refuses an unsafe pattern now, not in the middle of a batch
   return s;
+}
+
+// The project's gate config, when the caller does not name it: the one JSON
+// file the working copy tracks that carries a "jev" section. Setup writes that
+// section into the gate config only, so two of them is a question, not a guess.
+export function findConfig({ list = () => gitOut(['ls-files', '-z', '--', '*.json']), read = (f) => readFileSync(f, 'utf8'),
+  top = gitOut(['rev-parse', '--show-toplevel']).trim() } = {}) {
+  if (!top) throw new Unavailable('not inside a git working copy, so there is no project config to read');
+  const found = [];
+  for (const file of list().split('\0').filter(Boolean)) {
+    let parsed;
+    try {
+      const text = read(join(top, file));
+      if (text.length > 1 << 20 || !text.includes('"jev"')) continue;
+      parsed = JSON.parse(text);
+    } catch { continue; }
+    if (parsed && typeof parsed.jev === 'object' && parsed.jev && !Array.isArray(parsed.jev)) found.push(file);
+  }
+  if (!found.length) throw new Unavailable('this project has not agreed to send text to Jev');
+  if (found.length > 1) throw new Misuse(`more than one config carries a "jev" section (${found.join(', ')}); name one with --config`);
+  return join(top, found[0]);
 }
 
 // Only an absolute place outside the working copy: a relative one would be read
@@ -559,6 +580,13 @@ async function selftest() {
   check('an item a project pattern cannot mask in time is not sent', slow.answers[0].sent === false && /did not finish/.test(slow.answers[0].why), slow.answers[0]);
   const broken = await ask({ ...base, items: [{ id: 'x', text: 'key ghp_abcdefghijklmnopqrstuvwxyz123456' }], maskerImpl: () => ({ mask: (x) => x, unmask: (x) => x }) });
   check('a request the masking missed is not sent', broken.answers[0].sent === false && /secret/.test(broken.answers[0].why), broken.answers[0]);
+  const files = { 'a.json': '{"name": 1}', 'backlog/config.json': '{"jev": {"consent": true}}', 'b.json': '{"jev": 1}', 'bad.json': '{"jev": {' };
+  const finding = (names) => ({ top: '/w', list: () => names.join('\0'), read: (f) => files[f.slice(3)] });
+  check('the one config with a jev section is found', findConfig(finding(Object.keys(files))) === join('/w', 'backlog/config.json'),
+    findConfig(finding(Object.keys(files))));
+  check('none means the project has not agreed', throws(() => findConfig(finding(['a.json', 'bad.json'])), Unavailable));
+  check('two are a question, not a guess', throws(() => findConfig(finding(['backlog/config.json', 'backlog/config.json'])), Misuse));
+  check('outside a working copy there is none', throws(() => findConfig({ top: '', list: () => '' }), Unavailable));
   const s = summary(answers, cost);
   check('the summary counts settled, unsettled and not sent', /5 items: Jev settled 3, 1 are yours to read, 1 not sent/.test(s), s);
   check('a replay scores against the known answers', /all 1 of 2 right; settled 1 of 1; unsettled 0 of 1/.test(s), s);
@@ -574,19 +602,19 @@ function parse(args) {
     if (!(k in opts) || args[i + 1] === undefined) throw new Misuse(`unknown or incomplete option ${args[i]}`);
     opts[k] = args[i + 1];
   }
-  if (!opts.config) throw new Misuse('--config <gate-config> is required');
   return opts;
 }
 
 const stdin = () => readFileSync(0, 'utf8');
 
 async function main(argv) {
-  const usage = 'jev.mjs status|ask|replay|mask --config <gate-config> [--question <text> --options <json> --kind choice|check --context <text>]\njev.mjs --selftest\nExit 0 done, 2 invalid use, 3 unavailable.';
+  const usage = 'jev.mjs status|ask|replay|mask [--config <gate-config>] [--question <text> --options <json> --kind choice|check --context <text>]\njev.mjs --selftest\nExit 0 done, 2 invalid use, 3 unavailable.';
   const [command, ...rest] = argv;
   if (command === '--selftest' && !rest.length) return selftest();
   try {
     if (!['status', 'ask', 'replay', 'mask'].includes(command)) throw new Misuse('unknown command');
     const opts = parse(rest);
+    opts.config ||= findConfig();
     let config;
     try { config = JSON.parse(readFileSync(opts.config, 'utf8')); } catch { throw new Misuse(`${opts.config} is not a readable JSON config`); }
     if (command === 'mask') {

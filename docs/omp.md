@@ -42,6 +42,14 @@ turned on. Install through omp anyway: those copies follow Claude Code's
 updates, not omp's, and the same skill name from two sources loads once, from
 whichever omp ranks first.
 
+## Jev's tool server
+
+omp reads the plugin's root `.mcp.json` as Claude Code does and fills in
+`${CLAUDE_PLUGIN_ROOT}` itself; the server starts in the session's directory,
+which is how it finds the project. omp approves tool calls by default. The
+plugin's `bin/` is not put on omp's `PATH`, so a worker there calls `jev.mjs`
+by its path when it needs Jev from a shell.
+
 ## Verification
 
 ```bash

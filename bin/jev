@@ -1,0 +1,5 @@
+#!/bin/sh
+# Jev from any shell the plugin puts on PATH: the same jev.mjs the skills carry,
+# so consent, the key and masking stay in one place. See jev.mjs for the commands.
+here=$(dirname "$(readlink -f "$0")")
+exec node "$here/../skills/backlog/setup-shady2k-skills/jev.mjs" "$@"

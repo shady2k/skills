@@ -512,7 +512,13 @@ An existing setup runs all of these too, even when versions match.
    the route); for the `typesafe` route this is the first proof it works at all. Run `jev.mjs mask` over a
    real sample holding an item id and a name, and see both replaced. A failed
    proof leaves consent recorded and says Jev is unavailable until it is fixed.
-   Without consent, see `status` refuse.
+   Without consent, see `status` refuse. Where the owner runs Claude Code,
+   Jev's tool (`mcp__plugin_shady2k-skills_jev__ask_each`) needs an allow rule
+   in the machine's own Claude Code settings, never the project's: without
+   it every call waits for approval, a worker stalls on it and a headless one
+   is refused. Propose adding it, with the owner's agreement, and say why it
+   is safe: the tool sends nothing where a project has not agreed. Codex lets
+   it through as read-only and omp approves tools by default.
 6. **Current state:** run the gate on the cleaned live backlog. Keep the age
    snapshots from before and after cleanup and use their bounded correction.
    Show the result, remaining debt, the strength and any limits.

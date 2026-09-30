@@ -98,7 +98,7 @@ try {
     const state = join(base, 'state');
     const work = join(base, 'work');
     for (const dir of [source, state, work]) mkdirSync(dir, { recursive: true });
-    for (const path of ['.codex-plugin', '.claude-plugin', 'skills'])
+    for (const path of ['.codex-plugin', '.claude-plugin', 'skills', 'mcp', '.mcp.json', 'package.json'])
       cpSync(join(root, path), join(source, path), { recursive: true });
     if (format === 'codex-only') {
       rmSync(join(source, '.claude-plugin/plugin.json'));
@@ -128,6 +128,16 @@ try {
       assert.equal(result.status, 0);
       assert.equal(result.stdout.trim(), setupVersion);
     }
+    // Jev's tool server: registered from the plugin, and it answers from the cache.
+    const servers = JSON.parse(run(state, work, ['mcp', 'list', '--json']));
+    const jev = [].concat(servers.servers || servers).find((s) => s.name === 'jev' || s.name?.endsWith(':jev'));
+    assert.ok(jev, `the plugin registers its jev tool server: ${JSON.stringify(servers)}`);
+    // Codex expands no placeholder: the server is started from the plugin's own folder.
+    assert.ok(!JSON.stringify(jev.transport).includes('${') && jev.transport.cwd?.startsWith(codexState + '/'),
+      `the jev server starts from the plugin, with no placeholder left: ${JSON.stringify(jev.transport)}`);
+    const served = spawnSync(process.execPath, [join(cache, 'mcp/jev-server.mjs')], { cwd: cache, encoding: 'utf8', timeout: 10000,
+      input: `${JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' })}\n` });
+    assert.equal(JSON.parse(served.stdout).result.tools[0].name, 'ask_each', served.stderr);
     const loaded = await discovered(state, work, marketplace.installedRoot);
     assert.deepEqual(loaded.map((s) => s.name).sort(), expectedNames, `${format}: every skill discovered exactly once`);
     assert.ok(loaded.every((s) => s.enabled && s.interface?.displayName), 'skills enabled with Codex presentation metadata');
