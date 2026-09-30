@@ -176,7 +176,13 @@ start the recommended action.
 owner is stated in the message itself: what it claims, where it stops, what is
 left open and what yes unblocks, by [**Summarize; never assign
 reading**](references/speaking.md). Never cost it as their reading time; a file
-is named only as a reference for someone who wants to check.
+is named only as a reference for someone who wants to check. An open design
+decision the picture carries, one a stopped run left in a note above all, comes
+by [**A design decision comes with its mechanism**](references/deciding.md):
+the code it concerns is read first, by `to-research` where the reading is long,
+and the claims the note makes are checked there or sent as hypotheses. Before
+sending, ask whether the owner could decide from this message alone; one that
+leans on the note's words unchecked against the code is not worked yet.
 
 **A correction he gives is a write, not just a better answer.** When he answers
 the picture with a condition, a refusal or a constraint the record does not

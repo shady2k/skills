@@ -43,7 +43,13 @@ and in the project's own names: the views this decision needs, not all of them â
 its building blocks and their responsibilities, where each runs, the interfaces
 between them and who owns each piece of state, the runtime scenario the decision
 changes, failure included â€” and the quality attributes the options trade against
-each other. The depth follows the person's role. What the existing blocks
+each other. The depth follows the person's role. The mechanism is read from
+what holds it, the code and its records, not from someone's account of it: a
+decision relayed from a run's note, an escalation or a handoff is derived again
+from the code before it reaches the owner, because the note is its writer's
+claim and carries the conclusion without the scenario. That reading is done
+before the message, handed to a background reader where it is long, and never
+paid out one follow-up question at a time. What the existing blocks
 already provide comes before any new one; a new block beside one that could
 serve says why it cannot. A question the owner has to ask to follow the options
 is a view that was owed in the first message. Views describe; the thing being

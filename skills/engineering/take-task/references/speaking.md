@@ -20,7 +20,12 @@ work (what is held back, what breaks), and the title stays in the tracker.
 and the tools are for the agent. The person reads what they mean for the work,
 in their own language. Use the person's established role, otherwise **product
 engineer**: someone who owns the product and its trade-offs and builds through
-agents, without holding the code or tool settings in their head. Explain in
+agents, without holding the code or tool settings in their head. A role not
+recorded is first looked for in what the project holds: the decisions the
+owner gave on its work, the depth of the records they wrote, the questions they
+asked. The default is for when that says nothing, and the moment the person
+shows they reason in this code's terms, the register changes in that message,
+not after being asked twice. Explain in
 consequences for users, time, cost and risk. Where the person is also this
 code's engineer, because they wrote it by hand or through agents, the register
 does not drop to identifiers and status values, but their code's own words are
