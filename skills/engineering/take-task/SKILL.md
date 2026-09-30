@@ -80,7 +80,8 @@ Before the owner leaves, prepare the run so it needs nobody:
   stopped, by the protocol's **A run that never came back is found**. Give it
   in agent time, by the protocol's **Estimates**, starting from the measured
   pace: `pace --tasks <n>`, which also proposes the forecast by phase, with
-  the absence named below. If that is longer than the project lets a branch
+  the absence named below. The clock past runs lasted, which it prints
+  apart, is no forecast. If that is longer than the project lets a branch
   live, the feature is too big for one run: split it
   with the owner through `to-stages` (and `/to-milestone` if the outcome
   changes) first;

@@ -217,8 +217,12 @@ agent's time goes to waiting (CI runs, reviews, workers, the owner's answers),
 rework after a red check, and diagnosis, so the number is a range of the time
 the work occupies with those waits inside it. The owner's time away is in no
 estimate: its length is his to choose, and the time a result is promised for
-adds the absence he announced. With no history, say the number is a guess and
-what it rests on.
+adds the absence he announced, and only where the work needs him while he is
+gone. How long past runs lasted on the clock is not the reference class: it
+holds nights, waits for the owner and stretches nobody drove, so a promise
+built from it quotes days for hours of work. When a promise comes out well
+past the work in it, say what fills the difference before quoting it. With no
+history, say the number is a guess and what it rests on.
 
 When work grows well past the
 time given for it, or turns into different work (a small fix that uncovers

@@ -364,8 +364,11 @@ function pace(v, opts) {
   const occupied = done.map((r) => r.occupied);
   out.enough = true;
   out.estimateRatio = +quantile(done.map((r) => r.occupied / Math.max(1, r.forecast)), 0.5).toFixed(2);
+  // Whole runs' clock, for what it is: mostly the owner away and nobody's
+  // gaps, which no forecast is of. Said beside, never as the promise.
   out.elapsedLow = round(quantile(done.map((r) => r.elapsed), 0.25));
   out.elapsedHigh = round(quantile(done.map((r) => r.elapsed), 0.75));
+  out.gapShare = round(100 * quantile(done.filter((r) => r.elapsed > 0).map((r) => Math.max(0, r.elapsed - r.occupied) / r.elapsed), 0.5));
   const perTask = done.filter((r) => r.tasks > 0).map((r) => r.occupied / r.tasks);
   if (tasks && perTask.length >= 3) {
     out.basis = `${perTask.length} runs, per task`;
@@ -377,9 +380,11 @@ function pace(v, opts) {
     out.high = round(quantile(occupied, 0.75));
   }
   // A starting forecast by phase: the middle of the range, split as past work
-  // was split.
+  // was split. Work no phase claimed is spread over those that did: a
+  // forecast that is mostly "unattributed" says nothing of what the run is.
   const work = {};
   for (const r of done) for (const [p, row] of Object.entries(r.table)) if (p !== 'total') work[p] = (work[p] || 0) + row.work;
+  if (Object.entries(work).some(([p, w]) => p !== 'unattributed' && w > 0)) delete work.unattributed;
   const all = Object.values(work).reduce((a, b) => a + b, 0);
   const mid = (out.low + out.high) / 2;
   out.proposal = all ? Object.entries(work).filter(([, w]) => w > 0).map(([p, w]) => `${p}=${Math.max(1, round((mid * w) / all))}`).join(',') : null;
@@ -388,9 +393,11 @@ function pace(v, opts) {
 
 function describePace(p) {
   if (!p.enough) return `Too little history for a measured estimate: ${p.runs} finished run(s) with a forecast, 3 needed. Any estimate is a guess.`;
-  return `Similar runs occupied ${p.low}-${p.high} minutes (${p.basis}), over ${p.elapsedLow}-${p.elapsedHigh} minutes of clock. ` +
+  return `Similar runs occupied ${p.low}-${p.high} minutes (${p.basis}), the waits inside their work counted: that is the forecast. ` +
     `Runs occupied ${p.estimateRatio} times their forecast (median): correct a new one by that.` +
-    (p.proposal ? `\nA starting forecast by phase: --forecast ${p.proposal}` : '');
+    (p.proposal ? `\nA starting forecast by phase: --forecast ${p.proposal}` : '') +
+    `\nNot a forecast: those runs lasted ${p.elapsedLow}-${p.elapsedHigh} minutes of clock (whole runs), ` +
+    `${p.gapShare}% of it (median) the owner away or nobody working. The promised time adds only the absence the owner announces.`;
 }
 
 // Runs that started and never came back: a claim that promised a time, and
@@ -887,6 +894,9 @@ async function selftest() {
       { type: 'user', timestamp: T(startMs + min * 60e3), message: { content: [{ type: 'tool_result', tool_use_id: `t${startMs}` }] } },
       { type: 'system', subtype: 'turn_duration', timestamp: T(startMs + min * 60e3), durationMs: min * 60e3 },
     ];
+    // The same, with no skill claiming it and nothing that marks a phase.
+    const unclaimed = (startMs, min) => worked(startMs, min).map(({ attributionSkill, ...e }) => (e.message?.content?.[0]?.name === 'Bash'
+      ? { ...e, message: { ...e.message, content: [{ ...e.message.content[0], input: { command: 'ls' } }] } } : e));
     // The tracker, as the adapter exports it; posting appends a comment.
     const backlog = {
       generatedAt: T(clock), source: 'selftest',
@@ -983,12 +993,18 @@ async function selftest() {
       clock += 1000 * 60e3;
       const start = clock;
       act('claim', '--item', k, '--role', 'coordinator', '--forecast', 'build=60', '--tasks', '2', ...as(`s${k}`));
-      transcript(`s${k}`, worked(start, occ));
-      clock = start + occ * 60e3 + 60e3;
+      // I's work was claimed by no phase: its time is spread over those that were.
+      transcript(`s${k}`, (k === 'I' ? unclaimed : worked)(start, occ));
+      // Left overnight before the pull request was handed in: clock nobody worked.
+      clock = start + occ * 60e3 + 600 * 60e3;
       act('finish', '--item', k, '--result', 'pull-request', ...as(`s${k}`));
     }
     const p = JSON.parse(cli('pace', '--tasks', '2', '--json'));
+    const paceText = cli('pace', '--tasks', '2');
     expect('pace: measured from finished runs, their occupied time against their forecast', p.enough && p.runs === 4 && p.estimateRatio === 1.75);
+    expect('pace: the clock of past runs is said as no forecast, with the share nobody worked',
+      p.gapShare > 50 && paceText.startsWith(`Similar runs occupied ${p.low}-${p.high} minutes`)
+      && new RegExp(`Not a forecast: those runs lasted ${p.elapsedLow}-${p.elapsedHigh} minutes of clock \\(whole runs\\), ${p.gapShare}%`).test(paceText));
     expect('pace: proposes a forecast by phase', typeof p.proposal === 'string' && !p.proposal.includes('unattributed') && /^build=\d+$/.test(p.proposal));
 
     // A run that promised a time and never came back.
