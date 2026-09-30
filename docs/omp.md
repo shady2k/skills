@@ -44,7 +44,7 @@ whichever omp ranks first.
 
 ## Jev's tool server
 
-omp reads the plugin's root `.mcp.json` as Claude Code does and fills in
+omp reads the server from `.claude-plugin/plugin.json` as Claude Code does and fills in
 `${CLAUDE_PLUGIN_ROOT}` itself; the server starts in the session's directory,
 which is how it finds the project. omp approves tool calls by default. The
 plugin's `bin/` is not put on omp's `PATH`, so a worker there calls `jev.mjs`

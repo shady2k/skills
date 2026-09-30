@@ -85,7 +85,7 @@ const git = (...args) => {
 const cacheOf = (v) => join(state, 'plugins/cache/plugins', `shady2k___shady2k-skills___${v}`);
 
 try {
-  for (const path of ['.codex-plugin', '.claude-plugin', 'skills', 'mcp', '.mcp.json', 'package.json'])
+  for (const path of ['.codex-plugin', '.claude-plugin', 'skills', 'mcp', 'package.json'])
     cpSync(join(root, path), join(source, path), { recursive: true });
   git('init', '-b', 'main');
   git('add', '.');
@@ -103,9 +103,9 @@ try {
     assert.equal(result.status, 0);
     assert.equal(result.stdout.trim(), setupVersion);
   }
-  // Jev's tool server: omp reads the plugin's .mcp.json and fills in the plugin's
-  // root itself; started that way from the cache, it answers.
-  const declared = JSON.parse(readFileSync(join(cache, '.mcp.json'), 'utf8')).mcpServers.jev;
+  // Jev's tool server: omp reads it from the Claude manifest and fills in the
+  // plugin's root itself; started that way from the cache, it answers.
+  const declared = JSON.parse(readFileSync(join(cache, '.claude-plugin/plugin.json'), 'utf8')).mcpServers.jev;
   const served = spawnSync(declared.command, declared.args.map((a) => a.replaceAll('${CLAUDE_PLUGIN_ROOT}', cache)),
     { cwd: work, encoding: 'utf8', timeout: 10000, input: `${JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' })}\n` });
   assert.equal(JSON.parse(served.stdout || '{}').result?.tools[0].name, 'ask_each', `the cached jev server answers: ${served.stderr}`);

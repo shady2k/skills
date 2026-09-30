@@ -98,7 +98,7 @@ try {
     const state = join(base, 'state');
     const work = join(base, 'work');
     for (const dir of [source, state, work]) mkdirSync(dir, { recursive: true });
-    for (const path of ['.codex-plugin', '.claude-plugin', 'skills', 'mcp', '.mcp.json', 'package.json'])
+    for (const path of ['.codex-plugin', '.claude-plugin', 'skills', 'mcp', 'package.json'])
       cpSync(join(root, path), join(source, path), { recursive: true });
     if (format === 'codex-only') {
       rmSync(join(source, '.claude-plugin/plugin.json'));

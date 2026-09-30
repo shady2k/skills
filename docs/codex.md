@@ -94,14 +94,15 @@ both distributions.
 
 ## Jev's tool server
 
-`.codex-plugin/plugin.json` declares the plugin's MCP server itself, not
-through the shared `.mcp.json`: Codex 0.157.0 expands no placeholder in a
-plugin's server entry, so `${CLAUDE_PLUGIN_ROOT}` would reach the command as
-literal text. The entry runs `node ./mcp/jev-server.mjs` with `cwd: "."`, which
+`.codex-plugin/plugin.json` declares the plugin's MCP server itself, apart
+from the Claude manifest's: Codex 0.157.0 expands no placeholder in a plugin's
+server entry, so `${CLAUDE_PLUGIN_ROOT}` would reach the command as literal
+text. There is no root `.mcp.json`: Claude Code would also read it as this
+repository's own project server, where the placeholder is not filled in and
+the server fails to start. The entry runs `node ./mcp/jev-server.mjs` with `cwd: "."`, which
 Codex resolves against the installed plugin. The server then takes the project
 from each call's workspace (and the forwarded `PWD` as a last resort), never
-from its own folder. Without an entry in the manifest, Codex falls back to the
-root `.mcp.json` and registers a server that cannot start; `npm run test:codex`
-fails on that. The tool is marked read-only, which is what lets `codex exec`
+from its own folder. `npm run test:codex` fails when the entry is missing or
+carries a placeholder. The tool is marked read-only, which is what lets `codex exec`
 call it under its default approval policy. The plugin's `bin/` is not put on
 Codex's `PATH`.
