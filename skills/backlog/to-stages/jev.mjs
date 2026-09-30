@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
  * The one way the set sends a judgement to Jev, TypeSafe's decision model:
- * given a text and a closed set of answers, it returns a probability for each.
+ * given a text and questions of three kinds (yes or no, one of the answers
+ * given, a place on an ordered scale), it returns a probability for each
+ * answer, all questions in one request, the text read once.
  *
  * Measured on the set's own repository before it was built: over 26 sessions,
  * which of 81 tracker items each worked on, Jev answered 25 right against 21
@@ -9,9 +11,12 @@
  * short code spans, alone it was worse than the regex already there (it reads
  * literally), and its confidence was right at the ends (below 0.05: 125 of
  * 125; above 0.95: 50 of 51) and useless in the middle (0.5 to 0.8: 0 of 7).
- * So an answer is SETTLED only at the ends, 0.9 and above (for a check, also
- * 0.1 and below), and the rest goes back to the agent, which reads that item
- * itself. The band from 0.9 to 0.95 was not measured apart; replay counts it.
+ * So an answer is SETTLED only at the ends, and the rest goes back to the
+ * agent, which reads that item itself. Where the end begins is the project's
+ * choice (jev.sure), bound to the Jev it was measured on (jev.model): 0.9 on
+ * jev-1.13 where it chose nothing, which is this set's measure, not a law, and
+ * a new Jev makes it stale. replay shows, on the project's own cases, what each
+ * threshold would settle and how much of that is right.
  *
  * NOTHING LEAVES UNMASKED. Every text is masked here, on every call, and
  * nothing the caller passes turns it off: secrets are removed; people, hosts,
@@ -33,7 +38,8 @@
  *
  *   node jev.mjs status  [--config <gate-config>]   (found in the working copy when left out)
  *   node jev.mjs ask     [--config <gate-config>] --question <text> --options <json>
- *                        [--kind choice|check] [--context <text>]   < items.jsonl
+ *                        [--kind choice|check|score] [--context <text>]   < items.jsonl
+ *                        (a score's --options is a JSON list of levels, lowest first)
  *   node jev.mjs replay  (same as ask; every item also carries "truth")
  *   node jev.mjs mask    [--config <gate-config>]                    < text
  *   node jev.mjs --selftest
@@ -52,14 +58,20 @@ import { isAbsolute, join, resolve, sep } from 'node:path';
 import { runInNewContext } from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
+// How sure an answer must be to be used, and the Jev it was measured on, where
+// the project has not set its own: this set's replay on jev-1.13. A project
+// sets both (jev.sure, jev.model); a new Jev is never taken up silently, since
+// a threshold means something only for the model it was measured on.
 export const SETTLED = 0.9;
-const MODEL = 'typesafe/jev-1.13';
+export const MODEL = 'jev-1.13';
 const ROUTES = {
   // Proved against the live service when this was written.
-  openrouter: { url: 'https://openrouter.ai/api/alpha/decisions', model: MODEL },
+  openrouter: { url: 'https://openrouter.ai/api/alpha/decisions', model: (m) => `typesafe/${m}` },
   // TypeSafe's own endpoint, by its documentation; setup proves it with a live call before relying on it.
-  typesafe: { url: 'https://api.typesafe.ai/v1/systemone', model: 'jev-1.13' },
+  typesafe: { url: 'https://api.typesafe.ai/v1/systemone', model: (m) => m },
 };
+// The thresholds a replay reports side by side, so the owner chooses on numbers.
+export const THRESHOLDS = [0.8, 0.9, 0.95];
 // A request holds 32k tokens of text; a long item is cut to its head and tail,
 // and cut again when the service still says it is too long.
 const MAX_CHARS = 60000;
@@ -223,7 +235,11 @@ export function settings(config) {
   if ('key' in jev) throw new Misuse('the Jev key\'s place belongs to the machine (jev.json), not to the project config');
   const route = ROUTES[jev.route || 'openrouter'];
   if (!route) throw new Misuse(`jev.route must be one of ${Object.keys(ROUTES).join(', ')}`);
-  const s = { ...route, idPattern: jev.idPattern || null, patterns: jev.maskPatterns || [],
+  const sure = jev.sure ?? SETTLED;
+  if (typeof sure !== 'number' || !(sure > 0.5 && sure < 1)) throw new Misuse('jev.sure is a probability above 0.5 and below 1');
+  const name = jev.model ?? MODEL;
+  if (typeof name !== 'string' || !/^jev-[A-Za-z0-9._-]+$/.test(name)) throw new Misuse('jev.model names a Jev, like jev-1.13');
+  const s = { url: route.url, model: route.model(name), name, sure, idPattern: jev.idPattern || null, patterns: jev.maskPatterns || [],
     words: [...(config.projectWords || []), ...(config.trackerWords || [])] };
   masker(s); // refuses an unsafe pattern now, not in the middle of a batch
   return s;
@@ -295,15 +311,23 @@ export function readKey(where, { env = process.env, run = execFileSync, read = r
 
 const cut = (text, n) => (text.length <= n ? text : `${text.slice(0, n / 2)}\n\n[... the middle is left out ...]\n\n${text.slice(-n / 2)}`);
 
+// Jev's three kinds of question: yes or no (its "noul"), one of the answers
+// given, or a place on an ordered scale. Several go in one request, asked of
+// one text read once.
 export function question(kind, text, options) {
   if (!text) throw new Misuse('--question is required');
+  if (kind === 'score') {
+    if (!Array.isArray(options) || options.length < 2 || !options.every((l) => typeof l === 'string' && l))
+      throw new Misuse('a score takes at least two levels, lowest first');
+    return { type: 'score', instructions: text, criteria: options.map(String) };
+  }
   if (!options || typeof options !== 'object' || Array.isArray(options)) throw new Misuse('--options must be a JSON object of answer to description');
   if (kind === 'check') {
     if (!('true' in options) || !('false' in options) || Object.keys(options).length !== 2)
       throw new Misuse('a check takes exactly {"true": ..., "false": ...}');
     return { type: 'noul', instructions: text, criteria: { true: String(options.true), false: String(options.false) } };
   }
-  if (kind !== 'choice') throw new Misuse('--kind is choice or check');
+  if (kind !== 'choice') throw new Misuse('--kind is choice, check or score');
   const criteria = Object.fromEntries(Object.entries(options).map(([k, v]) => [k, String(v)]));
   if (Object.keys(criteria).length < 2) throw new Misuse('a choice needs at least two answers');
   if (!('none' in criteria)) criteria.none = 'None of the listed answers fits.';
@@ -311,14 +335,28 @@ export function question(kind, text, options) {
 }
 
 // Jev's answer read back: the answer, its probability, and whether it is settled.
-export function reading(q, answer) {
+export function reading(q, answer, threshold = SETTLED) {
   const unit = (x) => typeof x === 'number' && Number.isFinite(x) && x >= 0 && x <= 1;
   if (!answer || typeof answer !== 'object') throw new Malformed('no answer');
   if (q.type === 'noul') {
     const p = answer.noul;
     if (!unit(p)) throw new Malformed('a check answered without a probability');
     const sure = p >= 0.5 ? p : 1 - p;
-    return { answer: p >= 0.5 ? 'true' : 'false', p: sure, settled: sure >= SETTLED };
+    return { answer: p >= 0.5 ? 'true' : 'false', p: sure, settled: sure >= threshold };
+  }
+  if (q.type === 'score') {
+    // A place on the scale is taken where one level holds the probability; the
+    // weighted score between levels is kept for the agent, never settled on.
+    const probs = answer.probabilities;
+    const n = q.criteria.length;
+    if (!probs || typeof probs !== 'object' || Object.keys(probs).length !== n
+      || !q.criteria.every((_, i) => unit(probs[i]))) throw new Malformed('a score without a probability for each level');
+    const total = q.criteria.reduce((t, _, i) => t + probs[i], 0);
+    if (Math.abs(total - 1) > 0.02) throw new Malformed('probabilities that do not add up to one');
+    let top = 0;
+    q.criteria.forEach((_, i) => { if (probs[i] > probs[top]) top = i; });
+    const score = typeof answer.score === 'number' && Number.isFinite(answer.score) ? answer.score : null;
+    return { answer: q.criteria[top], level: top, score, p: probs[top], settled: probs[top] >= threshold };
   }
   const probs = answer.probabilities;
   const given = Object.keys(q.criteria);
@@ -331,7 +369,7 @@ export function reading(q, answer) {
   if (Math.abs(total - 1) > 0.02) throw new Malformed('probabilities that do not add up to one');
   const p = probs[answer.choice];
   if (keys.some((k) => probs[k] > p)) throw new Malformed('a choice that is not the most probable');
-  return { answer: answer.choice, p, settled: p >= SETTLED };
+  return { answer: answer.choice, p, settled: p >= threshold };
 }
 
 // The service's own word that the request is too long: TypeSafe's
@@ -372,23 +410,30 @@ async function post(route, key, body, fetchImpl, wait = (ms) => new Promise((s) 
 }
 
 /**
- * Asks one question of every item. Each item is masked in its own request; the
+ * Asks the same questions of every item, all of them in one request per item,
+ * so Jev reads each item once. Each item is masked in its own request; the
  * answers are unmasked on the way back, so a choice among item ids returns ids.
+ * questions: [{ id, kind: choice|check|score, text, options }], options being
+ * the answers (choice, check) or the levels, lowest first (score).
  */
-export async function ask({ config, kind = 'choice', text, options, context = '', items, fetchImpl = fetch, keyReader = () => readKey(keyPlace()),
+export async function judge({ config, questions, context = '', items, fetchImpl = fetch, keyReader = () => readKey(keyPlace()),
   people = knownPeople(), maskerImpl = masker, wait }) {
   const s = settings(config);
+  if (!Array.isArray(questions) || !questions.length) throw new Misuse('at least one question');
+  const ids = questions.map((q, n) => String(q.id ?? `q${n + 1}`));
+  if (new Set(ids).size !== ids.length) throw new Misuse('each question needs its own id');
+  const compiled = questions.map((q) => question(q.kind || 'choice', q.text, q.options));
   const key = keyReader();
-  const q0 = question(kind, text, options);
   let cost = 0;
   const one = async (item) => {
     const why = credentialMaterial(item.text);
     if (why) return { id: item.id, sent: false, why: `it is ${why}` };
     const m = maskerImpl({ idPattern: s.idPattern, words: s.words, people, patterns: s.patterns });
-    let q, whole, about;
+    let qs, whole, about;
     try {
-      q = { ...q0, instructions: m.mask(q0.instructions),
-        criteria: Object.fromEntries(Object.entries(q0.criteria).map(([k, v]) => [q0.type === 'noul' ? k : m.mask(k), m.mask(v)])) };
+      qs = Object.fromEntries(compiled.map((q0, n) => [`q${n}`, { ...q0, instructions: m.mask(q0.instructions),
+        criteria: Array.isArray(q0.criteria) ? q0.criteria.map((l) => m.mask(l))
+          : Object.fromEntries(Object.entries(q0.criteria).map(([k, v]) => [q0.type === 'noul' ? k : m.mask(k), m.mask(v)])) }]));
       whole = m.mask(item.text);
       about = m.mask(context);
     } catch (e) {
@@ -398,19 +443,26 @@ export async function ask({ config, kind = 'choice', text, options, context = ''
     for (let n = MAX_CHARS; n >= MAX_CHARS / 8; n /= 2) {
       // The whole request is what must fit: the context gets a quarter of it.
       const state = context ? { context: cut(about, n / 4), item: cut(whole, n) } : { item: cut(whole, n) };
-      const body = { model: s.model, state, questions: { q } };
+      const body = { model: s.model, state, questions: qs };
       const found = leaks(body);
       if (found.length) return { id: item.id, sent: false, why: 'masking left something that looks like a secret; nothing was sent' };
       const res = await post(s, key, body, fetchImpl, wait);
       if (res.tooLong) continue;
       cost += Number(res.usage?.cost || 0);
       const extra = { ...(whole.length > n || about.length > n / 4 ? { cut: true } : {}), ...('truth' in item ? { truth: item.truth } : {}) };
-      let r;
-      try { r = reading(q, res.answers?.q); } catch (e) {
-        if (!(e instanceof Malformed)) throw e;
-        return { id: item.id, answer: null, p: 0, settled: false, why: `Jev's answer was malformed: ${e.message}`, ...extra };
-      }
-      return { id: item.id, answer: q.type === 'noul' ? r.answer : m.unmask(r.answer), p: Math.round(r.p * 1000) / 1000, settled: r.settled, ...extra };
+      const answers = {};
+      compiled.forEach((q0, k) => {
+        const q = qs[`q${k}`];
+        try {
+          const r = reading(q, res.answers?.[`q${k}`], s.sure);
+          answers[ids[k]] = { answer: q.type === 'noul' ? r.answer : m.unmask(r.answer), p: Math.round(r.p * 1000) / 1000, settled: r.settled,
+            ...(q.type === 'score' ? { level: r.level, score: r.score } : {}) };
+        } catch (e) {
+          if (!(e instanceof Malformed)) throw e;
+          answers[ids[k]] = { answer: null, p: 0, settled: false, why: `Jev's answer was malformed: ${e.message}` };
+        }
+      });
+      return { id: item.id, answers, ...extra };
     }
     return { id: item.id, sent: false, why: 'too long for Jev even cut to its head and tail' };
   };
@@ -422,7 +474,14 @@ export async function ask({ config, kind = 'choice', text, options, context = ''
       out[i] = await one(items[i]);
     }
   }));
-  return { answers: out, cost };
+  return { items: out, cost, sure: s.sure, model: s.name, questions: ids };
+}
+
+/** One question of every item: what the set's own scripts ask. */
+export async function ask({ kind = 'choice', text, options, ...rest }) {
+  const r = await judge({ ...rest, questions: [{ id: 'q', kind, text, options }] });
+  const answers = r.items.map((it) => (it.sent === false ? it : (({ answers: a, ...more }) => ({ ...more, ...a.q }))(it)));
+  return { answers, cost: r.cost, sure: r.sure, model: r.model };
 }
 
 export function summary(answers, cost) {
@@ -435,6 +494,12 @@ export function summary(answers, cost) {
     const rate = (list) => (list.length ? `${right(list)} of ${list.length}` : 'none');
     lines.push(`against the known answers: all ${rate(scored)} right; settled ${rate(scored.filter((a) => a.settled))}; `
       + `unsettled ${rate(scored.filter((a) => !a.settled))}`);
+    // What each threshold would take off the agent, and at what accuracy: the
+    // owner's trade-off, on this project's own cases.
+    for (const t of THRESHOLDS) {
+      const taken = scored.filter((a) => a.p >= t);
+      lines.push(`at ${t}: Jev would settle ${taken.length} of ${scored.length}, ${rate(taken)} right`);
+    }
   }
   return lines.join('\n');
 }
@@ -533,12 +598,13 @@ async function selftest() {
     if (item.includes('bad-request')) return reply(400, { error: 'context must be an object' });
     if (item.includes('echo')) return reply(422, { error: `unprocessable, sent ${init.headers.Authorization}` });
     if (item.includes('refused')) return reply(401, { error: `bad key ${init.headers.Authorization}` });
-    if (item.includes('garbage')) return reply(200, { answers: { q: { type: 'choice', choice: 'made-up', probabilities: { 'made-up': 1 } } } });
+    const qk = Object.keys(body.questions)[0];
+    if (item.includes('garbage')) return reply(200, { answers: { [qk]: { type: 'choice', choice: 'made-up', probabilities: { 'made-up': 1 } } } });
     if (item.includes('slashed')) return reply(422, { error: `unprocessable, sent ${encodeURIComponent(init.headers.Authorization)}` });
     if (item.length > 40000) return reply(400, '{"error":{"message":"HTTP 400: {\\"detail\\":{\\"error_type\\":\\"max_tokens_exceeded\\"}}","code":400}}');
-    const keys = Object.keys(body.questions.q.criteria);
+    const keys = Object.keys(body.questions[qk].criteria);
     const pick = keys.find((k) => item.includes(k)) || 'none';
-    return reply(200, { answers: { q: { type: 'choice', choice: pick,
+    return reply(200, { answers: { [qk]: { type: 'choice', choice: pick,
       probabilities: Object.fromEntries(keys.map((k, _, all) => {
         const p = item.includes('unsure') ? 0.6 : 0.99;
         return [k, k === pick ? p : (1 - p) / (all.length - 1)];
@@ -580,6 +646,38 @@ async function selftest() {
   check('an item a project pattern cannot mask in time is not sent', slow.answers[0].sent === false && /did not finish/.test(slow.answers[0].why), slow.answers[0]);
   const broken = await ask({ ...base, items: [{ id: 'x', text: 'key ghp_abcdefghijklmnopqrstuvwxyz123456' }], maskerImpl: () => ({ mask: (x) => x, unmask: (x) => x }) });
   check('a request the masking missed is not sent', broken.answers[0].sent === false && /secret/.test(broken.answers[0].why), broken.answers[0]);
+  const sq = question('score', 'How serious?', ['harmless', 'annoying', 'blocks a release']);
+  const sr = reading(sq, { score: 1.02, probabilities: { 0: 0.01, 1: 0.96, 2: 0.03 } });
+  check('a score settles on the level holding the probability', sr.settled && sr.answer === 'annoying' && sr.level === 1 && sr.score === 1.02, sr);
+  check('a spread score goes back to the agent', !reading(sq, { score: 0.73, probabilities: { 0: 0.28, 1: 0.71, 2: 0.01 } }).settled);
+  check('a score without a probability per level is malformed', throws(() => reading(sq, { score: 1, probabilities: { 0: 1 } }), Malformed));
+  check('a score needs two levels', throws(() => question('score', 'q', ['only']), Misuse));
+  check('the project\'s threshold decides what is settled', !reading(cq, { choice: 'a', probabilities: { a: 0.93, b: 0.07, none: 0 } }, 0.95).settled
+    && reading(cq, { choice: 'a', probabilities: { a: 0.93, b: 0.07, none: 0 } }, 0.9).settled);
+  check('a threshold that is not a probability above one half is refused', throws(() => settings({ jev: { consent: true, sure: 0.4 } }), Misuse)
+    && throws(() => settings({ jev: { consent: true, sure: 1 } }), Misuse));
+  check('the project names its Jev, and a strange name is refused', settings({ jev: { consent: true, model: 'jev-2.0' } }).model === 'typesafe/jev-2.0'
+    && settings({ jev: { consent: true, route: 'typesafe', model: 'jev-2.0' } }).model === 'jev-2.0'
+    && throws(() => settings({ jev: { consent: true, model: 'gpt-5' } }), Misuse));
+  check('without them, the measured defaults', settings({ jev: { consent: true } }).sure === SETTLED && settings({ jev: { consent: true } }).model === `typesafe/${MODEL}`);
+  const many = [];
+  const both = await judge({ ...base, config: { jev: { consent: true, sure: 0.95, model: 'jev-9.9', idPattern: 'proj-[a-z0-9]+' } },
+    fetchImpl: async (url, init) => {
+      const body = JSON.parse(init.body);
+      many.push(body);
+      return reply(200, { answers: { q0: { type: 'noul', noul: 0.97 }, q1: { type: 'score', score: 2, probabilities: { 0: 0, 1: 0.07, 2: 0.93 } } } });
+    },
+    questions: [{ id: 'flaky', kind: 'check', text: 'Flaky?', options: { true: 'flaky', false: 'a real bug' } },
+      { id: 'sev', kind: 'score', text: 'How serious?', options: ['harmless', 'annoying', 'blocks a release'] }],
+    items: [{ id: 'log', text: 'three tests timed out on a busy runner' }] });
+  check('several questions go in one request per item', many.length === 1 && Object.keys(many[0].questions).length === 2
+    && many[0].model === 'typesafe/jev-9.9', many);
+  check('each comes back under its own id, judged by the project\'s threshold', both.items[0].answers.flaky.settled
+    && both.items[0].answers.sev.answer === 'blocks a release' && !both.items[0].answers.sev.settled && both.sure === 0.95, both.items[0]);
+  const replayed = summary([{ id: 1, answer: 'a', p: 0.97, settled: true, truth: 'a' }, { id: 2, answer: 'a', p: 0.85, settled: false, truth: 'b' },
+    { id: 3, answer: 'b', p: 0.92, settled: true, truth: 'b' }], 0);
+  check('a replay shows what each threshold would take and how right', /at 0.8: Jev would settle 3 of 3, 2 of 3 right/.test(replayed)
+    && /at 0.9: Jev would settle 2 of 3, 2 of 2 right/.test(replayed) && /at 0.95: Jev would settle 1 of 3, 1 of 1 right/.test(replayed), replayed);
   const files = { 'a.json': '{"name": 1}', 'backlog/config.json': '{"jev": {"consent": true}}', 'b.json': '{"jev": 1}', 'bad.json': '{"jev": {' };
   const finding = (names) => ({ top: '/w', list: () => names.join('\0'), read: (f) => files[f.slice(3)] });
   check('the one config with a jev section is found', findConfig(finding(Object.keys(files))) === join('/w', 'backlog/config.json'),
@@ -608,7 +706,7 @@ function parse(args) {
 const stdin = () => readFileSync(0, 'utf8');
 
 async function main(argv) {
-  const usage = 'jev.mjs status|ask|replay|mask [--config <gate-config>] [--question <text> --options <json> --kind choice|check --context <text>]\njev.mjs --selftest\nExit 0 done, 2 invalid use, 3 unavailable.';
+  const usage = 'jev.mjs status|ask|replay|mask [--config <gate-config>] [--question <text> --options <json> --kind choice|check|score --context <text>]\njev.mjs --selftest\nExit 0 done, 2 invalid use, 3 unavailable.';
   const [command, ...rest] = argv;
   if (command === '--selftest' && !rest.length) return selftest();
   try {
@@ -622,13 +720,14 @@ async function main(argv) {
       console.log(masker({ idPattern: s.idPattern, patterns: s.maskPatterns || [], words: [...(config.projectWords || []), ...(config.trackerWords || [])], people: knownPeople() }).mask(stdin()));
       return 0;
     }
-    settings(config);
+    const s = settings(config);
     if (command === 'status') {
       // Proved by one call about a fixed sentence: no project text leaves.
       const { answers } = await ask({ config, kind: 'check', text: 'Is the sky in this sentence blue?',
         options: { true: 'It says the sky is blue.', false: 'It does not.' }, items: [{ id: 'probe', text: 'The sky is blue.' }], people: [] });
       if (answers[0].sent === false || answers[0].answer === null) throw new Unavailable(`the proving call failed: ${answers[0].why}`);
-      console.log(`available: consent recorded, key accepted by a call, route ${config.jev.route || 'openrouter'}`);
+      console.log(`available: consent recorded, key accepted by a call, route ${config.jev.route || 'openrouter'}, `
+        + `${s.name}, answers taken at ${s.sure} and above`);
       return 0;
     }
     let options;

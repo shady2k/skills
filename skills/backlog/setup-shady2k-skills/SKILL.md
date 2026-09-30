@@ -227,7 +227,14 @@ questionnaire**.
   it from (named at the top of [`jev.mjs`](jev.mjs)), never into the config. Where the
   tracker's item ids have one shape, record it so ids are masked. In team
   scope each person keeps their own key's place, and a person without one
-  simply works without Jev.
+  simply works without Jev. Where the project agrees, also how sure Jev must
+  be for its answer to be used, and which Jev, by the protocol's [**Its answer
+  is taken only where it is sure**](references/judging.md): recommend 0.9 on
+  jev-1.13, the set's own measure, and say it is a trade-off the owner may
+  move (higher: fewer wrong answers get through, less reading is saved) and
+  that a replay on this project's history gives the numbers to move it on.
+  A config without them keeps those values, so a rerun asks only where the
+  owner wants to change them.
 - **Review:** another model where available, a stated fallback otherwise, and
   whether independent review is required for acceptance. Two agents on the
   same model are not another model.
@@ -295,7 +302,9 @@ them and propose it instead.
     "consent": false,
     "route": "<openrouter | typesafe>",
     "idPattern": "<the tracker's item id shape, as a regular expression>",
-    "maskPatterns": []
+    "maskPatterns": [],
+    "sure": 0.9,
+    "model": "jev-1.13"
   },
   "scope": "<personal | team>",
   "artifactLanguage": "en",
@@ -513,7 +522,7 @@ An existing setup runs all of these too, even when versions match.
    real sample holding an item id and a name, and see both replaced. A failed
    proof leaves consent recorded and says Jev is unavailable until it is fixed.
    Without consent, see `status` refuse. Where the owner runs Claude Code,
-   Jev's tool (`mcp__plugin_shady2k-skills_jev__ask_each`) needs an allow rule
+   Jev's tool server (the rule `mcp__plugin_shady2k-skills_jev`) needs an allow rule
    in the machine's own Claude Code settings, never the project's: without
    it every call waits for approval, a worker stalls on it and a headless one
    is refused. Propose adding it, with the owner's agreement, and say why it

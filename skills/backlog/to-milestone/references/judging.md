@@ -3,7 +3,7 @@
 Part of the set's protocol, whose core is `protocol.md`: the same in every
 project, and it wins over a project's restatement.
 When the agent may hand a batch of judgements to Jev, a fast decision model
-that picks among answers it is given, and how its answers are used.
+that answers questions from answers it is given, and how its answers are used.
 
 **A project's text goes to Jev only with that project's consent.** Setup asks
 each project whether it may be used, and records the answer in the gate
@@ -12,10 +12,11 @@ the machine's, kept outside the project, since a committed place to read it
 from could be edited to run anything on whoever reads it.
 
 **Jev is a tool the agent sees, not a rule it must recall.** Where the set is
-installed, the agent's tool list carries `ask_each`, a tool the set ships: it
-is handed the pile (a file of search or run output cut by line or by a
-separator, several files, or a short list) and the question, and returns what
-Jev settled and what is left to read. Where a harness lists no such tool,
+installed, the agent's tool list carries `jev`, a tool the set ships: it is
+handed the questions and what to read (a file of search or run output cut by
+line, by blank line or by a pattern, or taken whole; several files; or a short
+list), and returns what Jev settled and what is left to read. Where a harness
+lists no such tool,
 [`jev.mjs`](../jev.mjs) by its path (in Claude Code also the `jev` command the
 set puts on the path) does the same from a shell; before its first use in a session, its `status`
 says whether Jev is available here, with one call that carries no project
@@ -27,31 +28,37 @@ did, and says nothing about it: an unavailable helper is not news.
 
 **The agent decides where Jev helps, from what it is good at.** A step need
 not name it; any step may use it when the work has this shape, and the agent
-looks for that shape itself whenever it is about to read a pile. Jev is a
-classifier: it reads one item at a time and says which of a few answers, given
-in advance, fits it, and how sure it is. It does not remember one item while
-reading the next, compare them, compute or write. What it saves is the agent's
+looks for that shape itself whenever it is about to read a pile or a long
+text. Jev reads one item at a time and answers questions of three kinds about
+it, each from answers given in advance: yes or no, one of the answers, or a
+place on an ordered scale; several questions in one request cost little more
+than one, since it reads the item once. It says how sure it is of each
+answer. It does not remember one item while reading the next, compare them,
+compute or write. What it saves is the agent's
 reading: an item it settles is one the agent never opens, in seconds and for a
 fraction of a cent. So it pays in proportion to the reading it takes off the
 agent, and most where all four of these hold:
 
-- **One question, asked of every item, with its answers known before
-  looking.** The question and its answers are framed once, whatever the
-  number of items; "is this a real call of X: a call / a mention in a comment
-  or a string / a different X" is such a question, "what is wrong here" is
-  not.
+- **The same questions of every item, with their answers known before
+  looking.** They are framed once, whatever the number of items; "is this a
+  real call of X: a call / a mention in a comment or a string / a different
+  X" is such a question, and so is "how serious is this failure: harmless /
+  annoying / blocks a release"; "what is wrong here" is not.
 - **Each item takes reading for meaning, not matching.** Where a rule already
   decides (a pattern, a parser, a status field), the rule is cheaper and
   better: Jev reads literally and loses to it.
 - **The items are many, or long.** About ten or more, or one text too long to
-  read without spending much of the context, cut into items along its own
-  seams: a log by test or by step, a transcript by session, a diff by file.
+  read without spending much of the context: cut into items along its own
+  seams (a log by test or by step, a transcript by session, a diff by file),
+  or asked whole when the questions are about it as a whole (did this run
+  fail, at which stage, is it the known flaky one).
 - **A wrong answer costs only a second look.** Only its sure answers are
   used and the rest come back to the agent, so Jev decides the order and the
   amount of the agent's reading, never an outcome.
 
-The test before reading a pile: could it be put as one question with a short
-list of answers, and would the agent otherwise open every item to answer it?
+The test before reading a pile or a long text: could what the agent wants
+from it be put as a few questions with short lists of answers, and would it
+otherwise open every item, or read the whole text, to answer them?
 Then it goes to Jev first, and the agent reads what comes back unsettled.
 The pile goes by name, not by content: a search or a run writes its output to
 a file and the file is what Jev is given, since a pile the agent reads in
@@ -75,9 +82,11 @@ Examples of that shape:
 
 And it is the wrong tool for:
 
-- **One judgement in the flow of work.** Framing the question costs more than
+- **One judgement in the flow of work** about what the agent has already
+  read or can read at a glance. Framing the question costs more than
   answering it, and the agent already holds the context; Jev is also weaker
-  than the agent on any single hard call.
+  than the agent on any single hard call. A long text the agent has not read
+  is not this case.
 - **A question about several items together**, such as which two conflict or
   what order they go in: Jev sees one at a time. Put it per item or read it.
 - **Short, literal items that a rule already decides.** Over 312 short spans
@@ -87,11 +96,16 @@ And it is the wrong tool for:
   not compute or write.
 
 **Its answer is taken only where it is sure.** `jev.mjs` marks an answer
-settled at a probability of 0.9 or more (and, for a yes or no, 0.1 or less).
-Measured, its ends were right (below 0.05: 125 of 125; above 0.95: 50 of 51)
-and its middle wrong (0.5 to 0.8: 0 of 7); the band from 0.9 to 0.95 was not
-measured apart, and a replay counts it in the project's own cases. A settled
-answer is used as it is; every other item goes back to the agent,
+settled at the project's threshold or above: the probability of the answer
+picked, of the yes or the no, or of the one level of a scale. How sure is
+sure enough is the owner's trade-off, not the set's: a higher threshold lets
+fewer wrong answers through and takes less reading off the agent. It is set
+per project together with the Jev it was measured on, since a new version of
+Jev makes an old measure stale; where the project set none, it is 0.9 on
+jev-1.13, this set's own measure: its ends were right (below 0.05: 125 of
+125; above 0.95: 50 of 51) and its middle wrong (0.5 to 0.8: 0 of 7). A new
+Jev is never taken up silently; the owner changes both, best after a replay.
+A settled answer is used as it is; every other item goes back to the agent,
 who reads it and decides. Every choice has a way out, "none", which the module
 adds, because without one Jev picks something, confidently. The answers' names
 are written as plain descriptions of what each means: renaming them changed a
@@ -114,7 +128,10 @@ something the owner would not send out, it does not send that item.
 
 **How well Jev does here is measured when the user asks, and only then.**
 `jev.mjs replay` asks the same question of cases whose answer the project
-already knows, and says how many it got right, settled and unsettled apart.
+already knows, and says how many it got right, settled and unsettled apart,
+and what each of a few thresholds would settle and how much of that is right:
+the numbers the owner chooses a threshold on, and rechecks it on when Jev
+changes.
 The cases come from the project's own history, where the answer is recorded
 and not guessed: the item a commit names, a duplicate closed as one, an
 attribution the owner corrected. Each kind of judgement is measured on its

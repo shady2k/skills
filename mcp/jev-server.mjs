@@ -5,72 +5,79 @@
  * An agent picks its actions from its tools; a rule in prose works only when
  * it recalls it at the moment, and over three days of runs no agent did. This
  * server is a thin face over jev.mjs, which stays the one way text reaches Jev:
- * consent, the key and masking are its, and the set's scripts keep calling it
- * directly. What this adds is the shape of the call: the agent names the pile
- * (a file cut into items, several files, or a short list) instead of reading it
- * to hand it over, and gets back only what Jev settled and what is left to read.
+ * consent, the key, masking, the project's threshold and its Jev are its, and
+ * the set's scripts keep calling it directly. What this adds is the shape of
+ * the call: several questions of Jev's three kinds at once, about one long
+ * text or each item of a pile the agent names (a file cut into items, several
+ * files, a short list) instead of reading it to hand it over; and back only what
+ * Jev settled and what is left to read.
  *
- * MCP over stdio, newline-delimited JSON-RPC, no dependencies. The project is
- * the directory the harness starts the server in, or CLAUDE_PROJECT_DIR.
+ * MCP over stdio, newline-delimited JSON-RPC, no dependencies.
  *
  *   node jev-server.mjs            serve on stdin/stdout
  *   node jev-server.mjs --selftest
  */
 import { readFileSync, realpathSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { isAbsolute, relative, resolve, sep } from 'node:path';
+import { basename, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ask, findConfig, summary, Unavailable } from '../skills/backlog/setup-shady2k-skills/jev.mjs';
+import { findConfig, judge, Unavailable } from '../skills/backlog/setup-shady2k-skills/jev.mjs';
 
 const VERSION = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 const MAX_ITEMS = 1000;
+const MAX_QUESTIONS = 16;
 const MAX_FILE = 16 << 20;
 const EXCERPT = 160;
 
 class Misuse extends Error {}
 
 export const TOOL = {
-  name: 'ask_each',
-  title: 'Jev: one question asked of each item in a pile',
+  name: 'jev',
+  title: 'Jev: fast typed judgements over a pile or a long text',
   description: [
-    'Sort a pile before you read it. Jev, a fast decision model, reads each item alone and picks one of the answers you give,',
-    'in seconds and for a fraction of a cent for hundreds of items; you then read only the items it was not sure of.',
-    'Use it whenever you are about to open many items (about ten or more) or one long text just to answer the same question',
-    'of each: which search hits are real call sites and which are mentions in comments or strings; which failing tests share',
-    'one of the causes you already suspect; which files set an option; which review findings repeat one already handled;',
-    'which sections of a long test, build or bench log show a failure. Write the output of a search or a run to a file and',
-    'name the file here instead of reading it.',
-    'Not for one judgement you can make yourself, for comparing items with each other, for counting or arithmetic, or for',
-    'short literal items a pattern already decides. Answers are taken only where Jev is sure (0.9 and above); the rest come',
-    'back to you. Nothing hard to reverse (closing, deleting, merging, telling the user) rests on its answer alone.',
-    'It works only where the project agreed to send text to Jev; text is masked before it leaves. When it says Jev is',
-    'unavailable, read for yourself and do not call it again in this session.',
+    'Jev, a fast decision model, reads a text and answers your questions about it from answers you define: yes or no,',
+    'one of your options, or a place on an ordered scale. Several questions in one call, about a second, a fraction of a cent.',
+    'Ask it about a pile (search hits, failing tests, review findings, files, sections of a log) to get every item\'s answers',
+    'without reading the items, or about one long text you would otherwise read whole. Write the output of a search or a run',
+    'to a file and name the file. You get back what Jev is sure of, and the items it was not, to read yourself.',
+    'Not for a short judgement you can make at once, for comparing items with each other, or for arithmetic.',
   ].join(' '),
   inputSchema: {
     type: 'object',
     properties: {
-      question: { type: 'string', description: 'The one question asked of every item, e.g. "Is this line a real call of parseConfig?"' },
-      answers: {
-        type: 'object', additionalProperties: { type: 'string' },
-        description: 'Answer name to a plain description of what it means, e.g. {"call": "a call of the function", '
-          + '"mention": "a mention in a comment, string or doc"}. "none" is added as a way out. For kind "check": {"true": ..., "false": ...}.',
+      questions: {
+        type: 'array', minItems: 1, maxItems: MAX_QUESTIONS,
+        description: 'Asked of every item, all in one request. Each question states its full meaning on its own.',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', description: 'Your name for it, for reading the answers.' },
+            type: { type: 'string', enum: ['check', 'choice', 'score'], description: 'check: yes or no; choice: one of "answers"; score: a place on "levels".' },
+            question: { type: 'string', description: 'e.g. "Is this line a real call of parseConfig?"' },
+            answers: {
+              type: 'object', additionalProperties: { type: 'string' },
+              description: 'choice: answer name to what it means, e.g. {"call": "a call", "mention": "a mention in a comment or string"}; '
+                + '"none" is added. check, optional: {"true": ..., "false": ...}.',
+            },
+            levels: { type: 'array', items: { type: 'string' }, description: 'score: at least two levels, lowest first.' },
+          },
+          required: ['type', 'question'],
+        },
       },
-      kind: { type: 'string', enum: ['choice', 'check'], default: 'choice', description: 'choice: pick one of the answers; check: yes or no.' },
-      file: { type: 'string', description: 'A file to cut into items: search output, a log, a list. Relative to the project.' },
+      file: { type: 'string', description: 'A file: search output, a log, a list, a long text.' },
       split: {
-        type: 'string', enum: ['line', 'blank', 'separator'], default: 'line',
-        description: 'How the file is cut: each non-empty line; blocks between blank lines; or a new item at each line matching "separator".',
+        type: 'string', default: 'line',
+        description: 'How the file is cut into items: "line" (each non-empty line), "blank" (blocks between blank lines), '
+          + '"whole" (the file is one text), or a regular expression: each line it matches starts an item (e.g. "^--- FAIL").',
       },
-      separator: { type: 'string', description: 'For split "separator": a regular expression; each line it matches starts an item (e.g. "^--- FAIL" or "^=== ").' },
-      files: { type: 'array', items: { type: 'string' }, description: 'Several files, each one item, named by its path.' },
+      files: { type: 'array', items: { type: 'string' }, description: 'Several files, each one item.' },
       items: {
-        type: 'array', description: 'A short list given directly, when there is no file: strings, or {"id", "text"}.',
+        type: 'array', description: 'A short list given directly: strings, or {"id", "text"}.',
         items: { anyOf: [{ type: 'string' }, { type: 'object', properties: { id: { type: 'string' }, text: { type: 'string' } }, required: ['text'] }] },
       },
-      context: { type: 'string', description: 'What every item needs to be judged, said once (e.g. what the function does).' },
-      config: { type: 'string', description: 'The project\'s gate config; found in the working copy when left out.' },
+      context: { type: 'string', description: 'What every item needs to be judged, said once.' },
     },
-    required: ['question', 'answers'],
+    required: ['questions'],
   },
   annotations: { readOnlyHint: true, openWorldHint: true },
 };
@@ -108,7 +115,7 @@ function readText(dir, path) {
 /** The pile named in the call, as items with ids that point back into it. */
 export function pile(args, dir, read = readText) {
   const given = ['file', 'files', 'items'].filter((k) => args[k] !== undefined);
-  if (given.length !== 1) throw new Misuse('name the pile once: "file", "files" or "items"');
+  if (given.length !== 1) throw new Misuse('name what Jev reads once: "file", "files" or "items"');
   let items;
   if (args.items) {
     if (!Array.isArray(args.items)) throw new Misuse('"items" is a list');
@@ -119,20 +126,22 @@ export function pile(args, dir, read = readText) {
     if (!Array.isArray(args.files) || !args.files.length) throw new Misuse('"files" is a list of paths');
     items = args.files.map((f) => ({ id: String(f), text: read(dir, String(f)) }));
   } else {
-    const lines = read(dir, String(args.file)).split(/\r?\n/);
+    const whole = read(dir, String(args.file));
     const split = args.split || 'line';
+    const lines = whole.split(/\r?\n/);
     items = [];
-    if (split === 'line') {
+    if (split === 'whole') {
+      if (whole.trim()) items.push({ id: basename(String(args.file)), text: whole });
+    } else if (split === 'line') {
       lines.forEach((l, i) => { if (l.trim()) items.push({ id: `line ${i + 1}`, text: l }); });
     } else {
       let starts;
       if (split === 'blank') starts = (l, i) => l.trim() && (i === 0 || !lines[i - 1].trim());
-      else if (split === 'separator') {
-        if (!args.separator) throw new Misuse('split "separator" needs "separator", a regular expression');
+      else {
         let re;
-        try { re = new RegExp(args.separator); } catch { throw new Misuse('"separator" is not a regular expression'); }
+        try { re = new RegExp(split); } catch { throw new Misuse('"split" is line, blank, whole or a regular expression'); }
         starts = (l, i) => i === 0 || re.test(l);
-      } else throw new Misuse('"split" is line, blank or separator');
+      }
       let from = -1;
       const close = (to) => {
         if (from < 0) return;
@@ -143,26 +152,57 @@ export function pile(args, dir, read = readText) {
       close(lines.length);
     }
   }
-  if (!items.length) throw new Misuse('the pile is empty');
+  if (!items.length) throw new Misuse('there is nothing to read');
   if (items.length > MAX_ITEMS) throw new Misuse(`${items.length} items is over ${MAX_ITEMS}; narrow the search or cut coarser`);
   return items;
 }
 
-/** What the agent reads back: settled ids by answer, and the items left to it with a line of each. */
-export function report(items, answers, cost) {
+/** The questions as jev.mjs takes them. */
+export function asked(list) {
+  if (!Array.isArray(list) || !list.length) throw new Misuse('"questions" is a list of at least one question');
+  if (list.length > MAX_QUESTIONS) throw new Misuse(`at most ${MAX_QUESTIONS} questions in one call`);
+  return list.map((q, n) => {
+    const id = String(q?.id || `q${n + 1}`);
+    if (typeof q?.question !== 'string' || !q.question.trim()) throw new Misuse(`question ${id} has no "question"`);
+    if (q.type === 'score') return { id, kind: 'score', text: q.question, options: q.levels };
+    if (q.type === 'check') return { id, kind: 'check', text: q.question, options: q.answers || { true: 'yes', false: 'no' } };
+    if (q.type === 'choice') {
+      if (!q.answers || typeof q.answers !== 'object' || Array.isArray(q.answers)) throw new Misuse(`question ${id}: a choice takes "answers", name to meaning`);
+      return { id, kind: 'choice', text: q.question, options: q.answers };
+    }
+    throw new Misuse(`question ${id}: "type" is check, choice or score`);
+  });
+}
+
+const shown = (a) => (a.level !== undefined ? `${a.level}: ${oneLine(a.answer).slice(0, 40)}` : a.answer);
+
+/** What the agent reads back: per question, settled item ids by answer and the unsure ones; then the items left to read. */
+export function report(items, questions, result) {
   const byId = new Map(items.map((it) => [it.id, it]));
-  const settled = {};
-  const yours = [];
-  const unsent = [];
-  for (const a of answers) {
-    if (a.sent === false) unsent.push(`- ${a.id}: not sent, ${a.why} — ${oneLine(byId.get(a.id)?.text || '')}`);
-    else if (a.settled) (settled[a.answer] ||= []).push(a.id);
-    else yours.push(`- ${a.id} (leans ${a.answer ?? 'nowhere'}, ${a.p}) — ${oneLine(byId.get(a.id)?.text || '')}`);
-  }
-  const out = [summary(answers, cost)];
-  for (const [answer, ids] of Object.entries(settled)) out.push('', `Settled "${answer}" (${ids.length}): ${ids.join(', ')}`);
-  if (yours.length) out.push('', `Yours to read (${yours.length}), Jev was not sure:`, ...yours);
-  if (unsent.length) out.push('', `Not sent (${unsent.length}), read these yourself:`, ...unsent);
+  const sent = result.items.filter((it) => it.sent !== false);
+  const unsent = result.items.filter((it) => it.sent === false);
+  const toRead = new Set();
+  let settledCount = 0;
+  const blocks = questions.map((q) => {
+    const settled = new Map();
+    const unsure = [];
+    for (const it of sent) {
+      const a = it.answers[q.id];
+      if (a.settled) { settledCount++; (settled.get(shown(a)) || settled.set(shown(a), []).get(shown(a))).push(it.id); }
+      else { toRead.add(it.id); unsure.push(`${it.id} leans ${a.answer === null ? 'nowhere' : shown(a)} (${a.p})`); }
+    }
+    const kind = { check: 'yes or no', choice: 'choice', score: 'scale' }[q.kind];
+    const lines = [`${q.id} (${kind}): ${q.text}`];
+    for (const [answer, ids] of settled) lines.push(`  ${answer} (${ids.length}): ${ids.join(', ')}`);
+    if (unsure.length) lines.push(`  unsure (${unsure.length}): ${unsure.join('; ')}`);
+    return lines.join('\n');
+  });
+  const out = [`${items.length} item${items.length === 1 ? '' : 's'} x ${questions.length} question${questions.length === 1 ? '' : 's'}: `
+    + `${settledCount} of ${sent.length * questions.length} answers settled; $${result.cost.toFixed(5)}. `
+    + `${result.model}, answers taken at ${result.sure} and above (the project's threshold).`, '', ...blocks];
+  if (toRead.size) out.push('', `Read these yourself (${toRead.size}):`, ...[...toRead].map((id) => `- ${id} — ${oneLine(byId.get(id)?.text || '')}`));
+  if (unsent.length) out.push('', `Not sent (${unsent.length}), read these yourself:`, ...unsent.map((it) => `- ${it.id}: ${it.why} — ${oneLine(byId.get(it.id)?.text || '')}`));
+  out.push('', 'Use only the settled answers. Nothing hard to reverse (closing, deleting, merging, telling the user) rests on them alone.');
   return out.join('\n');
 }
 
@@ -185,23 +225,21 @@ export function projectDir({ env = process.env, cwd = process.cwd(), meta, root 
   return null;
 }
 
-export async function call(args, { dir = process.cwd(), asker = ask, read = readText, configPath } = {}) {
+export async function call(args, { dir = process.cwd(), asker = judge, read = readText, configPath } = {}) {
   const text = (t, isError = false) => ({ content: [{ type: 'text', text: t }], isError });
   try {
-    if (!args || typeof args.question !== 'string' || !args.question.trim()) throw new Misuse('"question" is required');
-    if (!args.answers || typeof args.answers !== 'object' || Array.isArray(args.answers)) throw new Misuse('"answers" is an object of name to description');
-    if (!dir) throw new Misuse('the project\'s directory is unknown here; pass "config" and absolute paths');
+    const questions = asked(args?.questions);
+    if (!dir) throw new Misuse('the project\'s directory is unknown here; give absolute paths');
     const items = pile(args, dir, read);
-    const path = args.config ? resolve(dir, args.config) : (configPath || findConfig)();
+    const path = (configPath || findConfig)();
     let config;
     try { config = JSON.parse(read(dir, path)); } catch { throw new Misuse(`${path} is not a readable JSON config`); }
-    const { answers, cost } = await asker({ config, kind: args.kind || 'choice', text: args.question, options: args.answers,
-      context: args.context || '', items });
-    return text(report(items, answers, cost));
+    const result = await asker({ config, questions, context: args.context || '', items });
+    return text(report(items, questions, result));
   } catch (e) {
-    if (e instanceof Unavailable) return text(`Jev is unavailable here: ${e.message}. Read the pile yourself; do not call this again in this session.`);
+    if (e instanceof Unavailable) return text(`Jev is unavailable here: ${e.message}. Read for yourself; do not call this again in this session.`);
     if (e instanceof Misuse || e.constructor?.name === 'Misuse') return text(e.message, true);
-    return text(`Jev failed: ${e.message}. Read the pile yourself.`, true);
+    return text(`Jev failed: ${e.message}. Read for yourself.`, true);
   }
 }
 
@@ -220,8 +258,8 @@ export async function handle(msg, opts) {
         protocolVersion: PROTOCOLS.includes(params?.protocolVersion) ? params.protocolVersion : PROTOCOLS[0],
         capabilities: { tools: {} },
         serverInfo: { name: 'jev', version: VERSION },
-        instructions: 'ask_each sorts a pile (search hits, failures, a long log, many files) by one question before you read it; '
-          + 'you then read only what Jev was not sure of.',
+        instructions: 'jev answers typed questions (yes or no, one of your options, a place on a scale) about each item of a pile or one long text '
+          + 'you name by file, so you read only what it was not sure of.',
       });
     case 'ping': return result({});
     case 'tools/list': return result({ tools: [TOOL] });
@@ -237,7 +275,7 @@ function serve() {
   // the key may not be) from the working directory, so each call runs alone,
   // in its project.
   let queue = Promise.resolve();
-  const opts = { asker: (q) => ask(q), configPath: () => findConfig() };
+  const opts = { asker: (q) => judge(q), configPath: () => findConfig() };
   const run = (msg) => {
     if (msg.method !== 'tools/call') return handle(msg, opts);
     const dir = projectDir({ meta: msg.params?._meta });
@@ -282,39 +320,51 @@ async function selftest() {
   const ids = (args) => pile(args, '/p', read).map((it) => it.id);
   check('a file is cut by line, empty ones skipped', JSON.stringify(ids({ file: 'hits.txt' })) === '["line 1","line 3"]', ids({ file: 'hits.txt' }));
   check('by blank lines into blocks', JSON.stringify(ids({ file: 'notes.md', split: 'blank' })) === '["lines 1-2","lines 5-5"]', ids({ file: 'notes.md', split: 'blank' }));
-  const sep = pile({ file: 'test.log', split: 'separator', separator: '^(===|---) ' }, '/p', read);
+  const sep = pile({ file: 'test.log', split: '^(===|---) ' }, '/p', read);
   check('by a separator, each match starting an item', JSON.stringify(sep.map((i) => i.id)) === '["lines 1-2","lines 3-4","lines 5-6"]'
     && sep[1].text === '--- FAIL A\nboom', sep);
+  check('a whole file is one text', JSON.stringify(ids({ file: 'test.log', split: 'whole' })) === '["test.log"]');
   check('files are one item each, named by path', JSON.stringify(ids({ files: ['hits.txt', 'test.log'] })) === '["hits.txt","test.log"]');
   check('items given directly keep their ids', JSON.stringify(ids({ items: ['x', { id: 'k', text: 'y' }] })) === '["1","k"]');
   const misuse = (args) => { try { pile(args, '/p', read); return false; } catch (e) { return e instanceof Misuse; } };
   check('the pile is named once', misuse({ file: 'hits.txt', items: ['x'] }) && misuse({}));
-  check('a separator split needs its separator', misuse({ file: 'test.log', split: 'separator' }));
+  check('a split that is no regular expression is refused', misuse({ file: 'test.log', split: '(' }));
   check('an empty pile is refused', misuse({ items: [] }));
   check('a pile over the limit is refused', misuse({ items: Array.from({ length: MAX_ITEMS + 1 }, () => 'x') }));
 
-  let asked = null;
+  const qs = (list) => { try { return asked(list); } catch (e) { return e instanceof Misuse ? null : e; } };
+  const three = qs([{ id: 'kind', type: 'choice', question: 'What is it?', answers: { call: 'a call', mention: 'a mention' } },
+    { type: 'check', question: 'In a test?' }, { id: 'sev', type: 'score', question: 'How risky?', levels: ['low', 'high'] }]);
+  check('the three kinds reach jev.mjs, a check with yes and no by default', three && three[1].id === 'q2'
+    && JSON.stringify(three.map((q) => q.kind)) === '["choice","check","score"]' && three[1].options.true === 'yes' && three[2].options.length === 2, three);
+  check('a question without its kind, text or answers is refused', qs([]) === null && qs([{ type: 'guess', question: 'q' }]) === null
+    && qs([{ type: 'choice', question: 'q' }]) === null && qs([{ type: 'check' }]) === null);
+
+  let got = null;
   const asker = async (q) => {
-    asked = q;
-    return { cost: 0.001, answers: [
-      { id: 'line 1', answer: 'call', p: 0.97, settled: true },
-      { id: 'line 3', answer: 'mention', p: 0.6, settled: false },
+    got = q;
+    return { cost: 0.001, sure: 0.9, model: 'jev-1.13', items: [
+      { id: 'line 1', answers: { kind: { answer: 'call', p: 0.97, settled: true }, sev: { answer: 'high', level: 1, score: 0.95, p: 0.95, settled: true } } },
+      { id: 'line 3', answers: { kind: { answer: 'mention', p: 0.6, settled: false }, sev: { answer: 'low', level: 0, score: 0.02, p: 0.98, settled: true } } },
     ] };
   };
-  const args = { question: 'Is this a call of parseConfig?', answers: { call: 'a call', mention: 'a mention' }, file: 'hits.txt' };
+  const args = { questions: [{ id: 'kind', type: 'choice', question: 'Is this a call of parseConfig?', answers: { call: 'a call', mention: 'a mention' } },
+    { id: 'sev', type: 'score', question: 'How risky is a change here?', levels: ['low', 'high'] }], file: 'hits.txt' };
   const r = await call(args, { dir: '/p', asker, read, configPath: () => 'cfg.json' });
   const t = r.content[0].text;
-  check('settled ids are listed by answer, not their text', /Settled "call" \(1\): line 1/.test(t) && !/parseConfig\(x\)/.test(t), t);
-  check('what Jev was unsure of comes back with a line of it', /line 3 \(leans mention, 0.6\) — src\/b.js:9: \/\/ parseConfig is old/.test(t), t);
-  check('the question reaches jev.mjs whole, with the config', asked.text === args.question && asked.config.jev.consent === true
-    && asked.items.length === 2 && asked.kind === 'choice', asked);
+  check('each question lists its settled ids by answer, not their text', /kind \(choice\): Is this a call[^\n]*\n  call \(1\): line 1/.test(t)
+    && /sev \(scale\)[^\n]*\n  1: high \(1\): line 1\n  0: low \(1\): line 3/.test(t) && !/parseConfig\(x\)/.test(t), t);
+  check('what Jev was unsure of comes back once, with a line of it', /unsure \(1\): line 3 leans mention \(0.6\)/.test(t)
+    && /Read these yourself \(1\):\n- line 3 — src\/b.js:9: \/\/ parseConfig is old/.test(t), t);
+  check('the answer says the threshold and the Jev it was judged by', /3 of 4 answers settled.*jev-1.13, answers taken at 0.9/.test(t), t);
+  check('the questions reach jev.mjs with the config', got.questions.length === 2 && got.config.jev.consent === true && got.items.length === 2, got);
   const off = await call(args, { dir: '/p', read, asker: async () => { throw new Unavailable('this project has not agreed to send text to Jev'); },
     configPath: () => 'cfg.json' });
   check('unavailable says to read for yourself, once', !off.isError && /unavailable here: this project has not agreed.*do not call this again/.test(off.content[0].text), off);
   const noConfig = await call(args, { dir: '/p', read, asker, configPath: () => { throw new Unavailable('this project has not agreed to send text to Jev'); } });
   check('no consented config is unavailable too', /unavailable here/.test(noConfig.content[0].text), noConfig);
-  const bad = await call({ question: 'q', answers: { a: 'a', b: 'b' }, file: 'missing.txt' }, { dir: '/p', read, asker, configPath: () => 'cfg.json' });
-  check('a pile that cannot be read is an error to fix', bad.isError && /missing.txt cannot be read/.test(bad.content[0].text), bad);
+  const bad = await call({ ...args, file: 'missing.txt' }, { dir: '/p', read, asker, configPath: () => 'cfg.json' });
+  check('a file that cannot be read is an error to fix', bad.isError && /missing.txt cannot be read/.test(bad.content[0].text), bad);
 
   check('a file in the project or the temporary directory is read', allowed('/p/src/a.go', ['/p']) && allowed('/tmp/x/hits.txt', ['/p', '/tmp']));
   check('one outside them is not', !allowed('/home/u/.bashrc', ['/p', '/tmp']) && !allowed('/p', ['/p']) && !allowed('/pq/a', ['/p']));
@@ -331,7 +381,7 @@ async function selftest() {
   const init = await handle({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-03-26' } }, {});
   check('initialize answers in the client\'s protocol, with tools', init.result.protocolVersion === '2025-03-26' && init.result.capabilities.tools, init);
   const list = await handle({ jsonrpc: '2.0', id: 2, method: 'tools/list' }, {});
-  check('the tool is listed with its schema', list.result.tools[0].name === 'ask_each' && list.result.tools[0].inputSchema.required.includes('question'), list);
+  check('the tool is listed with its schema', list.result.tools[0].name === 'jev' && list.result.tools[0].inputSchema.required.includes('questions'), list);
   check('a notification gets no answer', (await handle({ jsonrpc: '2.0', method: 'notifications/initialized' }, {})) === null);
   const unknown = await handle({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'other' } }, {});
   check('an unknown tool is an error', unknown.error?.code === -32602, unknown);

@@ -108,7 +108,7 @@ try {
   const declared = JSON.parse(readFileSync(join(cache, '.claude-plugin/plugin.json'), 'utf8')).mcpServers.jev;
   const served = spawnSync(declared.command, declared.args.map((a) => a.replaceAll('${CLAUDE_PLUGIN_ROOT}', cache)),
     { cwd: work, encoding: 'utf8', timeout: 10000, input: `${JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' })}\n` });
-  assert.equal(JSON.parse(served.stdout || '{}').result?.tools[0].name, 'ask_each', `the cached jev server answers: ${served.stderr}`);
+  assert.equal(JSON.parse(served.stdout || '{}').result?.tools[0].name, 'jev', `the cached jev server answers: ${served.stderr}`);
   const loaded = await skills();
   assert.deepEqual(loaded.map((s) => s.name).sort(), expectedNames, 'every skill discovered exactly once');
   console.log(`PASS  omp: ${loaded.length} discovered skills, ${skillFiles.length} cached files, runnable checks`);

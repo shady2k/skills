@@ -112,7 +112,7 @@ decided in the conversation that the record does not yet hold lands in that
 same first write, before the branch starts, by the protocol's **A decision the
 owner gives is kept, not only obeyed**.
 
-**Where the project agreed to Jev, it is in your tools**: `ask_each`, by the
+**Where the project agreed to Jev, it is in your tools**: `jev`, by the
 protocol's [**Jev is a tool the agent sees, not a rule it must
 recall**](references/judging.md); where your harness lists no such tool, run
 [`jev.mjs`](jev.mjs) `status` once at the start instead. A run is where piles
@@ -217,14 +217,15 @@ later worker's brief.
 **Where the project agreed to Jev, the brief carries it too**: a worker that
 does not run the set learns of it nowhere else, and the batches it is good at
 (which search hits are real call sites, which failures share a cause, a long
-test or bench log) arise mostly in a worker's task. Name the `ask_each` tool,
+test or bench log) arise mostly in a worker's task. Name the `jev` tool,
 which a worker whose harness has the set installed sees in its list, and for
 one that does not, the command whole: [`jev.mjs`](jev.mjs) by its absolute
 path in this skill's folder, `status` once before the first `ask`. Say that
 the pile goes by name: the search or the run writes to a file, and the file
 is what Jev gets. Then, in the brief's own words,
 the protocol's [**The agent decides where Jev helps**](references/judging.md):
-what Jev is (one question asked of each item, answered from a list given in
+what Jev is (a few questions asked of each item or of one long text, yes or
+no, one of the answers or a place on a scale, answered from lists given in
 advance), the four conditions under which it pays, its test before reading a
 pile, and the worker's moments of that shape in this task (the search before
 a change, a failing suite, a long log), never a single call. Add **Its answer

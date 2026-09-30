@@ -452,8 +452,11 @@ of many failures share a cause, which work a long transcript or log belongs
 to. Measured on this repository's own history, it attributed 25 of 26 sessions
 to the right one of 81 issues in under a second each, for about a cent in
 total. The agent sees it as a tool in its list and hands it the file a search
-or a run wrote, not text it has already read. Its answer is taken only where
-it is sure; the rest the agent reads itself. Secrets are removed, and hosts, issue ids and the people the
+or a run wrote, not text it has already read, with a few questions at once:
+yes or no, one of given answers, or a place on a scale. Its answer is taken
+only where it is sure, and how sure is your choice per project (0.9 unless you
+change it, with the version of Jev it was measured on); the rest the agent
+reads itself. Secrets are removed, and hosts, issue ids and the people the
 repository knows replaced, before anything is sent; this goes by shape, so a
 name nobody recorded or a secret with no recognisable form can still get
 through. The key stays on your machine, never in the project. The text goes through OpenRouter to TypeSafe, or to TypeSafe
@@ -626,6 +629,7 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.78.0** lets the agent ask Jev all it can answer, and lets you decide how sure it must be. Its tool took one question of the pick-one kind; Jev also answers yes or no and places things on a scale, several questions about one text at the price of one, so a failing log is now asked at once whether it failed, where, and how badly. How sure an answer must be to be used was fixed at 0.9, a number measured once on one version of Jev: it is now a project setting, beside the version it holds for, and a replay on your project's history shows what each threshold would take off the agent and how often it would be right. A new version of Jev is not taken up until you choose it. In Claude Code the tool is now allowed by the rule `mcp__plugin_shady2k-skills_jev`.
 - **0.77.1** declares Jev's tool server in the plugin's manifest instead of a file at the repository's root, where Claude Code also took it for the repository's own server and reported it failing in every session there.
 - **0.77.0** gives the agents Jev as a tool they see, where a project agreed to it. Over three days of feature runs no agent asked it anything: it reached them as a paragraph to recall and a command to assemble, and neither the coordinators nor the workers did. Now Claude Code, Codex and omp list it among their tools; the agent names the file a search or a run wrote and gets back what Jev was sure of and the few lines left for it to read, without reading the pile first. In Claude Code, allow the tool once in your own settings, or every call waits for your approval; setup offers it.
 - **0.76.0** brings an open decision from a stopped run with its mechanism. A run's note used to reach you as options without the scenario behind them, and each question you asked was the first time the agent read the code. Now the code is read before the message, by a background reader where it is long; what the note claims is checked there or marked as unconfirmed; and when no role is recorded, the agent looks at how you have worked on the project before falling back to the default.

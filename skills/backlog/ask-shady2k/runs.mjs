@@ -1071,7 +1071,7 @@ async function selftest() {
     const service = (verdict) => async (url, init) => {
       const body = JSON.parse(init.body);
       seen.push(body);
-      return { ok: true, status: 200, text: async () => JSON.stringify({ answers: { q: { type: 'noul', noul: verdict } }, usage: { cost: 0 } }) };
+      return { ok: true, status: 200, text: async () => JSON.stringify({ answers: { [Object.keys(body.questions)[0]]: { type: 'noul', noul: verdict } }, usage: { cost: 0 } }) };
     };
     const viaJev = (verdict) => (a) => jev.ask({ ...a, fetchImpl: service(verdict), keyReader: () => 'k', people: [] });
     const q70 = ['claim', '--recovered', '--item', 'demo-q70', '--role', 'coordinator', '--at', T(goneStart), ...goneAs, '--backlog', file, '--project', 'demo'];
