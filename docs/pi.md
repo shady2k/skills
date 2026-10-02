@@ -11,7 +11,8 @@ Node **24.19.0**. Pi 1.0.0 requires Node **22.19.0 or later**; `node` must also
 be on `PATH` to start Jev, including when using a standalone Pi binary.
 Automatic MCP registration requires `ExtensionAPI.registerMcpServer`.
 Older Pi releases and forks are not assumed to provide it: the extension
-reports an actionable error, while skill discovery remains independent.
+leaves Jev unregistered without stopping the host or its skills. Use that
+host's native MCP setup if Jev is needed.
 No Pi dependency is bundled or installed by this package.
 
 The contract was checked against the published package's extension types,
@@ -93,43 +94,52 @@ Pi package metadata alone does not connect Jev on such a fork.
 
 ## Prime 0.9.8 compatibility
 
-Prime 0.9.8 discovers all sixteen skills from the same package, but has no
-`registerMcpServer` extension API. Its loader skips the Jev extension with the
-compatibility message above. Configure Jev separately using Prime's native MCP
-support, from the target project's directory:
+Prime 0.9.8 uses the same package format but has no `registerMcpServer` API.
+The extension leaves Jev unregistered without stopping Prime; all sixteen skills
+load. Install the package for all your projects:
 
 ```bash
-prime-agent package install /absolute/path/to/skills
-prime-agent mcp add jev -- node /absolute/path/to/skills/mcp/jev-server.mjs
+prime-agent package install git:github.com/shady2k/skills
 ```
 
-Keep the full checkout at that path. Prime's native stdio transport inherits the
-session working directory; it does not forward `CLAUDE_PROJECT_DIR` by default.
-These two commands write personal package/MCP configuration, so run them only
-in the account where you want the integration. Installing the skills alone
-is not automatic Jev support on this version.
+Start Prime in your project, then use `/skill:setup-shady2k-skills`.
+If you also want Jev, add its server **once** from the target project with the
+path to the installed Git checkout's `mcp/jev-server.mjs`:
 
-The official Prime 0.9.8 release's CLI package install and MCP configuration
-were tested in a temporary home. Its official SDK resource loader discovered
-all sixteen skills with no skill diagnostics, and continued after the expected
-extension compatibility error. The bundled Python MCP client's actual stdio
-transport completed initialization and listed Jev's tool, without a model call.
-A full Prime CLI RPC session could not start in the test container because its
-daemon's Unix socket was denied before plugin loading; that end-to-end session
-is not claimed as verified.
+```bash
+prime-agent mcp add jev -- node "$HOME/.prime/agent/git/github.com/shady2k/skills/mcp/jev-server.mjs"
+```
+
+A local checkout can be installed with
+`prime-agent package install /absolute/path/to/skills` instead; use that same
+absolute path for the Jev server. Keep the checkout at the path used by Jev.
+Prime's native stdio transport inherits the session working directory and does
+not forward
+`CLAUDE_PROJECT_DIR` by default. Package and MCP commands write personal
+settings unless `package install --local` is requested. Project MCP settings
+are ignored for execution, so Jev needs the personal `mcp add` even when the
+package is installed locally. Installing skills does not grant project consent,
+store credentials, call a model or automatically connect Jev in Prime 0.9.8.
+
+The Prime 0.9.8 release was tested with package install, RPC discovery of all
+sixteen skills, and ordinary TUI startup in an isolated home. Its native MCP
+client initialized the separately configured Jev server and listed its tool
+without a model call. Interactive Jev use still needs Prime login and the
+project's own Jev consent and credentials.
 
 ## Verification
 
 ```bash
 npm run test:pi
 npm run test:pi:smoke
+npm run test:prime:smoke
 npm test
 ```
 
 `test:pi` uses Node's built-in test runner and no dependencies. It checks the
-package contract, missing API and registration errors, and relocates the full
-package to a path containing spaces. It starts the real stdio server in a
-separate fixture project, initializes MCP, lists tools and verifies that an
+package contract, the non-fatal missing-API path and registration errors, and
+relocates the full package to a path containing spaces. It starts the real
+stdio server in a separate fixture project, initializes MCP, lists tools and verifies that an
 unconfigured call refuses before any model request.
 
 `test:pi:smoke` requires a supported Pi executable on `PATH` (or set `PI_BIN`
@@ -138,3 +148,19 @@ uses the real CLI's RPC mode to verify all sixteen skills, and checks live
 Jev tool discovery through Pi's built-in MCP connection. It runs offline with
 a minimal environment, a temporary home and no provider keys or model prompts.
 It does not install this package in the developer's own Pi configuration.
+
+`test:prime:smoke` requires Prime Agent, Linux `script` on `PATH` (or set
+`PRIME_BIN` to the Prime executable), and `PRIME_AGENT_KERNEL_PYTHON` pointing
+at a prepared Prime runtime Python. For example, after a regular Prime login:
+
+```bash
+PRIME_AGENT_KERNEL_PYTHON="$HOME/.prime/agent/kernel-venv/bin/python" npm run test:prime:smoke
+```
+
+It installs into disposable personal
+settings, configures Jev through Prime's native `mcp add`, checks all sixteen
+skills through RPC, starts the actual TUI to catch extension startup errors,
+and initializes Jev through Prime's Python MCP client to list its tool.
+A clean unauthenticated TUI does not create a kernel in the temporary home,
+so the test uses only that explicitly supplied Python. It makes no model calls;
+without a login, TUI use of Jev remains untested.

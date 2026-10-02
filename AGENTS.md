@@ -35,6 +35,9 @@ Pi reads the `pi` manifest in `package.json`: the whole skill tree and
 `extensions/jev.ts`, which registers the bundled Jev MCP server for the session.
 Run `npm run test:pi` for the contract and stdio tests, and
 `npm run test:pi:smoke` with a supported Pi CLI for installation and discovery.
+Run `npm run test:prime:smoke` with Prime Agent 0.9.8 and a prepared
+`PRIME_AGENT_KERNEL_PYTHON` to catch TUI startup failures; Prime's native MCP
+setup remains a separate user action.
 See `docs/pi.md`. Do not persist credentials or project consent in an extension.
 
 **Two versions.** The **plugin version** (both plugin manifests and `package.json`)

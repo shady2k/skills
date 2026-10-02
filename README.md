@@ -10,7 +10,7 @@ Sixteen skills for working as a
 Russian): an engineer whose work ends not at the merge but at whether users
 solved their problem. You stop driving an agent step by step. You decide what
 to build and what counts as working; the agents plan it with you, write the
-code without you and report in plain words. They work with Claude Code, Codex, Pi, omp and any agent that reads
+code without you and report in plain words. They work with Claude Code, Codex, Pi, Prime Agent, omp and any agent that reads
 `SKILL.md`, and with the tracker your project already uses.
 
 ## What you get
@@ -91,6 +91,7 @@ neglected backlog: see [What setup takes](#what-setup-takes).
   - [Claude Code](#claude-code)
   - [Codex](#codex)
   - [Pi](#pi)
+  - [Prime Agent](#prime-agent)
   - [omp](#omp)
   - [Other agents / standalone skills](#other-agents--standalone-skills)
   - [Joining a repository that already uses the set](#joining-a-repository-that-already-uses-the-set)
@@ -223,10 +224,11 @@ unrelated changes, new scope or publishing anything.
 
 ## Installation and updates
 
-Choose your agent: [Claude Code](#claude-code) · [Codex](#codex) · [Pi](#pi) · [omp](#omp) ·
+Choose your agent: [Claude Code](#claude-code) · [Codex](#codex) · [Pi](#pi) ·
+[Prime Agent](#prime-agent) · [omp](#omp) ·
 [Other agents / standalone skills](#other-agents--standalone-skills).
 
-If you use more than one of Claude Code, Codex, Pi and omp, install the plugin separately in each.
+If you use more than one of these agents, install the plugin separately in each.
 Within one agent, use either the plugin or standalone skill files (including
 development symlinks), not both: otherwise the same skills appear twice.
 
@@ -395,6 +397,27 @@ installing the package does not grant either or call a model.
 
 See [Pi installation details](docs/pi.md) for local checkouts, verification,
 project scope and hosts without the native MCP registration API.
+
+### Prime Agent
+
+Install all sixteen skills as a personal package, available in every project:
+
+```bash
+prime-agent package install git:github.com/shady2k/skills
+```
+
+Start Prime Agent in your project and run `/skill:setup-shady2k-skills`.
+Prime 0.9.8 loads the skills but cannot register Jev from a package extension.
+If you want Jev too, connect it once through Prime's native MCP support:
+
+```bash
+prime-agent mcp add jev -- node "$HOME/.prime/agent/git/github.com/shady2k/skills/mcp/jev-server.mjs"
+```
+
+Jev still needs the project's consent and its existing credential setup; package
+installation does neither. Update with `prime-agent package update`, then start a
+new session. See [Prime Agent compatibility](docs/pi.md#prime-098-compatibility)
+for local checkouts, project scope and the limits of automatic Jev support.
 
 ### Other agents / standalone skills
 
@@ -647,6 +670,8 @@ can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
+
+- **0.80.1** lets Prime Agent 0.9.8 start normally with the same package: on hosts without Pi's MCP registration API, the Jev extension does not abort the TUI. The sixteen skills install with one command; Jev remains an optional separate native MCP connection in Prime. Adds a real Prime TUI smoke test and direct Prime installation instructions.
 
 - **0.80.0** adds Pi package discovery for all sixteen skills and session-scoped registration of the bundled Jev MCP server, preserving existing Claude Code, Codex and omp installs. Pi 1.0.0 is verified; Prime 0.9.8 loads the skills and needs separate native MCP setup. No credentials, project consent or periodic work are added.
 
