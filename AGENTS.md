@@ -31,6 +31,12 @@ catalog entry carries the plugin's version, because omp upgrades by it; `npm
 run bump` keeps it equal to `plugin.json`. Run `npm run test:omp` (Linux,
 bubblewrap and omp) before every push too. See `docs/omp.md`.
 
+Pi reads the `pi` manifest in `package.json`: the whole skill tree and
+`extensions/jev.ts`, which registers the bundled Jev MCP server for the session.
+Run `npm run test:pi` for the contract and stdio tests, and
+`npm run test:pi:smoke` with a supported Pi CLI for installation and discovery.
+See `docs/pi.md`. Do not persist credentials or project consent in an extension.
+
 **Two versions.** The **plugin version** (both plugin manifests and `package.json`)
 goes up in every commit that changes what a skill does: an installed plugin
 updates by version, so a change pushed under the old number reaches nobody.
