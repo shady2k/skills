@@ -10,7 +10,7 @@ Sixteen skills for working as a
 Russian): an engineer whose work ends not at the merge but at whether users
 solved their problem. You stop driving an agent step by step. You decide what
 to build and what counts as working; the agents plan it with you, write the
-code without you and report in plain words. They work with Claude Code, Codex, omp and any agent that reads
+code without you and report in plain words. They work with Claude Code, Codex, Pi, omp and any agent that reads
 `SKILL.md`, and with the tracker your project already uses.
 
 ## What you get
@@ -90,6 +90,7 @@ neglected backlog: see [What setup takes](#what-setup-takes).
 - [Installation and updates](#installation-and-updates)
   - [Claude Code](#claude-code)
   - [Codex](#codex)
+  - [Pi](#pi)
   - [omp](#omp)
   - [Other agents / standalone skills](#other-agents--standalone-skills)
   - [Joining a repository that already uses the set](#joining-a-repository-that-already-uses-the-set)
@@ -222,10 +223,10 @@ unrelated changes, new scope or publishing anything.
 
 ## Installation and updates
 
-Choose your agent: [Claude Code](#claude-code) · [Codex](#codex) · [omp](#omp) ·
+Choose your agent: [Claude Code](#claude-code) · [Codex](#codex) · [Pi](#pi) · [omp](#omp) ·
 [Other agents / standalone skills](#other-agents--standalone-skills).
 
-If you use more than one of Claude Code, Codex and omp, install the plugin separately in each.
+If you use more than one of Claude Code, Codex, Pi and omp, install the plugin separately in each.
 Within one agent, use either the plugin or standalone skill files (including
 development symlinks), not both: otherwise the same skills appear twice.
 
@@ -376,6 +377,24 @@ date, run `/skill:setup-shady2k-skills` there; most updates need no setup.
 
 See [omp installation details](docs/omp.md) for local checkouts and isolated
 installation tests.
+
+### Pi
+
+Install the full package, including all sixteen skills and Jev's MCP server
+(verified with `@earendil-works/pi-coding-agent` 1.0.0):
+
+```bash
+pi install git:github.com/shady2k/skills
+```
+
+Start Pi in your project, then run `/skill:setup-shady2k-skills`. Update with
+`pi update --extensions`, then restart the session. The default personal
+install covers all projects and worktrees. Node 22.19.0 or later must be on
+`PATH`. Jev still requires the project's consent and existing credential setup;
+installing the package does not grant either or call a model.
+
+See [Pi installation details](docs/pi.md) for local checkouts, verification,
+project scope and hosts without the native MCP registration API.
 
 ### Other agents / standalone skills
 
@@ -628,6 +647,8 @@ can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
+
+- **0.80.0** adds Pi package discovery for all sixteen skills and session-scoped registration of the bundled Jev MCP server, preserving existing Claude Code, Codex and omp installs. Pi 1.0.0 is verified; Prime 0.9.8 loads the skills and needs separate native MCP setup. No credentials, project consent or periodic work are added.
 
 - **0.79.0** promises a feature run's time from the work in it, not from how long past runs lasted on the clock. The measured pace printed the clock of past runs beside their working time as if the two were one range, and a run of a few hours' work was promised in a day and a half: the clock holds nights, waits for your merge and stretches nobody drove. The clock is now printed apart, marked as no forecast and with the share of it nobody worked; a promise adds your absence only where the work needs you meanwhile, and one far longer than its work says what fills the difference. The proposed forecast by phase no longer puts most of a run under "unattributed".
 - **0.78.0** lets the agent ask Jev all it can answer, and lets you decide how sure it must be. Its tool took one question of the pick-one kind; Jev also answers yes or no and places things on a scale, several questions about one text at the price of one, so a failing log is now asked at once whether it failed, where, and how badly. How sure an answer must be to be used was fixed at 0.9, a number measured once on one version of Jev: it is now a project setting, beside the version it holds for, and a replay on your project's history shows what each threshold would take off the agent and how often it would be right. A new version of Jev is not taken up until you choose it. In Claude Code the tool is now allowed by the rule `mcp__plugin_shady2k-skills_jev`.

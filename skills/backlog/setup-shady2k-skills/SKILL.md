@@ -152,7 +152,8 @@ questionnaire**.
   this repository should see the skills at one version, so the install is made
   at the scope that covers them all (in Claude Code, `project` from the main
   checkout, or `user` for everywhere; in omp, `user`, since its `project` is
-  kept per checkout). An install that reaches only some
+  kept per checkout; in Pi, a personal package install covers every
+  project and worktree). An install that reaches only some
   checkouts is drift: recommend removing it by the harness's own instructions,
   leaving the shared settings as they were, and restarting sessions after
   installing or updating.
@@ -527,7 +528,11 @@ An existing setup runs all of these too, even when versions match.
    it every call waits for approval, a worker stalls on it and a headless one
    is refused. Propose adding it, with the owner's agreement, and say why it
    is safe: the tool sends nothing where a project has not agreed. Codex lets
-   it through as read-only and omp approves tools by default.
+   it through as read-only and omp approves tools by default. In Pi, check
+   `/mcp` for the bundled `jev` server; its registration lasts only for the
+   session. Pi does not use Claude Code's allow rule. If the host lacks native
+   MCP registration, configure the bundled server through that host's own MCP
+   support before claiming Jev is connected; installing skills alone is not proof.
 6. **Current state:** run the gate on the cleaned live backlog. Keep the age
    snapshots from before and after cleanup and use their bounded correction.
    Show the result, remaining debt, the strength and any limits.
