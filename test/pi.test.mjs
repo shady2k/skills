@@ -29,8 +29,10 @@ test('registers one session-owned MCP server with no credential/config writes or
   }]]);
 });
 
-test('older hosts get actionable guidance instead of a TypeError', () => {
-  assert.throws(() => jev({}), /automatic Jev registration requires Pi.*Skills still work/);
+test('hosts without MCP registration still load the package and do not register Jev', () => {
+  const calls = [];
+  assert.doesNotThrow(() => jev({ on: (...args) => calls.push(args) }));
+  assert.deepEqual(calls, []);
 });
 
 test('registration errors are visible (including a conflicting extension)', () => {

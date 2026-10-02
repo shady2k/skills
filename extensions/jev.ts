@@ -3,11 +3,9 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
 /** Pi owns the connection and its session lifetime; registering does not call Jev. */
 export default function jev(pi: ExtensionAPI) {
-  if (typeof pi.registerMcpServer !== 'function') {
-    throw new Error('shady2k-skills: automatic Jev registration requires Pi with registerMcpServer '
-      + '(verified with @earendil-works/pi-coding-agent 1.0.0). Skills still work. '
-      + 'Upgrade Pi or configure the bundled mcp/jev-server.mjs in your harness manually; see docs/pi.md.');
-  }
+  // Prime 0.9.8 loads the same package but has no MCP registration API.
+  // Do not stop its TUI: skills still load, and Jev uses Prime's native mcp add.
+  if (typeof pi.registerMcpServer !== 'function') return;
   pi.registerMcpServer('jev', {
     command: 'node',
     args: [fileURLToPath(new URL('../mcp/jev-server.mjs', import.meta.url))],

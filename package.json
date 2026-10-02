@@ -1,6 +1,6 @@
 {
   "name": "shady2k-skills",
-  "version": "0.80.0",
+  "version": "0.80.1",
   "private": true,
   "description": "shady2k's agent skills",
   "repository": {
@@ -16,7 +16,8 @@
     "setup-lock": "node test/setup-lock.mjs --write",
     "bump": "node scripts/bump.mjs",
     "test:pi": "node --test test/pi.test.mjs",
-    "test:pi:smoke": "node test/pi-smoke.mjs"
+    "test:pi:smoke": "node test/pi-smoke.mjs",
+    "test:prime:smoke": "node test/prime-smoke.mjs"
   },
   "keywords": [
     "pi-package"
