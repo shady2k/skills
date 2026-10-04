@@ -85,6 +85,19 @@ the machine carries while other agents share it.
 A change that cannot touch product code (documents, process tooling) does not
 run the product's suites, and CI is configured to skip them for it.
 
+**A passing result holds while what it covers is unchanged.** Evidence is
+tied to the tree it judged, not to the commit that carried it: a rebase, a
+merge or an amend that leaves a check's inputs as they were leaves its result
+standing, and a new commit id alone invalidates nothing. What does invalidate
+it is a change to those inputs: the code and tests it runs, the dependencies
+and configuration it reads, a conflict resolved inside them, base commits that
+touch the behaviour or the tests in question. So before every push that
+changes code, decide which results still cover the final tree and run only
+the ones that do not; where that run causes a fix, decide again. "It is a new
+head, so run everything" spends a run on a known answer, and "nothing
+conflicted, so it all still holds" keeps a green that no longer describes the
+code; the decision is made every time, the rerun only where it is owed.
+
 **Reached, not just built.** Green checks say the code does what its tests
 assert. They do not say the new behaviour can be reached: code nothing calls, a
 route nobody registered, a switch left off, a command never wired and a screen
@@ -119,3 +132,16 @@ already merged is closed work and is never edited or reused. That a run started 
 reported by [**A claim reaches only as far as its evidence**](deciding.md):
 after seeing it start. Where nothing keeps unfinished work from a full run,
 say so to the owner once, as a finding.
+
+**A state not yet known is not a good one.** A pull request's state is
+computed by the forge, lazily and behind every push, so it is read fresh at
+the moment it is reported and acted on, never remembered. An empty list of
+checks on a fresh head means none has registered yet, not that there is no
+CI; that the repository runs none for this change is said only after it is
+confirmed from its configuration. Mergeability still being computed is read
+again until it resolves; behind or conflicting means the branch is brought up
+to date; blocked is reported with what blocks it (a review not given, changes
+requested, another protection rule). A draft is never called ready to merge.
+Waiting for green is owed only where it was promised, a run's one green pull
+request or the owner's request; anywhere else the state is read once and
+reported as it was, the unknown parts as unknown.

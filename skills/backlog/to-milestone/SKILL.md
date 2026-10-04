@@ -73,7 +73,8 @@ The draft covers:
    who observes it, and the one check that watches it. An outcome without a
    check is still an area of work: sharpen or split it. Independent outcomes
    can progress in parallel; their order in the charter is not a dependency.
-3. **What is out**, by name: what somebody will assume is in.
+3. **What is out**, by name: an outcome somebody will assume is in, not an
+   area nobody may touch.
 4. **What carries over** from the ending milestone, and what is deferred.
    Carrying over is a decision, never a default.
 5. **The finding budget**: how many bugs and debts found along the way this

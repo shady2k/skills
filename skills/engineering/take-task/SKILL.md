@@ -299,8 +299,9 @@ accepted.
 
 ## 5. Integrate and handle what the spec did not foresee
 
-Merge each result into the feature branch, resolve conflicts and rerun related
-checks if merging changed it. Record the merged revision and evidence, then
+Merge each result into the feature branch, resolve conflicts and rerun the
+checks whose inputs merging changed, by the protocol's **A passing result holds
+while what it covers is unchanged**. Record the merged revision and evidence, then
 mark the task `implemented`. Its dependants in this stage can start now;
 dependants in other stages wait for that stage's acceptance. Implemented work
 never goes back to ready.
@@ -356,8 +357,8 @@ still describe the assembled revision, by the protocol's **What describes the
 present is kept true**; what this stage made false is updated in it. Get a
 review following [`review.md`](review.md), preferably from another model. Fix valid findings within scope and repeat the affected checks. If a fix
 changes code after the full run, rerun the full checks on the final revision.
-Repeat mutation testing and review where a fix invalidated them; evidence whose
-inputs did not change can be reused.
+Repeat mutation testing and review where a fix invalidated them; the rest is
+reused by **A passing result holds while what it covers is unchanged**.
 
 Record the stage's base and final revisions, included tasks, criteria, test and
 mutation results, and review findings with what was done about each. For
@@ -386,9 +387,11 @@ own checkout off that branch as soon as the run is submitted, by the protocol's
 **Autonomy** describes: what users can now do, how to check it yourself as the
 few steps of the walk you made, every decision and assumption made alone,
 departures from the spec, review findings, what is not done and the risks left.
-Wait for its checks to go green; fix a red one as part of the run, back in
+Wait for its checks to go green, reading its state by the protocol's **A state
+not yet known is not a good one**; fix a red one as part of the run, back in
 progress until the fix is proven locally, by the protocol's **CI is not where
-failures are diagnosed**.
+failures are diagnosed**. Review comments on it are handled by **A reviewer's
+comment is judged, not obeyed**.
 
 Finish the run's record with the pull request. The owner's acceptance is the
 merge. After it, close the tasks, stages and feature through `close-out`, which

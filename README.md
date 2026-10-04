@@ -671,6 +671,8 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.81.0** adds four working rules adopted from JetBrains/thinkrail's pull-request workflow. A reviewer's comment is judged before it is applied: the whole pull request is read again, each comment is applied, pushed back with its reason (shown to you first) or asked about, and every thread is answered after the fix is pushed, naming the commit. A passing check stays valid while what it covers is unchanged, so a rebase reruns only what it actually affected. A pull request's state that is not yet known is never reported as good: no checks yet is not "no CI", a draft is never "ready to merge". And what a milestone's charter puts out is an outcome that milestone does not deliver, not a ban on the code around it.
+
 - **0.80.1** lets Prime Agent 0.9.8 start normally with the same package: on hosts without Pi's MCP registration API, the Jev extension does not abort the TUI. The sixteen skills install with one command; Jev remains an optional separate native MCP connection in Prime. Adds a real Prime TUI smoke test and direct Prime installation instructions.
 
 - **0.80.0** adds Pi package discovery for all sixteen skills and session-scoped registration of the bundled Jev MCP server, preserving existing Claude Code, Codex and omp installs. Pi 1.0.0 is verified; Prime 0.9.8 loads the skills and needs separate native MCP setup. No credentials, project consent or periodic work are added.

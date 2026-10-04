@@ -264,7 +264,14 @@ that outlives the work is kept where every agent reads**.
 
 **Living documents.** The vision gives direction. The roadmap explains intended
 outcomes and order, without copying tracker status or creating dependencies.
-The charter bounds the current slice. Current capability specs describe
+The charter bounds the current slice. What it puts **out** is an outcome
+this slice will not deliver, never a ban on the code or the area it lives in:
+work an outcome of the slice needs there is done, what the charter neither
+names nor excludes is open, not forbidden, and an exclusion binds only its own
+milestone. Where an outcome cannot be reached without delivering one that is
+out, that conflict goes to the owner with what each answer costs; it is not
+settled by quietly narrowing the outcome or quietly building the excluded one.
+Current capability specs describe
 accepted behaviour on the main line; change records describe proposals as
 pinned requirement deltas. Design and decision records explain how and why,
 only where useful. Every project has a **glossary**: the words for its domain,

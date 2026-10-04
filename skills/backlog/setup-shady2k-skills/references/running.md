@@ -207,6 +207,19 @@ checkout moves off that branch, so that what is done next cannot land there
 by default; where the harness cannot, every push until the merge names the
 branch it is for.
 
+**A reviewer's comment is judged, not obeyed.** A comment quotes a few lines
+and stands for a view of the whole change, so before any of them is acted on
+the whole pull request is read again, with every thread. Each comment then gets
+a verdict before code is touched: it is right and is applied as a proper
+change, it misreads the design and is answered with the spec or decision it
+contradicts, or it is ambiguous and is asked about. A push-back goes to the
+owner with its reason before the reviewer is answered, since disagreeing with
+a reviewer is the owner's call to see. A thread is answered only after the
+fix is pushed, naming the commit that carries it, or with the reason for not
+changing; it is resolved only where it was addressed, and none is left
+unanswered. Patching exactly the quoted line, or answering "done" with nothing
+pushed, is obeying, not judging.
+
 **Estimates are agent time.** Estimate as reference-class forecasting does:
 from how long similar work took in this project, measured rather than
 recalled — the pace finished runs recorded on their features, with the
