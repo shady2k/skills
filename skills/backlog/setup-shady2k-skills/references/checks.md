@@ -11,7 +11,8 @@ agents, and the branch cannot merge while it is red. "It was already broken"
 and "our change does not touch that" are never reasons to stop; when a failure
 appeared matters only as a clue to its cause. A failure that also breaks the
 main line is fixed there by its own small pull request, since it blocks
-everyone, and the report names it as a fixed earlier failure. Only a fix
+everyone, and the report names it as a fixed earlier failure; such fixes
+that run the same suite share one pull request, not one run apiece. Only a fix
 that needs an architectural change or other decision the [**Autonomy**](running.md) rules
 reserve for the owner stops for them. What the run fixes to make the check
 green is filed as a repair the merge waits on, by the protocol's **Only what
@@ -133,6 +134,18 @@ reported by [**A claim reaches only as far as its evidence**](deciding.md):
 after seeing it start. Where nothing keeps unfinished work from a full run,
 say so to the owner once, as a finding.
 
+**CI capacity is a budget the whole run shares.** Runner time is finite and
+shared: an account's minutes, a spending limit, a queue other people wait in.
+So before the first push, learn what one run costs (its jobs, how long they
+take, what each runner is billed at) and what the account has left, and put
+the number of runs the plan needs into the forecast. The run that starts work
+in parallel holds this count for all of it: every pull request and every
+worker it started draws on the same capacity, and parallel pull requests
+multiply what a round of fixes costs. Where the forecast would not fit what is
+left, CI is an exclusive resource by the protocol's **Parallelism**: the runs
+queue, the work does not stop, and the owner hears the shortfall before it is
+spent, not after.
+
 **A state not yet known is not a good one.** A pull request's state is
 computed by the forge, lazily and behind every push, so it is read fresh at
 the moment it is reported and acted on, never remembered. An empty list of
@@ -144,4 +157,9 @@ to date; blocked is reported with what blocks it (a review not given, changes
 requested, another protection rule). A draft is never called ready to merge.
 Waiting for green is owed only where it was promised, a run's one green pull
 request or the owner's request; anywhere else the state is read once and
-reported as it was, the unknown parts as unknown.
+reported as it was, the unknown parts as unknown. A run whose jobs were
+cancelled, skipped or never picked up by a runner has no outcome: it is
+neither green nor red, and nothing counts it as passed. Its cause is read from
+the run itself (its annotations) and from the account's limits before
+anything outside is blamed, and it is not started again until that cause is
+gone.
