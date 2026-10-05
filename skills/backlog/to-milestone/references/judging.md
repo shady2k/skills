@@ -15,8 +15,10 @@ from could be edited to run anything on whoever reads it.
 installed, the agent's tool list carries `jev`, a tool the set ships: it is
 handed the questions and what to read (a file of search or run output cut by
 line, by blank line or by a pattern, or taken whole; several files; or a short
-list), and returns what Jev settled and what is left to read. Where a harness
-lists no such tool,
+list), and returns what Jev settled and what is left to read. A harness that
+defers tools lists it by name only, with its server's note on when to use it;
+that is the tool, and the agent loads it by the harness's own way of loading
+a deferred tool. Where a harness lists no such tool, not even by name,
 [`jev.mjs`](../jev.mjs) by its path (in Claude Code also the `jev` command the
 set puts on the path) does the same from a shell; before its first use in a session, its `status`
 says whether Jev is available here, with one call that carries no project

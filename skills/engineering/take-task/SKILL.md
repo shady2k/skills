@@ -115,7 +115,8 @@ owner gives is kept, not only obeyed**.
 
 **Where the project agreed to Jev, it is in your tools**: `jev`, by the
 protocol's [**Jev is a tool the agent sees, not a rule it must
-recall**](references/judging.md); where your harness lists no such tool, run
+recall**](references/judging.md), listed by name only where the harness defers
+tools, and then loaded, not replaced; where it lists no such tool at all, run
 [`jev.mjs`](jev.mjs) `status` once at the start instead. A run is where piles
 arise, and a coordinator that does not use Jev reads every pile itself. Apply
 the protocol's [**The agent decides where Jev helps**](references/judging.md)
@@ -219,7 +220,8 @@ later worker's brief.
 does not run the set learns of it nowhere else, and the batches it is good at
 (which search hits are real call sites, which failures share a cause, a long
 test or bench log) arise mostly in a worker's task. Name the `jev` tool,
-which a worker whose harness has the set installed sees in its list, and for
+which a worker whose harness has the set installed sees in its list (by name
+only where tools are deferred: say to load it, not to fall back), and for
 one that does not, the command whole: [`jev.mjs`](jev.mjs) by its absolute
 path in this skill's folder, `status` once before the first `ask`. Say that
 the pile goes by name: the search or the run writes to a file, and the file

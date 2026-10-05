@@ -258,8 +258,12 @@ export async function handle(msg, opts) {
         protocolVersion: PROTOCOLS.includes(params?.protocolVersion) ? params.protocolVersion : PROTOCOLS[0],
         capabilities: { tools: {} },
         serverInfo: { name: 'jev', version: VERSION },
-        instructions: 'jev answers typed questions (yes or no, one of your options, a place on a scale) about each item of a pile or one long text '
-          + 'you name by file, so you read only what it was not sure of.',
+        // A harness that defers tools shows only their names and this text, so
+        // it says when to call, as a skill's description does, not only what.
+        instructions: 'Use jev before reading a pile to answer the same questions of each item (search hits, failing tests, '
+          + 'review findings, many files, sections of a log) or before reading one long text whole: write the output to a file, '
+          + 'name the file, and read only the items it was not sure of. It answers typed questions: yes or no, one of your '
+          + 'options, a place on a scale. If your tools list it by name only, load it first.',
       });
     case 'ping': return result({});
     case 'tools/list': return result({ tools: [TOOL] });
