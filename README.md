@@ -59,6 +59,51 @@ works. The checks enforce the backlog's shape, commit links and the document
 lifecycle; they do not prove behaviour, truthful test evidence or that the
 right scope was chosen. That is what review and your acceptance are for.
 
+## Who it is for
+
+**It fits** when agents write most of the code and you want to own the result,
+not the keystrokes:
+
+- **A product engineer or a solo developer with a product.** You decide what
+  to build and what counts as working, and want whole features built while you
+  do something else, not a pair programmer to steer line by line.
+- **A small team sharing one repository and tracker.** Setup asks whether the
+  process is for you alone or for everyone; the checks then hold every
+  contributor, human or agent, to the same queue and commit links.
+- **A project that lives for months.** The set pays off where a backlog,
+  specs and decisions pile up: it keeps the queue usable, the documents true
+  to the code and the reasons for decisions findable.
+- **An existing project with a neglected tracker.** Setup tidies the queue
+  with you step by step and reversibly, and the checks keep it from rotting
+  again.
+- **Several agents or machines at once.** Everything agreed lives in the
+  repository and the tracker, so a Claude Code session, a Codex worker and an
+  omp pane on another machine read the same state.
+
+**What it is for:** planning a feature in conversation and getting it built
+unattended to one green pull request; knowing where the project stands after a
+break; keeping bugs and ideas from hijacking the current work; estimates and
+time figures measured on your own project.
+
+**It does not fit**, or costs more than it gives:
+
+- **A one-off script, a prototype for an afternoon or a throwaway
+  repository.** Setup alone takes a session or more; for work that never sees a
+  second week, a plain agent is faster.
+- **Work you want to drive step by step.** The set is built for handing a
+  feature over and accepting the result. If you prefer to watch and approve
+  every edit, its preflight, stages and reports are overhead.
+- **A team with a heavyweight process it must keep.** It fits beside your
+  tracker, but it brings its own rules (milestones with a bug budget, commits
+  that name their task, specs kept by capability). Where a mandated process
+  already governs those, the two will fight.
+- **Proof that the code is correct.** The checks enforce the shape of the
+  backlog, commit links and the document lifecycle. They do not prove the
+  behaviour; review and your acceptance do.
+- **A project with no git repository or no way to run its checks.** The gate,
+  hooks and CI checks need git and Node.js; without them the set is only
+  instructions.
+
 ## Quick start
 
 In Claude Code, from your project's main checkout:
@@ -77,6 +122,7 @@ neglected backlog: see [What setup takes](#what-setup-takes).
 ## Contents
 
 - [What you get](#what-you-get)
+- [Who it is for](#who-it-is-for)
 - [Quick start](#quick-start)
 - [How a day with it looks](#how-a-day-with-it-looks)
 - [How your work changes](#how-your-work-changes)
@@ -99,6 +145,7 @@ neglected backlog: see [What setup takes](#what-setup-takes).
   - [What setup verifies](#what-setup-verifies)
 - [Why it exists](#why-it-exists)
 - [How the flow works inside](#how-the-flow-works-inside)
+- [Time accounting](#time-accounting)
 - [What the checks enforce](#what-the-checks-enforce)
 - [Documents: direction, current state and changes](#documents-direction-current-state-and-changes)
 - [Changelog](#changelog)
@@ -590,6 +637,67 @@ handoff preserves implemented work, unfinished acceptance and pending publicatio
 Every commit belongs to existing leaf tasks, including documentation,
 research, prototypes and setup. The commit-message hook and CI enforce links;
 the separate backlog gate enforces structure.
+
+## Time accounting
+
+**What for.** Three things. *Estimates*: a run promises its result from how
+long similar work took on this project, not from a model's sense of time, which
+runs short, or from a developer's hours, the wrong yardstick for an agent.
+*Your attention*: it is the scarce resource, so the figures show how much of
+your time a feature cost and how often you had to step in, and whether runs get
+cheaper, faster and need you less. *Overruns*: a run past the time its result
+was promised for is found and reported, not assumed to be still running.
+
+**What is measured.** Every minute of a session's clock goes to exactly one
+bucket, so the buckets always add up to the clock:
+
+| bucket | what it is |
+| --- | --- |
+| model | the model generating |
+| tools | tools running: edits, tests, builds, the shell |
+| coordination | the rest of an agent's turn: hooks, permission prompts, waiting on a worker or subagent it started (whose own minutes are counted in its own session) |
+| you answering | the gap before your message, or a question waiting on you, up to 10 minutes |
+| you away | the same, past 10 minutes |
+| nobody | gaps that no message of yours ended |
+
+The same minutes are split by phase of the work (orienting, exploring,
+planning, building, debugging, wrapping up, setup, and unattributed where
+nothing in the record says what for) and by kind: writing code, reading,
+tests, builds, CI, git, delegating. Cost, tokens and lines changed are added
+where the agent records them.
+
+**How.** Nothing extra is logged while you work. The figures are read from the
+session transcripts the agents already keep on your machine: Claude Code,
+Codex, omp, Pi and Prime Agent. Each number is either read from what the agent
+recorded or measured from its timestamps, and says which. What an agent does
+not record (Codex keeps no cost) is unknown, never zero. The only judgement is
+the 10-minute line between answering and being away, and it can be moved. A
+session belongs to the project by its git repository, including worktrees and
+working copies since deleted.
+
+The history is kept on the items in your tracker, not on a machine, so every
+machine and session reads the same. When a session takes an item, it posts a
+claim; when it stops, a receipt with what it spent, by phase and by who spent
+it. A feature run adds its forecast by phase at the start and a summary at the
+end: the forecast against the work, and how long the work occupied, parallel
+sessions counted once. After the feature closes, `close-out` asks you four
+short questions about how the run went. A session whose transcript is on
+another machine makes the figure "at least this, incomplete"; one no machine
+has stays unknown, with the reason. The records carry numbers, the agent's
+name and a one-line note, not the conversation.
+
+**Where you see it.** Ask `ask-shady2k`: where the time went, how past runs
+went, how long work really takes here, what was done since yesterday. A run's
+preflight quotes its estimate with what it rests on. The scripts beside
+`take-task` give the raw figures: `ledger.mjs time` and `sessions` for this
+machine's sessions, `runs.mjs time`, `pace` and `report` for the records in
+the tracker.
+
+**What it is not.** Not a timesheet of you: your time away is in no estimate,
+and the line between answering and away is there to keep it out. The figures
+go nowhere but your own tracker. Only where the project agreed to Jev, a
+transcript that never names its task may be sent to it, masked, to ask whose
+work it was.
 
 ## What the checks enforce
 
