@@ -106,16 +106,21 @@ time figures measured on your own project.
 
 ## Quick start
 
-In Claude Code, from your project's main checkout:
+The set works the same in every agent below. Install it once, open a new
+session in your project's main checkout and start setup; after that, just ask
+"what next?".
 
-```bash
-claude plugin marketplace add shady2k/skills
-claude plugin install shady2k-skills@shady2k --scope project
-```
+| agent | install | start setup |
+| --- | --- | --- |
+| Claude Code | `claude plugin marketplace add shady2k/skills`<br>`claude plugin install shady2k-skills@shady2k --scope project` | `/shady2k-skills:setup-shady2k-skills` |
+| Codex | `codex plugin marketplace add shady2k/skills`<br>`codex plugin add shady2k-skills@shady2k` | `$shady2k-skills:setup-shady2k-skills` |
+| omp | `omp plugin marketplace add shady2k/skills`<br>`omp plugin install shady2k-skills@shady2k` | `/skill:setup-shady2k-skills` |
+| Pi | `pi install git:github.com/shady2k/skills` | `/skill:setup-shady2k-skills` |
+| Prime Agent | `prime-agent package install git:github.com/shady2k/skills` | `/skill:setup-shady2k-skills` |
 
-Start a new session there and run `/shady2k-skills:setup-shady2k-skills`. After
-that, just ask "what next?". For Codex, omp and other agents, and for the
-choice of scope, see [Installation and updates](#installation-and-updates).
+Asking in words ("set up shady2k-skills here") works as well. Any other agent
+that reads `SKILL.md` can use the skills directly. Scopes, updates and the
+details for each agent are in [Installation and updates](#installation-and-updates).
 Setup takes from under an hour for a new project to a few sessions for a large
 neglected backlog: see [What setup takes](#what-setup-takes).
 

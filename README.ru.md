@@ -108,16 +108,21 @@ request.**
 
 ## Быстрый старт
 
-В Claude Code, из основной рабочей копии проекта:
+Набор работает одинаково во всех агентах ниже. Установите его один раз,
+откройте новую сессию в основной рабочей копии проекта и запустите установку;
+после этого просто спрашивайте «что дальше?».
 
-```bash
-claude plugin marketplace add shady2k/skills
-claude plugin install shady2k-skills@shady2k --scope project
-```
+| агент | установка | запуск настройки |
+| --- | --- | --- |
+| Claude Code | `claude plugin marketplace add shady2k/skills`<br>`claude plugin install shady2k-skills@shady2k --scope project` | `/shady2k-skills:setup-shady2k-skills` |
+| Codex | `codex plugin marketplace add shady2k/skills`<br>`codex plugin add shady2k-skills@shady2k` | `$shady2k-skills:setup-shady2k-skills` |
+| omp | `omp plugin marketplace add shady2k/skills`<br>`omp plugin install shady2k-skills@shady2k` | `/skill:setup-shady2k-skills` |
+| Pi | `pi install git:github.com/shady2k/skills` | `/skill:setup-shady2k-skills` |
+| Prime Agent | `prime-agent package install git:github.com/shady2k/skills` | `/skill:setup-shady2k-skills` |
 
-Откройте там новую сессию и запустите `/shady2k-skills:setup-shady2k-skills`.
-После этого просто спросите «что дальше?». Про Codex, omp и другие агенты, а
-также про выбор области установки, см. [Установка и
+Можно и попросить словами («установи shady2k-skills здесь»). Любой другой
+агент, который читает `SKILL.md`, может пользоваться skills напрямую. Области
+установки, обновления и подробности для каждого агента — в [Установка и
 обновление](#установка-и-обновление). Установка занимает от часа для нового
 проекта до нескольких сессий для большого запущенного бэклога: см. [Сколько
 занимает установка](#сколько-занимает-установка).
