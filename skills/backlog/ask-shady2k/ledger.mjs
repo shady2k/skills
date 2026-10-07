@@ -34,8 +34,19 @@ export class Usage extends Error {}
 
 const claudeHome = () => process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude');
 const codexHome = () => process.env.CODEX_HOME || join(homedir(), '.codex');
-const ompSessions = () => process.env.PI_CODING_AGENT_SESSION_DIR
-  || join(process.env.PI_CODING_AGENT_DIR || join(homedir(), '.omp', 'agent'), 'sessions');
+// pi, omp and prime-agent keep sessions in one layout, each in its own home.
+// omp kept pi's variables for its folders, so a folder they name is pi's when
+// pi runs this (pi alone tells its tools which session they are in) and omp's
+// otherwise; the other one is in its own home.
+const piNamed = () => process.env.PI_CODING_AGENT_SESSION_DIR
+  || (process.env.PI_CODING_AGENT_DIR ? join(process.env.PI_CODING_AGENT_DIR, 'sessions') : null);
+const inPi = () => !!process.env.PI_SESSION_ID;
+const ompSessions = () => (!inPi() && piNamed()) || join(homedir(), '.omp', 'agent', 'sessions');
+const piSessions = () => (inPi() && piNamed()) || join(homedir(), '.pi', 'agent', 'sessions');
+const primeSessions = () => process.env.PRIME_AGENT_SESSION_DIR || process.env.PRIME_AGENT_CODING_AGENT_SESSION_DIR
+  || join(process.env.PRIME_AGENT_CODING_AGENT_DIR || join(homedir(), '.prime', 'agent'), 'sessions');
+// The harnesses that write pi's shape of session, and where each keeps them.
+const PI_FAMILY = { omp: ompSessions, pi: piSessions, 'prime-agent': primeSessions };
 
 const parseTime = (s) => (typeof s === 'number' ? s : s ? Date.parse(s) : NaN);
 const minutes = (ms) => ms / 60e3;
@@ -225,6 +236,7 @@ const TOOLS = {
 // the shell (a commit message is a heredoc), a formatter before the checks
 // (eslint --fix writes), the checks and builds before plain reading.
 const Q = '(?:^|[\\s;|&(`\'"])';
+let SHELL_WRITE;
 const SHELL = [
   ['ci', /\bgh\s+(run|workflow)\b|\bgh\s+pr\s+checks\b/],
   ['git', /\bgit(\s+-[cC]\s+\S+|\s+--?[\w-]+(=\S+)?)*\s+(commit|push|merge|rebase|cherry-pick|tag|am|revert|reset|switch|checkout|worktree\s+(add|remove))\b|\bgh\s+pr\s+(create|merge|edit|close)\b/],
@@ -233,9 +245,16 @@ const SHELL = [
   ['build', /\b(npm|pnpm|yarn|bun)\s+(run\s+)?build\b|\b(go|cargo)\s+build\b|\b(webpack|vite\s+build|docker\s+(build|compose)|make)\b/],
   // Writing a file through the shell is still writing it, and reading one
   // through the shell is still reading it.
-  ['develop', /<<-?\s*['"]?[A-Za-z_]+|(?<![=\-<>2&])>\s*[^|&\s>]+\.[A-Za-z]{1,5}\b|\b(sed|perl)\s+-i\b|\bapply_patch\b|\btee\s|\b(mv|cp|rm|mkdir|touch|chmod)\s+-?[\w./]/],
+  ['develop', SHELL_WRITE = /<<-?\s*['"]?[A-Za-z_]+|(?<![=\-<>2&])>\s*[^|&\s>]+\.[A-Za-z]{1,5}\b|\b(sed|perl)\s+-i\b|\bapply_patch\b|\btee\s|\b(mv|cp|rm|mkdir|touch|chmod)\s+-?[\w./]/],
   ['analyze', new RegExp(`${Q}(cat|sed|head|tail|less|ls|find|grep|rg|wc|jq|diff|tree|git|gh|awk|stat|file|pwd|nl|sort|uniq|du)\\s`)],
 ];
+// A prime-agent call is a Python cell: the helpers it calls and the shell it
+// runs say what it was for, and Python writing or reading a file is that.
+const PRIME_CALLS = [
+  ['delegate', /\brlm\.(spawn|list_subagents|delete_subagent|create_session)\s*\(|\b(list_subagents|delete_subagent)\s*\(/],
+];
+const PY_WRITES = /\b(write_text|write_bytes|edit)\s*\(|\bopen\([^)]*,\s*(mode\s*=\s*)?['"][wax]b?\+?['"]/;
+const PY_READS = /\b(read_text|read_bytes|listdir|glob|open|read)\s*\(/;
 // A Codex call is a little program; what it calls says what it was for.
 const CODEX_CALLS = [
   ['ask', /\brequest_user_input/],
@@ -245,7 +264,15 @@ const CODEX_CALLS = [
 ];
 
 export function category(name, input) {
-  const text = typeof input === 'string' ? input : String(input?.command ?? input?.cmd ?? '');
+  const text = typeof input === 'string' ? input : String(input?.command ?? input?.cmd ?? input?.code ?? '');
+  if (name === 'ipython') {
+    for (const [kind, re] of PRIME_CALLS) if (re.test(text)) return kind;
+    for (const [kind, re] of SHELL) {
+      if (re === SHELL_WRITE && PY_WRITES.test(text)) return 'develop';
+      if (re.test(text)) return kind;
+    }
+    return PY_READS.test(text) ? 'analyze' : 'shell';
+  }
   if (name === 'exec' || name === 'exec_command' || name === 'shell' || name === 'Bash' || name === 'local_shell') {
     if (name === 'exec') for (const [kind, re] of CODEX_CALLS) if (re.test(text)) return kind;
     for (const [kind, re] of SHELL) if (re.test(text)) return kind;
@@ -605,18 +632,24 @@ export function readCodex(path) {
   };
 }
 
-// omp names its tools in lower case; read as the harnesses the tables know.
-const OMP_TOOLS = { bash: 'Bash', read: 'Read', edit: 'Edit', write: 'Write', grep: 'Grep', glob: 'Glob', task: 'Task', ask: 'AskUserQuestion', todo: 'TodoWrite', web_search: 'WebSearch', vibe_spawn: 'Agent', vibe_send: 'SendMessage', vibe_wait: 'wait', vibe_list: 'ListAgents' };
+// pi and its descendants name their tools in lower case; read as the
+// harnesses the tables know. prime-agent's one tool, a Python cell, is read
+// by what the cell does.
+const PI_TOOLS = { bash: 'Bash', read: 'Read', edit: 'Edit', write: 'Write', grep: 'Grep', glob: 'Glob', find: 'Glob', ls: 'Glob', task: 'Task', ask: 'AskUserQuestion', todo: 'TodoWrite', web_search: 'WebSearch', vibe_spawn: 'Agent', vibe_send: 'SendMessage', vibe_wait: 'wait', vibe_list: 'ListAgents',
+  ask_user_question: 'AskUserQuestion', get_subagent_result: 'wait', fetch_content: 'WebFetch' };
 
 /**
- * An omp session. Every model call carries when it started, when it
- * completed, its tokens and its cost; every tool call its start and its
- * result. A turn runs from a message on the user's side to the model's last
- * answer in it. Who is on the user's side is whoever drives the pane, the
- * owner or a coordinator; a subagent's messages are its parent's, and never
- * the owner's. A subagent keeps its transcript in its parent's folder.
+ * A session in pi's shape: pi's own, omp's or prime-agent's. Every model call
+ * carries when it started, its tokens and its cost, and the record of it when
+ * it ended (omp also writes its end into the call); every tool call its result,
+ * and in omp its start. A turn runs from a message on the user's side to the
+ * model's last answer in it. Who is on the user's side is whoever drives the
+ * pane, the owner or a coordinator; a subagent's messages are its parent's,
+ * and never the owner's. An omp subagent keeps its transcript in its parent's
+ * folder; a prime-agent subagent keeps none, and its parent records what it
+ * cost.
  */
-export function readOmp(path, parent = null) {
+export function readPi(path, { harness = 'pi', parent = null } = {}) {
   const all = rows(path);
   const meta = all.find((d) => d.type === 'session') || {};
   const use = new Map();
@@ -636,6 +669,15 @@ export function readOmp(path, parent = null) {
   for (const d of all) {
     const at = parseTime(d.timestamp);
     if (!Number.isFinite(at)) continue;
+    if (d.type === 'child_usage_attributed' && d.childUsage) {
+      const u = d.childUsage;
+      usage = true;
+      tokens.input += u.input || 0;
+      tokens.output += u.output || 0;
+      tokens.cacheRead += u.cacheRead || 0;
+      if (typeof u.cost?.total === 'number') { costUSD += u.cost.total; priced = true; }
+      continue;
+    }
     if (d.type === 'custom' && d.customType === 'tool_execution_start') {
       const u = use.get(d.data?.toolCallId);
       const started = parseTime(d.data?.startedAt);
@@ -662,7 +704,7 @@ export function readOmp(path, parent = null) {
         usage = true;
         tokens.input += m.usage.input || 0;
         tokens.output += m.usage.output || 0;
-        tokens.thinking += m.usage.reasoningTokens || 0;
+        tokens.thinking += m.usage.reasoningTokens || m.usage.reasoning || 0;
         tokens.cacheRead += m.usage.cacheRead || 0;
         if (typeof m.usage.cost?.total === 'number') { costUSD += m.usage.cost.total; priced = true; }
       }
@@ -671,7 +713,7 @@ export function readOmp(path, parent = null) {
         const hit = SKILL_READ.exec(JSON.stringify(c.arguments ?? ''));
         if (hit) phase.skill(PHASES[hit[1]]);
       }
-      const kinds = calls.map((c) => category(OMP_TOOLS[c.name] || c.name, c.arguments));
+      const kinds = calls.map((c) => category(PI_TOOLS[c.name] || c.name, c.arguments));
       const kind = strongest(kinds);
       const g = { start: from, end, kind, phase: phase.of(kind) };
       gens.push(g);
@@ -694,7 +736,7 @@ export function readOmp(path, parent = null) {
   const stamps = all.map((d) => parseTime(d.timestamp)).filter(Number.isFinite);
   if (!stamps.length) return null;
   return {
-    harness: 'omp', schema: 'omp', path, cwd: meta.cwd || null, hints: {},
+    harness, schema: harness, path, cwd: meta.cwd || null, hints: { remote: meta.git?.repoUrl || null },
     id: meta.id || basename(path, '.jsonl').replace(/^.*_/, ''),
     parent, parentTool: null,
     first: stamps.reduce((a, b) => Math.min(a, b)), last: stamps.reduce((a, b) => Math.max(a, b)),
@@ -703,6 +745,7 @@ export function readOmp(path, parent = null) {
     tokens: usage ? tokens : null, tokensFrom: 'harness', harnessClock: null,
   };
 }
+export const readOmp = (path, parent = null) => readPi(path, { harness: 'omp', parent });
 
 // ---- the buckets -----------------------------------------------------------
 
@@ -921,7 +964,10 @@ function where(harness, path) {
     const meta = first.find((d) => d.type === 'session_meta')?.payload || {};
     return { cwd: meta.cwd || null, hints: { remote: meta.git?.repository_url || null } };
   }
-  if (harness === 'omp') return { cwd: first.find((d) => d.type === 'session')?.cwd || null, hints: {} };
+  if (PI_FAMILY[harness]) {
+    const meta = first.find((d) => d.type === 'session') || {};
+    return { cwd: meta.cwd || null, hints: { remote: meta.git?.repoUrl || null } };
+  }
   return { cwd: first.find((d) => d.cwd)?.cwd || null, hints: {} };
 }
 
@@ -948,8 +994,8 @@ function transcriptPaths(harness, sid) {
     if (existsSync(root)) for (const dir of readdirSync(root)) if (existsSync(join(root, dir, `${sid}.jsonl`))) paths.push(join(root, dir, `${sid}.jsonl`));
   } else if (harness === 'codex') {
     for (const f of files(join(codexHome(), 'sessions'), 4)) if (f.name.includes(sid)) paths.push(f.path);
-  } else if (harness === 'omp') {
-    for (const f of files(ompSessions(), 1)) if (f.name.endsWith(`_${sid}.jsonl`)) paths.push(f.path);
+  } else if (PI_FAMILY[harness]) {
+    for (const f of files(PI_FAMILY[harness](), 1)) if (f.name === `${sid}.jsonl` || f.name.endsWith(`_${sid}.jsonl`)) paths.push(f.path);
   }
   return paths;
 }
@@ -1013,7 +1059,7 @@ export function unnamedTranscripts(key, item) {
   return out;
 }
 
-const readRaw = (harness, path) => (harness === 'codex' ? readCodex(path) : harness === 'omp' ? readOmp(path) : readClaude(path));
+const readRaw = (harness, path) => (harness === 'codex' ? readCodex(path) : PI_FAMILY[harness] ? readPi(path, { harness }) : readClaude(path));
 
 /**
  * What the owner and the agent said to each other in a transcript, without
@@ -1049,10 +1095,10 @@ export function conversationOf(path, max = CONVERSATION_CHARS) {
 }
 
 /**
- * Every session of this project that either harness left on this machine,
- * read but not yet measured. Claude's subagents are read from the folder of
- * the session that started them; Codex's are sessions of their own that name
- * their parent.
+ * Every session of this project that any harness left on this machine, read
+ * but not yet measured. Claude's and omp's subagents are read from the folder
+ * of the session that started them; Codex's are sessions of their own that
+ * name their parent.
  */
 export function collect(project, { since, until, repo } = {}) {
   const candidates = [];
@@ -1065,12 +1111,15 @@ export function collect(project, { since, until, repo } = {}) {
         else if (parts.length === 3 && parts[1] === 'subagents') candidates.push({ ...f, harness: 'claude-code', sub: true });
       }
   for (const f of files(join(codexHome(), 'sessions'), 4)) candidates.push({ ...f, harness: 'codex' });
-  // omp: <folder>/<stamp>_<id>.jsonl, its subagents in <folder>/<stamp>_<id>/.
-  const omp = ompSessions();
-  for (const f of files(omp, 2)) {
-    const parts = f.path.slice(omp.length + 1).split(sep);
-    if (parts.length === 2) candidates.push({ ...f, harness: 'omp' });
-    else if (parts.length === 3) candidates.push({ ...f, harness: 'omp', parent: parts[1].replace(/^.*_/, '') });
+  // omp and pi: <folder>/<stamp>_<id>.jsonl, omp's subagents in
+  // <folder>/<stamp>_<id>/. prime-agent: <id>.jsonl, with no folder.
+  for (const [harness, home] of Object.entries(PI_FAMILY)) {
+    const root = home();
+    for (const f of files(root, 2)) {
+      const parts = f.path.slice(root.length + 1).split(sep);
+      if (harness === 'prime-agent' ? parts.length === 1 : parts.length === 2) candidates.push({ ...f, harness });
+      else if (harness === 'omp' && parts.length === 3) candidates.push({ ...f, harness, parent: parts[1].replace(/^.*_/, '') });
+    }
   }
 
   const seen = [];
@@ -1104,7 +1153,7 @@ export function collect(project, { since, until, repo } = {}) {
     let raw;
     try {
       if (c.harness === 'codex') raw = readCodex(c.path);
-      else if (c.harness === 'omp') raw = readOmp(c.path, c.parent || null);
+      else if (PI_FAMILY[c.harness]) raw = readPi(c.path, { harness: c.harness, parent: c.parent || null });
       else {
         let sub = null;
         if (c.sub) {
@@ -1376,6 +1425,10 @@ function selftest() {
   process.env.CODEX_HOME = join(home, 'codex');
   process.env.PI_CODING_AGENT_DIR = join(home, 'omp');
   delete process.env.PI_CODING_AGENT_SESSION_DIR;
+  delete process.env.PI_SESSION_ID;
+  // pi's and prime-agent's sessions are in their own homes, under this one.
+  process.env.HOME = home;
+  for (const k of ['PRIME_AGENT_SESSION_DIR', 'PRIME_AGENT_CODING_AGENT_SESSION_DIR', 'PRIME_AGENT_CODING_AGENT_DIR']) delete process.env[k];
   const failures = [];
   const expect = (name, ok) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures.push(name); };
   const T = (min, sec = 0) => new Date(Date.parse('2026-01-01T10:00:00Z') + min * 60e3 + sec * 1e3).toISOString();
@@ -1697,6 +1750,64 @@ function selftest() {
     const sub = findSessions('demo').find((x) => x.id === 'omp1sub');
     expect('an omp subagent is its parent\'s, and speaks for nobody', sub && sub.role === 'subagent' && sub.parent === 'omp1' && sub.ownerMessages === 0);
 
+    // pi writes the same shape without omp's ends and starts: a model call
+    // ends where its record is written, a tool starts where the model asked.
+    const piCall = (id, name, args, start, end) => ({ type: 'message', timestamp: T(end), message: { role: 'assistant', timestamp: at(start),
+      stopReason: name ? 'toolUse' : 'stop', usage: { input: 100, output: 10, reasoning: 5, cacheRead: 0, cost: { total: 0.25 } },
+      content: name ? [{ type: 'toolCall', id, name, arguments: args }] : [{ type: 'text', text: 'done' }] } });
+    const piResult = (id, name, end) => ({ type: 'message', timestamp: T(end), message: { role: 'toolResult', toolCallId: id, toolName: name, timestamp: at(end), content: [] } });
+    write(join(home, '.pi', 'agent', 'sessions', '--w-demo--', '2026-01-01T13-50-00-000Z_pi1.jsonl'), [
+      { type: 'session', version: 3, id: 'pi1', timestamp: T(230), cwd: demo },
+      { type: 'message', timestamp: T(230), message: { role: 'user', timestamp: at(230), content: [{ type: 'text', text: 'fix it' }] } },
+      piCall('e', 'edit', { path: 'a.txt' }, 230, 232),
+      piResult('e', 'edit', 233),
+      piCall('f', 'find', { pattern: '*.txt' }, 233, 234),
+      piResult('f', 'find', 236),
+      piCall('q', 'ask_user_question', { question: 'which?' }, 236, 237),
+      piResult('q', 'ask_user_question', 240),
+      piCall(null, null, null, 240, 241),
+      { type: 'custom_message', customType: 'note', timestamp: T(242), content: 'not the owner' },
+    ]);
+    s = findSessions('demo').find((x) => x.id === 'pi1');
+    expect('a pi session: its clock, the owner once, model, tools and its question from its stamps', s && s.harness === 'pi' && s.ownerMessages === 1
+      && Math.round(s.modelMinutes) === 5 && Math.round(s.toolMinutes) === 3 && Math.round(s.answerMinutes) === 3 && adds(s));
+    expect('a pi session: its tools read by name, its cost and thinking its own', s.kinds.develop > 0 && s.kinds.analyze > 0
+      && s.costUSD === 1 && s.costIn === 'own' && s.tokens.thinking === 20);
+
+    // prime-agent: one folder, no subfolders; every tool a Python cell, read
+    // by what it runs; a subagent keeps no transcript, its parent its cost.
+    const cell = (id, code, start, end) => piCall(id, 'ipython', { code }, start, end);
+    write(join(home, '.prime', 'agent', 'sessions', 'pr1.jsonl'), [
+      { type: 'session', version: 3, id: 'pr1', timestamp: T(260), cwd: join(home, 'gone-prime'), rlmDepth: 0, git: { repoUrl: 'https://example.com/someone/demo.git' } },
+      { type: 'message', timestamp: T(260), message: { role: 'user', timestamp: at(260), content: [{ type: 'text', text: 'test it' }] } },
+      cell('t', "h = await bash('npm test')\nprint(h.output)", 260, 261),
+      piResult('t', 'ipython', 264),
+      cell('w', "open('a.txt', 'w').write(x)", 264, 265),
+      piResult('w', 'ipython', 266),
+      cell('s', "h = await rlm.spawn(task, name='scout')", 266, 267),
+      piResult('s', 'ipython', 268),
+      { type: 'child_usage_attributed', timestamp: T(268), childUsage: { input: 50, output: 5, cacheRead: 0, cost: { total: 0.5 } } },
+      { type: 'custom_message', customType: 'agent_message', timestamp: T(269), content: 'from the scout' },
+      cell('r', "print(open('a.txt').read())", 269, 270),
+      piResult('r', 'ipython', 271),
+      piCall(null, null, null, 271, 272),
+    ]);
+    s = findSessions('demo').find((x) => x.id === 'pr1');
+    expect('a prime-agent session in its flat folder is found, its gone copy placed by the repository it recorded',
+      s && s.harness === 'prime-agent' && s.by === 'recorded repository' && s.ownerMessages === 1 && adds(s));
+    expect('a prime-agent cell is read by what it runs: the tests, a write, a subagent, a read',
+      s.kinds.test > 0 && s.kinds.develop > 0 && s.kinds.delegate > 0 && s.kinds.analyze > 0 && !s.kinds.shell);
+    expect('a prime-agent session\'s cost holds its subagents\'', s.costUSD === 1.75 && s.tokens.input === 550);
+    expect('a prime-agent session is found by its id alone', transcriptPaths('prime-agent', 'pr1').length === 1
+      && transcriptPaths('pi', 'pi1').length === 1);
+
+    // omp kept pi's variables: a folder they name is pi's only when pi runs this.
+    process.env.PI_SESSION_ID = 'pi-here';
+    expect('the shared variable names pi\'s folder inside pi, and omp is then in its own home',
+      piSessions() === join(home, 'omp', 'sessions') && ompSessions() === join(home, '.omp', 'agent', 'sessions'));
+    delete process.env.PI_SESSION_ID;
+    expect('and omp\'s outside it', ompSessions() === join(home, 'omp', 'sessions') && piSessions() === join(home, '.pi', 'agent', 'sessions'));
+
     // Unknown figures are left out of the totals and counted.
     const l = ledger('demo');
     expect('the ledger says how many sessions carry no cost', l.costUnknown >= 1 && l.linesUnknown >= 1);
@@ -1760,7 +1871,7 @@ function selftest() {
 
       const load = (name, cwd) => readFileSync(join(FIX, name), 'utf8').split('\n').filter(Boolean)
         .map((line) => JSON.parse(line.replaceAll('/fixture/cwd', cwd)));
-      const fresh = () => { for (const d of ['claude', 'codex', 'omp']) rmSync(join(home, d), { recursive: true, force: true }); };
+      const fresh = () => { for (const d of ['claude', 'codex', 'omp', '.pi', '.prime']) rmSync(join(home, d), { recursive: true, force: true }); };
       fresh();
 
       // Codex, the current shape: owner and agent speak through items and

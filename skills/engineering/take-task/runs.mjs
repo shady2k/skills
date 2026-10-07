@@ -66,7 +66,9 @@ const item = (v, id) => {
 
 // ---- who is running this ---------------------------------------------------
 
-const HERE = [['claude-code', 'CLAUDE_CODE_SESSION_ID'], ['codex', 'CODEX_THREAD_ID'], ['codex', 'CODEX_SESSION_ID']];
+// omp and prime-agent do not tell their tools the session: name it with
+// --harness omp|prime-agent and --session.
+const HERE = [['claude-code', 'CLAUDE_CODE_SESSION_ID'], ['codex', 'CODEX_THREAD_ID'], ['codex', 'CODEX_SESSION_ID'], ['pi', 'PI_SESSION_ID']];
 
 function thisSession(opts, { need = true } = {}) {
   if (!opts.harness !== !opts.session) throw new Usage('--harness and --session go together');
@@ -85,7 +87,7 @@ function agentName(s, role, opts) {
   if (opts.agent) return opts.agent;
   const person = opts.person || quiet(['config', 'user.name']) || userInfo().username;
   const branch = quiet(['rev-parse', '--abbrev-ref', 'HEAD']) || 'no-branch';
-  const short = s.harness === 'claude-code' ? 'claude' : s.harness;
+  const short = { 'claude-code': 'claude', 'prime-agent': 'prime' }[s.harness] || s.harness;
   return `${short}-${role}:${person.replace(/\s+/g, '-')}@${hostname()}:${branch}#${String(s.id).slice(0, 8)}`;
 }
 
@@ -852,7 +854,8 @@ runs.mjs time [--since <date>] [--until <date>] [--item <id>] [--no-transcripts]
 runs.mjs stalled | pace [--tasks N] | report | list
 Where the project agreed to Jev, --config <gate config> lets it place a session whose working copy is gone and whose
 transcript never names the item: only a sure yes counts, and the ones it is unsure of are named on stderr.
-The current session is found by itself where the harness names it; else --harness <h> --session <id>.
+The current session is found by itself where the harness names it (Claude Code, Codex, pi); else --harness
+claude-code|codex|pi|omp|prime-agent --session <id>.
 Transcripts belong to the project by its git repository: [--project <name>] [--repo <path>]. Add --json for data.
 Exit 0 done, 2 misuse, 3 the transcript is on another machine.`;
 
@@ -867,6 +870,9 @@ async function selftest() {
   process.env.CODEX_HOME = join(home, 'codex');
   process.env.PI_CODING_AGENT_DIR = join(home, 'omp');
   delete process.env.PI_CODING_AGENT_SESSION_DIR;
+  // pi's and prime-agent's sessions are in their own homes, under this one.
+  process.env.HOME = home;
+  for (const k of ['PRIME_AGENT_SESSION_DIR', 'PRIME_AGENT_CODING_AGENT_SESSION_DIR', 'PRIME_AGENT_CODING_AGENT_DIR']) delete process.env[k];
   for (const [, key] of HERE) delete process.env[key];
   const failures = [];
   const expect = (name, ok) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures.push(name); };

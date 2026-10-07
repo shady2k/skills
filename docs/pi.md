@@ -81,9 +81,24 @@ Loading the package and listing tools do not call Jev's model. Calls still go
 through the existing server's project-consent, credentials and masking checks.
 The extension does not create credentials, grant project consent, schedule
 replays or run periodic work. Configure Jev through the existing setup flow
-only with the project's approval. Pi's transcript format is not added to the
-run-time recovery readers by this packaging change; those readers still cover
-only the formats they already support.
+only with the project's approval.
+
+## Time accounting
+
+The run time records read Pi's and Prime's session transcripts as they read
+Claude Code's, Codex's and omp's: from `~/.pi/agent/sessions` and
+`~/.prime/agent/sessions`, or the folders their own variables name
+(`PI_CODING_AGENT_DIR`, `PI_CODING_AGENT_SESSION_DIR`;
+`PRIME_AGENT_CODING_AGENT_DIR`, `PRIME_AGENT_SESSION_DIR`,
+`PRIME_AGENT_CODING_AGENT_SESSION_DIR`). omp kept Pi's variable names, so a
+folder they name is counted as Pi's inside a Pi session and as omp's elsewhere.
+
+Pi tells its tools which session they run in (`PI_SESSION_ID`), so a claim from
+Pi names its own session. Prime and omp do not: pass `--harness prime-agent`
+or `--harness omp` with `--session <id>`. Every Prime tool call is a Python
+cell; it is classified by what the cell runs (shell commands, file writes and
+reads, subagents). A Prime subagent keeps no transcript of its own, so its
+cost and tokens are counted in the session that started it.
 
 On a host without `registerMcpServer`, use that host's native MCP configuration
 with `command: "node"` and one argument: the absolute path to this checkout's
