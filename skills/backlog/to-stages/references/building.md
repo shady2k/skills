@@ -28,6 +28,18 @@ job. A parallel copy of what exists is the commonest way an agent
 degrades a codebase: each copy is correct on the day it is written, and they
 drift from then on.
 
+**The smallest complete change.** Before writing code, take the first of these
+that does the whole job: nothing, where the need is not in the task (and what
+was left out is named); what the project already has (**Find before
+writing**); the language's standard library or the platform (a native date
+input before a hand-built calendar), unless the project has its own part for
+it; a dependency already installed; and only then the least new code that
+works. A dependency is never added for what a few lines or the platform do.
+Small is about the solution, never about the change: every caller, test and
+fixture the change breaks is part of it, and validation at a trust boundary,
+handling that prevents data loss, security and accessibility are never what
+is cut. A one-liner that has to be decoded is not small.
+
 **One surface per capability.** A capability has one way in: one screen, one
 endpoint, one command, one settings file, one script. A change extends that way
 in; it never adds a second beside it, such as a "v2" page, a parallel endpoint,

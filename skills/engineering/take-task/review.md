@@ -15,7 +15,14 @@ Cover both sides, with parallel reviewers where useful:
 - **Behaviour and requirements:** missing or wrong behaviour, unwanted scope,
   regression risk, interactions between tasks, failure handling, and whether
   the tests would catch the important failures. A bug or short change is
-  reviewed against its criterion and source requirement.
+  reviewed against its criterion and source requirement. A changed signature,
+  return value or behaviour is followed to every caller, in code the diff does
+  not touch too: that is where a change breaks unseen.
+- **Load:** what is right for one user and wrong for many: a check followed by
+  a write that another process can slip between, a query per item, memory or a
+  list that only grows, work every process repeats, state kept per process that
+  must be shared. Judged against the load the project expects, which the
+  reviewer finds in the project and states.
 - **Diagnosability:** whether failures explain themselves: errors carry their
   causes, logs follow the project's levels and carry request and trace ids
   where requests cross components, no secrets or personal data are logged, and
@@ -28,10 +35,16 @@ Cover both sides, with parallel reviewers where useful:
   the current specs and the architecture are still true of the final revision.
   A statement this change made false is a finding that blocks acceptance.
 
-Each actionable finding names its consequence, severity, location and evidence.
+Each actionable finding names its consequence, severity, location and evidence,
+and its evidence is a concrete case: this input or situation gives this wrong
+result. A worry with no case is not a finding; the reviewer rereads the lines
+to confirm the case is real before reporting it.
 Keep the original reports, then produce one deduplicated list with what happens
 to each: fixed now, already addressed, rejected with a reason, or filed as
 further work. Separate what blocks acceptance from optional improvements.
+Where the list reaches the owner, its findings are numbered, so one can be
+answered by its number, and each says in the owner's words what the code does,
+what goes wrong, the fix, and what happens if it is left.
 
 Fix within scope, verify the final result and re-review what the fixes touched.
 Never close on a review of an older revision. Say which tests and review checks
