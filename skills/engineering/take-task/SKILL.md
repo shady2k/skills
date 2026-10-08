@@ -368,7 +368,11 @@ non-code work, use the project's equivalent evidence and say which checks do
 not apply. Get the evidence at the integration's level and run the acceptance
 document check. At the protected level, "passed" written by an agent is not a
 receipt; at the records level, say that records are trusted. The next stage
-builds on an accepted one; the owner is not asked between stages.
+builds on an accepted one; the owner is not asked between stages. Accepting a
+stage does not close it: the stage and its tasks stay open and accepted, and
+dependants in the next stage are claimed through the integration's claim
+operation as the protocol's **Ready** allows; they close through `close-out`
+after the merge.
 
 ## 7. Open the pull request
 

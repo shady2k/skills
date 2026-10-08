@@ -471,7 +471,7 @@ An existing setup runs all of these too, even when versions match.
    proof issues. Exercise claim (the holder must be the agent in the protocol's
    full name, not the person or a bare role),
    release, `implemented`, readiness and an actual claim of a
-   dependant in the same stage, through the integration's own claim operation, acceptance across stages and independent ready
+   dependant in the same stage, and of a dependant in the next stage of the same feature after its prerequisite's stage is accepted but still open, through the integration's own claim operation, acceptance across stages and independent ready
    work. Check that `submitted` results survive a handoff without being redone.
    Check dependency cycles and the exact task-reference parser. Post a claim
    record the run script printed on a proof issue, read it back through the

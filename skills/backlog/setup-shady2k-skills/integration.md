@@ -69,7 +69,7 @@ capabilities and their substitutes.
 | --- | --- |
 | create | <title, type, labels, parent, criterion> |
 | link / unlink | <required-result or conflict edges on leaves, reason, release condition; provenance separate> |
-| claim | <atomic owner assignment or a serialized coordinator; not last-write-wins readback; the holder is the agent doing the work (coordinator or numbered worker), never the person by default; how a dependant of an implemented prerequisite in the same stage is claimed where the tracker refuses claims on blocked issues, keeping the edge> |
+| claim | <atomic owner assignment or a serialized coordinator; not last-write-wins readback; the holder is the agent doing the work (coordinator or numbered worker), never the person by default; how a dependant of an implemented prerequisite in the same stage, or of an accepted, still-open stage of the same feature, is claimed where the tracker refuses claims on blocked issues, keeping the edge> |
 | release | <unfinished holds only; preserve implemented work> |
 | implemented | <record integrated revision and local evidence; coordinator only> |
 | submitted | <preserve the worker result and evidence pending integration; clear worker hold> |
@@ -78,7 +78,7 @@ capabilities and their substitutes.
 | comment / edit | <notes, criteria, reparenting, state updates; a work record posted exactly as the run script printed it, never reflowed or edited> |
 | defer / undefer | <review date; reversible metadata changes> |
 | milestone / label | <values read from config> |
-| ready | <open unheld leaves in the stage and checkout; implemented prerequisites satisfied only within that same stage after integration, closed ones everywhere> |
+| ready | <open unheld leaves in the stage and checkout; implemented prerequisites satisfied only within that same stage after integration; accepted stages satisfy later stages of the same feature once their accepted revision is in the checkout; closed ones everywhere> |
 | holds | <active issues and owners, including stage coordinators> |
 | pending integration / acceptance | <submitted/implemented leaves and their stages with recorded revisions> |
 | children | <all children in every status, including submitted, implemented and closed> |

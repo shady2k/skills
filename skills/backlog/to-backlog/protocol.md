@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.37.0
+Setup version: 0.38.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -110,9 +110,11 @@ for twice: once to build it, once to take it out.
 **Ready** means an open leaf that nobody holds and whose required results are
 available. A closed prerequisite counts. An `implemented` prerequisite counts
 only inside the same stage, once its revision is merged into the consumer's
-checkout and its related checks pass; across stages it must be accepted and
-closed. So the adapter's ready operation takes the stage and checkout revision,
-not just "are the blockers closed".
+checkout and its related checks pass. Across stages of the same feature, a
+prerequisite counts once its stage is accepted and the revision that acceptance
+names is in the consumer's checkout; between features it must be closed. So the
+adapter's ready operation takes the stage and checkout revision, not just "are
+the blockers closed".
 
 **Execution and acceptance.** A worker claims a leaf (takes a hold on it),
 checks its change and records it as `submitted`, with where the result lives
@@ -159,8 +161,10 @@ Workers have distinct owners and an atomic claim or a serialized assignment:
 reading back a field that anyone can overwrite is not a lock. If a merge
 changes or fails, reopen the affected work and recheck what depends on it. The
 assembled stage gets full tests, mutation checks of changed logic and a final
-review. Its tasks and the stage close only after acceptance on that revision; a
-parent has its own criterion too.
+review. Acceptance on that revision is what allows its tasks and the stage to
+close, not the moment they close: they stay open and accepted until the work
+lands on the main line and its current specs are synced. A parent has its own
+criterion too.
 
 **Parallelism.** Independent leaves, stages and features may run at once;
 serialize only for a real prerequisite, a conflicting write or an exclusive

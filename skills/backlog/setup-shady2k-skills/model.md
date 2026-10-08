@@ -56,8 +56,10 @@ truth or the success of acceptance; the coordinator verifies those.
 Ready selection is context-dependent: unheld open leaves in the requested
 stage and checkout. Closed prerequisites are satisfied everywhere. Implemented
 prerequisites are satisfied only in the same stage after their revision is
-integrated and related checks pass there. Outside that stage, wait for closure
-after acceptance. Missing prerequisites remain blocked. Containers are not
+integrated and related checks pass there. In a later stage of the same
+feature, they are satisfied once their stage is accepted and its accepted
+revision is in the checkout, though the stage stays open until it lands. In
+another feature, wait for closure. Missing prerequisites remain blocked. Containers are not
 worker tasks; a coordinator may hold a stage separately from its workers.
 
 ## Commit-link input
