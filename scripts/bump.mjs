@@ -69,22 +69,6 @@ for (const f of manifests) {
   writeFileSync(path, bumped);
 }
 
-// The product program reports a version of its own where no manifest of the
-// set stands beside it, and a test holds it equal to the plugin manifest's. A
-// bump that moved the manifests and left it behind shipped a set that failed
-// its own test, so it moves here with them.
-{
-  const path = join(SETUP, 'product.mjs');
-  const text = readFileSync(path, 'utf8');
-  const current = (text.match(/^export const PLUGIN_VERSION = '(.+)';$/m) || [])[1];
-  const bumped = text.replace(`export const PLUGIN_VERSION = '${current}'`, `export const PLUGIN_VERSION = '${next}'`);
-  if (!current || !semver.test(current) || !later(next, current) || bumped === text) {
-    console.error(`${path}: PLUGIN_VERSION is ${current}; ${next} is not later`);
-    process.exit(1);
-  }
-  writeFileSync(path, bumped);
-}
-
 if (setupNext) {
   const protocol = join(SETUP, 'protocol.md');
   const text = readFileSync(protocol, 'utf8');
