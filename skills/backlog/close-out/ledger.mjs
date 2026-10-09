@@ -102,7 +102,6 @@ export const ADAPTERS = {
     name: 'Claude Code',
     env: ['CLAUDE_CODE_SESSION_ID'],
     agentEnv: null,
-    identity: 'session',
     current: (env) => (env.CLAUDE_CODE_SESSION_ID ? { id: env.CLAUDE_CODE_SESSION_ID, agent: null } : null),
     sessions: claudeSessions,
     transcripts: claudeTranscripts,
@@ -117,7 +116,6 @@ export const ADAPTERS = {
     name: 'Codex',
     env: ['CODEX_THREAD_ID', 'CODEX_SESSION_ID'],
     agentEnv: null,
-    identity: 'session',
     current: (env) => { const id = env.CODEX_THREAD_ID || env.CODEX_SESSION_ID; return id ? { id, agent: null } : null; },
     sessions: codexSessions,
     transcripts: codexTranscripts,
@@ -135,7 +133,6 @@ export const ADAPTERS = {
     name: 'omp',
     env: [],
     agentEnv: null,
-    identity: 'session',
     current: () => null,
     sessions: () => piShapeSessions('omp', ompSessions),
     transcripts: (sid) => piShapeTranscripts('omp', ompSessions, sid),
@@ -150,7 +147,6 @@ export const ADAPTERS = {
     name: 'Pi',
     env: ['PI_SESSION_ID'],
     agentEnv: null,
-    identity: 'session',
     current: (env) => (env.PI_SESSION_ID ? { id: env.PI_SESSION_ID, agent: null } : null),
     sessions: () => piShapeSessions('pi', piSessions),
     transcripts: (sid) => piShapeTranscripts('pi', piSessions, sid),
@@ -165,7 +161,6 @@ export const ADAPTERS = {
     name: 'Prime Agent',
     env: [],
     agentEnv: null,
-    identity: 'session',
     current: () => null,
     sessions: () => piShapeSessions('prime-agent', primeSessions),
     transcripts: (sid) => piShapeTranscripts('prime-agent', primeSessions, sid),
@@ -177,6 +172,12 @@ export const ADAPTERS = {
     limits: 'name its own session: it is told with --harness and --session',
   },
 };
+
+/**
+ * What an adapter knows of the agent: the session alone where one session may
+ * run several agents, and the agent within it where the harness names one.
+ */
+export const identityOf = (a) => (a.agentEnv ? 'agent' : 'session');
 
 /** Every harness this copy of the set reads. */
 export const adapterNames = () => Object.keys(ADAPTERS);
@@ -237,7 +238,7 @@ export function describeAdapters() {
     const reads = ['a session\'s transcript'];
     reads.push(a.env.length ? 'the current session' : 'the current session only with --harness and --session');
     reads.push(a.subagentList ? 'a session\'s subagents' : 'no list of a session\'s subagents');
-    reads.push(a.identity === 'agent' ? 'the agent as well as the session' : 'the session, and one session is one agent here');
+    reads.push(identityOf(a) === 'agent' ? 'the agent within the session as well as the session' : 'the session (the agent within it is not told apart, where the harness runs several)');
     out.push(`${a.name} (${harness})`, `  reads: ${reads.join('; ')}`);
     if (a.limits) out.push(`  cannot: ${a.limits}`);
   }
@@ -1172,6 +1173,19 @@ function* primeSubagents() {
 }
 
 // Where a session in pi's shape ran, and what repository it recorded.
+// A session file's first line, read without the rest of it: the id a session
+// in pi's shape holds is there, and a lookup must not read a whole transcript
+// to learn which session it is.
+const firstRow = (path) => {
+  let fd;
+  try {
+    fd = openSync(path, 'r');
+    const buf = Buffer.alloc(8192);
+    const n = readSync(fd, buf, 0, 8192, 0);
+    return JSON.parse(String(buf.slice(0, n)).split('\n')[0] || '{}');
+  } catch { return {}; } finally { if (fd !== undefined) try { closeSync(fd); } catch { /* gone */ } }
+};
+
 const piShapeLocation = (path) => {
   const meta = head(path).find((d) => d.type === 'session') || {};
   return { cwd: meta.cwd || null, hints: { remote: meta.git?.repoUrl || null } };
@@ -1222,14 +1236,14 @@ function claudeSessions() {
 function claudeTranscripts(sid) {
   const out = [];
   const root = join(claudeHome(), 'projects');
-  if (existsSync(root)) for (const dir of readdirSync(root)) if (existsSync(join(root, dir, `${sid}.jsonl`))) out.push(join(root, dir, `${sid}.jsonl`));
+  if (existsSync(root)) for (const dir of readdirSync(root)) if (existsSync(join(root, dir, `${sid}.jsonl`))) out.push({ path: join(root, dir, `${sid}.jsonl`) });
   return out;
 }
 
 function claudeSubagents(sid) {
   const out = [];
-  for (const path of claudeTranscripts(sid)) {
-    const dir = join(dirname(path), sid, 'subagents');
+  for (const ref of claudeTranscripts(sid)) {
+    const dir = join(dirname(ref.path), sid, 'subagents');
     if (!existsSync(dir)) continue;
     for (const f of files(dir, 1)) out.push({ ...f, id: basename(f.path, '.jsonl'), parent: sid, sub: claudeSub(f.path) });
   }
@@ -1250,7 +1264,7 @@ function codexTranscripts(sid) {
     // another session's: the id the file really holds decides.
     const meta = head(f.path).find((d) => d.type === 'session_meta')?.payload || {};
     const id = meta.id || basename(f.path, '.jsonl').replace(/^rollout-[\dT-]+-/, '');
-    if (id === sid) out.push(f.path);
+    if (id === sid) out.push({ path: f.path });
   }
   return out;
 }
@@ -1280,10 +1294,30 @@ function piShapeSessions(harness, home) {
   return out;
 }
 
+// The id a session in pi's shape really holds: its own first line, or what its
+// name says where the first line does not name it.
+const piShapeId = (path) => {
+  const row = firstRow(path);
+  return (row.type === 'session' && row.id) || basename(path, '.jsonl').replace(/^.*_/, '');
+};
+
 function piShapeTranscripts(harness, home, sid) {
   const out = [];
-  for (const f of files(home(), 1)) if (f.name === `${sid}.jsonl` || f.name.endsWith(`_${sid}.jsonl`)) out.push(f.path);
-  if (harness === 'prime-agent') for (const f of primeSubagents()) if (f.name === `${sid}.jsonl`) out.push(f.path);
+  const root = home();
+  for (const f of files(root, harness === 'omp' ? 2 : 1)) {
+    const parts = f.path.slice(root.length + 1).split(sep);
+    if (parts.length === 3 && harness !== 'omp') continue;
+    // The id the file really holds decides, wherever the file sits: a name that
+    // merely looks like the session's is another session's, and omp keeps a
+    // subagent's transcript in the folder of the session that started it, with
+    // its own id in its first line and nothing of it in its name.
+    if (piShapeId(f.path) !== sid) continue;
+    // The folder says which session started it, and a child read without that
+    // is read as a session of its own, with its parent's messages as the
+    // owner's: the reference carries it.
+    out.push(parts.length === 3 ? { path: f.path, parent: parts[1].replace(/^.*_/, '') } : { path: f.path });
+  }
+  if (harness === 'prime-agent') for (const f of primeSubagents()) if (piShapeId(f.path) === sid) out.push({ path: f.path });
   return out;
 }
 
@@ -1336,13 +1370,13 @@ export function transcriptOf(key, item, { judged = null } = {}) {
   const a = ADAPTERS[harness];
   const named = namesItem(item);
   const byJev = judged?.has(`${key}\t${item}`);
-  for (const path of a.transcripts(sid)) {
+  for (const ref of a.transcripts(sid)) {
     try {
-      const { cwd } = a.location(path);
+      const { cwd } = a.location(ref.path);
       if (cwd && existsSync(resolve(cwd))) continue;
-      const by = named.test(readFileSync(path, 'utf8')) ? 'names the item' : byJev ? 'Jev judged it the item\'s' : null;
+      const by = named.test(readFileSync(ref.path, 'utf8')) ? 'names the item' : byJev ? 'Jev judged it the item\'s' : null;
       if (!by) continue;
-      const raw = a.read({ path });
+      const raw = a.read(ref);
       if (raw && raw.id === sid && (by === 'names the item' || !raw.parent)) return Object.assign(raw, { by, role: 'side copy' });
     } catch { /* unreadable */ }
   }
@@ -1360,15 +1394,15 @@ export function unnamedTranscripts(key, item) {
   const a = ADAPTERS[harness];
   const named = namesItem(item);
   const out = [];
-  for (const path of a.transcripts(sid)) {
+  for (const ref of a.transcripts(sid)) {
     try {
-      const { cwd } = a.location(path);
+      const { cwd } = a.location(ref.path);
       if (cwd && existsSync(resolve(cwd))) continue;
-      if (named.test(readFileSync(path, 'utf8'))) continue;
+      if (named.test(readFileSync(ref.path, 'utf8'))) continue;
       // Only the session itself: a file that merely has its id in its name,
       // or a subagent of it, is another transcript.
-      const raw = a.read({ path });
-      if (raw && raw.id === sid && !raw.parent) out.push({ harness, path });
+      const raw = a.read(ref);
+      if (raw && raw.id === sid && !raw.parent) out.push({ harness, path: ref.path });
     } catch { /* unreadable */ }
   }
   return out;
@@ -2283,9 +2317,12 @@ function selftest() {
       expect('the adapters: this copy reads five harnesses and no other',
         adapterNames().join(',') === 'claude-code,codex,omp,pi,prime-agent' && adapterNames().every(hasAdapter) && !hasAdapter('gemini'));
       expect('the adapters: every entry answers the same questions, and says what it cannot do',
-        Object.values(ADAPTERS).every((a) => typeof a.name === 'string' && Array.isArray(a.env)
+        Object.values(ADAPTERS).every((a) => typeof a.name === 'string' && Array.isArray(a.env) && typeof a.current === 'function'
           && ['sessions', 'transcripts', 'subagents', 'read', 'location'].every((k) => typeof a[k] === 'function')
           && (a.subagentList === null || typeof a.subagentList === 'string') && (a.limits === null || typeof a.limits === 'string')));
+      expect('the adapters: what is known of the agent follows from whether the harness names it',
+        Object.values(ADAPTERS).every((a) => identityOf(a) === (a.agentEnv ? 'agent' : 'session'))
+        && identityOf({ agentEnv: 'SOME_AGENT_ID' }) === 'agent' && identityOf(ADAPTERS['claude-code']) === 'session');
       expect('the adapters: a harness with none is refused by name, not read as a session with no time',
         (() => { try { adapter('gemini'); return false; } catch (e) { return e instanceof Unsupported && e instanceof Usage
           && /^unsupported here: no transcript adapter for gemini; this copy of the set reads /.test(e.message); } })());
@@ -2298,8 +2335,28 @@ function selftest() {
         { type: 'response_item', timestamp: T(3), payload: { type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'y' }] } },
       ]);
       expect('the adapters: a transcript is the one that really holds the session, not one whose name contains its id',
-        adapter('codex').transcripts('cc1').length === 1 && adapter('codex').transcripts('cc1')[0].endsWith('-cc1.jsonl')
+        adapter('codex').transcripts('cc1').length === 1 && adapter('codex').transcripts('cc1')[0].path.endsWith('-cc1.jsonl')
         && adapter('codex').transcripts('cc10').length === 1);
+      // A session in pi's shape is the one its first line names, not the one
+      // its file name suggests, and omp keeps a subagent's transcript in its
+      // parent's folder, where only that first line names it.
+      write(join(home, 'omp', 'sessions', '-w-demo', 'stamp_a.jsonl'), [{ type: 'session', id: 'bb', timestamp: T(0), cwd: demo }]);
+      expect('the adapters: a session in pi\'s shape is the one its first line names, not the one its file name suggests',
+        adapter('omp').transcripts('a').length === 0 && adapter('omp').transcripts('bb').length === 1
+        && adapter('omp').transcripts('bb')[0].path.endsWith('stamp_a.jsonl'));
+      // A child's transcript found by its id alone is read as the child, with
+      // the parent the layout gave it: read without that, its parent's message
+      // would be the owner's and its span a session of its own.
+      write(join(home, 'omp', 'sessions', '-w-demo', '2026-01-01T13-30-00-000Z_oo2', 'kid.jsonl'), [
+        { type: 'session', id: 'ookid', timestamp: T(0), cwd: join(home, 'gone-omp') },
+        { type: 'message', timestamp: T(0), message: { role: 'user', timestamp: at(0), content: [{ type: 'text', text: 'demo-q7 please' }] } },
+      ]);
+      const kid = transcriptOf('omp:ookid', 'demo-q7');
+      expect('a child\'s transcript found by its id alone keeps the parent the layout gave it',
+        !!kid && kid.parent === 'oo2' && kid.owner.length === 0);
+      expect('the adapters: a subagent kept in its parent\'s folder is found by its own id, the one its parent lists',
+        subagents('omp', 'oo1')[0].id === 'oo1sub' && adapter('omp').transcripts('oo1sub').length === 1
+        && adapter('omp').transcripts('oo1sub')[0].path.endsWith('sub.jsonl') && adapter('omp').transcripts('oo1').length === 1);
       expect('the adapters: a Codex subagent is the child of the parent its rollout names',
         subagents('codex', 'par1').length === 1 && subagents('codex', 'par1')[0].id === 'cc1' && subagents('codex', 'cc1').length === 0);
       expect('the adapters: an omp subagent is the child of the session whose folder it is in',
