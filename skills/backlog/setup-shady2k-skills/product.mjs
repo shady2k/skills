@@ -1,0 +1,1121 @@
+#!/usr/bin/env node
+/**
+ * A product repository's lifecycle: the draft, the manifest, the name, the
+ * remote and the bootstrap, as one program that runs without an agent.
+ *
+ * A product keeps its knowledge in a git repository of its own, apart from its
+ * code: its documents, its intended model, its team's own skills, its
+ * prototypes and the manifest naming the code repositories it spans. This
+ * program is how that repository is made and changed, so the same rules hold
+ * whether a person or an agent starts the product, and so a product wiki can
+ * bundle one pinned release of it and let a person with no agent create a
+ * product too.
+ *
+ * IT KNOWS NO PROJECT AND NO WIKI. It reads and writes the layout, the
+ * manifest and git, and says what is wrong with what it finds, file and line,
+ * in words a person who never heard of this set can act on.
+ *
+ * THE LAYOUT IS FIXED BY THE SCHEMA VERSION, never read from the manifest:
+ *
+ *   docs/        the product's documents, which a product wiki serves
+ *   model/       the product's intended model
+ *   skills/      the team's own skills, never a copy of the set
+ *   prototypes/  throwaway prototypes built to answer design questions
+ *   repos/       the code repositories the product spans, untracked by this
+ *                repository's git
+ *
+ * `workspace.yaml` is the manifest. `schemaVersion` (1), `id` and `name` are
+ * never renamed; a field this program does not know is ignored, so a manifest
+ * written by a later version still opens.
+ *
+ * WHAT THIS READER REFUSES (each naming the file, the line where it is known,
+ * and the field or the reason): a folder holding no manifest, a manifest that
+ * cannot be read, and a manifest that is not the plain subset of YAML below.
+ * The subset is block mappings, block sequences of mappings, plain and quoted
+ * scalars and comments; an anchor, an alias, a tag, a flow collection, a
+ * second document, a duplicate field and an alias standing where a field's
+ * name goes are each refused, since a manifest is meant to read the same to a
+ * person and to a tool. Beyond the syntax: a schema version this program does
+ * not know, a missing or empty `id`, a `name` that is not a word, a `skills`
+ * field that is not `<set>: <version>` lines, and a `repos` item that names no
+ * folder name, no url, or a folder name another item already took.
+ *
+ * THE COMMANDS, and what each refuses before it changes anything:
+ *
+ *   new --home <folder> [--date YYYY-MM-DD]   a draft under the products home
+ *   read [<folder>]                           a folder's manifest, read back
+ *   rename <folder> <name>                    the product, named in place
+ *   remote <folder> <url>                     `origin`, added and never pushed
+ *   bootstrap <folder>                        the declared code repositories
+ *
+ * `new` takes the products home from its caller and from nowhere else: no
+ * default, no environment variable. Its folder is `idea-YYYY-MM-DD`, then
+ * `-2`, `-3` and so on, reserved with one non-recursive mkdir so two runs
+ * cannot share a name; it is a git repository whose one commit holds the
+ * constitution, the manifest and the empty folders, and `repos/` exists
+ * untracked. `rename` keeps the `id` and every other byte of the manifest,
+ * renames the folder within its parent and commits that alone, so relative
+ * links and nothing else move. `bootstrap` clones the missing repositories
+ * into `repos/<name>` and never replaces a checkout that is already there: it
+ * reports it, as dirty when it has uncommitted changes, and leaves it alone.
+ * Nothing any command writes holds an absolute path.
+ *
+ * EXIT CODES. 0: done. 1: a step failed (git refused, a clone failed). 2: an
+ * argument, a home or a manifest cannot be used. Every command takes `--json`,
+ * for callers: one object on standard output, holding what the command did or
+ * the refusal's `message`, `file` and `line`.
+ *
+ *   node product.mjs --help | --version | --selftest
+ */
+import { spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { basename, dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+/** The schema version this program writes and reads; the folder layout is fixed by it alone. */
+export const PRODUCT_SCHEMA_VERSION = 1;
+/** The manifest's file, at a product folder's root. */
+export const MANIFEST_FILE = 'workspace.yaml';
+/**
+ * The plugin version this program reports where no manifest of the set is
+ * beside it, as inside a product wiki that bundled a pinned release. A test
+ * keeps it equal to `.claude-plugin/plugin.json`, which wins where one is
+ * found.
+ */
+export const PLUGIN_VERSION = '0.90.0';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+
+/** The subset of the environment git must not inherit from a caller. */
+const GIT_LEAKS = ['GIT_DIR', 'GIT_INDEX_FILE', 'GIT_WORK_TREE'];
+
+/** The folders the schema version fixes: every product holds them, in this layout. */
+const FOLDERS = ['docs', 'model', 'skills', 'prototypes', 'repos'];
+/** The folders of `FOLDERS` git does track, each kept by its `.gitkeep`. */
+const TRACKED_FOLDERS = ['docs', 'model', 'skills', 'prototypes'];
+const COMMITTED_FILES = ['AGENTS.md', 'CLAUDE.md', 'workspace.yaml', '.gitignore',
+  'docs/.gitkeep', 'model/.gitkeep', 'skills/.gitkeep', 'prototypes/.gitkeep'];
+
+/** The markers around the part of `AGENTS.md` this program maintains. */
+const MAINTAINED_OPEN = '<!-- product:maintained -->';
+const MAINTAINED_CLOSE = '<!-- /product:maintained -->';
+
+/**
+ * The constitution `new` writes: the folders and what each is for. It names no
+ * project and no wiki, holds no path, and is written once — the part between
+ * the markers is the only part a later version may update, so every section
+ * below it, the set's own included, is left as it was.
+ */
+const CONSTITUTION = [
+  '# Constitution',
+  '',
+  "This repository holds one product's knowledge, apart from the product's",
+  'code: its documents, its intended model, its skills and its prototypes,',
+  'kept as plain files in git. A product wiki serves these files as pages, so',
+  'what is written here is what is read.',
+  '',
+  '## Folders',
+  '',
+  "- docs/ — the product's documents, written in Markdown and kept in git.",
+  '- model/ — the model the product is meant to have.',
+  "- skills/ — the team's own skills, written for this product; never a copy",
+  "  of the skill set's own, whose pinned version is field `skills` of the",
+  '  manifest, naming the set and its version (`shady2k: <version>`).',
+  '- prototypes/ — throwaway prototypes built to answer design questions.',
+  '- repos/ — the code repositories the product spans. Each one is a git',
+  '  repository of its own, and this repository leaves repos/ untracked.',
+  '',
+  "The folders' places come with the manifest's `schemaVersion` and are never",
+  'read from the manifest, so every tool and every agent knows where things',
+  'are from the schema version alone.',
+  '',
+  '## Documents',
+  '',
+  'Every document is Markdown in git: a page someone writes, and what the',
+  'reader later sees. Links between documents are relative paths, so this',
+  'folder may be renamed without breaking them.',
+  '',
+  MAINTAINED_OPEN,
+  'The manifest `workspace.yaml` is how a product is recognised. Its',
+  '`schemaVersion`, `id` and `name` are never renamed; anything a later',
+  'version adds grows beside them. `schemaVersion` (1 here) fixes the folder',
+  "layout above; `id` is given at creation and kept for the product's life,",
+  "whatever this folder is later called; for a draft, `name` is this folder's",
+  'name. This file is written once, and a later version updates no part of it',
+  'outside this marked section.',
+  MAINTAINED_CLOSE,
+  '',
+].join('\n');
+
+const USAGE = 'usage: node product.mjs <new|read|rename|remote|bootstrap> [options]';
+
+const HELP = [
+  USAGE,
+  '',
+  "A product keeps its knowledge in a git repository of its own: its",
+  'documents, its intended model, its team\'s own skills, its prototypes and',
+  'the manifest naming the code repositories it spans. These commands make',
+  'that repository and change it.',
+  '',
+  'commands:',
+  '  new --home <folder> [--date YYYY-MM-DD]',
+  '        create a draft under the products home: `idea-YYYY-MM-DD`, then',
+  '        `-2` and so on, a git repository whose one commit holds the',
+  '        constitution, the manifest and the empty folders. Prints its',
+  '        folder and its id. The home is named here, always: nothing else',
+  '        decides it. --date fixes the day, so a test needs no clock.',
+  '  read [<folder>]',
+  "        read a product folder's manifest and print its folder, id, name",
+  '        and schemaVersion, or the refusal with the file and the line.',
+  '  rename <folder> <name>',
+  '        name the product in place: the folder is renamed within its',
+  '        parent and `name` is written in the manifest, its id and every',
+  '        other byte kept, as one commit.',
+  '  remote <folder> <url>',
+  '        add `origin`. It never pushes: pushing is the person\'s decision.',
+  '  bootstrap <folder>',
+  '        clone the code repositories the manifest declares into',
+  '        repos/<name>, one report per repository. A checkout already',
+  '        there is never replaced: it is reported, as dirty when it has',
+  '        uncommitted changes, and left alone.',
+  '',
+  'options:',
+  '  --json    one object on standard output, for callers',
+  '  --help    this text; --version prints the plugin version',
+  '',
+  'exit codes: 0 done, 1 a step failed (git refused, a clone failed),',
+  '            2 an argument, a home or a manifest cannot be used.',
+].join('\n');
+
+/** An argument this program cannot use: the command line reports it and exits 2. */
+class Misuse extends Error {}
+
+// ---- reading a manifest: the plain subset of YAML --------------------------
+
+/**
+ * The line each field of a mapping, and each item of a sequence, was written
+ * on: a refusal names the line, so the reader records it as it parses. Kept
+ * outside the value itself, so a caller sees plain objects and arrays.
+ */
+const LINES = new WeakMap();
+
+/**
+ * The line a mapping's field was written on, or 1 when nothing recorded it.
+ * The recording is looked for, never assumed: a refusal's line is a courtesy,
+ * and a reader that threw where it meant to say "line unknown" would refuse
+ * nothing at all.
+ */
+function lineOf(value, key) {
+  const map = value !== null && typeof value === 'object' ? LINES.get(value) : undefined;
+  return (map instanceof Map ? map.get(key) : undefined) ?? 1;
+}
+
+/** The line a sequence's item was written on, or 1 when nothing recorded it. */
+function lineOfIndex(value, index) {
+  const lines = Array.isArray(value) ? LINES.get(value) : undefined;
+  return (Array.isArray(lines) ? lines[index] : undefined) ?? 1;
+}
+
+/** A refusal: the file, the line, and what is wrong with it. */
+const refusal = (file, line, message) => ({ ok: false, file, line, message });
+
+/** How a value stands in a message: as YAML would read it back. */
+const shown = (value) => (value === undefined ? 'nothing' : JSON.stringify(value));
+
+const isItemLine = (content) => /^-(\s|$)/.test(content);
+
+/**
+ * The manifest's lines, the blank ones and the comment-only ones gone: each
+ * kept line with its indentation and its number. Indentation is spaces; a tab
+ * in it is refused, since a tab means one thing to one reader and another to
+ * the next.
+ */
+function readLines(text, file) {
+  const kept = [];
+  const lines = text.split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const line = i + 1;
+    const body = lines[i].replace(/\s+$/, '');
+    if (body.trim() === '') continue;
+    const indentText = body.match(/^[ \t]*/)[0];
+    if (indentText.includes('\t'))
+      return refusal(file, line, `the manifest ${file} indents with a tab on line ${line}: a manifest is indented with spaces`);
+    const content = body.slice(indentText.length);
+    if (content.startsWith('#')) continue;
+    if (content === '---' || content === '...' || /^(---|\.\.\.) /.test(content))
+      return refusal(file, line, `the manifest ${file} opens another document on line ${line}: a manifest is one document`);
+    kept.push({ indent: indentText.length, content, line });
+  }
+  return { ok: true, tokens: kept };
+}
+
+/** The end of a scalar's text where a comment starts, or the whole of it. */
+function cutComment(text) {
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '#' && (i === 0 || /\s/.test(text[i - 1]))) return text.slice(0, i);
+  }
+  return text;
+}
+
+/** The `name: value` split of one line: the part before the first field colon, and after it. */
+function splitPair(content) {
+  let quote = null;
+  for (let i = 0; i < content.length; i++) {
+    const ch = content[i];
+    if (quote !== null) {
+      if (ch === quote) {
+        if (quote === "'" && content[i + 1] === "'") { i++; continue; }
+        quote = null;
+      }
+      continue;
+    }
+    if (ch === "'" || ch === '"') { quote = ch; continue; }
+    if (ch === '#' && (i === 0 || /\s/.test(content[i - 1]))) return null;
+    if (ch === ':' && (i + 1 === content.length || /\s/.test(content[i + 1])))
+      return { key: content.slice(0, i), rest: content.slice(i + 1).trim() };
+  }
+  return null;
+}
+
+/**
+ * A quoted scalar: single quotes with `''` for a quote, double quotes with the
+ * usual escapes. What stands after the closing quote is refused rather than
+ * silently dropped.
+ */
+function unquote(text, file, line) {
+  const quote = text[0];
+  let out = '';
+  for (let i = 1; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === quote) {
+      if (quote === "'" && text[i + 1] === "'") { out += "'"; i++; continue; }
+      const rest = cutComment(text.slice(i + 1)).trim();
+      if (rest !== '')
+        return refusal(file, line, `the manifest ${file} holds "${rest}" after the quoted value on line ${line}: a quoted value ends the field`);
+      return { ok: true, value: out };
+    }
+    if (quote === '"' && ch === '\\') {
+      const next = text[i + 1];
+      const escapes = { n: '\n', t: '\t', r: '\r', '"': '"', '\\': '\\', '/': '/', 0: '\0' };
+      if (next === 'u') {
+        const hex = text.slice(i + 2, i + 6);
+        if (!/^[0-9a-fA-F]{4}$/.test(hex))
+          return refusal(file, line, `the manifest ${file} holds an escape on line ${line} that is not \u005cuXXXX: only the usual escapes are written`);
+        out += String.fromCharCode(parseInt(hex, 16));
+        i += 5;
+        continue;
+      }
+      if (!(next in escapes))
+        return refusal(file, line, `the manifest ${file} holds the escape "${'\\'}${next}" on line ${line}: only the usual escapes are written`);
+      out += escapes[next];
+      i++;
+      continue;
+    }
+    out += ch;
+  }
+  return refusal(file, line, `the manifest ${file} opens a quote on line ${line} and never closes it: close it on the same line`);
+}
+
+/** The indicators this subset does not take, and what each is called. */
+const INDICATORS = { '&': 'anchor', '*': 'alias', '!': 'tag' };
+
+/** A scalar: plain, quoted, and nothing else this subset takes. */
+function parseScalar(text, file, line) {
+  const trimmed = text.trim();
+  if (trimmed === '') return { ok: true, value: null };
+  const first = trimmed[0];
+  if (INDICATORS[first])
+    return refusal(file, line, `the manifest ${file} writes the ${INDICATORS[first]} "${trimmed}" on line ${line}: an anchor, an alias and a tag are not part of the subset this reader takes`);
+  if (first === '{' || first === '[' || first === ']' || first === '}')
+    return refusal(file, line, `the manifest ${file} writes the flow collection "${trimmed}" on line ${line}: fields are block mappings and block sequences of mappings, one per line`);
+  if (first === "'" || first === '"') return unquote(trimmed, file, line);
+  const plain = cutComment(trimmed).trim();
+  if (plain === '' || plain === 'null' || plain === '~') return { ok: true, value: null };
+  if (plain === 'true' || plain === 'false') return { ok: true, value: plain === 'true' };
+  if (/^[+-]?\d+$/.test(plain)) return { ok: true, value: Number(plain) };
+  if (/^[+-]?(\d+\.\d*|\.\d+)([eE][+-]?\d+)?$/.test(plain)) return { ok: true, value: Number(plain) };
+  return { ok: true, value: plain };
+}
+
+/** A field's name: a word, or a quoted one. An alias never stands in its place. */
+function parseKey(text, file, line) {
+  const trimmed = text.trim();
+  if (trimmed === '')
+    return refusal(file, line, `the manifest ${file} writes a field with no name on line ${line}: a field is written "name: value"`);
+  const first = trimmed[0];
+  if (first === '*')
+    return refusal(file, line, `the manifest ${file} stands the alias "${trimmed}" in a mapping key's place on line ${line}: a field is named by its own word, never by an alias`);
+  if (INDICATORS[first])
+    return refusal(file, line, `the manifest ${file} writes the ${INDICATORS[first]} "${trimmed}" where a field's name goes, on line ${line}: a field is named by its own word`);
+  if (first === '{' || first === '[')
+    return refusal(file, line, `the manifest ${file} writes the flow collection "${trimmed}" where a field's name goes, on line ${line}: fields are block mappings, one per line`);
+  if (first === "'" || first === '"') {
+    const quoted = unquote(trimmed, file, line);
+    if (!quoted.ok) return quoted;
+    if (typeof quoted.value !== 'string' || quoted.value === '')
+      return refusal(file, line, `the manifest ${file} holds ${shown(quoted.value)} where a field's name goes, on line ${line}: a field is named by a word`);
+    return { ok: true, value: quoted.value };
+  }
+  const plain = cutComment(trimmed).trim();
+  if (plain === '')
+    return refusal(file, line, `the manifest ${file} writes a field with no name on line ${line}: a field is written "name: value"`);
+  return { ok: true, value: plain };
+}
+/** A block mapping at one indentation, its fields in the order they were written. */
+function parseMapping(tokens, i, indent, file) {
+  // Without a prototype: a manifest naming `__proto__` writes a field like
+  // any other, and reading it never reaches an inherited `schemaVersion` or
+  // `id` — an identity a manifest cannot hold is one it must not be read as.
+  const value = Object.create(null);
+  const positions = new Map();
+  while (i < tokens.length && tokens[i].indent === indent && !isItemLine(tokens[i].content)) {
+    const token = tokens[i];
+    const pair = splitPair(token.content);
+    if (pair === null)
+      return refusal(file, token.line, `the manifest ${file} holds line ${token.line}, which is neither a field "name: value" nor a list item "- ...": a manifest is a block mapping of fields`);
+    const key = parseKey(pair.key, file, token.line);
+    if (!key.ok) return key;
+    if (positions.has(key.value))
+      return refusal(file, token.line, `the manifest ${file} names "${key.value}" twice, again on line ${token.line}: each field is given once`);
+    positions.set(key.value, token.line);
+    if (pair.rest === '') {
+      if (i + 1 < tokens.length && tokens[i + 1].indent > indent) {
+        const sub = parseBlock(tokens, i + 1, tokens[i + 1].indent, file);
+        if (!sub.ok) return sub;
+        value[key.value] = sub.value;
+        i = sub.i;
+      } else {
+        value[key.value] = null;
+        i++;
+      }
+      continue;
+    }
+    const scalar = parseScalar(pair.rest, file, token.line);
+    if (!scalar.ok) return scalar;
+    value[key.value] = scalar.value;
+    i++;
+    if (i < tokens.length && tokens[i].indent > indent)
+      return refusal(file, tokens[i].line, `the manifest ${file} indents line ${tokens[i].line} under "${key.value}", which already holds ${shown(scalar.value)}: a field holds one value`);
+  }
+  LINES.set(value, positions);
+  return { ok: true, value, i };
+}
+
+/** A block sequence at one indentation: scalars, or mappings starting on the dash's own line. */
+function parseSequence(tokens, i, indent, file) {
+  const items = [];
+  const lines = [];
+  while (i < tokens.length && tokens[i].indent === indent && isItemLine(tokens[i].content)) {
+    const token = tokens[i];
+    const rest = token.content.replace(/^-(\s|$)/, '');
+    if (rest === '') {
+      if (i + 1 < tokens.length && tokens[i + 1].indent > indent) {
+        const sub = parseBlock(tokens, i + 1, tokens[i + 1].indent, file);
+        if (!sub.ok) return sub;
+        items.push(sub.value);
+        i = sub.i;
+      } else {
+        items.push(null);
+        i++;
+      }
+    } else {
+      const inner = indent + (token.content.length - rest.length);
+      const sub = [{ indent: inner, content: rest, line: token.line }];
+      let j = i + 1;
+      while (j < tokens.length && tokens[j].indent > indent) { sub.push(tokens[j]); j++; }
+      const parsed = parseBlock(sub, 0, inner, file);
+      if (!parsed.ok) return parsed;
+      if (parsed.i < sub.length)
+        return refusal(file, sub[parsed.i].line, `the manifest ${file} indents line ${sub[parsed.i].line} under an item that already holds a value: a list item holds one value`);
+      items.push(parsed.value);
+      i = j;
+    }
+    lines.push(token.line);
+  }
+  LINES.set(items, lines);
+  return { ok: true, value: items, i };
+}
+
+/** One block at one indentation: a mapping, a sequence, or a lone scalar. */
+function parseBlock(tokens, i, indent, file) {
+  if (isItemLine(tokens[i].content)) return parseSequence(tokens, i, indent, file);
+  if (splitPair(tokens[i].content) !== null) return parseMapping(tokens, i, indent, file);
+  const scalar = parseScalar(tokens[i].content, file, tokens[i].line);
+  if (!scalar.ok) return scalar;
+  return { ok: true, value: scalar.value, i: i + 1 };
+}
+
+/**
+ * A whole manifest's text, read as the subset above: the value, or the first
+ * refusal with the line it stands on.
+ */
+export function parseManifest(text, file) {
+  const read = readLines(text, file);
+  if (!read.ok) return read;
+  const tokens = read.tokens;
+  if (!tokens.length)
+    return refusal(file, 1, `the manifest ${file} is empty: a product is recognised by its schemaVersion, its id and its name`);
+  if (tokens[0].indent !== 0)
+    return refusal(file, tokens[0].line, `the manifest ${file} indents its first line by ${tokens[0].indent} spaces: a manifest starts at the left margin`);
+  const parsed = parseBlock(tokens, 0, 0, file);
+  if (!parsed.ok) return parsed;
+  if (parsed.i < tokens.length)
+    return refusal(file, tokens[parsed.i].line, `the manifest ${file} holds line ${tokens[parsed.i].line} at a place of its own: a field holds one value, and a value's lines are indented under it`);
+  return { ok: true, value: parsed.value };
+}
+
+/** A folder name a code repository may take: one path segment, and nothing that moves. */
+function isFolderName(name) {
+  return typeof name === 'string' && name !== '' && name === name.trim()
+    && name !== '.' && name !== '..' && !/[/\\\u0000-\u001f]/.test(name);
+}
+
+// ---- a product, read from its manifest ------------------------------------
+
+/**
+ * Reads one product folder's manifest. Refused — never defaulted, never
+ * logged — when the folder holds no manifest, the manifest cannot be read or
+ * is not the subset above, names no schema version this program knows, names
+ * no `id`, or names a `skills` or `repos` field this program cannot use. A
+ * field this program does not know is ignored: a manifest grows by fields
+ * added beside the three.
+ *
+ * The product it returns carries where it was read (the folder's full path),
+ * the three fields that are never renamed, and the fields a caller needs to
+ * work with the code repositories: `skills` and `repos`.
+ */
+export function readProduct(productFolder) {
+  const folder = resolve(productFolder);
+  const manifestFile = join(folder, MANIFEST_FILE);
+
+  let text;
+  try {
+    text = readFileSync(manifestFile, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT')
+      return refusal(manifestFile, 1, `the folder ${folder} holds no ${MANIFEST_FILE}: a product is recognised by its manifest`);
+    return refusal(manifestFile, 1, `the manifest ${manifestFile} could not be read: ${error.message}`);
+  }
+
+  const parsed = parseManifest(text, manifestFile);
+  if (!parsed.ok) return parsed;
+  const record = parsed.value;
+  if (record === null || typeof record !== 'object' || Array.isArray(record))
+    return refusal(manifestFile, 1, `the manifest ${manifestFile} holds ${shown(record)}: a manifest is a mapping of fields, and this is not one`);
+
+  if (!('schemaVersion' in record))
+    return refusal(manifestFile, 1, `the manifest ${manifestFile} names no "schemaVersion": a product knows version ${PRODUCT_SCHEMA_VERSION}`);
+  if (record.schemaVersion !== PRODUCT_SCHEMA_VERSION)
+    return refusal(manifestFile, lineOf(record, 'schemaVersion'), `the manifest ${manifestFile} holds ${shown(record.schemaVersion)} at "schemaVersion": not a schema version this program knows; it writes ${PRODUCT_SCHEMA_VERSION}`);
+
+  if (!('id' in record))
+    return refusal(manifestFile, 1, `the manifest ${manifestFile} names no "id": a product is identified by the id it was given at creation`);
+  if (typeof record.id !== 'string' || record.id.trim() === '')
+    return refusal(manifestFile, lineOf(record, 'id'), `the manifest ${manifestFile} holds ${shown(record.id)} at "id": a product is identified by the id it was given at creation, and it is a word`);
+
+  let name;
+  if (record.name === undefined || record.name === '') name = basename(folder.replace(/[/\\]+$/, ''));
+  else if (typeof record.name === 'string') name = record.name;
+  else return refusal(manifestFile, lineOf(record, 'name'), `the manifest ${manifestFile} holds ${shown(record.name)} at "name": not a name, which is a word`);
+
+  const skills = record.skills;
+  if (skills !== undefined && skills !== null) {
+    if (typeof skills !== 'object' || Array.isArray(skills))
+      return refusal(manifestFile, lineOf(record, 'skills'), `the manifest ${manifestFile} holds ${shown(skills)} at "skills": the set pinned here is written as "shady2k: <version>", one line per set`);
+    for (const [set, version] of Object.entries(skills)) {
+      if (typeof version !== 'string' || version.trim() === '')
+        return refusal(manifestFile, lineOf(skills, set), `the manifest ${manifestFile} holds ${shown(version)} at "skills", beside "${set}": the version of the set pinned here, as a word`);
+    }
+  }
+
+  const repos = [];
+  const declared = record.repos;
+  if (declared !== undefined && declared !== null) {
+    if (!Array.isArray(declared))
+      return refusal(manifestFile, lineOf(record, 'repos'), `the manifest ${manifestFile} holds ${shown(declared)} at "repos": the code repositories are a list, each item "name:", "url:" and an optional "branch:"`);
+    const taken = new Set();
+    for (let i = 0; i < declared.length; i++) {
+      const entry = declared[i];
+      const at = lineOfIndex(declared, i);
+      if (entry === null || typeof entry !== 'object' || Array.isArray(entry))
+        return refusal(manifestFile, at, `the manifest ${manifestFile} holds ${shown(entry)} at "repos", on line ${at}: a code repository is written as "name:", "url:" and an optional "branch:"`);
+      // A field an item leaves out is reported on the item's own line: the
+      // line the reader knows is the one the item starts on.
+      const atName = entry.name === undefined ? at : lineOf(entry, 'name');
+      const atUrl = entry.url === undefined ? at : lineOf(entry, 'url');
+      const atBranch = entry.branch === undefined ? at : lineOf(entry, 'branch');
+      if (!isFolderName(entry.name))
+        return refusal(manifestFile, atName, `the manifest ${manifestFile} holds ${shown(entry.name)} at "repos", beside "name": a code repository is named by the folder it is cloned into, and that name is one path segment`);
+      if (taken.has(entry.name))
+        return refusal(manifestFile, atName, `the manifest ${manifestFile} names the code repository "${entry.name}" twice, on line ${atName}: each repository is declared once, and clones into its own folder`);
+      taken.add(entry.name);
+      if (typeof entry.url !== 'string' || entry.url.trim() === '')
+        return refusal(manifestFile, atUrl, `the manifest ${manifestFile} holds ${shown(entry.url)} at "repos", beside "url": a code repository is cloned from the url it declares`);
+      if (entry.branch !== undefined && entry.branch !== null && (typeof entry.branch !== 'string' || entry.branch.trim() === ''))
+        return refusal(manifestFile, atBranch, `the manifest ${manifestFile} holds ${shown(entry.branch)} at "repos", beside "branch": the branch a clone is taken from, as a word`);
+      repos.push({ name: entry.name, url: entry.url, branch: typeof entry.branch === 'string' ? entry.branch : undefined });
+    }
+  }
+
+  return { ok: true, product: { folder, id: record.id, name, schemaVersion: PRODUCT_SCHEMA_VERSION, skills: skills ?? {}, repos } };
+}
+
+// ---- git, and the environment it runs in ----------------------------------
+
+/**
+ * One git invocation in a folder. The caller's loader variables (`GIT_DIR`
+ * and its companions) are stripped, so a git call here never reaches into
+ * another repository's worktree, and `extra` is merged over what is left,
+ * which is how a test seals an identity.
+ */
+function runGit(folder, args, extra) {
+  const env = {};
+  for (const [name, value] of Object.entries(process.env)) {
+    if (value !== undefined && !GIT_LEAKS.includes(name)) env[name] = value;
+  }
+  Object.assign(env, extra ?? {});
+  const run = spawnSync('git', args, { cwd: folder, encoding: 'utf8', env });
+  const output = `${run.stderr ?? ''}${run.stdout ?? ''}`.trim();
+  if (run.error !== undefined) {
+    // No run happened: git's own error — normally ENOENT under a name PATH
+    // does not hold — is the only cause there is.
+    return { ok: false, output: output === '' ? run.error.message : `${output}; ${run.error.message}` };
+  }
+  if (run.status !== 0) return { ok: false, output };
+  return { ok: true, output };
+}
+
+/** A word as YAML reads it back: plain where it can be, quoted where it cannot. */
+const yamlWord = (word) => (/^[A-Za-z0-9][A-Za-z0-9 ._+-]*$/.test(word) ? word : `'${word.replace(/'/g, "''")}'`);
+
+/**
+ * Why a day cannot be used, or null when it can. A draft's day is written
+ * `YYYY-MM-DD` and is a day the calendar has, so a test never depends on the
+ * clock and no folder is named after a day that does not exist.
+ */
+export function whyNotADay(date) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return 'is not written YYYY-MM-DD';
+  const [year, month, day] = date.split('-').map(Number);
+  const asDate = new Date(Date.UTC(year, month - 1, day));
+  if (asDate.getUTCFullYear() !== year || asDate.getUTCMonth() !== month - 1 || asDate.getUTCDate() !== day)
+    return 'is not a day of the calendar';
+  return null;
+}
+
+/** A draft's day, as `YYYY-MM-DD`, from the caller's word or the local clock. */
+function dayOf(date) {
+  if (typeof date === 'string') {
+    const why = whyNotADay(date);
+    if (why !== null) return { ok: false, message: `the day "${date}" ${why}` };
+    return { ok: true, day: date };
+  }
+  const now = new Date();
+  const pad = (value) => String(value).padStart(2, '0');
+  return { ok: true, day: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}` };
+}
+
+/** The manifest's text as `new` writes it: the three fields that are never renamed. */
+const manifestText = (id, name) => [`schemaVersion: ${PRODUCT_SCHEMA_VERSION}`, `id: ${id}`, `name: ${yamlWord(name)}`, ''].join('\n');
+
+/**
+ * Reserves the day's folder name in the products home: one non-recursive
+ * mkdir of the candidate, growing the suffix until a name this call alone
+ * reserved. A recursive reservation would succeed into another run's folder,
+ * and its cleanup would then delete that run's work.
+ */
+export function reserveDraftFolder(home, day) {
+  for (let attempt = 1; ; attempt++) {
+    const name = attempt === 1 ? `idea-${day}` : `idea-${day}-${attempt}`;
+    const candidate = join(home, name);
+    try {
+      mkdirSync(candidate);
+      return { folder: candidate, name };
+    } catch (error) {
+      if (error.code === 'EEXIST') continue;
+      throw error;
+    }
+  }
+}
+
+/** Removes the folder this invocation itself reserved; the failure, when there is one, is the caller's to report. */
+function removeDraftFolder(folder) {
+  try {
+    rmSync(folder, { recursive: true, force: true });
+    return undefined;
+  } catch (error) {
+    return `the failed draft's folder ${folder} could not be removed: ${error.message}`;
+  }
+}
+
+/**
+ * Creates a draft product repository under the products home the caller
+ * names. Nothing is refused half-done: the home is judged before any product
+ * folder exists, and after the folder was created, every failure removes it
+ * again — when even that removal fails, the message names the folder that was
+ * left behind, so a failed run never leaves one without saying where.
+ */
+export function createDraft({ home, date, gitEnv } = {}) {
+  if (typeof home !== 'string' || home.trim() === '')
+    return { outcome: 'refused', message: 'no products home was given: a product is created under the home its caller names, and this program reads none from anywhere else' };
+  const products = resolve(home.trim());
+
+  // The day is judged before anything at all is made: a command refused for
+  // its arguments leaves no folder behind, not even the home.
+  const day = dayOf(date);
+  if (!day.ok) return { outcome: 'refused', message: day.message };
+
+  // A home that is not a folder is refused before anything is written: a
+  // file of that name must not be replaced, and nothing must land beside it
+  // by surprise.
+  try {
+    if (!statSync(products).isDirectory())
+      return { outcome: 'refused', message: `the products home ${products} cannot be used: a file of that name is in the way, and products are written under it — point the command at another home` };
+  } catch {
+    // Absent: created below, as any missing products home is.
+  }
+  try {
+    mkdirSync(products, { recursive: true });
+  } catch (error) {
+    return { outcome: 'refused', message: `the products home ${products} cannot be created: ${error.message}` };
+  }
+
+  let folder;
+  let name;
+  try {
+    // The draft's name is the reserved candidate's own name, read once here
+    // for the manifest and the result — never again from a slice of the path,
+    // which a home of `/` would cut a letter off.
+    const reserved = reserveDraftFolder(products, day.day);
+    folder = reserved.folder;
+    name = reserved.name;
+  } catch (error) {
+    if (['EACCES', 'EPERM', 'EROFS'].includes(error.code))
+      return { outcome: 'refused', message: `the products home ${products} cannot be written into: ${error.message}` };
+    return { outcome: 'failed', message: `the draft could not be created in ${products}: ${error.message}` };
+  }
+
+  const id = randomUUID();
+  try {
+    for (const folderName of FOLDERS) mkdirSync(join(folder, folderName));
+    writeFileSync(join(folder, 'AGENTS.md'), CONSTITUTION);
+    writeFileSync(join(folder, 'CLAUDE.md'), '@AGENTS.md\n');
+    writeFileSync(join(folder, MANIFEST_FILE), manifestText(id, name));
+    writeFileSync(join(folder, '.gitignore'), 'repos/\n');
+    for (const folderName of TRACKED_FOLDERS) writeFileSync(join(folder, folderName, '.gitkeep'), '');
+
+    const init = runGit(folder, ['init', '--quiet', '--initial-branch=main'], gitEnv);
+    if (!init.ok) throw new Error(`git init failed in ${folder}: ${init.output}`);
+    const add = runGit(folder, ['add', ...COMMITTED_FILES], gitEnv);
+    if (!add.ok) throw new Error(`git add failed in ${folder}: ${add.output}`);
+    const commit = runGit(folder, ['commit', '--quiet', '-m', 'Create the draft product'], gitEnv);
+    if (!commit.ok) throw new Error(`git commit failed in ${folder}: ${commit.output}`);
+  } catch (error) {
+    const failure = error.message;
+    const cleanup = removeDraftFolder(folder);
+    return { outcome: 'failed', message: cleanup === undefined ? failure : `${failure}; ${cleanup}` };
+  }
+  return { outcome: 'created', folder, id, name };
+}
+
+// ---- the product, named, given a remote, and bootstrapped ------------------
+
+/** Why a product may not take a folder name, or null when it may. */
+function whyNotAFolderName(name) {
+  if (typeof name !== 'string' || name.trim() === '') return 'a product is named by a word, and this is empty';
+  if (name !== name.trim()) return 'a folder name does not begin or end with a space';
+  if (name === '.' || name === '..') return 'a folder name is not "." or ".."';
+  if (/[/\\]/.test(name)) return 'a folder name is one path segment, and this holds a separator';
+  if (/[\u0000-\u001f]/.test(name)) return 'a folder name holds no control character';
+  return null;
+}
+
+/**
+ * The manifest's text with its `name` field written as the product's new
+ * name, every other byte kept. The field is found by its own name, however
+ * the manifest spells the key — bare, single- or double-quoted — and only
+ * the value is replaced: a comment standing on that line stays where the
+ * person wrote it.
+ */
+function manifestNamed(text, name) {
+  const lines = text.split('\n');
+  let written = false;
+  const out = lines.map((line) => {
+    if (written) return line;
+    const lead = line.match(/^\s*/)[0];
+    const pair = splitPair(line.slice(lead.length));
+    if (pair === null) return line;
+    const key = pair.key.trim();
+    if (key !== 'name' && key !== '"name"' && key !== "'name'") return line;
+    written = true;
+    const comment = pair.rest.slice(cutComment(pair.rest).length).trim();
+    return `${lead}${pair.key.replace(/\s+$/, '')}: ${yamlWord(name)}${comment === '' ? '' : ` ${comment}`}`;
+  });
+  if (!written) {
+    if (out[out.length - 1] === '') out.splice(out.length - 1, 0, `name: ${yamlWord(name)}`);
+    else out.push(`name: ${yamlWord(name)}`);
+  }
+  return out.join('\n');
+}
+
+/** Puts a failed rename back as it was; the failure, when there is one, is the caller's to report. */
+function putRenameBack(from, to, manifest, gitEnv) {
+  try {
+    writeFileSync(join(from, MANIFEST_FILE), manifest);
+    runGit(from, ['reset', '--quiet', '--', MANIFEST_FILE], gitEnv);
+    renameSync(from, to);
+    return undefined;
+  } catch (error) {
+    return `the failed rename left the product in ${from}: ${error.message}`;
+  }
+}
+
+/**
+ * Names a draft in place: the folder is renamed within its parent, `name` is
+ * written in the manifest, and that change is one commit. The `id` and every
+ * other byte of the manifest are kept, and nothing written holds an absolute
+ * path, so the links between the product's documents still reach each other.
+ * Every refusal — a folder name a product cannot take, a name already taken in
+ * the parent, a working tree with uncommitted changes, a manifest that cannot
+ * be used — happens before anything moves.
+ */
+export function renameProduct({ folder: given, name, gitEnv } = {}) {
+  const read = readProduct(given === undefined ? '.' : given);
+  if (!read.ok) return { outcome: 'refused', message: read.message };
+  const folder = read.product.folder;
+
+  const why = whyNotAFolderName(name);
+  if (why !== null) return { outcome: 'refused', message: `the name "${name}" cannot be a product's: ${why}` };
+
+  const target = join(dirname(folder), name);
+  if (target === folder)
+    return { outcome: 'refused', message: `the folder ${folder} is already named "${name}": naming a product to the name it has makes no commit` };
+  if (existsSync(target))
+    return { outcome: 'refused', message: `the folder ${target} is in the way: a product's name is the folder it lives in, and that name is taken` };
+  if (!existsSync(join(folder, '.git')))
+    return { outcome: 'refused', message: `the folder ${folder} is not a git repository: naming a product in place is one commit, and there is no repository to commit it into` };
+
+  const status = runGit(folder, ['status', '--porcelain'], gitEnv);
+  if (!status.ok) return { outcome: 'failed', message: `git status failed in ${folder}: ${status.output}` };
+  if (status.output !== '')
+    return { outcome: 'refused', message: `the folder ${folder} holds changes that are not committed: commit them first, since naming the product is a commit of its own and would take them with it` };
+
+  const manifest = readFileSync(join(folder, MANIFEST_FILE), 'utf8');
+  renameSync(folder, target);
+  try {
+    writeFileSync(join(target, MANIFEST_FILE), manifestNamed(manifest, name));
+    const add = runGit(target, ['add', '--', MANIFEST_FILE], gitEnv);
+    if (!add.ok) throw new Error(`git add failed in ${target}: ${add.output}`);
+    const commit = runGit(target, ['commit', '--quiet', '-m', `Name the product ${name}`], gitEnv);
+    if (!commit.ok) throw new Error(`git commit failed in ${target}: ${commit.output}`);
+  } catch (error) {
+    const back = putRenameBack(target, folder, manifest, gitEnv);
+    return { outcome: 'failed', message: back === undefined ? error.message : `${error.message}; ${back}` };
+  }
+  return { outcome: 'renamed', folder: target, id: read.product.id, name };
+}
+
+/**
+ * Adds `origin` to a product. It never pushes: a product's remote is where its
+ * own history is kept, and pushing is the person's decision, taken with the
+ * command of their git. An `origin` already there is refused rather than
+ * replaced, so a remote someone set is never silently repointed.
+ */
+export function addRemote({ folder: given, url, gitEnv } = {}) {
+  const read = readProduct(given === undefined ? '.' : given);
+  if (!read.ok) return { outcome: 'refused', message: read.message };
+  const folder = read.product.folder;
+
+  const wanted = typeof url === 'string' ? url.trim() : '';
+  if (wanted === '')
+    return { outcome: 'refused', message: 'no url was given: a remote is added with the url the code repository lives at' };
+  if (wanted.startsWith('-'))
+    return { outcome: 'refused', message: `the url "${wanted}" begins with "-", which a command line reads as an option: write the url itself` };
+
+  const remotes = runGit(folder, ['remote'], gitEnv);
+  if (!remotes.ok) return { outcome: 'failed', message: `git remote failed in ${folder}: ${remotes.output}` };
+  if (remotes.output.split('\n').map((line) => line.trim()).includes('origin'))
+    return { outcome: 'refused', message: `the folder ${folder} already has the remote "origin": point it at another url deliberately, or remove it first` };
+
+  const add = runGit(folder, ['remote', 'add', 'origin', wanted], gitEnv);
+  if (!add.ok) return { outcome: 'failed', message: `git remote add failed in ${folder}: ${add.output}` };
+  return { outcome: 'added', folder, remote: 'origin', url: wanted };
+}
+
+/**
+ * Clones the code repositories the manifest declares into `repos/<name>`. A
+ * checkout already there is never replaced: it is reported, as dirty when it
+ * has uncommitted changes, and left as it is — a person's work in it is not
+ * this program's to discard. One report per repository, and a repository that
+ * could not be cloned is reported too, so the caller sees every outcome of
+ * one run.
+ */
+export function bootstrapProduct({ folder: given, gitEnv } = {}) {
+  const read = readProduct(given === undefined ? '.' : given);
+  if (!read.ok) return { outcome: 'refused', message: read.message };
+  const folder = read.product.folder;
+  const reposFolder = join(folder, 'repos');
+  const reports = [];
+
+  for (const repo of read.product.repos) {
+    const target = join(reposFolder, repo.name);
+    if (existsSync(target)) {
+      if (!statSync(target).isDirectory()) {
+        reports.push({ name: repo.name, url: repo.url, state: 'failed', dirty: false, message: `${target} is not a folder: a checkout is a folder, and that name is taken by something else` });
+        continue;
+      }
+      // A checkout of its own, or nothing this program can report on: a
+      // folder that is no repository would answer `git status` with the
+      // repository around it, and its report would be about someone else's
+      // work. It is named for what it is and left alone.
+      const top = runGit(target, ['rev-parse', '--show-toplevel'], gitEnv);
+      if (!top.ok || resolve(top.output) !== resolve(target)) {
+        reports.push({ name: repo.name, url: repo.url, state: 'failed', dirty: false, message: `${target} is not a git checkout of its own: something else of that name is there, and this program leaves it alone` });
+        continue;
+      }
+      const status = runGit(target, ['status', '--porcelain'], gitEnv);
+      reports.push({
+        name: repo.name,
+        url: repo.url,
+        state: 'present',
+        dirty: status.ok ? status.output !== '' : false,
+        message: status.ok ? undefined : `left alone and not read: ${status.output}`,
+      });
+      continue;
+    }
+    try {
+      mkdirSync(reposFolder, { recursive: true });
+    } catch (error) {
+      reports.push({ name: repo.name, url: repo.url, state: 'failed', dirty: false, message: `the folder ${reposFolder} could not be created: ${error.message}` });
+      continue;
+    }
+    const args = ['clone', '--quiet'];
+    if (repo.branch !== undefined) args.push('--branch', repo.branch);
+    args.push(repo.url, target);
+    const clone = runGit(folder, args, gitEnv);
+    if (!clone.ok)
+      reports.push({ name: repo.name, url: repo.url, state: 'failed', dirty: false, message: `git clone failed for ${repo.url} into ${target}: ${clone.output}` });
+    else reports.push({ name: repo.name, url: repo.url, state: 'cloned', dirty: false });
+  }
+  return { outcome: 'bootstrapped', folder, repos: reports };
+}
+
+// ---- the self-test ----------------------------------------------------------
+
+/**
+ * The manifest cases: `fixtures/workspace/cases.json` holds valid and invalid
+ * manifests, each with its text and what reading it must give — the identity,
+ * or the line and a phrase of the refusal. A case's `folder` names the folder
+ * the text is written in, since a manifest naming no `name` is read under its
+ * folder's name; `text` of null writes no manifest at all, which is a folder
+ * holding none.
+ */
+export function selftest() {
+  const casesFile = join(HERE, 'fixtures', 'workspace', 'cases.json');
+  let fixtures;
+  try {
+    fixtures = JSON.parse(readFileSync(casesFile, 'utf8'));
+  } catch (error) {
+    console.log(`FAIL  workspace/cases.json cannot be read: ${error.message}`);
+    return 1;
+  }
+  let failures = 0;
+  const show = (ok, label) => {
+    console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}`);
+    if (!ok) failures++;
+  };
+  const root = mkdtempSync(join(tmpdir(), 'workspace-cases-'));
+  try {
+    for (const one of fixtures.cases) {
+      const folderName = one.folder ?? fixtures.folder ?? 'idea-2026-10-09';
+      const folder = join(root, folderName);
+      mkdirSync(folder, { recursive: true });
+      if (one.text !== null && one.text !== undefined) writeFileSync(join(folder, MANIFEST_FILE), one.text);
+      const read = readProduct(folder);
+      if (one.ok !== undefined && one.ok !== null) {
+        let same = read.ok === true
+          && read.product.id === one.ok.id
+          && read.product.name === one.ok.name
+          && read.product.schemaVersion === one.ok.schemaVersion;
+        if (same && one.ok.repos !== undefined) same = JSON.stringify(read.product.repos) === JSON.stringify(one.ok.repos);
+        if (same && one.ok.skills !== undefined) same = JSON.stringify(read.product.skills) === JSON.stringify(one.ok.skills);
+        show(same, `workspace/${one.name}${same ? '' : `: got ${read.ok ? JSON.stringify({ id: read.product.id, name: read.product.name, schemaVersion: read.product.schemaVersion }) : `refused at line ${read.line}: ${read.message}`}`}`);
+      } else {
+        const same = read.ok === false && read.line === one.line && read.message.includes(one.message);
+        show(same, `workspace/${one.name}${same ? '' : `: got ${read.ok ? `read as ${JSON.stringify(read.product)}` : `line ${read.line}: ${read.message}`}`}`);
+      }
+      rmSync(folder, { recursive: true, force: true });
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+  return failures ? 1 : 0;
+}
+
+// ---- the command line -------------------------------------------------------
+
+/** The plugin version: the set's manifest where one stands above, else the constant. */
+function pluginVersion() {
+  let up = HERE;
+  for (let step = 0; step < 4; step++, up = dirname(up)) {
+    try {
+      const manifest = JSON.parse(readFileSync(join(up, '.claude-plugin', 'plugin.json'), 'utf8'));
+      if (typeof manifest.version === 'string' && manifest.version !== '') return manifest.version;
+    } catch {
+      // Not here: the next folder up, or the constant.
+    }
+  }
+  return PLUGIN_VERSION;
+}
+
+/** What each command takes: its options, and how many words follow it. */
+const COMMANDS = {
+  new: { options: { '--home': 'a folder', '--date': 'a day, YYYY-MM-DD', '--json': false }, words: [0, 0], words_are: 'no word of its own' },
+  read: { options: { '--json': false }, words: [0, 1], words_are: 'at most one folder' },
+  rename: { options: { '--json': false }, words: [2, 2], words_are: 'a folder and a name' },
+  remote: { options: { '--json': false }, words: [2, 2], words_are: 'a folder and a url' },
+  bootstrap: { options: { '--json': false }, words: [1, 1], words_are: 'a folder' },
+};
+
+/** The options of one command, as a line a refusal can quote. */
+const describeOptions = (options) => Object.entries(options)
+  .map(([name, value]) => (value === false ? name : `${name} <${value}>`)).join(', ');
+
+/** One command's words: its positionals and its options, with every misuse named. */
+function parseCommand(command, args) {
+  const spec = COMMANDS[command];
+  const values = {};
+  const words = [];
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--') { words.push(...args.slice(i + 1)); break; }
+    if (!arg.startsWith('--')) { words.push(arg); continue; }
+    const equals = arg.indexOf('=');
+    const name = equals === -1 ? arg : arg.slice(0, equals);
+    if (!(name in spec.options))
+      throw new Misuse(`unknown option "${arg}": ${command} takes ${describeOptions(spec.options)}`);
+    if (name in values)
+      throw new Misuse(`the option "${name}" is given twice: ${command} takes ${describeOptions(spec.options)}`);
+    if (spec.options[name] === false) {
+      if (equals !== -1) throw new Misuse(`the option "${name}" takes no value`);
+      values[name] = true;
+      continue;
+    }
+    const inline = equals === -1 ? undefined : arg.slice(equals + 1);
+    let value = inline;
+    if (inline === undefined) value = args[++i];
+    const trimmed = typeof value === 'string' ? value.trim() : undefined;
+    if (trimmed === undefined || trimmed === '' || trimmed.startsWith('--'))
+      throw new Misuse(`the option "${name}" needs ${spec.options[name]}${value === undefined || trimmed === '' ? '' : `, not "${trimmed}"`}`);
+    values[name] = value;
+  }
+  const [least, most] = spec.words;
+  if (words.length < least || words.length > most)
+    throw new Misuse(`${command} takes ${spec.words_are}, and ${words.length} ${words.length === 1 ? 'word was' : 'words were'} given`);
+  // A day the calendar does not have is an argument this command cannot use,
+  // and it is refused as one: before anything is made, with the usage.
+  if (values['--date'] !== undefined) {
+    const why = whyNotADay(values['--date']);
+    if (why !== null) throw new Misuse(`the option "--date" needs a day, YYYY-MM-DD, and "${values['--date']}" ${why}`);
+  }
+  return { values, words };
+}
+
+/** What one command did: what it printed, and the exit code its outcome carries. */
+function runCommand(command, { values, words }) {
+  if (command === 'new') {
+    const draft = createDraft({ home: values['--home'], date: values['--date'] });
+    if (draft.outcome === 'created')
+      return { code: 0, lines: [`folder: ${draft.folder}`, `id: ${draft.id}`], body: { folder: draft.folder, id: draft.id, name: draft.name } };
+    return { code: draft.outcome === 'refused' ? 2 : 1, error: { kind: draft.outcome, message: draft.message } };
+  }
+  if (command === 'read') {
+    const read = readProduct(words[0] === undefined ? '.' : words[0]);
+    if (read.ok) {
+      const { folder, id, name, schemaVersion } = read.product;
+      return { code: 0, lines: [`folder: ${folder}`, `id: ${id}`, `name: ${name}`, `schemaVersion: ${schemaVersion}`], body: { folder, id, name, schemaVersion } };
+    }
+    return { code: 2, error: { kind: 'refused', message: read.message, file: read.file, line: read.line } };
+  }
+  if (command === 'rename') {
+    const done = renameProduct({ folder: words[0], name: words[1] });
+    if (done.outcome === 'renamed')
+      return { code: 0, lines: [`folder: ${done.folder}`, `id: ${done.id}`, `name: ${done.name}`], body: { folder: done.folder, id: done.id, name: done.name } };
+    return { code: done.outcome === 'refused' ? 2 : 1, error: { kind: done.outcome, message: done.message } };
+  }
+  if (command === 'remote') {
+    const done = addRemote({ folder: words[0], url: words[1] });
+    if (done.outcome === 'added')
+      return { code: 0, lines: [`folder: ${done.folder}`, `remote: ${done.remote}`, `url: ${done.url}`], body: { folder: done.folder, remote: done.remote, url: done.url } };
+    return { code: done.outcome === 'refused' ? 2 : 1, error: { kind: done.outcome, message: done.message } };
+  }
+  const done = bootstrapProduct({ folder: words[0] });
+  if (done.outcome === 'refused') return { code: 2, error: { kind: 'refused', message: done.message } };
+  const lines = [`bootstrapped: ${done.folder}`];
+  for (const repo of done.repos)
+    lines.push(`repo: ${repo.name} ${repo.state}${repo.dirty ? ' dirty' : ''}${repo.message === undefined ? '' : `: ${repo.message}`}`);
+  const failed = done.repos.filter((repo) => repo.state === 'failed').length;
+  return { code: failed ? 1 : 0, lines, body: { folder: done.folder, repos: done.repos } };
+}
+
+/** One run of the command line: 0, 1 or 2, with its own stream's output printed. */
+export function main(argv) {
+  const args = [...argv];
+  const asJson = args.includes('--json');
+  const print = (code, { lines = [], error = null, body = null } = {}) => {
+    if (asJson) {
+      // The documented shape, and nothing else: `message`, and `file` and
+      // `line` where the refusal knows them.
+      const described = error === null ? (body ?? {}) : {
+        error: {
+          message: error.message,
+          ...(error.file === undefined ? {} : { file: error.file }),
+          ...(error.line === undefined ? {} : { line: error.line }),
+        },
+      };
+      console.log(JSON.stringify(described));
+      return code;
+    }
+    if (error !== null) {
+      console.error(error.kind === 'misuse' ? `product: ${error.message}` : error.message);
+      if (error.kind === 'misuse') console.error(`product: ${USAGE}`);
+      return code;
+    }
+    for (const line of lines) console.log(line);
+    return code;
+  };
+
+  if (args.length === 0)
+    return print(2, { error: { kind: 'misuse', message: 'no command was given: the commands are new, read, rename, remote and bootstrap' } });
+  const [command, ...rest] = args;
+  if (command === '--help' || command === '--version' || command === '--selftest') {
+    if (rest.length)
+      return print(2, { error: { kind: 'misuse', message: `"${command}" stands alone: it takes no other word` } });
+    if (command === '--help') { console.log(HELP); return 0; }
+    if (command === '--version') { console.log(pluginVersion()); return 0; }
+    return selftest();
+  }
+  if (command.startsWith('--'))
+    return print(2, { error: { kind: 'misuse', message: `unknown option "${command}" before the command: the commands are new, read, rename, remote and bootstrap` } });
+  if (!(command in COMMANDS))
+    return print(2, { error: { kind: 'misuse', message: `unknown command "${command}": the commands are new, read, rename, remote and bootstrap` } });
+
+  let parsed;
+  try {
+    parsed = parseCommand(command, rest);
+  } catch (error) {
+    return print(2, { error: { kind: 'misuse', message: error.message } });
+  }
+  const result = runCommand(command, parsed);
+  return print(result.code, result);
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    process.exitCode = main(process.argv.slice(2));
+  } catch (error) {
+    console.error(`product: ${error.message}`);
+    process.exitCode = 2;
+  }
+}
