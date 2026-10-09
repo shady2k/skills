@@ -508,7 +508,7 @@ function describeReport(r) {
     `Open runs ${r.open}, of them past their promised time ${r.pastForecast}`,
     describePace(r.pace),
     r.spend.runsMeasured
-      ? `Measured over ${r.spend.runsMeasured} finished run(s)${r.spend.partial ? ` (${r.spend.partial} of them incomplete, left out of the median: a span still open or a transcript on another machine)` : ''}: ` +
+      ? `Measured over ${r.spend.runsMeasured} finished run(s)${r.spend.partial ? ` (${r.spend.partial} of them incomplete, left out of the median: not all their occupied time could be measured -- a span still open, a transcript on another machine, or a harness this copy cannot read)` : ''}: ` +
         `the owner ${r.spend.attentionMinutes} min answering${r.spend.acceptedPerAttentionHour ? `, ${r.spend.acceptedPerAttentionHour} feature(s) accepted per hour of it` : ''}; ` +
         `a run occupies ${r.spend.medianOccupiedMinutes} min (median), ${r.spend.medianWorkMinutes} min of work summed over its sessions`
       : 'No finished run has a measured summary yet.',
@@ -1417,6 +1417,8 @@ async function selftest() {
     // of F is a second finished run for report and pace.
     postAll([{ item: 'B', body: formatRecord('claim', { span: 'gen00002', at: T(clock), session: 'gemini:gb', agent: 'gemini-agent:t@m:b#gb', role: 'agent' }) }]);
     const fin2 = parseRecord(act('finish', '--item', 'F', '--result', 'pull-request', ...as('coord')).at(-1).body);
+    expect('report: an incomplete run is explained as time that could not be measured, not only as a transcript elsewhere',
+      /not all their occupied time could be measured/.test(cli('report')));
     expect('finish: a harness this copy cannot read is said in the summary, and its time is not called unknown or missing',
       fin2.kind === 'summary' && !fin2.problems.length && /unsupported here/.test(fin2.fields.note || '')
       && !fin2.fields.unknown && fin2.fields['occupied-partial'] === 'yes' && fin2.fields.missing === '0');

@@ -2354,6 +2354,8 @@ function selftest() {
       const kid = transcriptOf('omp:ookid', 'demo-q7');
       expect('a child\'s transcript found by its id alone keeps the parent the layout gave it',
         !!kid && kid.parent === 'oo2' && kid.owner.length === 0);
+      expect('a child\'s transcript is never a session of its own to place, even where the item is not named',
+        unnamedTranscripts('omp:ookid', 'demo-zz9').length === 0);
       expect('the adapters: a subagent kept in its parent\'s folder is found by its own id, the one its parent lists',
         subagents('omp', 'oo1')[0].id === 'oo1sub' && adapter('omp').transcripts('oo1sub').length === 1
         && adapter('omp').transcripts('oo1sub')[0].path.endsWith('sub.jsonl') && adapter('omp').transcripts('oo1').length === 1);
