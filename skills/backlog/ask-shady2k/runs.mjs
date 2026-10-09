@@ -731,6 +731,17 @@ export function run(argv) {
       const out = [];
       if (opts.recovered) return post([recoveredClaim(b, it, me, role, opts)], opts);
       if (opts.at !== undefined) throw new Usage('--at is only for a claim recovered from a transcript (--recovered): a claim made now is dated now');
+      // An in-process worker runs in its coordinator's session and shares its
+      // key: a claim of its own would end the coordinator's open span, and the
+      // coordinator's next record would find none. Refused, and said plainly.
+      // This is what a harness without a subagent id of its own leaves.
+      if (role === 'worker') {
+        const held = mineOpen(b, me.key).find((s) => s.claim.fields.role !== 'worker');
+        if (held)
+          throw new Usage(`this session (${me.key}) holds the open ${held.claim.fields.role} span ${held.id}, on ${held.item}: ` +
+            `an in-process worker runs in its coordinator's session and claims nothing of its own, so that span is never ended by it; ` +
+            `its time is the coordinator's, inside that span. Only a worker in a session of its own claims`);
+      }
       for (const s of mineOpen(b, me.key)) {
         if (s.item === it.id) throw new Usage(`this session already holds span ${s.id} on ${it.id}`);
         // Taking the next item ends the span on the last one: its receipt goes first.
@@ -946,6 +957,13 @@ async function selftest() {
     clock = c0 + 10 * 60e3;
     act('claim', '--item', 'A', '--role', 'worker', ...as('w1'));
     transcript('w1', worked(clock, 60));
+    // A worker that runs in its coordinator's session (an in-process subagent
+    // is given the parent's session id) must not claim: that would end the
+    // coordinator's open span. Refused, and the span is still open after it.
+    expect('claim: a worker claim from its coordinator\'s session is refused',
+      misuse(['claim', '--item', 'B', '--role', 'worker', '--backlog', file, '--project', 'demo', ...as('coord')]));
+    expect('claim: the coordinator\'s span is still open after the refusal',
+      !spansOf(backlog).spans.find((s) => s.item === 'F').receipt);
     // An hour on, it stops for the owner, then takes B: its span on A ends there.
     clock = c0 + 70 * 60e3;
     act('event', '--event', 'stop', '--reason', 'owner', '--note', 'which quoting', ...as('w1'));

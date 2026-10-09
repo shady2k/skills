@@ -149,11 +149,15 @@ end:
   feature again, with no forecast;
 - the coordinator's claim on the feature covers what its workers hand in, by
   the protocol's **A run's time is its coordinator's clock**. A worker that
-  runs the set claims its own leaf with `--role worker`, and its brief says
-  so, and its receipt comes with its result: that adds its effort by phase.
-  A worker that does not (another harness, a bare agent in a pane) records
-  nothing, and nothing is recovered for it. Claiming the next item prints the
-  receipt of the last one first;
+  runs the set in a session of its own claims its own leaf with `--role
+  worker`, and its brief says so, and its receipt comes with its result: that
+  adds its effort by phase. A worker running in its coordinator's session (an
+  in-process subagent, which some harnesses give their parent's session id)
+  records nothing: its effort is inside the coordinator's span, and a
+  `claim --role worker` from that session is refused rather than ending the
+  coordinator's span. A worker that does not record (another harness, a bare
+  agent in a pane) records nothing either, and nothing is recovered for it.
+  Claiming the next item prints the receipt of the last one first;
 - every stop: `event --event stop --reason owner` for a decision the owner must
   make, `--reason missing` for information the project did not have; every
   decision made alone: `event --event decision`; every CI run: `event --event

@@ -164,7 +164,10 @@ incomplete.
 coordinator is waiting on it, so its claim on the feature or stage covers
 every leaf its workers hand in. A worker's own span, where it records one,
 adds only its effort by phase; one missing or unknown leaves that effort short,
-never the run incomplete.
+never the run incomplete. A worker records a span of its own only where it runs
+in a session of its own: where a harness runs it inside its coordinator's
+session the two share one session, the worker's claim is refused, and its
+effort stays inside the coordinator's span.
 Workers have distinct owners and an atomic claim or a serialized assignment:
 reading back a field that anyone can overwrite is not a lock. If a merge
 changes or fails, reopen the affected work and recheck what depends on it. The
