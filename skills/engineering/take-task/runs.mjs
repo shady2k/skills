@@ -73,8 +73,10 @@ const item = (v, id) => {
 // and --session.
 function thisSession(opts, { need = true } = {}) {
   if (!opts.harness !== !opts.session) throw new Usage('--harness and --session go together');
-  if (opts.session) return { harness: opts.harness, id: opts.session, key: `${opts.harness}:${opts.session}`, agent: null };
-  const me = current();
+  // An explicit --harness and --session go through the adapters too, so a
+  // harness this copy cannot read is refused here rather than written into a
+  // record no copy of the set will ever be able to measure.
+  const me = current({ harness: opts.harness ?? null, session: opts.session ?? null });
   if (me) return me;
   if (need) throw new Usage('this harness does not say which session this is: pass --harness and --session');
   return null;
@@ -287,7 +289,12 @@ function summaryFor(v, feature, opts, { result, pr, note, extra = [] }) {
   // The run's clock is its coordinator's: a worker whose time is unknown or
   // elsewhere leaves its effort by phase short, never the run incomplete.
   const worker = new Set(spans.filter((s) => s.claim.fields.role === 'worker').map((s) => s.id));
-  const unknown = receipts.filter((r) => r.fields.unknown === 'yes' && !worker.has(r.fields.span)).length;
+  // A harness this copy of the set cannot read is not a session whose time is
+  // unknown: it is unreadable here, and the summary says so rather than
+  // counting its span as one whose transcript is elsewhere.
+  const unreadable = spans.filter((s) => !hasAdapter(harnessOf(s.session)));
+  const unknown = receipts.filter((r) => r.fields.unknown === 'yes' && !worker.has(r.fields.span)
+    && hasAdapter(harnessOf(spans.find((s) => s.id === r.fields.span)?.session))).length;
   for (const r of receipts.filter((x) => x.table))
     for (const [p, row] of Object.entries(r.table.rows)) {
       if (p === 'total') continue;
@@ -309,6 +316,7 @@ function summaryFor(v, feature, opts, { result, pr, note, extra = [] }) {
   let missing = 0;
   const stretches = [];
   for (const s of spans) {
+    if (!hasAdapter(harnessOf(s.session))) continue;
     const raw = rawOf(opts, s.session, s.item);
     if (!raw) { if (!worker.has(s.id)) missing++; continue; }
     const to = Math.max(s.start, endOf(s, raw));
@@ -319,11 +327,15 @@ function summaryFor(v, feature, opts, { result, pr, note, extra = [] }) {
     }
   }
   const occupied = stretches.length ? round(minutes(span(union(stretches)))) : null;
+  const partial = missing || unreadable.length;
+  const said = [note, unreadable.length
+    ? `${unreadable.length} span(s) belong to a harness this copy of the set cannot read (unsupported here): their time is not in these figures, and it is not unknown either`
+    : null].filter(Boolean).join('; ');
   const fields = {
     at: iso(nowMs()), result, started: iso(first), elapsed: round(minutes(nowMs() - first)),
     spans: spans.length, open: open.length, missing,
-    occupied: occupied ?? undefined, 'occupied-partial': missing && occupied !== null ? 'yes' : undefined,
-    forecast: haveForecast ? rows.total.forecast : undefined, unknown: unknown || undefined, pr, note,
+    occupied: occupied ?? undefined, 'occupied-partial': partial && occupied !== null ? 'yes' : undefined,
+    forecast: haveForecast ? rows.total.forecast : undefined, unknown: unknown || undefined, pr, note: said || undefined,
   };
   return { item: feature.id, body: formatRecord('summary', fields, { columns: cols, rows }) };
 }
@@ -543,14 +555,18 @@ function timeReport(v, opts) {
   const open = openSpans(v).filter((s) => inScope(s) && s.start <= until);
   // A record of a harness this copy of the set cannot read: its time is not
   // "unknown", it is unreadable here, and that is said rather than counted.
-  const unsupported = [...new Set(v.spans.filter((s) => s.claim && !s.conflict.length).map((s) => harnessOf(s.session)))]
-    .filter((h) => !hasAdapter(h)).sort()
-    .map((harness) => ({ harness, items: [...new Set(v.spans.filter((s) => s.claim && harnessOf(s.session) === harness).map((s) => s.item))] }));
+  // Scoped like the figures beside it: only the spans this command measures.
+  // A portable receipt of such a harness is still counted -- it is on the item
+  // -- so this says what is not read here, never what is left out of the total.
+  const unsupportedSpans = opts['no-transcripts'] ? []
+    : v.spans.filter((s) => s.claim && !s.conflict.length && inScope(s) && (s.receipt ? inPeriod(s) : s.start <= until));
+  const unsupported = [...new Set(unsupportedSpans.map((s) => harnessOf(s.session)))].filter((h) => !hasAdapter(h)).sort()
+    .map((harness) => ({ harness, items: [...new Set(unsupportedSpans.filter((s) => harnessOf(s.session) === harness).map((s) => s.item))] }));
   const out = {
     period: { since: Number.isFinite(since) ? localStamp(since) : null, until: Number.isFinite(until) ? localStamp(until) : null },
     receipts: closed.length, total, work: WORK.reduce((n, b) => n + total[b], 0), phases, items: byItem,
-    open: open.map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, since: s.claim.fields.at })),
-    unknown: unknown.map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, since: s.claim.fields.at, why: s.receipt.fields.note })),
+    open: open.map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, harness: harnessOf(s.session), since: s.claim.fields.at })),
+    unknown: unknown.filter((s) => hasAdapter(harnessOf(s.session))).map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, since: s.claim.fields.at, why: s.receipt.fields.note })),
     damaged: v.damaged.length, conflicted: v.spans.filter((s) => s.conflict.length).length, unclaimed: unclaimed.length,
     unsupported,
   };
@@ -616,7 +632,10 @@ function describeTime(t) {
     lines.push(`Not in these figures: ${t.open.length} stretch(es) still open, so the figure is at least this and incomplete:`);
     for (const o of t.open) {
       const here = (t.localOpen || []).find((x) => x.span === o.span);
-      lines.push(`  ${o.item}, ${o.agent}, since ${localStamp(Date.parse(o.since))}${here ? `: so far ${h(here.work)} of work, measured on this machine only` : ': its transcript is not on this machine'}`);
+      const unreadable = (t.unsupported || []).some((u) => u.harness === o.harness);
+      lines.push(`  ${o.item}, ${o.agent}, since ${localStamp(Date.parse(o.since))}${here ? `: so far ${h(here.work)} of work, measured on this machine only`
+        : unreadable ? ': this copy of the set cannot read that harness, so nothing is measured for it here'
+        : ': its transcript is not on this machine'}`);
     }
   }
   if (t.unknown?.length) {
@@ -624,7 +643,7 @@ function describeTime(t) {
     for (const u of t.unknown) lines.push(`  ${u.item}, ${u.agent}, from ${localStamp(Date.parse(u.since))}: ${u.why}`);
   }
   if (t.unsupported?.length)
-    lines.push(`Unsupported here: ${t.unsupported.length} harness(es) this copy of the set cannot read, so their time is not in these figures and is not "unknown" either:`,
+    lines.push(`Unsupported here: ${t.unsupported.length} harness(es) this copy of the set cannot read; their transcripts are not read on this machine, and they are not counted with the times no machine knows:`,
       ...t.unsupported.map((u) => `  ${u.harness}, on ${u.items.join(', ')}: unsupported here: no transcript adapter for ${u.harness}; this copy reads ${adapterNames().join(', ')}`));
   if (t.unassigned?.sessions) lines.push(`On this machine only: ${h(t.unassigned.work)} of work in ${t.unassigned.sessions} session(s) that claimed no item; it is on no item and no other machine sees it.`);
   if (t.damaged || t.conflicted || t.unclaimed) lines.push(`${t.damaged} damaged, ${t.conflicted} conflicting and ${t.unclaimed} unclaimed record(s) are not counted: the gate names them, and the figure is incomplete by them.`);
@@ -693,7 +712,13 @@ function recoveredClaim(v, it, me, role, opts) {
 function unknownReceipt(v, s, opts, { end, reason, note }) {
   if (rawOf(opts, s.session, s.item)) throw new Usage(`the transcript of ${s.session} is here: its receipt is measured, not unknown`);
   if (!note) throw new Usage('--note says why the time is unknown: where the session ran, and why its transcript is on no machine');
-  const fields = { span: s.id, from: iso(s.start), to: s.next ? iso(s.next.start) : undefined, end, reason, note, unknown: 'yes' };
+  // A harness this copy cannot read is said in the record itself, so the note
+  // never claims that a machine looked for the transcript and found none. The
+  // span is still closable: the gate asks for a receipt on every span that
+  // ended, and this is the only one a copy that cannot read it can write.
+  const why = hasAdapter(harnessOf(s.session)) ? note
+    : `${note}; unsupported here: no transcript adapter for ${harnessOf(s.session)}, so this copy of the set cannot measure it`;
+  const fields = { span: s.id, from: iso(s.start), to: s.next ? iso(s.next.start) : undefined, end, reason, note: why, unknown: 'yes' };
   return { item: s.item, body: formatRecord('receipt', fields, null) };
 }
 
@@ -844,7 +869,7 @@ export function run(argv) {
       if (g.recover.length) lines.push(`${g.recover.length} span(s) ended with no receipt and are recovered from this machine's transcripts:`, '', post(g.recover, opts), '');
       if (g.elsewhere.length) lines.push(`${g.elsewhere.length} span(s) ended with no receipt, and their transcripts are not on this machine; each is written where its session ran, and until then its time is unknown:`,
         ...g.elsewhere.map((e) => `  ${e.item}: ${e.agent}, since ${localStamp(Date.parse(e.since))}`));
-      if (g.unsupported.length) lines.push(`${g.unsupported.length} span(s) belong to a harness this copy of the set cannot read, so nothing is recovered for them and their time is not "unknown":`,
+      if (g.unsupported.length) lines.push(`${g.unsupported.length} span(s) belong to a harness this copy of the set cannot read, so nothing is recovered from this machine, and they are not called a time no machine knows:`,
         ...g.unsupported.map((e) => `  ${e.item}: ${e.agent}, since ${localStamp(Date.parse(e.since))}: unsupported here: no transcript adapter for ${e.harness}`));
       return lines.join('\n') || 'Every span that has ended has its receipt.';
     }
@@ -1051,21 +1076,46 @@ async function selftest() {
 
     // A record of a harness this copy of the set has no adapter for: named as
     // unsupported, never counted as a session whose time is unknown.
-    const gem = act('claim', '--item', 'X', '--role', 'agent', '--harness', 'gemini', '--session', 'gg', '--agent', 'gemini-agent:t@m:b#gg');
+    // No copy of the set writes a record naming a harness it cannot read, so
+    // this one is posted the way another copy's would reach this tracker.
+    const gem = postAll([{ item: 'X', body: formatRecord('claim', { span: 'gen00001', at: T(clock), session: 'gemini:gg', agent: 'gemini-agent:t@m:b#gg', role: 'agent' }) }]);
     const gt = JSON.parse(cli('time', '--json'));
     expect('time: a harness with no adapter is named, and the receipts are still counted',
       gt.unsupported.length === 1 && gt.unsupported[0].harness === 'gemini' && gt.unsupported[0].items.join() === 'X'
       && gt.total.total === t.total.total && gt.receipts === t.receipts);
     expect('time: the text says what is unsupported here, in the set\'s words',
       cli('time').includes('unsupported here: no transcript adapter for gemini'));
+    expect('time: what is unsupported is scoped like the figures beside it, by the item asked for',
+      JSON.parse(cli('time', '--item', 'F', '--json')).unsupported.length === 0
+      && JSON.parse(cli('time', '--item', 'X', '--json')).unsupported.length === 1);
+    expect('time: local reading that was deliberately skipped is not reported as an unsupported harness',
+      JSON.parse(cli('time', '--no-transcripts', '--json')).unsupported.length === 0);
     const gapU = JSON.parse(cli('gaps', '--json'));
     expect('gaps: a harness with no adapter is named unsupported, never as a transcript on another machine',
       gapU.unsupported.some((u) => u.harness === 'gemini' && u.agent.startsWith('gemini-agent'))
       && !gapU.elsewhere.some((e) => e.agent.startsWith('gemini-agent')));
     const refused = (a) => { try { rawCache = null; run(a); return ''; } catch (e) { return `${e.constructor.name}: ${e.message}`; } };
+    expect('claim: a harness this copy cannot read is refused, so no record naming one is ever written',
+      refused(['claim', '--item', 'B', '--role', 'agent', '--harness', 'gemini', '--session', 'gz', '--backlog', file, '--project', 'demo'])
+        .startsWith('Unsupported: unsupported here: no transcript adapter for gemini'));
+    expect('claim --recovered: a harness this copy cannot read is refused, not dated from another record',
+      refused(['claim', '--recovered', '--item', 'X', '--role', 'worker', '--harness', 'gemini', '--session', 'gg', '--at', T(c0), '--backlog', file, '--project', 'demo'])
+        .startsWith('Unsupported: unsupported here: no transcript adapter for gemini'));
     expect('receipt: a harness with no adapter is refused as unsupported, not as a transcript on another machine',
       refused(['receipt', '--span', parseRecord(gem[0].body).fields.span, '--end', 'paused', '--backlog', file, '--project', 'demo'])
         .startsWith('Unsupported: unsupported here: no transcript adapter for gemini'));
+    // Closed with an explicit receipt of unknown time, which is the only way a
+    // span can be closed when this copy cannot read its harness: it is named
+    // unsupported, and never also counted as a time no machine knows.
+    const gu = parseRecord(act('receipt', '--span', parseRecord(gem[0].body).fields.span, '--end', 'stopped', '--reason', 'other', '--unknown',
+      '--note', 'the agent ran where this copy of the set cannot read it')[0].body);
+    expect('receipt --unknown: the record itself says the harness is unsupported here, never that a machine looked and found nothing',
+      gu.fields.unknown === 'yes' && !gu.problems.length && /unsupported here: no transcript adapter for gemini/.test(gu.fields.note)
+      && /the agent ran where this copy of the set cannot read it/.test(gu.fields.note));
+    const gtu = JSON.parse(cli('time', '--json'));
+    expect('time: an adapterless span closed as unknown is named unsupported, never also as a time unknown',
+      gtu.unsupported.length === 1 && !gtu.unknown.some((u) => u.agent.startsWith('gemini-agent'))
+      && gtu.total.total === t.total.total);
 
     // Three more finished runs make a pace.
     for (const [k, occ] of [['G', 90], ['H', 120], ['I', 150]]) {
@@ -1357,6 +1407,16 @@ async function selftest() {
     expect('misuse: a verdict that is not one', misuse(['verdict', '--item', 'F', '--accepted', 'maybe', '--backlog', file]));
     expect('misuse: an unknown command', misuse(['frobnicate', '--backlog', file]));
     expect('misuse: no session given or found', misuse(['claim', '--item', 'A', '--role', 'worker', '--backlog', file]));
+
+    // A span of a harness this copy cannot read, inside a feature that is then
+    // summarised: the summary says so, and counts it neither as unknown time
+    // nor as a transcript that is elsewhere. Done last, since a second summary
+    // of F is a second finished run for report and pace.
+    postAll([{ item: 'B', body: formatRecord('claim', { span: 'gen00002', at: T(clock), session: 'gemini:gb', agent: 'gemini-agent:t@m:b#gb', role: 'agent' }) }]);
+    const fin2 = parseRecord(act('finish', '--item', 'F', '--result', 'pull-request', ...as('coord')).at(-1).body);
+    expect('finish: a harness this copy cannot read is said in the summary, and its time is not called unknown or missing',
+      fin2.kind === 'summary' && !fin2.problems.length && /unsupported here/.test(fin2.fields.note || '')
+      && !fin2.fields.unknown && fin2.fields['occupied-partial'] === 'yes' && fin2.fields.missing === '0');
   } catch (e) {
     expect(`the self-test ran to its end (${e.stack})`, false);
   } finally {

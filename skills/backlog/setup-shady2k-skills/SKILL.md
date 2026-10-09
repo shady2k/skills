@@ -548,11 +548,13 @@ real commits and this repository's own checks are proved.
    refuses is not "missing", and
    the owner is told which. The script reads the harnesses it has an adapter
    for: `node skills/engineering/take-task/ledger.mjs adapters` lists them
-   and says what each cannot do, and a harness with no adapter is refused
-   plainly, not counted as unknown. List the rest in `timeRecordsExempt`, and
-   tell the owner once that their time stays unknown. This happens at
-   adoption only: an exemption follows the task tree, and work handed in
-   unclaimed later gets the rule's own fix, never a place on the list.
+   and says what each cannot do, and a harness with no adapter is named
+   unsupported here, never counted with the times no machine knows. List the
+   items the rest leaves unread in `timeRecordsExempt`, and tell the owner
+   once that this copy cannot measure their time: not that the transcript is
+   lost, only that it is unread here. This happens at adoption only: an
+   exemption follows the task tree, and work handed in unclaimed later gets
+   the rule's own fix, never a place on the list.
 3. **Real entry points:** plant a recoverable backlog violation and run the real
    hook; see it fail (or report, at `report` strength), undo, see it clean. Run
    the real commit-message entry point with a missing task, an unknown task and

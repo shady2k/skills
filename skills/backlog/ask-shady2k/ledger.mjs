@@ -60,22 +60,32 @@ export class Unsupported extends Usage {}
  * every entry to it, so an adapter added later cannot quietly answer less.
  *
  *   name           the harness as a person reads it.
- *   env            the environment variables that name the session this process
- *                  runs in, most specific first; empty where the harness tells
- *                  its tools nothing, and --harness with --session is the only
- *                  way. `agentEnv` names the agent itself where the harness has
- *                  one, since one session may run several agents.
+ *   env            the environment variables this harness names its session
+ *                  with, most specific first; empty where it tells its tools
+ *                  nothing, and --harness with --session is the only way.
+ *                  `agentEnv` names the agent itself where the harness has
+ *                  one, since one session may run several agents; `identity`
+ *                  is then 'agent', and 'session' where one session is one
+ *                  agent and only the session is known.
+ *   current(env)   this process's own session, from those variables alone:
+ *                  {id, agent}, or null where the harness says nothing. The
+ *                  shared current() asks each adapter in turn and refuses a
+ *                  harness this copy cannot read, so no record is written
+ *                  naming one.
  *   sessions()     the transcript references this harness left on this machine,
  *                  each {path, mtimeMs, name, sub?, parent?}: `sub` is the
  *                  sidecar the reader needs, `parent` the session the layout
  *                  says started it. Read, never measured.
- *   transcripts(sid)  the paths a session id names, and only files that really
- *                  hold that session.
- *   subagents(sid)    the sessions this one started, as references, DIRECT
- *                  children only; empty where the harness keeps them nowhere
- *                  this can see, and never a guess.
+ *   transcripts(sid)  the paths whose file really holds that session, so a
+ *                  name that merely contains the id is not one: the layout
+ *                  confirms it where it can, and the caller decodes the file
+ *                  and keeps only the raw record whose id is the one asked for.
+ *   subagents(sid)    the sessions this one started, as references with the id
+ *                  the harness gives them, DIRECT children only; a harness
+ *                  that keeps them nowhere this can see has no subagentList
+ *                  and is refused by subagents(), never answered empty.
  *   subagentList   how those children are found, or null where the harness
- *                  keeps them nowhere this can see. Empty is then honest.
+ *                  keeps them nowhere this can see.
  *   read(ref)      the raw record of one reference, read but not measured.
  *   location(path) where it ran and which repository it recorded.
  *   lateHints(path) what only a later line of the transcript says about its
@@ -92,6 +102,8 @@ export const ADAPTERS = {
     name: 'Claude Code',
     env: ['CLAUDE_CODE_SESSION_ID'],
     agentEnv: null,
+    identity: 'session',
+    current: (env) => (env.CLAUDE_CODE_SESSION_ID ? { id: env.CLAUDE_CODE_SESSION_ID, agent: null } : null),
     sessions: claudeSessions,
     transcripts: claudeTranscripts,
     subagents: claudeSubagents,
@@ -105,6 +117,8 @@ export const ADAPTERS = {
     name: 'Codex',
     env: ['CODEX_THREAD_ID', 'CODEX_SESSION_ID'],
     agentEnv: null,
+    identity: 'session',
+    current: (env) => { const id = env.CODEX_THREAD_ID || env.CODEX_SESSION_ID; return id ? { id, agent: null } : null; },
     sessions: codexSessions,
     transcripts: codexTranscripts,
     subagents: codexSubagents,
@@ -121,6 +135,8 @@ export const ADAPTERS = {
     name: 'omp',
     env: [],
     agentEnv: null,
+    identity: 'session',
+    current: () => null,
     sessions: () => piShapeSessions('omp', ompSessions),
     transcripts: (sid) => piShapeTranscripts('omp', ompSessions, sid),
     subagents: (sid) => piShapeSubagents('omp', ompSessions, sid),
@@ -134,6 +150,8 @@ export const ADAPTERS = {
     name: 'Pi',
     env: ['PI_SESSION_ID'],
     agentEnv: null,
+    identity: 'session',
+    current: (env) => (env.PI_SESSION_ID ? { id: env.PI_SESSION_ID, agent: null } : null),
     sessions: () => piShapeSessions('pi', piSessions),
     transcripts: (sid) => piShapeTranscripts('pi', piSessions, sid),
     subagents: () => [],
@@ -147,6 +165,8 @@ export const ADAPTERS = {
     name: 'Prime Agent',
     env: [],
     agentEnv: null,
+    identity: 'session',
+    current: () => null,
     sessions: () => piShapeSessions('prime-agent', primeSessions),
     transcripts: (sid) => piShapeTranscripts('prime-agent', primeSessions, sid),
     subagents: primeSubagentsOf,
@@ -182,20 +202,31 @@ export const sessionEnvVars = () => Object.values(ADAPTERS).flatMap((a) => [...a
  * Who is running this, from what the harness itself says: the session this
  * process is in, and the agent within it where the harness names one. An
  * explicit --harness and --session come first, since omp and Prime Agent tell
- * their tools neither. Returns null where the harness says nothing.
+ * their tools neither, and a harness this copy cannot read is refused there
+ * rather than written into a record nobody here can ever measure. Returns null
+ * where the harness says nothing about itself.
  */
 export function current({ harness = null, session = null, env = process.env } = {}) {
-  if (harness && session) return { harness, id: session, key: `${harness}:${session}`, agent: null };
-  for (const [name, a] of Object.entries(ADAPTERS))
-    for (const key of a.env)
-      if (env[key]) return { harness: name, id: env[key], key: `${name}:${env[key]}`, agent: a.agentEnv ? env[a.agentEnv] || null : null };
+  if (harness && session) {
+    adapter(harness);
+    return { harness, id: session, key: `${harness}:${session}`, agent: null };
+  }
+  for (const [name, a] of Object.entries(ADAPTERS)) {
+    const me = a.current(env);
+    if (me) return { harness: name, id: me.id, key: `${name}:${me.id}`, agent: me.agent ?? null };
+  }
   return null;
 }
 
-/** The sessions a session started, where the harness keeps them apart. */
+/**
+ * The sessions a session started, where the harness keeps them apart. A
+ * harness whose children this copy cannot see has no list to give, and says so
+ * rather than answering that there are none.
+ */
 export function subagents(harness, sid) {
   const a = adapter(harness);
-  if (!sid || !a.subagentList) return [];
+  if (!a.subagentList) throw new Unsupported(`unsupported here: ${a.name} keeps no list of a session's subagents this copy can see`);
+  if (!sid) return [];
   return a.subagents(sid).map((r) => ({ harness, id: r.id ?? null, path: r.path, parent: r.parent ?? sid }));
 }
 
@@ -206,6 +237,7 @@ export function describeAdapters() {
     const reads = ['a session\'s transcript'];
     reads.push(a.env.length ? 'the current session' : 'the current session only with --harness and --session');
     reads.push(a.subagentList ? 'a session\'s subagents' : 'no list of a session\'s subagents');
+    reads.push(a.identity === 'agent' ? 'the agent as well as the session' : 'the session, and one session is one agent here');
     out.push(`${a.name} (${harness})`, `  reads: ${reads.join('; ')}`);
     if (a.limits) out.push(`  cannot: ${a.limits}`);
   }
@@ -1212,7 +1244,14 @@ function codexSessions() {
 
 function codexTranscripts(sid) {
   const out = [];
-  for (const f of files(join(codexHome(), 'sessions'), 4)) if (f.name.includes(sid)) out.push(f.path);
+  for (const f of files(join(codexHome(), 'sessions'), 4)) {
+    if (!f.name.includes(sid)) continue;
+    // A rollout's name carries its id, but a name that merely contains it is
+    // another session's: the id the file really holds decides.
+    const meta = head(f.path).find((d) => d.type === 'session_meta')?.payload || {};
+    const id = meta.id || basename(f.path, '.jsonl').replace(/^rollout-[\dT-]+-/, '');
+    if (id === sid) out.push(f.path);
+  }
   return out;
 }
 
@@ -1254,7 +1293,10 @@ function piShapeSubagents(harness, home, sid) {
   const root = home();
   for (const f of files(root, 2)) {
     const parts = f.path.slice(root.length + 1).split(sep);
-    if (parts.length === 3 && parts[1].replace(/^.*_/, '') === sid) out.push({ ...f, id: null, parent: sid });
+    if (parts.length !== 3 || parts[1].replace(/^.*_/, '') !== sid) continue;
+    // The child's own id is in its first line, not in the file's name.
+    const meta = head(f.path).find((d) => d.type === 'session') || {};
+    out.push({ ...f, id: meta.id || basename(f.path, '.jsonl').replace(/^.*_/, ''), parent: sid });
   }
   return out;
 }
@@ -2251,6 +2293,13 @@ function selftest() {
         subagents('claude-code', 'pp1').length === 1 && subagents('claude-code', 'pp1')[0].id === 'agent-x1'
         && subagents('claude-code', 'pp1')[0].parent === 'pp1' && subagents('claude-code', 'pp1')[0].path !== subagents('claude-code', 'pp2')[0].path
         && subagents('claude-code', 'pp2')[0].parent === 'pp2');
+      write(join(home, 'codex', 'sessions', '2026', '01', '01', 'rollout-2026-01-01T18-10-00-cc10.jsonl'), [
+        { type: 'session_meta', timestamp: T(2), payload: { id: 'cc10', cwd: demo } },
+        { type: 'response_item', timestamp: T(3), payload: { type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'y' }] } },
+      ]);
+      expect('the adapters: a transcript is the one that really holds the session, not one whose name contains its id',
+        adapter('codex').transcripts('cc1').length === 1 && adapter('codex').transcripts('cc1')[0].endsWith('-cc1.jsonl')
+        && adapter('codex').transcripts('cc10').length === 1);
       expect('the adapters: a Codex subagent is the child of the parent its rollout names',
         subagents('codex', 'par1').length === 1 && subagents('codex', 'par1')[0].id === 'cc1' && subagents('codex', 'cc1').length === 0);
       expect('the adapters: an omp subagent is the child of the session whose folder it is in',
@@ -2258,10 +2307,15 @@ function selftest() {
       expect('the adapters: a Prime Agent subagent is the child of the session it names, not of the folder above it',
         subagents('prime-agent', 'zz1').length === 1 && subagents('prime-agent', 'zz1')[0].id === 'zz2'
         && subagents('prime-agent', 'zz2').length === 1 && subagents('prime-agent', 'zz2')[0].id === 'zz3');
-      expect('the adapters: a harness that keeps no subagent list says so instead of guessing',
-        subagents('pi', 'pi1').length === 0 && ADAPTERS.pi.subagentList === null);
+      expect('the adapters: a harness that keeps no subagent list is refused, not answered empty',
+        ADAPTERS.pi.subagentList === null
+        && (() => { try { subagents('pi', 'pi1'); return false; } catch (e) { return e instanceof Unsupported && /^unsupported here: Pi keeps no list/.test(e.message); } })());
       expect('the adapters: listing the subagents of a harness with no adapter is refused, not empty',
         (() => { try { subagents('gemini', 'x'); return false; } catch (e) { return e instanceof Unsupported; } })());
+      expect('the adapters: an omp subagent is listed with the id its own transcript gives it',
+        subagents('omp', 'oo1')[0].id === 'oo1sub');
+      expect('the adapters: naming a harness this copy cannot read is refused, so no record is written for one',
+        (() => { try { current({ harness: 'gemini', session: 'gg' }); return false; } catch (e) { return e instanceof Unsupported; } })());
       expect('the adapters: the current session comes from the harness that names it, and an explicit one comes first',
         current({ env: { CLAUDE_CODE_SESSION_ID: 'c1' } }).key === 'claude-code:c1'
         && current({ env: { CODEX_THREAD_ID: 't1' } }).key === 'codex:t1'
