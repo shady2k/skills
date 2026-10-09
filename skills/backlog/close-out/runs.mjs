@@ -230,7 +230,7 @@ function measureSpan(raw, from, to) {
 
 function receiptFor(v, s, opts, { end, reason, note, recovered = false, at = nowMs() }) {
   const raw = rawOf(opts, s.session, s.item);
-  if (!raw) throw new NotHere(`the transcript of ${s.session} (${s.claim.fields.agent}) is not on this machine: its receipt is written where it is, or closed with --unknown where no machine has it`);
+  if (!raw) throw new NotHere(`the transcript of ${s.session} (${s.claim.fields.agent}) is not on this machine: its receipt is written where it is, or closed with --unknown where no machine has it; never typed by hand, which the gate refuses as damaged`);
   const from = s.start;
   const to = Math.max(from, endOf(s, raw, at));
   const { table, whole } = measureSpan(raw, from, to);
@@ -654,7 +654,7 @@ function recoveredClaim(v, it, me, role, opts) {
   const at = parseWhen(opts.at ?? '');
   if (!Number.isFinite(at)) throw new Usage('--at <time> is required: the start the transcript shows');
   const raw = rawOf(opts, me.key, it.id);
-  if (!raw && !opts.basis) throw new NotHere(`the transcript of ${me.key} is not on this machine: its claim is recovered where it is, or, where no machine has it, from another record that dates it (--basis)`);
+  if (!raw && !opts.basis) throw new NotHere(`the transcript of ${me.key} is not on this machine: its claim is recovered where it is, or, where no machine has it, from another record that dates it (--basis); never typed by hand, which the gate refuses as damaged`);
   if (raw && opts.basis) throw new Usage('the transcript is here: the claim is dated by it, not by another record');
   if (raw && (at < raw.first - 60e3 || at > raw.last)) throw new Usage(`--at ${localStamp(at)} is outside the session's transcript, ${localStamp(raw.first)} to ${localStamp(raw.last)}`);
   if (v.spans.some((s) => s.claim && s.session === me.key && s.item === it.id)) throw new Usage(`${me.key} already has a claim on ${it.id}`);

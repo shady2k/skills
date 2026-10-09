@@ -145,7 +145,8 @@ working on the item (the work is handed in, the session ends, the work stops or
 is handed over) the script writes the span's receipt: what the session spent,
 by phase of the work and by who spent it, measured from its transcript. The
 numbers are the script's; an agent never types, rounds or edits one, and
-never writes a record by hand: one it typed is damaged. A tracker may only
+never writes a record by hand: one it typed is damaged. Where the script
+cannot print a record, the agent says so and stops, and types none. A tracker may only
 append, so a record is never edited or deleted either: one that is damaged,
 wrong or not to count is voided by the script's `void`, naming its comment,
 and a correction then writes the right record with the script. Stops,

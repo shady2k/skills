@@ -646,12 +646,15 @@ const PI_TOOLS = { bash: 'Bash', read: 'Read', edit: 'Edit', write: 'Write', gre
  * model's last answer in it. Who is on the user's side is whoever drives the
  * pane, the owner or a coordinator; a subagent's messages are its parent's,
  * and never the owner's. An omp subagent keeps its transcript in its parent's
- * folder; a prime-agent subagent keeps none, and its parent records what it
- * cost.
+ * folder; a prime-agent subagent keeps its own among its parent's artifacts,
+ * names its parent's, and its parent records what it cost.
  */
-export function readPi(path, { harness = 'pi', parent = null } = {}) {
+export function readPi(path, { harness = 'pi', parent: given = null } = {}) {
   const all = rows(path);
   const meta = all.find((d) => d.type === 'session') || {};
+  const parent = given || (harness === 'prime-agent' && meta.parentSession ? basename(meta.parentSession, '.jsonl') : null);
+  // Its parent's record holds a prime-agent subagent's cost, already counted.
+  const costInParent = harness === 'prime-agent' && !!parent;
   const use = new Map();
   const turns = [];
   const owner = [];
@@ -741,8 +744,9 @@ export function readPi(path, { harness = 'pi', parent = null } = {}) {
     parent, parentTool: null,
     first: stamps.reduce((a, b) => Math.min(a, b)), last: stamps.reduce((a, b) => Math.max(a, b)),
     turns, owner, gens: gens.filter((g) => !g.owner && Number.isFinite(g.start)), pairs,
-    totals: null, costUSD: priced ? costUSD : null, linesAdded: null, linesRemoved: null, costIn: priced ? 'own' : 'unknown',
-    tokens: usage ? tokens : null, tokensFrom: 'harness', harnessClock: null,
+    totals: null, costUSD: priced && !costInParent ? costUSD : null, linesAdded: null, linesRemoved: null,
+    costIn: costInParent ? 'parent' : priced ? 'own' : 'unknown',
+    tokens: usage && !costInParent ? tokens : null, tokensFrom: 'harness', harnessClock: null,
   };
 }
 export const readOmp = (path, parent = null) => readPi(path, { harness: 'omp', parent });
@@ -956,6 +960,19 @@ function* files(root, depth) {
   }
 }
 
+// A prime-agent subagent keeps its transcript among its parent's artifacts,
+// <home>/session-artifacts/<parent>/sub-<handle>/<id>.jsonl, and a subagent's
+// own subagents one sub- folder deeper. The other JSON lines kept there name
+// no session, so they place nowhere.
+const primeArtifacts = () => join(dirname(primeSessions()), 'session-artifacts');
+function* primeSubagents() {
+  const root = primeArtifacts();
+  for (const f of files(root, 8)) {
+    const parts = f.path.slice(root.length + 1).split(sep);
+    if (parts.length >= 3 && parts.slice(1, -1).every((p) => p.startsWith('sub-'))) yield f;
+  }
+}
+
 // Where a session ran, and what it recorded about its repository, from its
 // first lines.
 function where(harness, path) {
@@ -996,6 +1013,7 @@ function transcriptPaths(harness, sid) {
     for (const f of files(join(codexHome(), 'sessions'), 4)) if (f.name.includes(sid)) paths.push(f.path);
   } else if (PI_FAMILY[harness]) {
     for (const f of files(PI_FAMILY[harness](), 1)) if (f.name === `${sid}.jsonl` || f.name.endsWith(`_${sid}.jsonl`)) paths.push(f.path);
+    if (harness === 'prime-agent') for (const f of primeSubagents()) if (f.name === `${sid}.jsonl`) paths.push(f.path);
   }
   return paths;
 }
@@ -1112,7 +1130,8 @@ export function collect(project, { since, until, repo } = {}) {
       }
   for (const f of files(join(codexHome(), 'sessions'), 4)) candidates.push({ ...f, harness: 'codex' });
   // omp and pi: <folder>/<stamp>_<id>.jsonl, omp's subagents in
-  // <folder>/<stamp>_<id>/. prime-agent: <id>.jsonl, with no folder.
+  // <folder>/<stamp>_<id>/. prime-agent: <id>.jsonl, with no folder, and its
+  // subagents among their parents' artifacts.
   for (const [harness, home] of Object.entries(PI_FAMILY)) {
     const root = home();
     for (const f of files(root, 2)) {
@@ -1121,6 +1140,7 @@ export function collect(project, { since, until, repo } = {}) {
       else if (harness === 'omp' && parts.length === 3) candidates.push({ ...f, harness, parent: parts[1].replace(/^.*_/, '') });
     }
   }
+  for (const f of primeSubagents()) candidates.push({ ...f, harness: 'prime-agent' });
 
   const seen = [];
   for (const c of candidates) {
@@ -1800,6 +1820,31 @@ function selftest() {
     expect('a prime-agent session\'s cost holds its subagents\'', s.costUSD === 1.75 && s.tokens.input === 550);
     expect('a prime-agent session is found by its id alone', transcriptPaths('prime-agent', 'pr1').length === 1
       && transcriptPaths('pi', 'pi1').length === 1);
+
+    // A prime-agent subagent's transcript is among its parent's artifacts,
+    // its own subagents' one folder deeper, beside files that are not
+    // transcripts; the parent already holds their cost.
+    const artifacts = join(home, '.prime', 'agent', 'session-artifacts', 'pr1');
+    const primeKid = (id, dir, up, start) => write(join(artifacts, ...dir, `${id}.jsonl`), [
+      { type: 'session', version: 3, id, timestamp: T(start), cwd: join(home, 'gone-prime'), parentSession: up, rlmDepth: dir.length, git: { repoUrl: 'https://example.com/someone/demo.git' } },
+      { type: 'message', timestamp: T(start), message: { role: 'user', timestamp: at(start), content: [{ type: 'text', text: 'scout it' }] } },
+      piCall('k', 'ipython', { code: "print(open('a.txt').read())" }, start, start + 1),
+      piResult('k', 'ipython', start + 2),
+    ]);
+    primeKid('pr2', ['sub-scout'], join(home, '.prime', 'agent', 'sessions', 'pr1.jsonl'), 266);
+    primeKid('pr3', ['sub-scout', 'sub-deep'], join(artifacts, 'sub-scout', 'pr2.jsonl'), 267);
+    write(join(artifacts, 'sub-scout', 'semantic-edges.jsonl'), [{ from: 'a', to: 'b', timestamp: T(266) }]);
+    const primeAll = findSessions('demo');
+    const scout = primeAll.find((x) => x.id === 'pr2');
+    const deep = primeAll.find((x) => x.id === 'pr3');
+    expect('a prime-agent subagent is found among its parent\'s artifacts, and speaks for nobody',
+      scout && scout.harness === 'prime-agent' && scout.role === 'subagent' && scout.parent === 'pr1' && scout.ownerMessages === 0 && adds(scout));
+    expect('and its own subagent one folder deeper, under it', deep && deep.parent === 'pr2' && adds(deep));
+    expect('a prime-agent subagent\'s cost is its parent\'s, not counted twice',
+      scout.costIn === 'parent' && scout.costUSD === null && scout.tokens === null && primeAll.find((x) => x.id === 'pr1').costUSD === 1.75);
+    expect('a prime-agent subagent is found by its id alone, and an artifact that is no transcript is no session',
+      transcriptPaths('prime-agent', 'pr2').length === 1 && transcriptPaths('prime-agent', 'pr3').length === 1
+      && !primeAll.some((x) => x.path.endsWith('semantic-edges.jsonl')));
 
     // omp kept pi's variables: a folder they name is pi's only when pi runs this.
     process.env.PI_SESSION_ID = 'pi-here';
