@@ -62,6 +62,26 @@ branch is reconciled and landed by this run, not duplicated, and not handed
 back to the session that left it, by the protocol's **Read the record, not the
 memory**.
 
+**Run `node product.mjs where` before a tracker is chosen.** It says what this
+folder is, and setup differs by the answer:
+
+- **A product repository**: this repository holds the product's knowledge and
+  none of its code, so its document places are the layout's and are asked
+  about nowhere: they are the ones [documents.md](documents.md) gives a
+  product repository. The tracker lives here, and the product-documents
+  check is wired as the commit gate as it is wherever this set is installed.
+- **A code repository of a product** (a git repository under a product's
+  `repos/`): a product has one tracker and it is the product repository's, so
+  no tracker is chosen or installed here and no queue is cleaned; every task
+  of this repository, the setup task included, is the product tracker's. This
+  repository's commits carry task ids that name the product's tasks, and the
+  commit check resolves them against that tracker, whose repository is `../..`
+  from here, never an absolute path. This repository's hooks run the commit
+  check and this repository's own code checks; the backlog gate runs in the
+  product repository. Setup here needs the product repository set up first:
+  where it is not, say so and stop, naming what is missing.
+- **Neither**: an ordinary project, as the rest of this skill says.
+
 **An existing tracker:** verify reading, export and writing through its own
 documentation. **No tracker:** recommend one, weighing portability, offline
 use, collaboration, history, ownership and dependencies, with its costs, and
@@ -444,6 +464,8 @@ fixtures and report product readiness separately from installation readiness.
 Run every read operation, including ready, holds and children of every status.
 Test writes in reversible scratch state or read their documented behaviour.
 Verify claim concurrency: rereading a field anyone can overwrite is not a lock.
+In a code repository of a product the agent doc points at the product's
+integration, by the relative path `../..`.
 Point every harness's loaded agent doc at the integration with:
 
 > All retained work and commits belong to tracked tasks. File discoveries through
@@ -468,7 +490,10 @@ does it, and change them with the owner's agreement.
 
 ## 4. Prove the whole installation, every time
 
-An existing setup runs all of these too, even when versions match.
+An existing setup runs all of these too, even when versions match. In a code
+repository of a product the proofs that read the queue are the product
+repository's installation's, and here the shipped checks, the commit check on
+real commits and this repository's own checks are proved.
 
 1. **Shipped checks:** from this skill's directory run
    `node check.mjs --selftest --config <project-config>`,

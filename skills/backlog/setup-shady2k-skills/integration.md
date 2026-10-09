@@ -44,6 +44,8 @@ are the repository's installation, and each person's plugin and hooks are theirs
 - **JSON report:** <exact command>
 - **Commit-link input and check:** <message/range parser, tracker resolution,
   normalized commits input and check-commits.mjs command>
+- **Product repository:** <for a code repository under a product's `repos/`, the product repository, as the relative path `../..`; for a product repository, "this repository holds the product, and its schema version fixes the document places">
+- **Task ids of this repository's commits resolve against:** <the tracker that holds them: the product repository's for a code repository, this repository's for a product repository, and where it is read from here>
 - **Local entry points:** <pre-commit and commit-msg commands>
 - **Connecting a clone:** <the one committed command that connects a fresh
   clone: hooks, filters, tracker import, every local file a hook reads; safe to

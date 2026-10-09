@@ -54,6 +54,13 @@ docs/prototypes/P-NNN-<slug>.md     # its code in prototypes/<folder>/
 docs/results/R-NNN-<slug>.md
 ```
 
+In a product repository these places are the layout's and none is asked: the
+vision is `docs/vision.md`; the roadmap, charters, glossary, architecture,
+current capabilities and change records sit under `docs/` at the paths above;
+the product's own documents are `docs/` by their kinds ([the product's
+documents](references/product.md)); and the code repositories the product
+spans are `repos/`. A capability is still the unit a spec is kept by.
+
 Specs are kept **by capability**, not by feature: a capability spec is the
 current truth, and a feature is a change record whose requirement deltas are
 merged into the capabilities it touches at acceptance. Kept by feature, specs

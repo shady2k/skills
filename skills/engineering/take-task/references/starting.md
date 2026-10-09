@@ -33,9 +33,11 @@ performed again.
    assumptions is checked: competitors and alternatives, the domain's rules,
    whether a technical premise holds, each answered by the cheapest evidence
    that can.
-4. **The vision.** From here something is kept, so the project gets its
-   repository (created with the owner's agreement) and its setup, which on an
-   empty repository needs no CI yet. The vision records the audience and who is
+4. **The vision.** From here something is kept: with the owner's agreement
+   a draft product repository is created with `product.mjs new`, under the
+   products home the owner names, and setup runs in it (an empty repository
+   needs no CI yet); when the product gets its name, `rename` gives it in
+   place. The vision records the audience and who is
    not served, the problem and its evidence, the alternatives and the
    difference, the key journeys as the owner tells them with a named
    protagonist, the success signal with a counter-metric, and the exclusions.
@@ -43,7 +45,9 @@ performed again.
    [product.md](product.md): its record as a source, its beliefs as hypotheses,
    the journeys as user stories and use cases, what a user must be able to
    observe as product requirements, and what is still unknown as open
-   questions.
+   questions. A prototype that becomes the code, or a new repository, is
+   entered in the manifest with `repo add`, cloned into `repos/` with
+   `bootstrap`, and setup runs in it as a product's code repository.
 5. **The first milestone is the MVP** (`to-milestone`). Its outcomes are the
    key journeys it carries end to end; its exclusions say what is out of the
    MVP. The owner makes the cut; the agent shows what each journey costs and

@@ -47,6 +47,12 @@
  *   rename <folder> <name>                    the product, named in place
  *   remote <folder> <url>                     `origin`, added and never pushed
  *   bootstrap <folder>                        the declared code repositories
+ *   repo add <folder> <name> <url> [--branch <b>]
+ *                                             a code repository, entered in
+ *                                             the manifest and committed
+ *   where [<folder>]                          what a folder is: a product
+ *                                             repository, a code repository
+ *                                             of one, or neither
  *
  * `new` takes the products home from its caller and from nowhere else: no
  * default, no environment variable. Its folder is `idea-YYYY-MM-DD`, then
@@ -60,6 +66,25 @@
  * reports it, as dirty when it has uncommitted changes, and leaves it alone.
  * Nothing any command writes holds an absolute path.
  *
+ * `repo add` enters a code repository in the manifest: it appends its `name`,
+ * `url` and optional `branch` to `repos`, keeping every other byte of the
+ * manifest as it was written — a comment, a blank line, a quoted key, and the
+ * line ending the file uses — and commits that change alone. It never clones:
+ * `bootstrap` does. It refuses, before anything is written, a name that is not
+ * a folder name, a name the manifest already declares, a manifest that cannot
+ * be read, a folder that is no git repository of its own, and a folder holding
+ * uncommitted changes, which the commit would take with it.
+ *
+ * `where` answers what a folder is, walking up from it: `product` with the
+ * product repository, when the folder stands inside one; `code` with the
+ * product repository and the name of the checkout, when it stands inside a git
+ * repository directly under a product's `repos/`; `none` otherwise. All three
+ * are an answer, not a failure. The walk ends where a git repository of its
+ * own begins, so a folder that is another repository's working tree is neither
+ * a product repository nor one of its code repositories, whatever stands above
+ * it. A manifest the walk meets that cannot be read is refused: the folder it
+ * stands over cannot be answered for.
+ *
  * EXIT CODES. 0: done. 1: a step failed (git refused, a clone failed). 2: an
  * argument, a home or a manifest cannot be used. Every command takes `--json`,
  * for callers: one object on standard output, holding what the command did or
@@ -69,7 +94,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -84,7 +109,7 @@ export const MANIFEST_FILE = 'workspace.yaml';
  * keeps it equal to `.claude-plugin/plugin.json`, which wins where one is
  * found.
  */
-export const PLUGIN_VERSION = '0.90.0';
+export const PLUGIN_VERSION = '0.91.0';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -149,7 +174,7 @@ const CONSTITUTION = [
   '',
 ].join('\n');
 
-const USAGE = 'usage: node product.mjs <new|read|rename|remote|bootstrap> [options]';
+const USAGE = 'usage: node product.mjs <new|read|rename|remote|bootstrap|repo add|where> [options]';
 
 const HELP = [
   USAGE,
@@ -180,6 +205,19 @@ const HELP = [
   '        repos/<name>, one report per repository. A checkout already',
   '        there is never replaced: it is reported, as dirty when it has',
   '        uncommitted changes, and left alone.',
+  '  repo add <folder> <name> <url> [--branch <b>]',
+  '        enter one code repository in the manifest and commit it, keeping',
+  '        every other byte as it was written. It never clones: `bootstrap`',
+  '        does. A name that is not a folder name, a name already declared,',
+  '        a manifest that cannot be read and uncommitted changes are each',
+  '        refused before anything is written.',
+  '  where [<folder>]',
+  '        say what a folder is, walking up from it (the current folder by',
+  '        default): `product` with the product repository, `code` with the',
+  '        product repository and the checkout\'s name when the folder',
+  '        stands in a git repository under a product\'s `repos/`, and',
+  '        `none` otherwise. The walk ends where a git repository of its',
+  '        own begins. All three exit 0.',
   '',
   'options:',
   '  --json    one object on standard output, for callers',
@@ -621,6 +659,22 @@ const yamlWord = (word) => (/^[A-Za-z_][A-Za-z0-9 ._+-]*$/.test(word) && !/^(tru
   : `'${word.replace(/'/g, "''")}'`);
 
 /**
+ * Whether two paths name the same folder. `git` answers with the path its own
+ * working directory resolved to, which is the real one: a folder reached
+ * through a symlink would otherwise be taken for another folder, and a
+ * product reached through a link would answer for nothing at all. A path that
+ * cannot be resolved — one of them removed mid-command — falls back to the
+ * spelling itself.
+ */
+function sameFolder(one, other) {
+  try {
+    return realpathSync(one) === realpathSync(other);
+  } catch {
+    return resolve(one) === resolve(other);
+  }
+}
+
+/**
  * Whether a folder is a git repository of its own, rather than a folder
  * standing inside one: `git` run in a folder with no repository of its own
  * answers for the repository above it, so a command that wrote there would
@@ -628,7 +682,7 @@ const yamlWord = (word) => (/^[A-Za-z_][A-Za-z0-9 ._+-]*$/.test(word) && !/^(tru
  */
 function ownRepository(folder, gitEnv) {
   const top = runGit(folder, ['rev-parse', '--show-toplevel'], gitEnv);
-  return top.ok && resolve(top.output) === resolve(folder);
+  return top.ok && sameFolder(top.output, folder);
 }
 
 /**
@@ -982,6 +1036,264 @@ export function bootstrapProduct({ folder: given, gitEnv } = {}) {
   return { outcome: 'bootstrapped', folder, repos: reports };
 }
 
+// ---- a code repository entered, and what a folder is -----------------------
+
+/** Why a code repository may not take a folder name, or null when it may. */
+function whyNotARepositoryName(name) {
+  if (typeof name !== 'string' || name.trim() === '') return 'a code repository is named by the folder it is cloned into, and this is empty';
+  if (name !== name.trim()) return 'a folder name does not begin or end with a space';
+  if (name === '.' || name === '..') return 'a folder name is not "." or ".."';
+  if (/[/\\]/.test(name)) return 'a folder name is one path segment, and this holds a separator';
+  if (/[\u0000-\u001f]/.test(name)) return 'a folder name holds no control character';
+  return null;
+}
+
+/**
+ * A url or a branch as the manifest writes it: plain where the reader gives
+ * that same text back, quoted where it does not. The reader decides, and no
+ * second rule is written beside it: a url a person reads stays unquoted — it
+ * holds ":" and "/", which a plain scalar takes — and one the reader would
+ * give back as a number, a truth, nothing, a mapping or a comment is quoted,
+ * so what is written is what is read. A relative path a repository sits at
+ * can be such a value: `.5` is the number `0.5` to a YAML reader.
+ *
+ * A value holding a character one line cannot carry — a newline, a tab, a
+ * carriage return — is written double-quoted with the escapes the reader
+ * understands, since a quoted scalar is one line and an escape is how YAML
+ * writes such a character inside one. A name is not written this way: it is a
+ * word by its own refusal, so `yamlWord` writes it.
+ */
+function yamlText(value) {
+  if (/[\u0000-\u001f\u007f]/.test(value)) {
+    const escaped = value.replace(/[\u0000-\u001f\u007f"\\]/g, (ch) => {
+      const named = { '"': '\\"', '\\': '\\\\', '\n': '\\n', '\t': '\\t', '\r': '\\r' };
+      return named[ch] ?? `\\u${ch.charCodeAt(0).toString(16).padStart(4, '0')}`;
+    });
+    return `"${escaped}"`;
+  }
+  const read = parseScalar(value, '', 1);
+  const plain = read.ok && typeof read.value === 'string' && read.value === value && value.trim() === value;
+  return plain ? value : `'${value.replace(/'/g, "''")}'`;
+}
+
+/**
+ * The lines of one `repos` item, at the indentation the block's items use:
+ * the first field on the item's own line, the others indented under it. The
+ * caller ends each line the way the file ends its own.
+ */
+function repoItemLines(repo, indent) {
+  const field = (name, value) => `${' '.repeat(indent + 2)}${name}: ${value}`;
+  const lines = [`${' '.repeat(indent)}- name: ${yamlWord(repo.name)}`, field('url', yamlText(repo.url))];
+  if (repo.branch !== undefined) lines.push(field('branch', yamlText(repo.branch)));
+  return lines;
+}
+
+/**
+ * The manifest's text with one code repository appended to `repos`, every
+ * other byte kept: the field is found by its own name, however the manifest
+ * spells the key, only where it stands at the left margin, so a `repos` of
+ * another field is never reached. The item is written at the end of the
+ * sequence with the indentation the sequence's own items use, and every line
+ * the file already holds — a comment, a blank line, the spacing someone
+ * wrote, and the line ending it ends with — stays exactly as it was.
+ *
+ * Three readings of `repos` the reader accepts are answered for here. A line
+ * that is a comment only belongs to the block it stands among, whichever
+ * indentation it is written at, since the reader drops it: it never ends the
+ * sequence, so an item never lands in the middle of another one. A field
+ * whose value is written (`repos: null`, `repos: ~`) holds no list, and its
+ * value is taken off the line — the key's own spelling and the comment after
+ * it kept — before the items are written under it. A manifest naming no
+ * `repos` at all gains the block at its end.
+ */
+function manifestWithRepo(text, repo) {
+  // The lines are split on "\n" the way `manifestNamed` does, so a carriage
+  // return a line ends with is the line's own last character: every line this
+  // function inserts ends with the carriage return the file's lines do.
+  const cr = text.includes('\r\n') ? '\r' : '';
+  const lines = text.split('\n');
+  const bare = (line) => (line.endsWith('\r') ? line.slice(0, -1) : line);
+
+  let at = -1;
+  for (let i = 0; i < lines.length && at === -1; i++) {
+    const body = bare(lines[i]);
+    if (body.match(/^[ \t]*/)[0] !== '') continue;
+    const pair = splitPair(body);
+    if (pair !== null && decodedKeyWord(pair.key) === 'repos') at = i;
+  }
+  if (at === -1) {
+    const block = ['repos:', ...repoItemLines(repo, 2)].map((line) => `${line}${cr}`);
+    // The blank element a manifest ending in a newline leaves behind is where
+    // the block goes: the file keeps the ending it had.
+    const end = lines.length && lines[lines.length - 1] === '' ? lines.length - 1 : lines.length;
+    lines.splice(end, 0, ...block);
+    return lines.join('\n');
+  }
+
+  // The block runs to the last line indented under the field; a blank line
+  // and a comment-only line belong to it — the reader drops both — and a
+  // field written back at the left margin ends it.
+  let indent = null;
+  let last = at;
+  for (let i = at + 1; i < lines.length; i++) {
+    const body = bare(lines[i]);
+    const lead = body.match(/^[ \t]*/)[0].length;
+    const content = body.slice(lead);
+    if (body.trim() === '' || content.startsWith('#')) continue;
+    if (lead === 0) break;
+    last = i;
+    if (indent === null && /^-(\s|$)/.test(content)) indent = lead;
+  }
+
+  // A value written on the field's own line is no list: it is taken off the
+  // line, the key's spelling, the spacing after it and the comment kept, and
+  // the items are written under it.
+  const pair = splitPair(bare(lines[at]));
+  const after = bare(lines[at]).slice(pair.key.length + 1);
+  const gap = after.match(/^[ \t]*/)[0];
+  const rest = after.slice(gap.length);
+  const written = cutComment(rest).trim();
+  if (written !== '') {
+    // The comment stays, one space after the colon: the value that stood
+    // between them is the field this command is writing.
+    const comment = rest.slice(cutComment(rest).replace(/\s+$/, '').length).trim();
+    const ending = lines[at].endsWith('\r') ? '\r' : '';
+    lines[at] = `${pair.key}:${comment === '' ? '' : ` ${comment}`}${ending}`;
+  }
+
+  const item = repoItemLines(repo, indent === null ? 2 : indent).map((line) => `${line}${cr}`);
+  lines.splice(last + 1, 0, ...item);
+  return lines.join('\n');
+}
+
+/**
+ * Enters one code repository in the manifest and commits it, as one commit of
+ * the product's history: `name`, `url` and the optional `branch` are appended
+ * to `repos` and every other byte of the manifest is kept. It never clones;
+ * `bootstrap` does. Every refusal — a name that is not a folder name, a name
+ * the manifest already declares, a manifest that cannot be read, a folder
+ * that is no git repository of its own, and a folder holding uncommitted
+ * changes — happens before anything is written, and a step that fails
+ * afterwards puts the manifest back byte for byte.
+ */
+export function addCodeRepository({ folder: given, name, url, branch, gitEnv } = {}) {
+  const read = readProduct(given === undefined ? '.' : given);
+  if (!read.ok) return { outcome: 'refused', message: read.message, file: read.file, line: read.line };
+  const folder = read.product.folder;
+  const manifestFile = join(folder, MANIFEST_FILE);
+
+  const why = whyNotARepositoryName(name);
+  if (why !== null)
+    return { outcome: 'refused', message: `the name "${name}" cannot be a code repository's: ${why}` };
+
+  const wanted = typeof url === 'string' ? url.trim() : '';
+  if (wanted === '')
+    return { outcome: 'refused', message: 'no url was given: a code repository is entered with the url it is cloned from' };
+  if (wanted.startsWith('-'))
+    return { outcome: 'refused', message: `the url "${wanted}" begins with "-", which a command line reads as an option: write the url itself` };
+  const wantedBranch = typeof branch === 'string' ? branch.trim() : undefined;
+  if (wantedBranch === '')
+    return { outcome: 'refused', message: 'the branch was given empty: a clone is taken from the branch it names, and the option is left out where the repository\'s own is taken' };
+
+  const declared = read.product.repos.findIndex((repo) => repo.name === name);
+  if (declared !== -1) {
+    // The line the name stands on, read from the manifest the way the reader
+    // reads it: a refusal about a manifest names the place in the manifest.
+    const parsed = parseManifest(readFileSync(manifestFile, 'utf8'), manifestFile);
+    const items = parsed.ok && Array.isArray(parsed.value.repos) ? parsed.value.repos : [];
+    return {
+      outcome: 'refused',
+      message: `the manifest ${manifestFile} already declares the code repository "${name}": each repository is declared once, and clones into its own folder`,
+      file: manifestFile,
+      line: items[declared] === undefined ? lineOf(parsed.ok ? parsed.value : {}, 'repos') : lineOf(items[declared], 'name'),
+    };
+  }
+
+  // The entry belongs to the product's own repository: committed from a
+  // folder that has none of its own, it would land in the repository around
+  // it, which is someone else's history.
+  if (!ownRepository(folder, gitEnv))
+    return { outcome: 'refused', message: `the folder ${folder} is not a git repository of its own: entering a code repository is one commit of the product's history, and a commit made here would land in the repository around it` };
+
+  const status = runGit(folder, ['status', '--porcelain'], gitEnv);
+  if (!status.ok) return { outcome: 'failed', message: `git status failed in ${folder}: ${status.output}` };
+  if (status.output !== '')
+    return { outcome: 'refused', message: `the folder ${folder} holds changes that are not committed: commit them first, since entering a code repository is a commit of its own and would take them with it` };
+
+  const manifest = readFileSync(manifestFile, 'utf8');
+  try {
+    writeFileSync(manifestFile, manifestWithRepo(manifest, { name, url: wanted, branch: wantedBranch }));
+    const add = runGit(folder, ['add', '--', MANIFEST_FILE], gitEnv);
+    if (!add.ok) throw new Error(`git add failed in ${folder}: ${add.output}`);
+    const commit = runGit(folder, ['commit', '--quiet', '-m', `Enter the code repository ${name}`], gitEnv);
+    if (!commit.ok) throw new Error(`git commit failed in ${folder}: ${commit.output}`);
+  } catch (error) {
+    // The manifest goes back byte for byte, and out of the index: a step that
+    // failed leaves the product exactly as this command found it.
+    let left;
+    try {
+      writeFileSync(manifestFile, manifest);
+      runGit(folder, ['reset', '--quiet', '--', MANIFEST_FILE], gitEnv);
+    } catch (restore) {
+      left = `the failed entry left the manifest written: ${restore.message}`;
+    }
+    return { outcome: 'failed', message: left === undefined ? error.message : `${error.message}; ${left}` };
+  }
+  return { outcome: 'entered', folder, name, url: wanted, branch: wantedBranch };
+}
+
+/**
+ * What a folder is, walking up from it: a product repository, a code
+ * repository of one, or neither.
+ *
+ * A product repository is a git repository of its own holding the manifest,
+ * and a code repository is a git repository of its own whose parent is a
+ * product's `repos/`: each answers for itself, never the repository around
+ * it. The walk therefore ends where a git repository of its own begins, and a
+ * folder that is another repository's working tree is neither — a manifest
+ * lying inside one is not a product this program can answer for, and neither
+ * is a checkout standing outside a product's `repos/`. A manifest the walk
+ * meets that cannot be read is refused with its file and line, since the
+ * folder it stands over is not one this program can answer for either.
+ */
+export function whereAmI({ folder: given, gitEnv } = {}) {
+  const start = resolve(given === undefined ? '.' : given);
+  let isFolder = false;
+  try {
+    isFolder = statSync(start).isDirectory();
+  } catch {
+    // Not there at all: said below, in the same words.
+  }
+  if (!isFolder)
+    return { outcome: 'refused', message: `the folder ${start} is not a folder: where starts from a folder and walks up` };
+
+  for (let folder = start; ; folder = dirname(folder)) {
+    const owns = ownRepository(folder, gitEnv);
+    if (existsSync(join(folder, MANIFEST_FILE))) {
+      const read = readProduct(folder);
+      if (!read.ok) return { outcome: 'refused', message: read.message, file: read.file, line: read.line };
+      // A product repository is a repository of its own: a manifest standing
+      // inside another repository's tree is not one, and the walk ends here.
+      if (!owns) return { outcome: 'none' };
+      return { outcome: 'product', product: read.product.folder };
+    }
+    if (owns) {
+      if (basename(dirname(folder)) === 'repos') {
+        const product = dirname(dirname(folder));
+        if (existsSync(join(product, MANIFEST_FILE)) && ownRepository(product, gitEnv)) {
+          const read = readProduct(product);
+          if (!read.ok) return { outcome: 'refused', message: read.message, file: read.file, line: read.line };
+          return { outcome: 'code', product: read.product.folder, repo: basename(folder) };
+        }
+      }
+      // A repository of its own that is no product's and no product's code
+      // repository: what stands above it belongs to another tree.
+      return { outcome: 'none' };
+    }
+    if (dirname(folder) === folder) return { outcome: 'none' };
+  }
+}
+
 // ---- the self-test ----------------------------------------------------------
 
 /**
@@ -1057,6 +1369,8 @@ const COMMANDS = {
   rename: { options: { '--json': false }, words: [2, 2], words_are: 'a folder and a name' },
   remote: { options: { '--json': false }, words: [2, 2], words_are: 'a folder and a url' },
   bootstrap: { options: { '--json': false }, words: [1, 1], words_are: 'a folder' },
+  repo: { options: { '--branch': 'a branch', '--json': false }, words: [4, 4], words_are: '"add" and then a folder, a name and a url' },
+  where: { options: { '--json': false }, words: [0, 1], words_are: 'at most one folder' },
 };
 
 /** The options of one command, as a line a refusal can quote. */
@@ -1138,6 +1452,29 @@ function runCommand(command, { values, words }) {
       return { code: 0, lines: [`folder: ${done.folder}`, `remote: ${done.remote}`, `url: ${done.url}`], body: { folder: done.folder, remote: done.remote, url: done.url } };
     return { code: done.outcome === 'refused' ? 2 : 1, error: fault(done) };
   }
+  if (command === 'where') {
+    const done = whereAmI({ folder: words[0] === undefined ? '.' : words[0] });
+    if (done.outcome === 'refused') return { code: 2, error: fault(done) };
+    // All three answers are an answer: what a folder is is not a failure.
+    if (done.outcome === 'product')
+      return { code: 0, lines: ['where: product', `product: ${done.product}`], body: { where: 'product', product: done.product } };
+    if (done.outcome === 'code')
+      return { code: 0, lines: ['where: code', `product: ${done.product}`, `repo: ${done.repo}`], body: { where: 'code', product: done.product, repo: done.repo } };
+    return { code: 0, lines: ['where: none'], body: { where: 'none' } };
+  }
+  if (command === 'repo') {
+    if (words[0] !== 'add')
+      return { code: 2, error: { kind: 'misuse', message: `unknown "repo ${words[0]}": repo takes one subcommand, "add"` } };
+    const done = addCodeRepository({ folder: words[1], name: words[2], url: words[3], branch: values['--branch'] });
+    if (done.outcome === 'entered')
+      return {
+        code: 0,
+        lines: [`folder: ${done.folder}`, `name: ${done.name}`, `url: ${done.url}`,
+          ...(done.branch === undefined ? [] : [`branch: ${done.branch}`])],
+        body: { folder: done.folder, name: done.name, url: done.url, ...(done.branch === undefined ? {} : { branch: done.branch }) },
+      };
+    return { code: done.outcome === 'refused' ? 2 : 1, error: fault(done) };
+  }
   const done = bootstrapProduct({ folder: words[0] });
   if (done.outcome === 'refused') return { code: 2, error: fault(done) };
   const lines = [`bootstrapped: ${done.folder}`];
@@ -1183,7 +1520,7 @@ export function main(argv) {
   };
 
   if (args.length === 0)
-    return print(2, { error: { kind: 'misuse', message: 'no command was given: the commands are new, read, rename, remote and bootstrap' } });
+    return print(2, { error: { kind: 'misuse', message: 'no command was given: the commands are new, read, rename, remote, bootstrap, repo and where' } });
   const [command, ...rest] = args;
   if (command === '--help' || command === '--version' || command === '--selftest') {
     if (rest.length)
@@ -1193,9 +1530,9 @@ export function main(argv) {
     return selftest();
   }
   if (command.startsWith('--'))
-    return print(2, { error: { kind: 'misuse', message: `unknown option "${command}" before the command: the commands are new, read, rename, remote and bootstrap` } });
+    return print(2, { error: { kind: 'misuse', message: `unknown option "${command}" before the command: the commands are new, read, rename, remote, bootstrap, repo and where` } });
   if (!(command in COMMANDS))
-    return print(2, { error: { kind: 'misuse', message: `unknown command "${command}": the commands are new, read, rename, remote and bootstrap` } });
+    return print(2, { error: { kind: 'misuse', message: `unknown command "${command}": the commands are new, read, rename, remote, bootstrap, repo and where` } });
 
   let parsed;
   try {

@@ -61,8 +61,13 @@ project's artifact language and where the project keeps them. Keeping files
 is [**Tracked work**](references/keeping.md): where the project has a backlog
 integration, the writing goes under its task; where there is no repository
 yet, the conversation goes on and a draft is created with the person's
-agreement through the program's `new`, the writing going into it as it is
-made. Naming the product later is the program's `rename`.
+agreement through the program's `new`, under the products home they name, and
+setup runs in that draft to find or file the task the writing is kept under.
+The writing goes into the draft as it is made, and naming the product later
+is the program's `rename`. When the first code repository comes — the
+prototype that became the code, or a new one — the program's `repo add`
+enters it in the manifest and `bootstrap` clones it into `repos/`, and setup
+runs in it as the product's code repository.
 
 - **The record first** (`S-…`): their words as they said them, one line per
   turn, prefixed by who spoke; nothing summarised into it.

@@ -6,11 +6,11 @@
 // test and removed in a finally, and swept at exit.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { PLUGIN_VERSION, PRODUCT_SCHEMA_VERSION, readProduct } from '../skills/backlog/setup-shady2k-skills/product.mjs';
+import { PLUGIN_VERSION, PRODUCT_SCHEMA_VERSION, addCodeRepository, readProduct } from '../skills/backlog/setup-shady2k-skills/product.mjs';
 
 const script = new URL('../skills/backlog/setup-shady2k-skills/product.mjs', import.meta.url).pathname;
 const DAY = '2026-10-09';
@@ -769,4 +769,620 @@ test('--version: the version of the plugin manifest, and the library constant wi
   assert.equal(PLUGIN_VERSION, pluginManifest.version, 'and it is equal to the manifest\'s');
   assert.equal(PRODUCT_SCHEMA_VERSION, 1, 'the schema version the manifest is written in');
   assert.equal(readProduct !== undefined, true, 'the reader is part of the promise the test file was written against');
+});
+
+// ---- a code repository entered in the manifest, and what a folder is --------
+
+test('repo-add: the manifest gains the repository, keeps its id, and the entry is one commit', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder, id } = makeDraft(home);
+    const before = readFileSync(join(folder, 'workspace.yaml'), 'utf8');
+
+    const entered = runProgram('repo', 'add', folder, 'api', 'https://example.invalid/api.git', '--branch', 'main');
+    assert.equal(entered.status, 0, `${entered.stdout}${entered.stderr}`);
+    assert.match(entered.stdout, /^folder: .*/m);
+    assert.match(entered.stdout, /^name: api$/m);
+    assert.match(entered.stdout, /^url: https:\/\/example\.invalid\/api\.git$/m);
+    assert.match(entered.stdout, /^branch: main$/m);
+    assert.equal(readFileSync(join(folder, 'workspace.yaml'), 'utf8'),
+      `${before}repos:\n  - name: api\n    url: https://example.invalid/api.git\n    branch: main\n`,
+      'the manifest is the bytes it held, plus the block the entry added');
+
+    const read = readProduct(folder);
+    assert.equal(read.ok, true, read.message);
+    assert.equal(read.product.id, id, 'the id the product was given is kept');
+    assert.deepEqual(read.product.repos, [{ name: 'api', url: 'https://example.invalid/api.git', branch: 'main' }],
+      'the code repository is read back out of the manifest');
+
+    assert.equal(git(folder, 'rev-list', '--count', 'HEAD'), '2', 'entering a repository is one commit of its own');
+    assert.equal(git(folder, 'show', '-s', '--format=%s', 'HEAD'), 'Enter the code repository api');
+    assert.equal(git(folder, 'status', '--porcelain'), '', 'and it commits nothing else');
+  } finally { done(root); }
+});
+
+test('repo-add-json: one object holding what the entry wrote', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    const entered = runProgram('repo', 'add', '--json', folder, 'api', '/tmp/here/api.git');
+    assert.equal(entered.status, 0, entered.stderr);
+    assert.deepEqual(JSON.parse(entered.stdout),
+      { folder, name: 'api', url: '/tmp/here/api.git' },
+      'the object holds the folder, the name and the url, and no branch where none was given');
+    const refused = runProgram('repo', 'add', '--json', folder, 'api', '/tmp/here/api.git');
+    assert.equal(refused.status, 2, refused.stdout);
+    assert.match(JSON.parse(refused.stdout).error.message, /already declares the code repository "api"/);
+  } finally { done(root); }
+});
+
+test('repo-add-keeps-comments-and-appends-to-an-existing-list: every other byte stays', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const first = draftWithManifest(home, 'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\n');
+    const folder = first;
+    const manifest = [
+      'schemaVersion: 1',
+      'id: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01',
+      'name: idea-2026-10-09',
+      'skills:',
+      '  shady2k: 0.91.0',
+      'repos: # the code repositories',
+      '  # the api comes first',
+      '  - name: api',
+      '    url: https://example.invalid/api.git',
+      '  - name: web',
+      "    url: 'https://example.invalid/web.git'",
+      '',
+      'wikiRevision: 7',
+      '',
+    ].join('\n');
+    writeFileSync(join(folder, 'workspace.yaml'), manifest);
+    git(folder, 'add', 'workspace.yaml');
+    git(folder, 'commit', '-q', '-m', 'the manifest with its notes');
+
+    const entered = runProgram('repo', 'add', folder, 'jobs', 'https://example.invalid/jobs.git');
+    assert.equal(entered.status, 0, `${entered.stdout}${entered.stderr}`);
+    const expected = manifest.replace(
+      "  - name: web\n    url: 'https://example.invalid/web.git'\n",
+      "  - name: web\n    url: 'https://example.invalid/web.git'\n  - name: jobs\n    url: https://example.invalid/jobs.git\n");
+    assert.equal(readFileSync(join(folder, 'workspace.yaml'), 'utf8'), expected,
+      'the item is appended to the list, and every comment, quote and byte around it is kept');
+
+    const read = readProduct(folder);
+    assert.equal(read.ok, true, read.message);
+    assert.deepEqual(read.product.repos.map((repo) => repo.name), ['api', 'web', 'jobs'],
+      'the reader takes all three, the one that was there without a branch included');
+  } finally { done(root); }
+});
+
+test('repo-add-joins-a-list-that-is-indented-otherwise: the item follows its own block', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const folder = draftWithManifest(home,
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\nrepos:\n    - name: api\n      url: https://example.invalid/api.git\n');
+    const entered = runProgram('repo', 'add', folder, 'web', 'https://example.invalid/web.git');
+    assert.equal(entered.status, 0, `${entered.stdout}${entered.stderr}`);
+    const written = readFileSync(join(folder, 'workspace.yaml'), 'utf8');
+    assert.ok(written.endsWith('    - name: web\n      url: https://example.invalid/web.git\n'),
+      `the item takes the indentation of the block it joins: ${JSON.stringify(written)}`);
+    assert.deepEqual(readProduct(folder).product.repos.map((repo) => repo.name), ['api', 'web']);
+  } finally { done(root); }
+});
+
+test('repo-add-refuses-a-second-time: the name is declared once, and nothing moved', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    assert.equal(runProgram('repo', 'add', folder, 'api', 'https://example.invalid/api.git').status, 0);
+    const before = snapshot(folder);
+
+    const again = runProgram('repo', 'add', folder, 'api', 'https://example.invalid/api-again.git');
+    assert.equal(again.status, 2, again.stdout);
+    assert.match(again.stderr, /already declares the code repository "api"/, 'the refusal names the repository');
+    unchangedFrom(folder, before);
+  } finally { done(root); }
+});
+
+test('repo-add-refuses-a-name-that-is-not-a-folder: nothing is written', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    const before = snapshot(folder);
+    for (const name of ['../escape', 'a/b', '.', '..', '']) {
+      const refused = runProgram('repo', 'add', folder, name, 'https://example.invalid/api.git');
+      assert.equal(refused.status, 2, `${JSON.stringify(name)}: ${refused.stdout}${refused.stderr}`);
+      assert.match(refused.stderr, new RegExp(`cannot be a code repository's`), `${JSON.stringify(name)} is refused for its name`);
+    }
+    unchangedFrom(folder, before);
+  } finally { done(root); }
+});
+
+test('repo-add-refuses-a-manifest-that-does-not-read: with its file and line', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const folder = draftWithManifest(home, 'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\nrepos: api\n');
+    const before = snapshot(folder);
+
+    const refused = runProgram('repo', 'add', folder, 'api', 'https://example.invalid/api.git');
+    assert.equal(refused.status, 2, refused.stdout);
+    assert.match(refused.stderr, new RegExp(`^${join(folder, 'workspace.yaml')}:4: `, 'm'),
+      `the refusal names the manifest and the line: ${refused.stderr}`);
+    unchangedFrom(folder, before);
+  } finally { done(root); }
+});
+
+test('repo-add-refuses-uncommitted-changes: the entry is a commit and would take them with it', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    writeFileSync(join(folder, 'notes.md'), 'work in progress\n');
+    const before = readFileSync(join(folder, 'workspace.yaml'), 'utf8');
+
+    const refused = runProgram('repo', 'add', folder, 'api', 'https://example.invalid/api.git');
+    assert.equal(refused.status, 2, refused.stdout);
+    assert.match(refused.stderr, /holds changes that are not committed/);
+    assert.equal(readFileSync(join(folder, 'workspace.yaml'), 'utf8'), before, 'the manifest is untouched');
+    assert.equal(git(folder, 'rev-list', '--count', 'HEAD'), '1', 'no commit was added');
+    assert.equal(git(folder, 'status', '--porcelain'), '?? notes.md', 'and the work in progress is still there');
+  } finally { done(root); }
+});
+
+test('repo-add-refuses-a-url-that-is-an-option: a value beginning with - is not a url', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    const before = snapshot(folder);
+    const refused = runProgram('repo', 'add', folder, 'api', '-here.git');
+    assert.equal(refused.status, 2, refused.stdout);
+    assert.match(refused.stderr, /begins with "-"/);
+    unchangedFrom(folder, before);
+  } finally { done(root); }
+});
+
+test('repo-add-then-bootstrap: the declared repository is cloned into repos/<name>', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    const { bare, head } = publishedRepository(root);
+
+    const entered = runProgram('repo', 'add', folder, 'api', bare, '--branch', 'main');
+    assert.equal(entered.status, 0, entered.stderr);
+    const bootstrapped = runProgram('bootstrap', folder);
+    assert.equal(bootstrapped.status, 0, `${bootstrapped.stdout}${bootstrapped.stderr}`);
+    assert.match(bootstrapped.stdout, /^repo: api cloned$/m, 'the repository the entry declared is the one cloned');
+
+    const checkout = join(folder, 'repos', 'api');
+    assert.equal(existsSync(checkout), true, 'the checkout stands under repos/, which the product repository ignores');
+    assert.equal(git(checkout, 'rev-parse', 'HEAD'), head, 'it is the commit the url held');
+    assert.equal(git(folder, 'status', '--porcelain'), '', 'and the ignored folder leaves the product repository clean');
+  } finally { done(root); }
+});
+
+test('where: a product repository, a code repository of one, and neither', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'products');
+    const { folder } = makeDraft(home);
+    const named = runProgram('rename', folder, 'leftover-listings');
+    assert.equal(named.status, 0, named.stderr);
+    const product = join(home, 'leftover-listings');
+
+    const atRoot = runProgram('where', product);
+    assert.equal(atRoot.status, 0, atRoot.stderr);
+    assert.match(atRoot.stdout, /^where: product$/m);
+    assert.match(atRoot.stdout, new RegExp(`^product: ${product}$`, 'm'));
+    const inside = runProgram('where', join(product, 'docs'));
+    assert.equal(inside.status, 0, inside.stderr);
+    assert.match(inside.stdout, /^where: product$/m, 'a folder inside the product repository is the product repository');
+
+    const { bare, head } = publishedRepository(root);
+    assert.equal(runProgram('repo', 'add', product, 'api', bare, '--branch', 'main').status, 0);
+    assert.equal(runProgram('bootstrap', product).status, 0);
+    const checkout = join(product, 'repos', 'api');
+    assert.equal(git(checkout, 'rev-parse', 'HEAD'), head);
+
+    const atCheckout = runProgram('where', '--json', checkout);
+    assert.equal(atCheckout.status, 0, atCheckout.stderr);
+    assert.deepEqual(JSON.parse(atCheckout.stdout), { where: 'code', product, repo: 'api' });
+    mkdirSync(join(checkout, 'src'));
+    const deeper = runProgram('where', join(checkout, 'src'));
+    assert.equal(deeper.status, 0, deeper.stderr);
+    assert.match(deeper.stdout, /^where: code$/m, 'a folder inside the checkout is the code repository it stands in');
+
+    const elsewhere = runProgram('where', root);
+    assert.equal(elsewhere.status, 0, elsewhere.stderr);
+    assert.match(elsewhere.stdout, /^where: none$/m, 'a folder that is no repository is neither');
+    const inAnotherRepository = runProgram('where', join(root, 'api-work'));
+    assert.equal(inAnotherRepository.status, 0, inAnotherRepository.stderr);
+    assert.match(inAnotherRepository.stdout, /^where: none$/m,
+      'a git repository that is not under a product\'s repos/ is not a code repository of one');
+  } finally { done(root); }
+});
+
+test('where-refuses-a-manifest-that-does-not-read: the folder it stands over is not answered for', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'products');
+    const { folder } = makeDraft(home);
+    const manifest = join(folder, 'workspace.yaml');
+    writeFileSync(manifest, 'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\nrepos: api\n');
+
+    const atProduct = runProgram('where', '--json', folder);
+    assert.equal(atProduct.status, 2, atProduct.stdout);
+    assert.deepEqual(JSON.parse(atProduct.stdout).error.file, manifest, 'the refusal names the manifest');
+    assert.equal(JSON.parse(atProduct.stdout).error.line, 4, 'and the line it cannot use');
+
+    mkdirSync(join(folder, 'repos', 'api'), { recursive: true });
+    git(join(folder, 'repos', 'api'), 'init', '--quiet');
+    const insideCheckout = runProgram('where', join(folder, 'repos', 'api'));
+    assert.equal(insideCheckout.status, 2, insideCheckout.stdout);
+    assert.match(insideCheckout.stderr, new RegExp(`^${manifest}:4: `, 'm'));
+  } finally { done(root); }
+});
+
+test('where-refuses-a-path-that-is-not-a-folder: it starts from a folder', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    for (const path of [join(folder, 'workspace.yaml'), join(root, 'nowhere')]) {
+      const refused = runProgram('where', path);
+      assert.equal(refused.status, 2, `${path}: ${refused.stdout}`);
+      assert.match(refused.stderr, /is not a folder: where starts from a folder and walks up/);
+    }
+  } finally { done(root); }
+});
+
+test('repo-add-keeps-the-line-ending-the-file-uses: a manifest written with carriage returns gains none of ours', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const folder = draftWithManifest(home,
+      'schemaVersion: 1\r\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\r\nname: idea-2026-10-09\r\n');
+    const entered = runProgram('repo', 'add', folder, 'api', 'https://example.invalid/api.git');
+    assert.equal(entered.status, 0, `${entered.stdout}${entered.stderr}`);
+    assert.equal(readFileSync(join(folder, 'workspace.yaml'), 'utf8'),
+      'schemaVersion: 1\r\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\r\nname: idea-2026-10-09\r\nrepos:\r\n  - name: api\r\n    url: https://example.invalid/api.git\r\n',
+      'every line of the block the entry added ends the way the manifest ends its lines');
+    assert.equal(readProduct(folder).product.repos.length, 1, 'and the manifest still reads');
+  } finally { done(root); }
+});
+
+test('repo-add-to-a-manifest-that-declares-an-empty-list: the item joins the field it finds', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const folder = draftWithManifest(home,
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\nrepos: # the code repositories\n');
+    const entered = runProgram('repo', 'add', folder, 'api', 'https://example.invalid/api.git');
+    assert.equal(entered.status, 0, `${entered.stdout}${entered.stderr}`);
+    assert.equal(readFileSync(join(folder, 'workspace.yaml'), 'utf8'),
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\nrepos: # the code repositories\n  - name: api\n    url: https://example.invalid/api.git\n');
+    assert.deepEqual(readProduct(folder).product.repos.map((repo) => repo.name), ['api']);
+  } finally { done(root); }
+});
+
+test('repo-add-refuses-a-folder-that-is-no-repository-of-its-own: the entry would land in another history', () => {
+  const root = scratch();
+  try {
+    const outer = join(root, 'outer');
+    mkdirSync(outer);
+    git(outer, 'init', '--quiet');
+    const inner = join(outer, 'inner');
+    mkdirSync(inner);
+    writeFileSync(join(inner, 'workspace.yaml'),
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\n');
+    const before = readFileSync(join(inner, 'workspace.yaml'), 'utf8');
+
+    const refused = runProgram('repo', 'add', inner, 'api', 'https://example.invalid/api.git');
+    assert.equal(refused.status, 2, refused.stdout);
+    assert.match(refused.stderr, /is not a git repository of its own/,
+      `a manifest inside another repository is not a product: ${refused.stderr}`);
+    assert.equal(readFileSync(join(inner, 'workspace.yaml'), 'utf8'), before, 'nothing was written');
+  } finally { done(root); }
+});
+
+test('repo-add-refuses-no-url: a code repository is entered with the url it is cloned from', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    const before = snapshot(folder);
+    const refused = runProgram('repo', 'add', folder, 'api', '');
+    assert.equal(refused.status, 2, refused.stdout);
+    assert.match(refused.stderr, /no url was given/);
+    unchangedFrom(folder, before);
+  } finally { done(root); }
+});
+
+test('repo-add-reads-past-a-comment: a note among the items never splits one', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const folder = draftWithManifest(home,
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\n'
+      + 'repos:\n  - name: api\n# the api was first\n    url: https://example.invalid/api.git\n');
+    const entered = runProgram('repo', 'add', folder, 'jobs', 'https://example.invalid/jobs.git');
+    assert.equal(entered.status, 0, `${entered.stdout}${entered.stderr}`);
+    assert.equal(readFileSync(join(folder, 'workspace.yaml'), 'utf8'),
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\n'
+      + 'repos:\n  - name: api\n# the api was first\n    url: https://example.invalid/api.git\n'
+      + '  - name: jobs\n    url: https://example.invalid/jobs.git\n',
+      'the item goes after the whole list, and the comment stays where it was written');
+    const read = readProduct(folder);
+    assert.equal(read.ok, true, read.message);
+    assert.deepEqual(read.product.repos.map((repo) => repo.name), ['api', 'jobs']);
+    assert.equal(read.product.repos[0].url, 'https://example.invalid/api.git', 'the first item kept its url');
+  } finally { done(root); }
+});
+
+test('repo-add-reads-past-a-comment-between-items: the list keeps its order and gains the last place', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const folder = draftWithManifest(home,
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\n'
+      + 'repos:\n  - name: api\n    url: https://example.invalid/api.git\n'
+      + '# the web is built later\n  - name: web\n    url: https://example.invalid/web.git\n');
+    const entered = runProgram('repo', 'add', folder, 'jobs', 'https://example.invalid/jobs.git');
+    assert.equal(entered.status, 0, `${entered.stdout}${entered.stderr}`);
+    const written = readFileSync(join(folder, 'workspace.yaml'), 'utf8');
+    assert.ok(written.endsWith('  - name: jobs\n    url: https://example.invalid/jobs.git\n'),
+      `the new item is last: ${JSON.stringify(written)}`);
+    assert.ok(written.includes('# the web is built later\n'), 'the comment is still there');
+    assert.deepEqual(readProduct(folder).product.repos.map((repo) => repo.name), ['api', 'web', 'jobs']);
+  } finally { done(root); }
+});
+
+test('repo-add-to-a-field-written-with-a-value: the value is taken off the line and the list written under it', () => {
+  const root = scratch();
+  try {
+    for (const written of ['null', '~']) {
+      const home = join(root, `home-${written === '~' ? 'tilde' : written}`);
+      const folder = draftWithManifest(home,
+        `schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\nrepos: ${written} # no code yet\n`);
+      const entered = runProgram('repo', 'add', folder, 'api', 'https://example.invalid/api.git');
+      assert.equal(entered.status, 0, `${written}: ${entered.stdout}${entered.stderr}`);
+      const read = readProduct(folder);
+      assert.equal(read.ok, true, `${written}: ${read.message}`);
+      assert.deepEqual(read.product.repos.map((repo) => repo.name), ['api'], `${written}: the repository reads back`);
+      const text = readFileSync(join(folder, 'workspace.yaml'), 'utf8');
+      assert.ok(text.includes('repos: # no code yet\n  - name: api\n    url: https://example.invalid/api.git\n'),
+        `${written}: the key and its comment are kept, the value is gone: ${JSON.stringify(text)}`);
+      assert.ok(!text.includes(`${written} #`), `${written}: the value it held is not written any more`);
+    }
+  } finally { done(root); }
+});
+
+test('repo-add-writes-a-url-the-reader-gives-back: a value it would read as a number is quoted', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    for (const url of ['.5', '123', 'true', 'a b', 'https://example.invalid/api.git', '/tmp/here/api.git']) {
+      const entered = runProgram('repo', 'add', folder, `r${url.length}${url.replace(/\W/g, '')}`.slice(0, 12), url);
+      assert.equal(entered.status, 0, `${url}: ${entered.stdout}${entered.stderr}`);
+    }
+    const read = readProduct(folder);
+    assert.equal(read.ok, true, read.message);
+    assert.deepEqual(read.product.repos.map((repo) => repo.url),
+      ['.5', '123', 'true', 'a b', 'https://example.invalid/api.git', '/tmp/here/api.git'],
+      'every url is given back exactly as it was entered, whichever spelling the reader needs');
+  } finally { done(root); }
+});
+
+test('repo-add-leaves-a-repos-of-another-field-alone: only the product\'s own field is written', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const folder = draftWithManifest(home,
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\n'
+      + 'other:\n  repos:\n    - name: nested\n      url: https://example.invalid/nested.git\n');
+    const entered = runProgram('repo', 'add', folder, 'api', 'https://example.invalid/api.git');
+    assert.equal(entered.status, 0, `${entered.stdout}${entered.stderr}`);
+    const text = readFileSync(join(folder, 'workspace.yaml'), 'utf8');
+    assert.ok(text.includes('  repos:\n    - name: nested\n      url: https://example.invalid/nested.git\n'),
+      'the repos of another field is untouched');
+    assert.ok(/^repos:\n {2}- name: api\n {4}url: /m.test(text), 'the product\'s own field is written at the left margin');
+    assert.deepEqual(readProduct(folder).product.repos.map((repo) => repo.name), ['api'],
+      'the reader takes the product\'s own field, not the nested one');
+  } finally { done(root); }
+});
+
+test('repo-add-to-a-manifest-without-a-final-newline: the file keeps its own ending', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const folder = draftWithManifest(home, 'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09');
+    const entered = runProgram('repo', 'add', folder, 'api', 'https://example.invalid/api.git');
+    assert.equal(entered.status, 0, `${entered.stdout}${entered.stderr}`);
+    assert.equal(readFileSync(join(folder, 'workspace.yaml'), 'utf8'),
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\nrepos:\n  - name: api\n    url: https://example.invalid/api.git',
+      'the block follows the last line as it stood, and no newline is invented');
+    assert.deepEqual(readProduct(folder).product.repos.map((repo) => repo.name), ['api']);
+  } finally { done(root); }
+});
+
+test('repo-add-a-commit-that-fails: the manifest goes back byte for byte, and nothing is left staged', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    const before = snapshot(folder);
+    const manifest = readFileSync(join(folder, 'workspace.yaml'), 'utf8');
+
+    // A git that refuses to commit, and nothing else: the entry writes the
+    // manifest, the commit fails, and the product must be as it was. The stub
+    // goes on to the real git by its own path, never by name, which would
+    // find the stub again.
+    const realGit = spawnSync('which', ['git'], { encoding: 'utf8' }).stdout.trim();
+    assert.ok(realGit, 'the real git is on the PATH this box holds');
+    const bin = join(root, 'bin');
+    mkdirSync(bin);
+    const stub = [
+      '#!/bin/sh',
+      'for a in "$@"; do',
+      '  if [ "$a" = commit ]; then',
+      "    echo 'stub: refusing to commit' >&2",
+      '    exit 1',
+      '  fi',
+      'done',
+      `exec '${realGit}' "$@"`,
+      '',
+    ].join('\n');
+    writeFileSync(join(bin, 'git'), stub);
+    spawnSync('chmod', ['+x', join(bin, 'git')]);
+    const saved = runProgram.bin;
+    runProgram.bin = bin;
+    let failed;
+    try {
+      failed = runProgram('repo', 'add', folder, 'api', 'https://example.invalid/api.git');
+    } finally { runProgram.bin = saved; }
+
+    assert.equal(failed.status, 1, `${failed.stdout}${failed.stderr}`);
+    assert.match(failed.stderr, /git commit failed/, 'the failure names the step that failed');
+    assert.equal(readFileSync(join(folder, 'workspace.yaml'), 'utf8'), manifest, 'the manifest is back as it was');
+    unchangedFrom(folder, before);
+    assert.equal(git(folder, 'status', '--porcelain'), '', 'and nothing of the failed entry is left staged');
+  } finally { done(root); }
+});
+
+test('repo-add-refuses-a-name-already-declared-with-its-line: the refusal names where it stands', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const folder = draftWithManifest(home,
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\nrepos:\n  - name: api\n    url: https://example.invalid/api.git\n');
+    const manifest = join(folder, 'workspace.yaml');
+    const refused = runProgram('repo', 'add', '--json', folder, 'api', 'https://example.invalid/api-again.git');
+    assert.equal(refused.status, 2, refused.stdout);
+    const { error } = JSON.parse(refused.stdout);
+    assert.equal(error.file, manifest, 'the refusal names the manifest');
+    assert.equal(error.line, 5, 'and the line the name stands on');
+    assert.match(error.message, /already declares the code repository "api"/);
+  } finally { done(root); }
+});
+
+test('where-answers-none-for-another-repository: only a repository of its own is answered for', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'products');
+    const { folder } = makeDraft(home);
+    assert.equal(runProgram('rename', folder, 'leftover-listings').status, 0);
+    const product = join(home, 'leftover-listings');
+
+    // A manifest in a folder that is no git repository of its own: the walk
+    // answers for a product repository, and this is not one.
+    const plain = join(root, 'plain');
+    mkdirSync(plain);
+    writeFileSync(join(plain, 'workspace.yaml'),
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: plain\n');
+    const outside = runProgram('where', plain);
+    assert.equal(outside.status, 0, outside.stderr);
+    assert.match(outside.stdout, /^where: none$/m, 'a manifest without a repository of its own is no product repository');
+
+    // A repository of its own inside the product's tree but outside repos/ is
+    // another tree: what stands above it is not reached.
+    const foreign = join(product, 'prototypes', 'foreign');
+    mkdirSync(foreign, { recursive: true });
+    git(foreign, 'init', '--quiet');
+    const atForeign = runProgram('where', foreign);
+    assert.equal(atForeign.status, 0, atForeign.stderr);
+    assert.match(atForeign.stdout, /^where: none$/m, 'another repository inside the product is not the product repository');
+    const insideForeign = join(foreign, 'src');
+    mkdirSync(insideForeign);
+    const deeper = runProgram('where', insideForeign);
+    assert.equal(deeper.status, 0, deeper.stderr);
+    assert.match(deeper.stdout, /^where: none$/m, 'nor is a folder inside it');
+
+    const atProduct = runProgram('where', product);
+    assert.equal(atProduct.status, 0, atProduct.stderr);
+    assert.match(atProduct.stdout, /^where: product$/m, 'and the product repository is still the product repository');
+  } finally { done(root); }
+});
+
+test('repo-add-writes-a-value-one-line-cannot-carry: an escape is written, and read back whole', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    const url = '/tmp/api\nmirror.git';
+    const branch = 'a\tb';
+
+    const entered = runProgram('repo', 'add', folder, 'api', url, '--branch', branch);
+    assert.equal(entered.status, 0, `${entered.stdout}${entered.stderr}`);
+    assert.ok(readFileSync(join(folder, 'workspace.yaml'), 'utf8').includes(
+      '    url: "/tmp/api\\nmirror.git"\n    branch: "a\\tb"\n'),
+      'a value holding a newline or a tab is written double-quoted, with the reader\'s escapes');
+
+    const read = readProduct(folder);
+    assert.equal(read.ok, true, read.message);
+    assert.deepEqual(read.product.repos, [{ name: 'api', url, branch }],
+      'the reader gives back exactly what was entered');
+    const again = runProgram('read', folder);
+    assert.equal(again.status, 0, `${again.stdout}${again.stderr}`);
+  } finally { done(root); }
+});
+
+test('repo-add-finds-a-quoted-key: the field is the one its name spells', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const folder = draftWithManifest(home,
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\n'
+      + '"repos":\n  - name: api\n    url: https://example.invalid/api.git\n');
+    const entered = runProgram('repo', 'add', folder, 'web', 'https://example.invalid/web.git');
+    assert.equal(entered.status, 0, `${entered.stdout}${entered.stderr}`);
+    assert.equal(readFileSync(join(folder, 'workspace.yaml'), 'utf8'),
+      'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: idea-2026-10-09\n'
+      + '"repos":\n  - name: api\n    url: https://example.invalid/api.git\n'
+      + '  - name: web\n    url: https://example.invalid/web.git\n',
+      'the item joins the field as the manifest spells it, and no second field is written');
+    assert.deepEqual(readProduct(folder).product.repos.map((repo) => repo.name), ['api', 'web']);
+  } finally { done(root); }
+});
+
+test('repo-add-refuses-an-empty-branch-through-the-library: the branch is a word or nothing', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    const before = snapshot(folder);
+    const refused = addCodeRepository({ folder, name: 'api', url: 'https://example.invalid/api.git', branch: ' ' });
+    assert.equal(refused.outcome, 'refused', JSON.stringify(refused));
+    assert.match(refused.message, /the branch was given empty/);
+    unchangedFrom(folder, before);
+    assert.equal(git(folder, 'status', '--porcelain'), '', 'nothing of the refused entry is staged');
+  } finally { done(root); }
+});
+
+test('where-follows-a-link-to-the-product: a folder reached by a link is the folder it names', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'products');
+    const { folder } = makeDraft(home);
+    assert.equal(runProgram('rename', folder, 'leftover-listings').status, 0);
+    const product = join(home, 'leftover-listings');
+    const alias = join(root, 'alias');
+    symlinkSync(product, alias, 'dir');
+
+    const atAlias = runProgram('where', '--json', alias);
+    assert.equal(atAlias.status, 0, atAlias.stderr);
+    assert.deepEqual(JSON.parse(atAlias.stdout), { where: 'product', product: alias },
+      'the product is recognised through the link, and named as it was reached');
+    const insideAlias = runProgram('where', join(alias, 'docs'));
+    assert.equal(insideAlias.status, 0, insideAlias.stderr);
+    assert.match(insideAlias.stdout, /^where: product$/m, 'and so is a folder inside it');
+  } finally { done(root); }
 });

@@ -46,7 +46,9 @@ history is progress evidence too.
 
 **Where the project has a backlog integration** (its agent doc points to it):
 read [`protocol.md`](protocol.md) and do its compatibility check. Run the gate
-from this checkout. If it fails, name the real cause: an installation not yet
+from this checkout, or, where this repository is a product's code repository,
+from the product repository, which holds the queue. If it fails, name the real
+cause: an installation not yet
 landed (check other worktrees), a missing runtime, a tracker outage or broken
 wiring. Collect the gate's report, config, charter, outcomes, holds, submitted
 and implemented tasks, stage acceptance records, the newest `Handoff` comment
@@ -134,7 +136,7 @@ the list.
 | --- | --- |
 | an empty folder: no code, no documents, perhaps not even an idea | the path in the protocol's [**Starting from nothing**](references/starting.md), from its first step: `brainstorming` to find the idea; setup only once something is to be kept |
 | an idea, but nothing an engineer could start the first feature from: no users, journey or requirements written down | `define-product`, with the person who has the idea |
-| no tracker or integration, or setup missing or outdated | `/setup-shady2k-skills` before managed work, saying what is missing; still give the picture |
+| no tracker or integration, or setup missing or outdated | `/setup-shady2k-skills` before managed work, saying what is missing; in a product's code repository the product repository is set up first; still give the picture |
 | the person's plugin is older than the repository's installation | update the plugin, not setup, which would roll the installation back |
 | checks cannot run | the specific repair through setup; land a stranded installation if that is the cause |
 | no current slice but live work exists | `groom-backlog` to agree and clean the slice (setup does this on first install) |
@@ -229,7 +231,9 @@ tracker is not this skill's.
 ## Routes
 
 - `setup-shady2k-skills`: choose or check the tracker, clean its queue, agree a
-  recommended profile, prove the installation; rerun after updates.
+  recommended profile, prove the installation; rerun after updates. A product's
+  code repository keeps no tracker of its own: the product repository's holds
+  its tasks.
 - `to-milestone`: agree outcomes, scope and budget.
 - `take-task`: preflight with the owner, then run a whole feature alone to one
   pull request, stopping only for decisions that need the owner.
