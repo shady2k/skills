@@ -120,6 +120,30 @@ run`.
 `## Prediction` (in the form "X % of Y will do Z" where it can be), `## Observed`,
 `## Verdict` (confirmed, refuted or unclear, then why).
 
+## The product repository
+
+A product repository is a git repository that keeps a product's knowledge in
+one place: its documents (`docs/`), its intended model (`model/`), the team's
+own skills (`skills/`, never a copy of the set), its prototypes
+(`prototypes/`) and the code repositories it spans (`repos/`). This layout
+comes with the manifest's schema version; it is never read from the manifest.
+
+**The manifest is `workspace.yaml`.** It carries `schemaVersion: 1`, the
+product's `id` (given once and kept for its life) and its `name`; it may name
+the pinned version of the set under `skills`, and the repositories under
+`repos` as a list of `{ name, url, branch? }`, where a name is a folder name
+and unique among them. Fields are only ever added beside these, so an unknown
+field is ignored and a manifest from a later version still opens.
+
+**The repositories are driven by the program `product.mjs`.** It creates the
+draft for a product that has no repository yet (`new`, in a home the caller
+gives it), reads and validates a folder against its manifest (`read`), names
+the product in place without losing its id (`rename`), adds the code
+repository as a remote without pushing (`remote`) and clones the repositories
+the manifest declares, never replacing a checkout already there
+(`bootstrap`). Skills create, rename, add a remote to and bootstrap a product
+repository only through it.
+
 ## The check
 
 `check-product.mjs` reads the product documents of a repository (its working

@@ -60,8 +60,9 @@ By the forms of [the product's documents](references/product.md), in the
 project's artifact language and where the project keeps them. Keeping files
 is [**Tracked work**](references/keeping.md): where the project has a backlog
 integration, the writing goes under its task; where there is no repository
-yet, the conversation goes on and the writing waits until one is created with
-the person's agreement.
+yet, the conversation goes on and a draft is created with the person's
+agreement through the program's `new`, the writing going into it as it is
+made. Naming the product later is the program's `rename`.
 
 - **The record first** (`S-…`): their words as they said them, one line per
   turn, prefixed by who spoke; nothing summarised into it.
