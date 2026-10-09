@@ -167,9 +167,11 @@ questionnaire**.
   offered at the project level where the harness has one (in Claude Code the
   plugin's source becomes known to anyone who trusts the folder; each person
   still installs it once), the install line in the agent doc for every other
-  harness, hooks connected in every clone, and CI enforcing the checks on
-  everyone's commits. Team is a decision for the team, not only for this
-  person: say so. A rerun keeps the recorded answer. Check the plugin's own
+  harness, written from [agents.md](references/agents.md), the set's one list
+  of install and connect commands, hooks connected in every clone, and CI
+  enforcing the checks on everyone's commits. Team is a decision for the
+  team, not only for this person: say so. A rerun keeps the recorded answer.
+  Check the plugin's own
   installation scope where the harness shows it: every checkout and worktree of
   this repository should see the skills at one version, so the install is made
   at the scope that covers them all (in Claude Code, `project` from the main
@@ -268,9 +270,15 @@ questionnaire**.
   that a replay on this project's history gives the numbers to move it on.
   A config without them keeps those values, so a rerun asks only where the
   owner wants to change them.
-- **Review:** another model where available, a stated fallback otherwise, and
-  whether independent review is required for acceptance. Two agents on the
-  same model are not another model.
+- **Review:** a reviewer on a different model that can be reached from this
+  harness, not one product, and whether independent review is required for
+  acceptance. The ways to reach one, the proof and the repair rule are in
+  [agents.md](references/agents.md): a subagent with a model override, where
+  the harness can start one; an external agent CLI; an API. Setup proves the
+  chosen way with one real call and records the way and the model on the
+  integration's Reviewer line. A recorded way that stops working is repaired,
+  never silently replaced: the owner is told, and the recorded fallback is
+  used only as agreed. Two agents on the same model are not another model.
 - **Documents and commit links:** read [documents.md](documents.md) for the
   lifecycle, templates, document gate and its trust limits. Map vision,
   roadmap, charters, current capabilities, changes, optional design and
@@ -485,7 +493,9 @@ Point every harness's loaded agent doc at the integration with:
 
 In team scope add one line for people who do not have the skills yet, in their
 harness's syntax: this repository works through the shady2k-skills plugin, and
-how to install it. That install line is the one command the pointer carries.
+how to install it. Take that install command for each agent from
+[agents.md](references/agents.md), the set's one list of install and connect
+commands; it is the one command the pointer carries.
 
 Use the real path and invocation syntax. Do not copy settings, milestone values
 or commands into the pointer.
@@ -536,10 +546,13 @@ real commits and this repository's own checks are proved.
    by the item it names, or, where the project agreed to Jev and the run
    script is given the config, by Jev's sure judgement; one the script still
    refuses is not "missing", and
-   the owner is told which. The script reads Claude Code, Codex and omp. List the rest in `timeRecordsExempt`, and tell the
-   owner once that their time stays unknown. This happens at adoption only: an
-   exemption follows the task tree, and work handed in unclaimed later gets
-   the rule's own fix, never a place on the list.
+   the owner is told which. The script reads the harnesses it has an adapter
+   for: `node skills/engineering/take-task/ledger.mjs adapters` lists them
+   and says what each cannot do, and a harness with no adapter is refused
+   plainly, not counted as unknown. List the rest in `timeRecordsExempt`, and
+   tell the owner once that their time stays unknown. This happens at
+   adoption only: an exemption follows the task tree, and work handed in
+   unclaimed later gets the rule's own fix, never a place on the list.
 3. **Real entry points:** plant a recoverable backlog violation and run the real
    hook; see it fail (or report, at `report` strength), undo, see it clean. Run
    the real commit-message entry point with a missing task, an unknown task and

@@ -6,9 +6,15 @@ task criteria, the spec or short delta, the original bug symptoms and the
 project's standards. They read the requirements and the change themselves,
 not the implementer's conclusions.
 
-Prefer a different model where the harness and settings allow; different agents
-on the same model are not that. Without an independent reviewer, do separate
-self-review passes, say so, and follow the project's acceptance policy.
+The reviewer is a reviewer on a different model that can be reached from this
+harness, chosen by the ways the set's [agents.md](references/agents.md)
+reference lists: a subagent with a model override, where the harness can start
+one; an external agent CLI; an API. The project's config records the choice
+(`reviewPreference`, `reviewFallback`), and the recorded fallback is used only
+as agreed: a recorded way that stops working is a repair the owner is told
+about, not a silent fallback. Two agents on the same model are not another
+model. Without an independent reviewer, do separate self-review passes, say
+so, and follow the project's acceptance policy.
 
 Cover both sides, with parallel reviewers where useful:
 
