@@ -309,10 +309,13 @@ dependants in other stages wait for that stage's acceptance. Implemented work
 never goes back to ready.
 
 Then end the worker session that produced it, by the protocol's **A started
-session answers to the one that started it**. Keep its working copy until the
-stage is accepted, beside the resume record its task already holds. Work that
-comes back goes to a fresh worker given the rework and that log, or to the old
-session resumed from its log where the agent can do that.
+session answers to the one that started it**, and remove that worker's
+checkout and its branch, by the protocol's **A run removes the checkouts and
+branches it created**, since its three conditions hold here: the result is
+merged, what the worker wrote to the tracker in that checkout is carried over
+from its export, and its receipt is posted. Work that comes back goes to a
+fresh worker given the rework and that log, or to the old session resumed from
+its log where the agent can do that.
 
 - A gap you know how to close: decide, and record the decision and its
   assumptions in the decision log. It goes into the pull request.
@@ -392,7 +395,8 @@ own checkout off that branch as soon as the run is submitted, by the protocol's
 **A submitted branch is frozen**. Write its report as the protocol's
 **Autonomy** describes: what users can now do, how to check it yourself as the
 few steps of the walk you made, every decision and assumption made alone,
-departures from the spec, review findings, what is not done and the risks left.
+departures from the spec, review findings, what is not done, the checkouts and
+branches this run created and left, each with why, and the risks left.
 Wait for its checks to go green, reading its state by the protocol's **A state
 not yet known is not a good one**; fix a red one as part of the run, back in
 progress until the fix is proven locally, by the protocol's **CI is not where

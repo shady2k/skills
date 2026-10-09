@@ -139,6 +139,18 @@ mention it only when they must act, such as merging, after the work exists.
 After the owner merges, the agent closes the work and removes the checkouts
 and branches it created.
 
+**A run removes the checkouts and branches it created.** A run writes each
+checkout and each branch down as it makes it, so that it knows which are its
+own; what it did not create is never removed, whatever state it is in, even
+merged. A checkout this run created for a task, and the branch it made for
+that task, go once three things hold, in this order: the task's work is merged
+into the feature branch; what the worker wrote to the tracker in its checkout
+is carried over, or shown to be already in the tracker; and the worker's
+records of its time are posted, since a claim is harder to recover once its
+working copy is gone. A checkout that still holds anything not merged, or not
+carried over, stays, and the run's report names it with why. The feature's own
+checkout follows **A submitted branch is frozen**.
+
 **Silence is not progress.** Work that runs out of sight — handed to another
 agent, a long command — runs under a watchdog: a deadline and a heartbeat, both
 set before it starts. The deadline is the estimate made for that work, by

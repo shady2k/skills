@@ -100,8 +100,9 @@ with the evidence for each.
 - **Now:** work in progress, what waits for merging or acceptance, decisions
   filed for the owner and waiting on them (each by title, with the agent's
   recommendation), abandoned
-  work, stranded branches or uncommitted results, and each real blocker with
-  what would release it.
+  work, stranded branches or uncommitted results, leftover checkouts and
+  branches of finished work, each with why it stayed, reported as cleanup the
+  owner can approve, and each real blocker with what would release it.
 - **Health and risk:** failing, missing or unrun checks; specs or docs out of
   step with the code, seen through the present-documents check where the
   integration names it (run over the main line, with it as its own base, every
