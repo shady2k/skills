@@ -40,8 +40,10 @@ not by the project's TDD setting.
   the spec only for a gap or an approved change of behaviour.
 - **Full form** (step 4), when risk, uncertainty or scope justify it.
 
-Read first: the feature issue, the charter, the vision, the code it lands in,
-the glossary and decisions already recorded in the area. A missing conversation
+Read first: the feature issue, the charter, the vision, the product's own
+documents where it keeps them (the user stories, use cases and product
+requirements this feature serves), the code it lands in, the glossary and
+decisions already recorded in the area. A missing conversation
 is not proof a decision is missing. Draft from what is known, marking retained
 choices and recommendations the user can change by name, explained as what
 changes for users, why, and its cost and risk. Use `brainstorming` only for an
@@ -77,6 +79,15 @@ change: read the current requirements, give new ones stable IDs, and record
 each add, replace or remove against the old text it changes. Keep complete
 observable scenarios (conditions, action, result) and planned check IDs. Never
 overwrite accepted behaviour with an unimplemented proposal.
+
+Where the product keeps its own documents, a capability requirement names the
+product requirement it serves by its id ("Serves FR-012.") and says how this
+part of the system does it; it never restates what the product requirement
+already says, by [the product's documents](references/product.md)' **Product
+documents are the level above the specs**. Behaviour a user would notice that
+no product requirement holds is a gap in the product's documents: name it to
+the owner as one, with the requirement it needs, and do not settle it inside
+the spec.
 
 The form below also works inside a task body; the project adapter exports the
 same required fields. A full change may use separate change and design
@@ -131,7 +142,9 @@ A decision that is hard to reverse, surprising without context and the result
 of a real trade-off also gets its own record through `model-domain`.
 
 Run the backlog gate and the integration's feature document check; a new
-product also needs the product check for its vision and first charter. An
+product also needs the product check for its vision and first charter, and
+where the product keeps its own documents, the product-documents check, which
+refuses a spec serving an id that does not exist. An
 incomplete draft may be kept as a draft but is never presented as ready to
 implement. Seek only the approvals that are required, bound to this proposal;
 never fake an approval flag. Ask for approval with the protocol's summary, not

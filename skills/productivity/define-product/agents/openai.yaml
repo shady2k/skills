@@ -1,0 +1,5 @@
+interface:
+  display_name: "Define Product"
+  short_description: "Talk a raw idea through in plain words and write the product's documents"
+policy:
+  allow_implicit_invocation: true

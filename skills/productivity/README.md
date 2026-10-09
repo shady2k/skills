@@ -16,5 +16,8 @@ Also available directly to the user.
 
 - [brainstorming](./brainstorming/SKILL.md): explore ideas, investigate or decide
   through dialogue; understand reasoning before disagreeing, no mandatory artifact.
+- [define-product](./define-product/SKILL.md): talk a raw idea through with the
+  person who has it, in plain words, and write the product's documents an
+  engineer can start from.
 - [to-research](./to-research/SKILL.md): bounded primary-source investigation;
   independent questions may be delegated in parallel; a cited answer need not become a file.

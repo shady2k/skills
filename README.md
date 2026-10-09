@@ -189,7 +189,7 @@ work up.
 
 | step | what you do | what the agents do | skills | how much of you |
 | --- | --- | --- | --- | --- |
-| **Start from nothing** (an empty folder) | pick where to look, choose the idea, tell the key journeys of your users | generate and challenge ideas, check the market and the domain; nothing is written yet | `brainstorming`, `to-research`, `to-prototype` | a few conversations |
+| **Start from nothing** (an empty folder) | pick where to look, choose the idea, tell the key journeys of your users | generate and challenge ideas, check the market and the domain; nothing is written yet | `brainstorming`, `define-product`, `to-research`, `to-prototype` | a few conversations |
 | **Keep it** | agree to create the repository and the tracker | create them, connect the checks, write down the vision | `setup-shady2k-skills` | once, under an hour for an empty project |
 | **Or join an existing project** | agree what is current, what waits and what was abandoned | read the code, the tracker and the history; clean up the queue reversibly | `setup-shady2k-skills`, `groom-backlog` | once, from half an hour to a few sessions for a neglected backlog |
 | **Agree the next version** (the first one is the MVP) | accept or change the outcomes, what is out, and how many new bugs it may absorb; cut the MVP | propose the charter from the vision and what is done | `to-milestone` | one conversation per version |
@@ -264,6 +264,7 @@ unrelated changes, new scope or publishing anything.
 | skill | what it does | when to use it |
 | --- | --- | --- |
 | [brainstorming](skills/productivity/brainstorming/SKILL.md) | Thinks an idea through with you: offers its own ideas and counterexamples, disagrees with reasons. Nothing has to come out of it. | "Let's discuss", "what if", an open product decision. |
+| [define-product](skills/productivity/define-product/SKILL.md) | Talks your idea through with you in plain words, one question at a time, and writes what an engineer needs to start: what you said, what you believe and how to test it, what a user does, what they must be able to see, and what is still unknown. | When you have an idea but no requirements, or before a product's first feature. |
 | [to-research](skills/productivity/to-research/SKILL.md) | Answers a question from primary sources, with citations. | When a decision depends on facts nobody has checked. |
 | [to-prototype](skills/engineering/to-prototype/SKILL.md) | Builds a small throwaway experiment that answers one design question. | When arguing takes longer than trying. |
 | [to-spec](skills/engineering/to-spec/SKILL.md) | Writes down what exactly is being built, as the user will see it, with scenarios that will be checked. | Before building something whose behaviour is not yet agreed. |
@@ -783,6 +784,8 @@ can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
+
+- **0.89.0** adds `define-product`, for a person who has an idea and no requirements. It talks the idea through in plain words, one question at a time with an example answer to react to, and turns doubts into beliefs to test rather than requirements. With the person's agreement it keeps their words as the record, and writes the product's documents behind the scenes, each quoting the lines it came from. It stops when an engineer could start the first feature, and says what is still missing instead of guessing it. `to-spec` now links a spec's requirement to the product requirement it serves, never restating it, and treats behaviour no product requirement holds as a gap for the owner.
 
 - **0.88.0** gives a product its own documents, written in fixed forms and checked on every commit: the records of conversations the quotes come from, hypotheses with their test and threshold, user stories, use cases, product requirements, open questions, and prototypes with their results. They are the level above the specs: a product requirement says what a user can observe and names no part of the system, and a spec's requirement names the product requirement it serves. A new check refuses a document out of form, a placeholder where an open question belongs, an id that does not exist, a requirement that names code and a quote that is not where it says it is, each with its file and line. A complete example product and one broken copy per rule ship with it, for tools that read these documents. Projects rerun setup once, to connect the new check; a project with no product documents is not affected by it.
 

@@ -133,6 +133,7 @@ the list.
 | condition | next action |
 | --- | --- |
 | an empty folder: no code, no documents, perhaps not even an idea | the path in the protocol's [**Starting from nothing**](references/starting.md), from its first step: `brainstorming` to find the idea; setup only once something is to be kept |
+| an idea, but nothing an engineer could start the first feature from: no users, journey or requirements written down | `define-product`, with the person who has the idea |
 | no tracker or integration, or setup missing or outdated | `/setup-shady2k-skills` before managed work, saying what is missing; still give the picture |
 | the person's plugin is older than the repository's installation | update the plugin, not setup, which would roll the installation back |
 | checks cannot run | the specific repair through setup; land a stranded installation if that is the cause |
@@ -234,6 +235,8 @@ tracker is not this skill's.
   pull request, stopping only for decisions that need the owner.
 - `brainstorming`: explore, investigate or decide in conversation; no required
   result.
+- `define-product`: talk an idea through with the person who has it, in plain
+  words, and write the product's documents up to where an engineer can start.
 - `to-spec`: a short or full change to the living specs, with scenarios.
 - `to-stages`: stages as checkpoints, tasks sized for one worker, real
   dependencies and parallel tasks.
