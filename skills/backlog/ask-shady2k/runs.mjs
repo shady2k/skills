@@ -20,7 +20,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { hostname, tmpdir, userInfo } from 'node:os';
 import { join } from 'node:path';
 import {
-  Unsupported, Usage, adapter, adapterNames, collect, conversationOf, current, hasAdapter, localStamp, measure, parseWhen,
+  Usage, adapter, adapterNames, collect, conversationOf, current, hasAdapter, localStamp, measure, parseWhen,
   projectName, recordedShapes, sessionEnvVars, span, transcriptOf, union, unnamedTranscripts,
 } from './ledger.mjs';
 import {
@@ -639,10 +639,17 @@ function describeTime(t) {
 function gaps(v, opts) {
   const recover = [];
   const elsewhere = [];
+  const unsupported = [];
   const at = nowMs();
   for (const s of openSpans(v)) {
     const later = v.spans.some((o) => o !== s && o.claim && o.item === s.item && o.start > s.start);
     const status = v.by.get(s.item)?.status;
+    // A harness this copy cannot read is not "on another machine": it is
+    // unreadable here, and its span is neither recovered nor guessed at.
+    if (!hasAdapter(harnessOf(s.session))) {
+      unsupported.push({ item: s.item, span: s.id, agent: s.claim.fields.agent, harness: harnessOf(s.session), since: s.claim.fields.at });
+      continue;
+    }
     let raw = null;
     try { raw = rawOf(opts, s.session, s.item); } catch (e) { if (!(e instanceof Usage)) throw e; }
     const stopped = raw ? at - raw.last > 15 * 60e3 : false;
@@ -651,7 +658,7 @@ function gaps(v, opts) {
     if (!raw) { elsewhere.push({ item: s.item, span: s.id, agent: s.claim.fields.agent, since: s.claim.fields.at }); continue; }
     recover.push(receiptFor(v, s, opts, { end: status === 'active' && !s.next && !later ? 'stopped' : 'paused', reason: 'other', note: 'recovered: the session ended without writing its receipt', recovered: true }));
   }
-  return { recover, elsewhere };
+  return { recover, elsewhere, unsupported };
 }
 
 /**
@@ -837,6 +844,8 @@ export function run(argv) {
       if (g.recover.length) lines.push(`${g.recover.length} span(s) ended with no receipt and are recovered from this machine's transcripts:`, '', post(g.recover, opts), '');
       if (g.elsewhere.length) lines.push(`${g.elsewhere.length} span(s) ended with no receipt, and their transcripts are not on this machine; each is written where its session ran, and until then its time is unknown:`,
         ...g.elsewhere.map((e) => `  ${e.item}: ${e.agent}, since ${localStamp(Date.parse(e.since))}`));
+      if (g.unsupported.length) lines.push(`${g.unsupported.length} span(s) belong to a harness this copy of the set cannot read, so nothing is recovered for them and their time is not "unknown":`,
+        ...g.unsupported.map((e) => `  ${e.item}: ${e.agent}, since ${localStamp(Date.parse(e.since))}: unsupported here: no transcript adapter for ${e.harness}`));
       return lines.join('\n') || 'Every span that has ended has its receipt.';
     }
     case 'time': {
@@ -1049,6 +1058,10 @@ async function selftest() {
       && gt.total.total === t.total.total && gt.receipts === t.receipts);
     expect('time: the text says what is unsupported here, in the set\'s words',
       cli('time').includes('unsupported here: no transcript adapter for gemini'));
+    const gapU = JSON.parse(cli('gaps', '--json'));
+    expect('gaps: a harness with no adapter is named unsupported, never as a transcript on another machine',
+      gapU.unsupported.some((u) => u.harness === 'gemini' && u.agent.startsWith('gemini-agent'))
+      && !gapU.elsewhere.some((e) => e.agent.startsWith('gemini-agent')));
     const refused = (a) => { try { rawCache = null; run(a); return ''; } catch (e) { return `${e.constructor.name}: ${e.message}`; } };
     expect('receipt: a harness with no adapter is refused as unsupported, not as a transcript on another machine',
       refused(['receipt', '--span', parseRecord(gem[0].body).fields.span, '--end', 'paused', '--backlog', file, '--project', 'demo'])
