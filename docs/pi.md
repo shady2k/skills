@@ -81,7 +81,11 @@ Loading the package and listing tools do not call Jev's model. Calls still go
 through the existing server's project-consent, credentials and masking checks.
 The extension does not create credentials, grant project consent, schedule
 replays or run periodic work. Configure Jev through the existing setup flow
-only with the project's approval.
+only with the project's approval. Jev's key is read from
+`$XDG_CONFIG_HOME/shady2k-skills/jev.json` (`~/.config/shady2k-skills/jev.json`
+by default), or, when there is no file, from `JEV_API_KEY` in the server's own
+environment. Pi's registration inherits the environment the Pi session
+started with, so `JEV_API_KEY` must be set before that session starts.
 
 ## Time accounting
 

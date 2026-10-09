@@ -105,4 +105,7 @@ from each call's workspace (and the forwarded `PWD` as a last resort), never
 from its own folder. `npm run test:codex` fails when the entry is missing or
 carries a placeholder. The tool is marked read-only, which is what lets `codex exec`
 call it under its default approval policy. The plugin's `bin/` is not put on
-Codex's `PATH`.
+Codex's `PATH`. Jev's key is read from
+`$XDG_CONFIG_HOME/shady2k-skills/jev.json` (`~/.config/shady2k-skills/jev.json`
+by default), or, when there is no file, from `JEV_API_KEY` in the server's own
+environment; restart the Codex session so a changed environment reaches it.

@@ -243,11 +243,21 @@ questionnaire**.
   receives unless the project has a zero-retention agreement with it. Say what
   is masked before sending and that masking goes by shape and misses what has
   none. Recommend no where the code is not the owner's to send out; otherwise
-  the owner's call. Find where the key is (an environment variable, a file, or
-  a secrets store read by a command) and ask only if it cannot be found; never
-  read the key into the conversation. Where it is, is this machine's, not the
-  project's: write it, with the owner's agreement, to the file `jev.mjs` reads
-  it from (named at the top of [`jev.mjs`](jev.mjs)), never into the config. Where the
+  the owner's call. Find where the key is and ask only if it cannot be found;
+  never read the key into the conversation. Where it is, is this machine's, not
+  the project's, and a project cannot name its own: with the owner's agreement,
+  write it to the file [`jev.mjs`](jev.mjs) reads it from,
+  `$XDG_CONFIG_HOME/shady2k-skills/jev.json`
+  (`~/.config/shady2k-skills/jev.json` by default), which wins whenever it
+  exists and holds the key's place in one of three forms:
+  `{"key": {"env": "MY_JEV_KEY"}}` (a variable's name),
+  `{"key": {"file": "/path/to/key"}}`, or
+  `{"key": {"command": ["program", "args"]}}`. A file that is there but
+  broken is an error that names it, and a config with a `key` is refused. When
+  there is no file, the key is the variable `JEV_API_KEY`, which must reach the
+  process that runs the Jev MCP server (the harness that starts it, not only
+  the owner's shell), and the MCP connection is restarted after that
+  environment changes (in Claude Code, `/mcp`). Where the
   tracker's item ids have one shape, record it so ids are masked. In team
   scope each person keeps their own key's place, and a person without one
   simply works without Jev. Where the project agrees, also how sure Jev must
@@ -557,7 +567,13 @@ real commits and this repository's own checks are proved.
    `node jev.mjs status --config <project-config>` says it is available,
    proved by one call about a fixed sentence that carries no project text
    (its refusal names what is missing: consent, the key's place, the key, or
-   the route); for the `typesafe` route this is the first proof it works at all. Run `jev.mjs mask` over a
+   the route); for the `typesafe` route this is the first proof it works at all.
+   `status` says which source it used (the machine's file, or `JEV_API_KEY`),
+   and its refusal names both ways to give the key, with the file's path and
+   its JSON. This is the proof that reaches the agent: a key only in the
+   owner's shell, not in the server's own environment, leaves the tool
+   unavailable, and nothing is fixed until the file or the variable reaches
+   that process and the connection is restarted. Run `jev.mjs mask` over a
    real sample holding an item id and a name, and see both replaced. A failed
    proof leaves consent recorded and says Jev is unavailable until it is fixed.
    Without consent, see `status` refuse. Where the owner runs Claude Code,
