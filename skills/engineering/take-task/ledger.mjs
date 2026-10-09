@@ -48,6 +48,172 @@ const primeSessions = () => process.env.PRIME_AGENT_SESSION_DIR || process.env.P
 // The harnesses that write pi's shape of session, and where each keeps them.
 const PI_FAMILY = { omp: ompSessions, pi: piSessions, 'prime-agent': primeSessions };
 
+// ---- the agents: one adapter per harness -------------------------------------
+
+// What a harness cannot do here is said where a person reads it, never guessed
+// at: a session the set cannot read is refused by name, not counted as no time.
+export class Unsupported extends Usage {}
+
+/**
+ * The set asks every agent the same three things, and one adapter per harness
+ * answers them. This is the contract each entry satisfies; the self-test holds
+ * every entry to it, so an adapter added later cannot quietly answer less.
+ *
+ *   name           the harness as a person reads it.
+ *   env            the environment variables that name the session this process
+ *                  runs in, most specific first; empty where the harness tells
+ *                  its tools nothing, and --harness with --session is the only
+ *                  way. `agentEnv` names the agent itself where the harness has
+ *                  one, since one session may run several agents.
+ *   sessions()     the transcript references this harness left on this machine,
+ *                  each {path, mtimeMs, name, sub?, parent?}: `sub` is the
+ *                  sidecar the reader needs, `parent` the session the layout
+ *                  says started it. Read, never measured.
+ *   transcripts(sid)  the paths a session id names, and only files that really
+ *                  hold that session.
+ *   subagents(sid)    the sessions this one started, as references, DIRECT
+ *                  children only; empty where the harness keeps them nowhere
+ *                  this can see, and never a guess.
+ *   subagentList   how those children are found, or null where the harness
+ *                  keeps them nowhere this can see. Empty is then honest.
+ *   read(ref)      the raw record of one reference, read but not measured.
+ *   location(path) where it ran and which repository it recorded.
+ *   lateHints(path) what only a later line of the transcript says about its
+ *                  working copy, where the harness writes that.
+ *   limits         what this harness cannot do here, in the words a person
+ *                  reads when the set asks for it.
+ *
+ * A harness with no entry is refused with `unsupported here: ...` by
+ * `adapter()`, so no caller invents its own wording and nothing falls through
+ * to another harness's reader.
+ */
+export const ADAPTERS = {
+  'claude-code': {
+    name: 'Claude Code',
+    env: ['CLAUDE_CODE_SESSION_ID'],
+    agentEnv: null,
+    sessions: claudeSessions,
+    transcripts: claudeTranscripts,
+    subagents: claudeSubagents,
+    subagentList: 'the subagents folder of the session that started them',
+    read: (ref) => readClaude(ref.path, ref.sub ?? null),
+    location: (path) => ({ cwd: head(path).find((d) => d.cwd)?.cwd || null, hints: {} }),
+    lateHints: laterHints,
+    limits: 'tell a worker apart from its coordinator: an in-process subagent is given its coordinator\'s session id, so only the session is known, and the worker records nothing of its own',
+  },
+  codex: {
+    name: 'Codex',
+    env: ['CODEX_THREAD_ID', 'CODEX_SESSION_ID'],
+    agentEnv: null,
+    sessions: codexSessions,
+    transcripts: codexTranscripts,
+    subagents: codexSubagents,
+    subagentList: 'the parent session each rollout names',
+    read: (ref) => readCodex(ref.path),
+    location: (path) => {
+      const meta = head(path).find((d) => d.type === 'session_meta')?.payload || {};
+      return { cwd: meta.cwd || null, hints: { remote: meta.git?.repository_url || null } };
+    },
+    lateHints: null,
+    limits: null,
+  },
+  omp: {
+    name: 'omp',
+    env: [],
+    agentEnv: null,
+    sessions: () => piShapeSessions('omp', ompSessions),
+    transcripts: (sid) => piShapeTranscripts('omp', ompSessions, sid),
+    subagents: (sid) => piShapeSubagents('omp', ompSessions, sid),
+    subagentList: 'the folder of the session that started them',
+    read: (ref) => readPi(ref.path, { harness: 'omp', parent: ref.parent ?? null }),
+    location: (path) => piShapeLocation(path),
+    lateHints: null,
+    limits: 'name its own session: it is told with --harness and --session',
+  },
+  pi: {
+    name: 'Pi',
+    env: ['PI_SESSION_ID'],
+    agentEnv: null,
+    sessions: () => piShapeSessions('pi', piSessions),
+    transcripts: (sid) => piShapeTranscripts('pi', piSessions, sid),
+    subagents: () => [],
+    subagentList: null,
+    read: (ref) => readPi(ref.path, { harness: 'pi' }),
+    location: (path) => piShapeLocation(path),
+    lateHints: null,
+    limits: 'list a session\'s subagents: it keeps them nowhere this copy can see',
+  },
+  'prime-agent': {
+    name: 'Prime Agent',
+    env: [],
+    agentEnv: null,
+    sessions: () => piShapeSessions('prime-agent', primeSessions),
+    transcripts: (sid) => piShapeTranscripts('prime-agent', primeSessions, sid),
+    subagents: primeSubagentsOf,
+    subagentList: 'the parent session each one names, among its artifacts',
+    read: (ref) => readPi(ref.path, { harness: 'prime-agent', parent: ref.parent ?? null }),
+    location: (path) => piShapeLocation(path),
+    lateHints: null,
+    limits: 'name its own session: it is told with --harness and --session',
+  },
+};
+
+/** Every harness this copy of the set reads. */
+export const adapterNames = () => Object.keys(ADAPTERS);
+
+/** Whether this copy of the set has an adapter for a harness at all. */
+export const hasAdapter = (harness) => Object.prototype.hasOwnProperty.call(ADAPTERS, harness);
+
+/**
+ * The adapter of a harness, or a refusal that says what is missing. Callers
+ * never fall through to another harness's reader, and never report a harness
+ * they cannot read as a session whose time is merely unknown.
+ */
+export function adapter(harness) {
+  if (!hasAdapter(harness))
+    throw new Unsupported(`unsupported here: no transcript adapter for ${harness}; this copy of the set reads ${adapterNames().join(', ')}`);
+  return ADAPTERS[harness];
+}
+
+/** The environment variables any adapter reads the current session from. */
+export const sessionEnvVars = () => Object.values(ADAPTERS).flatMap((a) => [...a.env, ...(a.agentEnv ? [a.agentEnv] : [])]);
+
+/**
+ * Who is running this, from what the harness itself says: the session this
+ * process is in, and the agent within it where the harness names one. An
+ * explicit --harness and --session come first, since omp and Prime Agent tell
+ * their tools neither. Returns null where the harness says nothing.
+ */
+export function current({ harness = null, session = null, env = process.env } = {}) {
+  if (harness && session) return { harness, id: session, key: `${harness}:${session}`, agent: null };
+  for (const [name, a] of Object.entries(ADAPTERS))
+    for (const key of a.env)
+      if (env[key]) return { harness: name, id: env[key], key: `${name}:${env[key]}`, agent: a.agentEnv ? env[a.agentEnv] || null : null };
+  return null;
+}
+
+/** The sessions a session started, where the harness keeps them apart. */
+export function subagents(harness, sid) {
+  const a = adapter(harness);
+  if (!sid || !a.subagentList) return [];
+  return a.subagents(sid).map((r) => ({ harness, id: r.id ?? null, path: r.path, parent: r.parent ?? sid }));
+}
+
+/** What this copy of the set reads, and what each harness cannot do here. */
+export function describeAdapters() {
+  const out = [];
+  for (const [harness, a] of Object.entries(ADAPTERS)) {
+    const reads = ['a session\'s transcript'];
+    reads.push(a.env.length ? 'the current session' : 'the current session only with --harness and --session');
+    reads.push(a.subagentList ? 'a session\'s subagents' : 'no list of a session\'s subagents');
+    out.push(`${a.name} (${harness})`, `  reads: ${reads.join('; ')}`);
+    if (a.limits) out.push(`  cannot: ${a.limits}`);
+  }
+  out.push('', 'A harness with no adapter is refused by name ("unsupported here: what is missing"),',
+    'never read as a session whose time is unknown.');
+  return out.join('\n');
+}
+
 const parseTime = (s) => (typeof s === 'number' ? s : s ? Date.parse(s) : NaN);
 const minutes = (ms) => ms / 60e3;
 
@@ -973,20 +1139,11 @@ function* primeSubagents() {
   }
 }
 
-// Where a session ran, and what it recorded about its repository, from its
-// first lines.
-function where(harness, path) {
-  const first = head(path);
-  if (harness === 'codex') {
-    const meta = first.find((d) => d.type === 'session_meta')?.payload || {};
-    return { cwd: meta.cwd || null, hints: { remote: meta.git?.repository_url || null } };
-  }
-  if (PI_FAMILY[harness]) {
-    const meta = first.find((d) => d.type === 'session') || {};
-    return { cwd: meta.cwd || null, hints: { remote: meta.git?.repoUrl || null } };
-  }
-  return { cwd: first.find((d) => d.cwd)?.cwd || null, hints: {} };
-}
+// Where a session in pi's shape ran, and what repository it recorded.
+const piShapeLocation = (path) => {
+  const meta = head(path).find((d) => d.type === 'session') || {};
+  return { cwd: meta.cwd || null, hints: { remote: meta.git?.repoUrl || null } };
+};
 
 // A gone working copy may have said more later in its transcript: which
 // checkout it was made from, which repository its pull request went to.
@@ -1003,19 +1160,116 @@ function laterHints(path) {
   return hints;
 }
 
-// The transcripts on this machine a session key names.
-function transcriptPaths(harness, sid) {
-  const paths = [];
-  if (harness === 'claude-code') {
-    const root = join(claudeHome(), 'projects');
-    if (existsSync(root)) for (const dir of readdirSync(root)) if (existsSync(join(root, dir, `${sid}.jsonl`))) paths.push(join(root, dir, `${sid}.jsonl`));
-  } else if (harness === 'codex') {
-    for (const f of files(join(codexHome(), 'sessions'), 4)) if (f.name.includes(sid)) paths.push(f.path);
-  } else if (PI_FAMILY[harness]) {
-    for (const f of files(PI_FAMILY[harness](), 1)) if (f.name === `${sid}.jsonl` || f.name.endsWith(`_${sid}.jsonl`)) paths.push(f.path);
-    if (harness === 'prime-agent') for (const f of primeSubagents()) if (f.name === `${sid}.jsonl`) paths.push(f.path);
+// ---- what each harness leaves on this machine --------------------------------
+// One set of readers per harness, called only through the adapters above: where
+// a session's transcript is, which files a session id names, and which sessions
+// it started.
+
+// Claude Code: <home>/projects/<working copy>/<session>.jsonl, and a subagent of
+// a session in <session>/subagents/<agent>.jsonl, with a sidecar beside it that
+// says which tool call started it.
+const claudeSub = (path) => {
+  const sub = { agentId: basename(path, '.jsonl') };
+  try { Object.assign(sub, JSON.parse(readFileSync(path.replace(/\.jsonl$/, '.meta.json'), 'utf8'))); } catch { /* no meta */ }
+  return sub;
+};
+
+function claudeSessions() {
+  const out = [];
+  const root = join(claudeHome(), 'projects');
+  if (!existsSync(root)) return out;
+  for (const dir of readdirSync(root))
+    for (const f of files(join(root, dir), 2)) {
+      const parts = f.path.slice(join(root, dir).length + 1).split(sep);
+      if (parts.length === 1) out.push(f);
+      else if (parts.length === 3 && parts[1] === 'subagents') out.push({ ...f, sub: claudeSub(f.path) });
+    }
+  return out;
+}
+
+function claudeTranscripts(sid) {
+  const out = [];
+  const root = join(claudeHome(), 'projects');
+  if (existsSync(root)) for (const dir of readdirSync(root)) if (existsSync(join(root, dir, `${sid}.jsonl`))) out.push(join(root, dir, `${sid}.jsonl`));
+  return out;
+}
+
+function claudeSubagents(sid) {
+  const out = [];
+  for (const path of claudeTranscripts(sid)) {
+    const dir = join(dirname(path), sid, 'subagents');
+    if (!existsSync(dir)) continue;
+    for (const f of files(dir, 1)) out.push({ ...f, id: basename(f.path, '.jsonl'), parent: sid, sub: claudeSub(f.path) });
   }
-  return paths;
+  return out;
+}
+
+// Codex: <home>/sessions/<year>/<month>/<day>/rollout-*.jsonl. A subagent is a
+// rollout of its own that names, in its first line, the thread that started it.
+function codexSessions() {
+  return [...files(join(codexHome(), 'sessions'), 4)];
+}
+
+function codexTranscripts(sid) {
+  const out = [];
+  for (const f of files(join(codexHome(), 'sessions'), 4)) if (f.name.includes(sid)) out.push(f.path);
+  return out;
+}
+
+function codexSubagents(sid) {
+  const out = [];
+  for (const f of codexSessions()) {
+    const meta = head(f.path).find((d) => d.type === 'session_meta')?.payload || {};
+    if ((meta.source?.subagent?.thread_spawn?.parent_thread_id || null) !== sid) continue;
+    out.push({ ...f, id: meta.id || basename(f.path, '.jsonl').replace(/^rollout-[\dT-]+-/, ''), parent: sid });
+  }
+  return out;
+}
+
+// pi, omp and Prime Agent: <home>/<folder>/<stamp>_<id>.jsonl, omp's subagents in
+// <folder>/<stamp>_<id>/, and Prime's among the artifacts of the session that
+// started them, one sub- folder deeper for each of theirs.
+function piShapeSessions(harness, home) {
+  const out = [];
+  const root = home();
+  for (const f of files(root, 2)) {
+    const parts = f.path.slice(root.length + 1).split(sep);
+    if (harness === 'prime-agent' ? parts.length === 1 : parts.length === 2) out.push(f);
+    else if (harness === 'omp' && parts.length === 3) out.push({ ...f, parent: parts[1].replace(/^.*_/, '') });
+  }
+  if (harness === 'prime-agent') for (const f of primeSubagents()) out.push(f);
+  return out;
+}
+
+function piShapeTranscripts(harness, home, sid) {
+  const out = [];
+  for (const f of files(home(), 1)) if (f.name === `${sid}.jsonl` || f.name.endsWith(`_${sid}.jsonl`)) out.push(f.path);
+  if (harness === 'prime-agent') for (const f of primeSubagents()) if (f.name === `${sid}.jsonl`) out.push(f.path);
+  return out;
+}
+
+function piShapeSubagents(harness, home, sid) {
+  if (harness !== 'omp') return [];
+  const out = [];
+  const root = home();
+  for (const f of files(root, 2)) {
+    const parts = f.path.slice(root.length + 1).split(sep);
+    if (parts.length === 3 && parts[1].replace(/^.*_/, '') === sid) out.push({ ...f, id: null, parent: sid });
+  }
+  return out;
+}
+
+// A Prime Agent subagent names the session that started it in its own first
+// line; the folder above it says which session's artifacts it was kept among,
+// which is not the same thing for one started by a subagent in turn.
+function primeSubagentsOf(sid) {
+  const out = [];
+  for (const f of primeSubagents()) {
+    const meta = head(f.path).find((d) => d.type === 'session') || {};
+    if (!meta.parentSession || basename(meta.parentSession, '.jsonl') !== sid) continue;
+    out.push({ ...f, id: basename(f.path, '.jsonl'), parent: sid });
+  }
+  return out;
 }
 
 const splitKey = (key) => {
@@ -1036,17 +1290,17 @@ const namesItem = (item) => new RegExp(`(?<![\\w.-])${item.replace(/[.*+?^${}()|
  */
 export function transcriptOf(key, item, { judged = null } = {}) {
   const { harness, sid } = splitKey(key);
-  if (!sid || !item) return null;
-  const paths = transcriptPaths(harness, sid);
+  if (!sid || !item || !hasAdapter(harness)) return null;
+  const a = ADAPTERS[harness];
   const named = namesItem(item);
   const byJev = judged?.has(`${key}\t${item}`);
-  for (const path of paths) {
+  for (const path of a.transcripts(sid)) {
     try {
-      const { cwd } = where(harness, path);
+      const { cwd } = a.location(path);
       if (cwd && existsSync(resolve(cwd))) continue;
       const by = named.test(readFileSync(path, 'utf8')) ? 'names the item' : byJev ? 'Jev judged it the item\'s' : null;
       if (!by) continue;
-      const raw = readRaw(harness, path);
+      const raw = a.read({ path });
       if (raw && raw.id === sid && (by === 'names the item' || !raw.parent)) return Object.assign(raw, { by, role: 'side copy' });
     } catch { /* unreadable */ }
   }
@@ -1060,24 +1314,23 @@ export function transcriptOf(key, item, { judged = null } = {}) {
  */
 export function unnamedTranscripts(key, item) {
   const { harness, sid } = splitKey(key);
-  if (!sid || !item) return [];
+  if (!sid || !item || !hasAdapter(harness)) return [];
+  const a = ADAPTERS[harness];
   const named = namesItem(item);
   const out = [];
-  for (const path of transcriptPaths(harness, sid)) {
+  for (const path of a.transcripts(sid)) {
     try {
-      const { cwd } = where(harness, path);
+      const { cwd } = a.location(path);
       if (cwd && existsSync(resolve(cwd))) continue;
       if (named.test(readFileSync(path, 'utf8'))) continue;
       // Only the session itself: a file that merely has its id in its name,
       // or a subagent of it, is another transcript.
-      const raw = readRaw(harness, path);
+      const raw = a.read({ path });
       if (raw && raw.id === sid && !raw.parent) out.push({ harness, path });
     } catch { /* unreadable */ }
   }
   return out;
 }
-
-const readRaw = (harness, path) => (harness === 'codex' ? readCodex(path) : PI_FAMILY[harness] ? readPi(path, { harness }) : readClaude(path));
 
 /**
  * What the owner and the agent said to each other in a transcript, without
@@ -1120,32 +1373,13 @@ export function conversationOf(path, max = CONVERSATION_CHARS) {
  */
 export function collect(project, { since, until, repo } = {}) {
   const candidates = [];
-  const root = join(claudeHome(), 'projects');
-  if (existsSync(root))
-    for (const dir of readdirSync(root))
-      for (const f of files(join(root, dir), 2)) {
-        const parts = f.path.slice(join(root, dir).length + 1).split(sep);
-        if (parts.length === 1) candidates.push({ ...f, harness: 'claude-code' });
-        else if (parts.length === 3 && parts[1] === 'subagents') candidates.push({ ...f, harness: 'claude-code', sub: true });
-      }
-  for (const f of files(join(codexHome(), 'sessions'), 4)) candidates.push({ ...f, harness: 'codex' });
-  // omp and pi: <folder>/<stamp>_<id>.jsonl, omp's subagents in
-  // <folder>/<stamp>_<id>/. prime-agent: <id>.jsonl, with no folder, and its
-  // subagents among their parents' artifacts.
-  for (const [harness, home] of Object.entries(PI_FAMILY)) {
-    const root = home();
-    for (const f of files(root, 2)) {
-      const parts = f.path.slice(root.length + 1).split(sep);
-      if (harness === 'prime-agent' ? parts.length === 1 : parts.length === 2) candidates.push({ ...f, harness });
-      else if (harness === 'omp' && parts.length === 3) candidates.push({ ...f, harness, parent: parts[1].replace(/^.*_/, '') });
-    }
-  }
-  for (const f of primeSubagents()) candidates.push({ ...f, harness: 'prime-agent' });
+  for (const [harness, a] of Object.entries(ADAPTERS))
+    for (const c of a.sessions()) candidates.push({ ...c, harness });
 
   const seen = [];
   for (const c of candidates) {
     if (since && c.mtimeMs < since) continue;
-    try { seen.push({ ...c, ...where(c.harness, c.path) }); } catch { /* unreadable */ }
+    try { seen.push({ ...c, ...ADAPTERS[c.harness].location(c.path) }); } catch { /* unreadable */ }
   }
   const id = identify(project, { repo, cwds: [...new Set(seen.map((c) => c.cwd).filter(Boolean))] });
   if (!id.commons.size) throw new Usage(`no repository of ${project} found: run from its checkout or pass --repo <path>`);
@@ -1154,8 +1388,8 @@ export function collect(project, { since, until, repo } = {}) {
   // sat in a folder the first pass showed is kept for this project's copies.
   const judged = seen.map((c) => {
     let v = belongsTo(id, c.cwd, c.hints, { roots: false });
-    if (!v.yes && v.unknown && c.harness === 'claude-code') {
-      c.hints = { ...c.hints, ...laterHints(c.path) };
+    if (!v.yes && v.unknown && ADAPTERS[c.harness].lateHints) {
+      c.hints = { ...c.hints, ...ADAPTERS[c.harness].lateHints(c.path) };
       v = belongsTo(id, c.cwd, c.hints, { roots: false });
     }
     if (v.yes && c.cwd) learnRoot(id, resolve(c.cwd));
@@ -1171,18 +1405,7 @@ export function collect(project, { since, until, repo } = {}) {
       continue;
     }
     let raw;
-    try {
-      if (c.harness === 'codex') raw = readCodex(c.path);
-      else if (PI_FAMILY[c.harness]) raw = readPi(c.path, { harness: c.harness, parent: c.parent || null });
-      else {
-        let sub = null;
-        if (c.sub) {
-          sub = { agentId: basename(c.path, '.jsonl') };
-          try { Object.assign(sub, JSON.parse(readFileSync(c.path.replace(/\.jsonl$/, '.meta.json'), 'utf8'))); } catch { /* no meta */ }
-        }
-        raw = readClaude(c.path, sub);
-      }
-    } catch { continue; }
+    try { raw = ADAPTERS[c.harness].read(c); } catch { continue; }
     if (!raw) continue;
     if (since && raw.last < since) continue;
     if (until && raw.first > until) continue;
@@ -1373,8 +1596,12 @@ export function describeSessions(sessions) {
 
 const HELP = `ledger.mjs time [--since <date>] [--until <date>] [--project <name>] [--repo <path>] [--json]
 ledger.mjs sessions [--since <date>] [--until <date>] [--project <name>] [--repo <path>] [--json]
+ledger.mjs adapters [--json]
+ledger.mjs subagents --harness <h> --session <id> [--json]
 time     where this project's hours went: the model, tools, coordination, the owner, and nobody
 sessions one line per session, including other working copies and subagents
+adapters the agents this copy of the set reads, and what each cannot do here
+subagents the sessions one session started, where the harness keeps them apart
 --since, --until  a date is a day on this machine's clock (--until includes it); a time
          without an offset is local too. Sessions crossing the edge count only inside it.
 --repo   a checkout of the project, when not run from one
@@ -1403,9 +1630,19 @@ export function run(argv) {
     if (!Number.isFinite(n) || n <= 0) throw new Usage('--answer-minutes needs minutes');
     opts['answer-minutes'] = n;
   }
-  const project = projectName(opts.project, opts.repo);
+  const project = command === 'adapters' || command === 'subagents' ? null : projectName(opts.project, opts.repo);
   const print = (value, text) => (opts.json ? JSON.stringify(value, null, 2) : text);
   switch (command) {
+    case 'adapters':
+      return print(Object.fromEntries(Object.entries(ADAPTERS).map(([harness, a]) => [harness,
+        { name: a.name, env: a.env, currentSession: a.env.length > 0, subagents: a.subagentList, limits: a.limits }])),
+      describeAdapters());
+    case 'subagents': {
+      if (!opts.harness || !opts.session) throw new Usage('--harness <h> and --session <id> are required: the set lists one session\'s subagents');
+      const rows = subagents(opts.harness, opts.session);
+      return print(rows, rows.length ? rows.map((r) => `${r.id ?? '(no id of its own)'}  ${r.path}`).join('\n')
+        : `no subagent of ${opts.harness}:${opts.session} is on this machine`);
+    }
     case 'time': {
       const l = ledger(project, opts);
       return print(l, describeLedger(l));
@@ -1818,8 +2055,8 @@ function selftest() {
     expect('a prime-agent cell is read by what it runs: the tests, a write, a subagent, a read',
       s.kinds.test > 0 && s.kinds.develop > 0 && s.kinds.delegate > 0 && s.kinds.analyze > 0 && !s.kinds.shell);
     expect('a prime-agent session\'s cost holds its subagents\'', s.costUSD === 1.75 && s.tokens.input === 550);
-    expect('a prime-agent session is found by its id alone', transcriptPaths('prime-agent', 'pr1').length === 1
-      && transcriptPaths('pi', 'pi1').length === 1);
+    expect('a prime-agent session is found by its id alone', adapter('prime-agent').transcripts('pr1').length === 1
+      && adapter('pi').transcripts('pi1').length === 1);
 
     // A prime-agent subagent's transcript is among its parent's artifacts,
     // its own subagents' one folder deeper, beside files that are not
@@ -1843,7 +2080,7 @@ function selftest() {
     expect('a prime-agent subagent\'s cost is its parent\'s, not counted twice',
       scout.costIn === 'parent' && scout.costUSD === null && scout.tokens === null && primeAll.find((x) => x.id === 'pr1').costUSD === 1.75);
     expect('a prime-agent subagent is found by its id alone, and an artifact that is no transcript is no session',
-      transcriptPaths('prime-agent', 'pr2').length === 1 && transcriptPaths('prime-agent', 'pr3').length === 1
+      adapter('prime-agent').transcripts('pr2').length === 1 && adapter('prime-agent').transcripts('pr3').length === 1
       && !primeAll.some((x) => x.path.endsWith('semantic-edges.jsonl')));
 
     // omp kept pi's variables: a folder they name is pi's only when pi runs this.
@@ -1980,6 +2217,68 @@ function selftest() {
       all = findSessions('demo');
       expect('recorded: the opaque working copy is counted and the unrelated repository is not',
         all.length === 1 && all[0].id === 'opaque' && adds(all[0]));
+
+      // ---- the adapters: one per harness, and what each cannot do ---------
+      fresh();
+      // Two sessions that each started a subagent of the same short id: the
+      // parent is part of where the child is, so the two stay apart.
+      for (const session of ['pp1', 'pp2']) {
+        write(join(claudeDir(demo), `${session}.jsonl`), [{ type: 'user', sessionId: session, timestamp: T(0), cwd: demo, message: { content: 'go' } }]);
+        write(join(claudeDir(demo), session, 'subagents', 'agent-x1.jsonl'),
+          [{ type: 'user', sessionId: session, agentId: 'x1', isSidechain: true, timestamp: T(0), cwd: demo, message: { content: 'work' } }]);
+        writeFileSync(join(claudeDir(demo), session, 'subagents', 'agent-x1.meta.json'), JSON.stringify({ toolUseId: 'toolu_1' }));
+      }
+      write(join(home, 'codex', 'sessions', '2026', '01', '01', 'rollout-2026-01-01T18-00-00-cc1.jsonl'), [
+        { type: 'session_meta', timestamp: T(0), payload: { id: 'cc1', cwd: demo, source: { subagent: { thread_spawn: { parent_thread_id: 'par1' } } } } },
+        { type: 'response_item', timestamp: T(1), payload: { type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'x' }] } },
+      ]);
+      write(join(home, 'omp', 'sessions', '-w-demo', '2026-01-01T13-20-00-000Z_oo1.jsonl'), [{ type: 'session', id: 'oo1', timestamp: T(0), cwd: demo }]);
+      write(join(home, 'omp', 'sessions', '-w-demo', '2026-01-01T13-20-00-000Z_oo1', 'sub.jsonl'), [{ type: 'session', id: 'oo1sub', timestamp: T(0), cwd: demo }]);
+      const art = join(home, '.prime', 'agent', 'session-artifacts', 'zz1');
+      write(join(art, 'sub-a', 'zz2.jsonl'), [{ type: 'session', id: 'zz2', timestamp: T(0), cwd: demo, parentSession: join(home, '.prime', 'agent', 'sessions', 'zz1.jsonl') }]);
+      write(join(art, 'sub-a', 'sub-b', 'zz3.jsonl'), [{ type: 'session', id: 'zz3', timestamp: T(0), cwd: demo, parentSession: join(art, 'sub-a', 'zz2.jsonl') }]);
+
+      expect('the adapters: this copy reads five harnesses and no other',
+        adapterNames().join(',') === 'claude-code,codex,omp,pi,prime-agent' && adapterNames().every(hasAdapter) && !hasAdapter('gemini'));
+      expect('the adapters: every entry answers the same questions, and says what it cannot do',
+        Object.values(ADAPTERS).every((a) => typeof a.name === 'string' && Array.isArray(a.env)
+          && ['sessions', 'transcripts', 'subagents', 'read', 'location'].every((k) => typeof a[k] === 'function')
+          && (a.subagentList === null || typeof a.subagentList === 'string') && (a.limits === null || typeof a.limits === 'string')));
+      expect('the adapters: a harness with none is refused by name, not read as a session with no time',
+        (() => { try { adapter('gemini'); return false; } catch (e) { return e instanceof Unsupported && e instanceof Usage
+          && /^unsupported here: no transcript adapter for gemini; this copy of the set reads /.test(e.message); } })());
+      expect('the adapters: a session\'s subagents are its children, and one short id under two parents stays apart',
+        subagents('claude-code', 'pp1').length === 1 && subagents('claude-code', 'pp1')[0].id === 'agent-x1'
+        && subagents('claude-code', 'pp1')[0].parent === 'pp1' && subagents('claude-code', 'pp1')[0].path !== subagents('claude-code', 'pp2')[0].path
+        && subagents('claude-code', 'pp2')[0].parent === 'pp2');
+      expect('the adapters: a Codex subagent is the child of the parent its rollout names',
+        subagents('codex', 'par1').length === 1 && subagents('codex', 'par1')[0].id === 'cc1' && subagents('codex', 'cc1').length === 0);
+      expect('the adapters: an omp subagent is the child of the session whose folder it is in',
+        subagents('omp', 'oo1').length === 1 && subagents('omp', 'oo1')[0].parent === 'oo1' && subagents('omp', 'oo1sub').length === 0);
+      expect('the adapters: a Prime Agent subagent is the child of the session it names, not of the folder above it',
+        subagents('prime-agent', 'zz1').length === 1 && subagents('prime-agent', 'zz1')[0].id === 'zz2'
+        && subagents('prime-agent', 'zz2').length === 1 && subagents('prime-agent', 'zz2')[0].id === 'zz3');
+      expect('the adapters: a harness that keeps no subagent list says so instead of guessing',
+        subagents('pi', 'pi1').length === 0 && ADAPTERS.pi.subagentList === null);
+      expect('the adapters: listing the subagents of a harness with no adapter is refused, not empty',
+        (() => { try { subagents('gemini', 'x'); return false; } catch (e) { return e instanceof Unsupported; } })());
+      expect('the adapters: the current session comes from the harness that names it, and an explicit one comes first',
+        current({ env: { CLAUDE_CODE_SESSION_ID: 'c1' } }).key === 'claude-code:c1'
+        && current({ env: { CODEX_THREAD_ID: 't1' } }).key === 'codex:t1'
+        && current({ env: { CODEX_SESSION_ID: 's1' } }).key === 'codex:s1'
+        && current({ env: { PI_SESSION_ID: 'q1' } }).key === 'pi:q1'
+        && current({ env: {} }) === null
+        && current({ harness: 'omp', session: 'o1' }).key === 'omp:o1'
+        && current({ harness: 'omp', session: 'o1', env: { CLAUDE_CODE_SESSION_ID: 'c1' } }).key === 'omp:o1');
+      expect('the adapters: a harness that names no session of its own is told with --harness and --session',
+        ADAPTERS.omp.env.length === 0 && ADAPTERS['prime-agent'].env.length === 0 && sessionEnvVars().includes('PI_SESSION_ID'));
+      expect('the adapters: the command says what each harness cannot do, and names every one it reads',
+        adapterNames().every((h) => run(['adapters']).includes(h)) && run(['adapters']).includes(ADAPTERS.pi.limits)
+        && JSON.parse(run(['adapters', '--json']))['prime-agent'].subagents === ADAPTERS['prime-agent'].subagentList);
+      expect('the adapters: the command lists one session\'s subagents, and refuses a harness it cannot read',
+        run(['subagents', '--harness', 'claude-code', '--session', 'pp1']).includes('agent-x1')
+        && JSON.parse(run(['subagents', '--harness', 'omp', '--session', 'oo1', '--json']))[0].parent === 'oo1'
+        && misuse(['subagents', '--harness', 'gemini', '--session', 'x']) && misuse(['subagents', '--harness', 'pi']));
     }
   } catch (e) {
     expect(`the self-test ran to its end (${e.message})`, false);

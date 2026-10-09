@@ -20,7 +20,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { hostname, tmpdir, userInfo } from 'node:os';
 import { join } from 'node:path';
 import {
-  Usage, collect, conversationOf, localStamp, measure, parseWhen, projectName, recordedShapes, span, transcriptOf, union, unnamedTranscripts,
+  Usage, adapter, adapterNames, collect, conversationOf, current, hasAdapter, localStamp, measure, parseWhen,
+  projectName, recordedShapes, sessionEnvVars, span, transcriptOf, union, unnamedTranscripts,
 } from './ledger.mjs';
 import {
   ACCEPTED, BUCKETS, ENDS, EVENTS, GRADES, PHASES, REASONS, RESULTS, ROLES, WORK,
@@ -67,15 +68,14 @@ const item = (v, id) => {
 
 // ---- who is running this ---------------------------------------------------
 
-// omp and prime-agent do not tell their tools the session: name it with
-// --harness omp|prime-agent and --session.
-const HERE = [['claude-code', 'CLAUDE_CODE_SESSION_ID'], ['codex', 'CODEX_THREAD_ID'], ['codex', 'CODEX_SESSION_ID'], ['pi', 'PI_SESSION_ID']];
-
+// Who is running this: the adapters say which harness names the session it
+// runs in, and omp and Prime Agent name none, so they are told with --harness
+// and --session.
 function thisSession(opts, { need = true } = {}) {
   if (!opts.harness !== !opts.session) throw new Usage('--harness and --session go together');
-  if (opts.session) return { harness: opts.harness, id: opts.session, key: `${opts.harness}:${opts.session}` };
-  const [harness, key] = HERE.find(([, k]) => process.env[k]) || [];
-  if (harness) return { harness, id: process.env[key], key: `${harness}:${process.env[key]}` };
+  if (opts.session) return { harness: opts.harness, id: opts.session, key: `${opts.harness}:${opts.session}`, agent: null };
+  const me = current();
+  if (me) return me;
   if (need) throw new Usage('this harness does not say which session this is: pass --harness and --session');
   return null;
 }
@@ -229,6 +229,7 @@ function measureSpan(raw, from, to) {
 }
 
 function receiptFor(v, s, opts, { end, reason, note, recovered = false, at = nowMs() }) {
+  adapter(harnessOf(s.session));
   const raw = rawOf(opts, s.session, s.item);
   if (!raw) throw new NotHere(`the transcript of ${s.session} (${s.claim.fields.agent}) is not on this machine: its receipt is written where it is, or closed with --unknown where no machine has it; never typed by hand, which the gate refuses as damaged`);
   const from = s.start;
@@ -241,6 +242,11 @@ function receiptFor(v, s, opts, { end, reason, note, recovered = false, at = now
 
 const openSpans = (v) => v.spans.filter((s) => s.claim && !s.receipt && !s.conflict.length);
 const mineOpen = (v, key) => openSpans(v).filter((s) => s.session === key && !s.next);
+
+// The harness a record's session key names, and the refusal where this copy of
+// the set has no adapter for it: a session it cannot read is never quietly
+// counted as a session whose time is unknown.
+const harnessOf = (key) => { const k = String(key ?? ''); return k.slice(0, k.indexOf(':')); };
 
 // ---- forecasts ---------------------------------------------------------------
 
@@ -535,19 +541,25 @@ function timeReport(v, opts) {
     for (const [p, r] of Object.entries(t)) if (p !== 'total') phases[p] = (phases[p] || 0) + WORK.reduce((n, b) => n + r[b], 0);
   }
   const open = openSpans(v).filter((s) => inScope(s) && s.start <= until);
+  // A record of a harness this copy of the set cannot read: its time is not
+  // "unknown", it is unreadable here, and that is said rather than counted.
+  const unsupported = [...new Set(v.spans.filter((s) => s.claim && !s.conflict.length).map((s) => harnessOf(s.session)))]
+    .filter((h) => !hasAdapter(h)).sort()
+    .map((harness) => ({ harness, items: [...new Set(v.spans.filter((s) => s.claim && harnessOf(s.session) === harness).map((s) => s.item))] }));
   const out = {
     period: { since: Number.isFinite(since) ? localStamp(since) : null, until: Number.isFinite(until) ? localStamp(until) : null },
     receipts: closed.length, total, work: WORK.reduce((n, b) => n + total[b], 0), phases, items: byItem,
     open: open.map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, since: s.claim.fields.at })),
     unknown: unknown.map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, since: s.claim.fields.at, why: s.receipt.fields.note })),
     damaged: v.damaged.length, conflicted: v.spans.filter((s) => s.conflict.length).length, unclaimed: unclaimed.length,
+    unsupported,
   };
   if (!opts['no-transcripts']) {
     let rs = null;
     try { rs = raws(opts); } catch (e) { if (!(e instanceof Usage)) throw e; }
     if (rs) {
       // What the open spans' sessions have spent so far, where they ran here.
-      out.localOpen = open.flatMap((s) => {
+      out.localOpen = open.filter((s) => hasAdapter(harnessOf(s.session))).flatMap((s) => {
         const raw = rawOf(opts, s.session, s.item);
         if (!raw) return [];
         const to = Math.max(s.start, endOf(s, raw));
@@ -556,7 +568,7 @@ function timeReport(v, opts) {
       });
       // Sessions on this machine in the period, outside every span of theirs.
       const claimed = new Map();
-      for (const s of v.spans.filter((x) => x.claim && !x.conflict.length)) {
+      for (const s of v.spans.filter((x) => x.claim && !x.conflict.length && hasAdapter(harnessOf(x.session)))) {
         const raw = rawOf(opts, s.session, s.item);
         claimed.set(s.session, [...(claimed.get(s.session) || []), { start: s.start, end: endOf(s, raw) }]);
       }
@@ -611,6 +623,9 @@ function describeTime(t) {
     lines.push(`Not in these figures either: ${t.unknown.length} stretch(es) whose time is unknown, since no machine has their transcript, so the figure is at least this:`);
     for (const u of t.unknown) lines.push(`  ${u.item}, ${u.agent}, from ${localStamp(Date.parse(u.since))}: ${u.why}`);
   }
+  if (t.unsupported?.length)
+    lines.push(`Unsupported here: ${t.unsupported.length} harness(es) this copy of the set cannot read, so their time is not in these figures and is not "unknown" either:`,
+      ...t.unsupported.map((u) => `  ${u.harness}, on ${u.items.join(', ')}: unsupported here: no transcript adapter for ${u.harness}; this copy reads ${adapterNames().join(', ')}`));
   if (t.unassigned?.sessions) lines.push(`On this machine only: ${h(t.unassigned.work)} of work in ${t.unassigned.sessions} session(s) that claimed no item; it is on no item and no other machine sees it.`);
   if (t.damaged || t.conflicted || t.unclaimed) lines.push(`${t.damaged} damaged, ${t.conflicted} conflicting and ${t.unclaimed} unclaimed record(s) are not counted: the gate names them, and the figure is incomplete by them.`);
   return lines.join('\n');
@@ -624,10 +639,17 @@ function describeTime(t) {
 function gaps(v, opts) {
   const recover = [];
   const elsewhere = [];
+  const unsupported = [];
   const at = nowMs();
   for (const s of openSpans(v)) {
     const later = v.spans.some((o) => o !== s && o.claim && o.item === s.item && o.start > s.start);
     const status = v.by.get(s.item)?.status;
+    // A harness this copy cannot read is not "on another machine": it is
+    // unreadable here, and its span is neither recovered nor guessed at.
+    if (!hasAdapter(harnessOf(s.session))) {
+      unsupported.push({ item: s.item, span: s.id, agent: s.claim.fields.agent, harness: harnessOf(s.session), since: s.claim.fields.at });
+      continue;
+    }
     let raw = null;
     try { raw = rawOf(opts, s.session, s.item); } catch (e) { if (!(e instanceof Usage)) throw e; }
     const stopped = raw ? at - raw.last > 15 * 60e3 : false;
@@ -636,7 +658,7 @@ function gaps(v, opts) {
     if (!raw) { elsewhere.push({ item: s.item, span: s.id, agent: s.claim.fields.agent, since: s.claim.fields.at }); continue; }
     recover.push(receiptFor(v, s, opts, { end: status === 'active' && !s.next && !later ? 'stopped' : 'paused', reason: 'other', note: 'recovered: the session ended without writing its receipt', recovered: true }));
   }
-  return { recover, elsewhere };
+  return { recover, elsewhere, unsupported };
 }
 
 /**
@@ -650,6 +672,7 @@ function gaps(v, opts) {
  */
 function recoveredClaim(v, it, me, role, opts) {
   if (!opts.session) throw new Usage('a recovered claim is another session\'s: name it with --harness and --session');
+  adapter(harnessOf(me.key));
   if (opts.forecast || opts.due !== undefined || opts.away !== undefined) throw new Usage('a recovered claim carries no forecast: one written afterwards forecasts nothing');
   const at = parseWhen(opts.at ?? '');
   if (!Number.isFinite(at)) throw new Usage('--at <time> is required: the start the transcript shows');
@@ -821,6 +844,8 @@ export function run(argv) {
       if (g.recover.length) lines.push(`${g.recover.length} span(s) ended with no receipt and are recovered from this machine's transcripts:`, '', post(g.recover, opts), '');
       if (g.elsewhere.length) lines.push(`${g.elsewhere.length} span(s) ended with no receipt, and their transcripts are not on this machine; each is written where its session ran, and until then its time is unknown:`,
         ...g.elsewhere.map((e) => `  ${e.item}: ${e.agent}, since ${localStamp(Date.parse(e.since))}`));
+      if (g.unsupported.length) lines.push(`${g.unsupported.length} span(s) belong to a harness this copy of the set cannot read, so nothing is recovered for them and their time is not "unknown":`,
+        ...g.unsupported.map((e) => `  ${e.item}: ${e.agent}, since ${localStamp(Date.parse(e.since))}: unsupported here: no transcript adapter for ${e.harness}`));
       return lines.join('\n') || 'Every span that has ended has its receipt.';
     }
     case 'time': {
@@ -897,7 +922,7 @@ async function selftest() {
   // pi's and prime-agent's sessions are in their own homes, under this one.
   process.env.HOME = home;
   for (const k of ['PRIME_AGENT_SESSION_DIR', 'PRIME_AGENT_CODING_AGENT_SESSION_DIR', 'PRIME_AGENT_CODING_AGENT_DIR']) delete process.env[k];
-  for (const [, key] of HERE) delete process.env[key];
+  for (const key of sessionEnvVars()) delete process.env[key];
   const failures = [];
   const expect = (name, ok) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures.push(name); };
   const misuse = (a, cls = Usage) => { try { rawCache = null; run(a); return false; } catch (e) { return e instanceof cls; } };
@@ -1023,6 +1048,24 @@ async function selftest() {
     expect('time: the text says the figure is incomplete', cli('time').includes('at least this and incomplete'));
     const before = JSON.parse(cli('time', '--until', '2026-03-01', '--json'));
     expect('time: a period before any receipt ended has none', before.receipts === 0);
+
+    // A record of a harness this copy of the set has no adapter for: named as
+    // unsupported, never counted as a session whose time is unknown.
+    const gem = act('claim', '--item', 'X', '--role', 'agent', '--harness', 'gemini', '--session', 'gg', '--agent', 'gemini-agent:t@m:b#gg');
+    const gt = JSON.parse(cli('time', '--json'));
+    expect('time: a harness with no adapter is named, and the receipts are still counted',
+      gt.unsupported.length === 1 && gt.unsupported[0].harness === 'gemini' && gt.unsupported[0].items.join() === 'X'
+      && gt.total.total === t.total.total && gt.receipts === t.receipts);
+    expect('time: the text says what is unsupported here, in the set\'s words',
+      cli('time').includes('unsupported here: no transcript adapter for gemini'));
+    const gapU = JSON.parse(cli('gaps', '--json'));
+    expect('gaps: a harness with no adapter is named unsupported, never as a transcript on another machine',
+      gapU.unsupported.some((u) => u.harness === 'gemini' && u.agent.startsWith('gemini-agent'))
+      && !gapU.elsewhere.some((e) => e.agent.startsWith('gemini-agent')));
+    const refused = (a) => { try { rawCache = null; run(a); return ''; } catch (e) { return `${e.constructor.name}: ${e.message}`; } };
+    expect('receipt: a harness with no adapter is refused as unsupported, not as a transcript on another machine',
+      refused(['receipt', '--span', parseRecord(gem[0].body).fields.span, '--end', 'paused', '--backlog', file, '--project', 'demo'])
+        .startsWith('Unsupported: unsupported here: no transcript adapter for gemini'));
 
     // Three more finished runs make a pace.
     for (const [k, occ] of [['G', 90], ['H', 120], ['I', 150]]) {
