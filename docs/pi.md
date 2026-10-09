@@ -83,9 +83,12 @@ The extension does not create credentials, grant project consent, schedule
 replays or run periodic work. Configure Jev through the existing setup flow
 only with the project's approval. Jev's key is read from
 `$XDG_CONFIG_HOME/shady2k-skills/jev.json` (`~/.config/shady2k-skills/jev.json`
-by default), or, when there is no file, from `JEV_API_KEY` in the server's own
-environment. Pi's registration inherits the environment the Pi session
-started with, so `JEV_API_KEY` must be set before that session starts.
+by default) — `{"key": {"env": "MY_JEV_KEY"}}`, `{"key": {"file":
+"/path/to/key"}}` or `{"key": {"command": ["program", "args"]}}` — and that
+file wins while it is there; with no such file, `JEV_API_KEY` in the server's
+own environment is used. Pi's registration inherits the environment the Pi
+session started with, so `JEV_API_KEY` must be set before that session
+starts, and the connection is restarted after that environment changes.
 
 ## Time accounting
 

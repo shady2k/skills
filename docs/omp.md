@@ -50,8 +50,11 @@ which is how it finds the project. omp approves tool calls by default. The
 plugin's `bin/` is not put on omp's `PATH`, so a worker there calls `jev.mjs`
 by its path when it needs Jev from a shell. Jev's key is read from
 `$XDG_CONFIG_HOME/shady2k-skills/jev.json` (`~/.config/shady2k-skills/jev.json`
-by default), or, when there is no file, from `JEV_API_KEY` in the server's own
-environment; restart the omp session so a changed environment reaches it.
+by default) — `{"key": {"env": "MY_JEV_KEY"}}`, `{"key": {"file":
+"/path/to/key"}}` or `{"key": {"command": ["program", "args"]}}` — and that
+file wins while it is there; with no such file, `JEV_API_KEY` in the server's
+own environment is used. Restart the omp session after that environment
+changes, so the new one reaches the server.
 
 ## Verification
 

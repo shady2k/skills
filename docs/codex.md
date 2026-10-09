@@ -107,5 +107,8 @@ carries a placeholder. The tool is marked read-only, which is what lets `codex e
 call it under its default approval policy. The plugin's `bin/` is not put on
 Codex's `PATH`. Jev's key is read from
 `$XDG_CONFIG_HOME/shady2k-skills/jev.json` (`~/.config/shady2k-skills/jev.json`
-by default), or, when there is no file, from `JEV_API_KEY` in the server's own
-environment; restart the Codex session so a changed environment reaches it.
+by default) — `{"key": {"env": "MY_JEV_KEY"}}`, `{"key": {"file":
+"/path/to/key"}}` or `{"key": {"command": ["program", "args"]}}` — and that
+file wins while it is there; with no such file, `JEV_API_KEY` in the server's
+own environment is used. Restart the Codex session after that environment
+changes, so the new one reaches the server.

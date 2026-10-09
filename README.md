@@ -555,15 +555,20 @@ reads itself. Secrets are removed, and hosts, issue ids and the people the
 repository knows replaced, before anything is sent; this goes by shape, so a
 name nobody recorded or a secret with no recognisable form can still get
 through. The key stays on your machine, never in the project, and no project
-can name its own place for it: write `~/.config/shady2k-skills/jev.json`
-holding one of three forms — the name of an environment variable
-(`{"key": {"env": "MY_JEV_KEY"}}`), a file's path, or a command whose output is
-the key — or set the variable
-`JEV_API_KEY` where the Jev server is started. The variable has to reach that
-server's own process, not only your shell, and the connection has to be
-restarted after it changes (in Claude Code, `/mcp`); no key value is ever
-printed, and `node jev.mjs status` says which source was used. The text goes through OpenRouter to TypeSafe, or to TypeSafe
-directly, and TypeSafe keeps it unless you have a zero-retention agreement
+can name its own place for it. Write
+`$XDG_CONFIG_HOME/shady2k-skills/jev.json`
+(`~/.config/shady2k-skills/jev.json` by default) holding one of three
+forms: `{"key": {"env": "MY_JEV_KEY"}}` (the name of an environment
+variable), `{"key": {"file": "/path/to/key"}}`, or
+`{"key": {"command": ["program", "args"]}}`, whose output is the key.
+That file wins while it exists, and one that is broken is reported by
+its own path. With no such file, Jev uses `JEV_API_KEY` from the
+environment of the process that runs its server — the harness that
+starts it, not only your shell — and the connection must be restarted
+after that environment changes (in Claude Code, `/mcp`). No key value
+is ever printed, and `node jev.mjs status` says which source was used. The text
+goes through OpenRouter to TypeSafe, or to TypeSafe directly, and TypeSafe
+keeps it unless you have a zero-retention agreement
 with it. Without consent or a key nothing changes. How accurate it is on your
 project is measured when you ask.
 

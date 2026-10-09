@@ -564,16 +564,18 @@ real commits and this repository's own checks are proved.
    failure needs a repair or an agreed, supported change of settings, not a
    success stamp.
 5. **Jev**, where the project consented: from this skill's directory,
-   `node jev.mjs status --config <project-config>` says it is available,
-   proved by one call about a fixed sentence that carries no project text
-   (its refusal names what is missing: consent, the key's place, the key, or
-   the route); for the `typesafe` route this is the first proof it works at all.
-   `status` says which source it used (the machine's file, or `JEV_API_KEY`),
-   and its refusal names both ways to give the key, with the file's path and
-   its JSON. This is the proof that reaches the agent: a key only in the
+   `node jev.mjs status --config <project-config>` says it is available, and
+   says which source it used — the machine's file, with its path, or
+   `JEV_API_KEY` — proved by one call about a fixed sentence that carries no
+   project text (its refusal names what is missing: consent, the key, or the
+   route; for the `typesafe` route this is the first proof it works at all).
+   With neither source, its refusal names both ways to give the key, with the
+   file's path and its JSON; a file that is there but broken is refused by its
+   own path. This is also the proof that reaches the agent: a key only in the
    owner's shell, not in the server's own environment, leaves the tool
-   unavailable, and nothing is fixed until the file or the variable reaches
-   that process and the connection is restarted. Run `jev.mjs mask` over a
+   unavailable, and nothing is fixed until the file is written or the variable
+   reaches that process. The connection is restarted after that environment
+   changes, where a changed file is read on the next call. Run `jev.mjs mask` over a
    real sample holding an item id and a name, and see both replaced. A failed
    proof leaves consent recorded and says Jev is unavailable until it is fixed.
    Without consent, see `status` refuse. Where the owner runs Claude Code,
