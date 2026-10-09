@@ -1,0 +1,88 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture time-void-corrects",
+  "issues": [
+    {
+      "id": "S",
+      "title": "Stage",
+      "type": "epic",
+      "status": "active",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN the stage result is independently observable.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "holder": "claude-coordinator:alex@laptop:work#c0"
+    },
+    {
+      "id": "A",
+      "title": "Task A",
+      "type": "task",
+      "status": "submitted",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "delivery": {
+        "revision": "b@A",
+        "evidence": "tests passed"
+      },
+      "comments": [
+        {
+          "id": "c14",
+          "at": "2026-01-29T09:59:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim span: a0000001; at: 2026-01-29T10:00:00Z; agent: x; role: worker"
+        },
+        {
+          "id": "c15",
+          "at": "2026-01-29T10:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] claim\nspan: a0000001\nat: 2026-01-29T10:00:00Z\nsession: claude-code:w1\nagent: claude-worker:alex@laptop:work#w1\nrole: worker"
+        },
+        {
+          "id": "c16",
+          "at": "2026-01-29T11:00:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] receipt\nspan: a0000001\nfrom: 2026-01-29T10:00:00Z\nto: 2026-01-29T11:00:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    29 |    30 |     6 |      0 |    0 |    0 |    60 |\n| total |    24 |    30 |     6 |      0 |    0 |    0 |    60 |"
+        },
+        {
+          "id": "c17",
+          "at": "2026-01-29T11:01:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] receipt\nspan: a0000001\nfrom: 2026-01-29T10:00:00Z\nto: 2026-01-29T10:30:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    12 |    15 |     3 |      0 |    0 |    0 |    30 |\n| total |    12 |    15 |     3 |      0 |    0 |    0 |    30 |"
+        },
+        {
+          "id": "c18",
+          "at": "2026-01-29T11:02:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] void\ncomment: c14\nat: 2026-01-29T11:02:00Z\nnote: written by hand on one line"
+        },
+        {
+          "id": "c19",
+          "at": "2026-01-29T11:03:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] void\ncomment: c16\nat: 2026-01-29T11:03:00Z\nnote: the table did not add up"
+        },
+        {
+          "id": "c20",
+          "at": "2026-01-29T11:04:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] void\ncomment: c17\nat: 2026-01-29T11:04:00Z\nnote: ended at the wrong time"
+        },
+        {
+          "id": "c21",
+          "at": "2026-01-29T11:05:00Z",
+          "author": "agent",
+          "body": "[shady2k-time v1] receipt\nspan: a0000001\nfrom: 2026-01-29T10:00:00Z\nto: 2026-01-29T11:00:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    24 |    30 |     6 |      0 |    0 |    0 |    60 |\n| total |    24 |    30 |     6 |      0 |    0 |    0 |    60 |"
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.38.0
+Setup version: 0.39.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -144,7 +144,11 @@ starts a span, and claiming the next item ends it. When the session stops
 working on the item (the work is handed in, the session ends, the work stops or
 is handed over) the script writes the span's receipt: what the session spent,
 by phase of the work and by who spent it, measured from its transcript. The
-numbers are the script's; an agent never types, rounds or edits one. Stops,
+numbers are the script's; an agent never types, rounds or edits one, and
+never writes a record by hand: one it typed is damaged. A tracker may only
+append, so a record is never edited or deleted either: one that is damaged,
+wrong or not to count is voided by the script's `void`, naming its comment,
+and a correction then writes the right record with the script. Stops,
 decisions taken alone and CI runs are records inside the span; a feature's
 close is its summary, the owner's judgement his verdict. A span that ended with
 no receipt is found by the gate and written from the transcript where it is;

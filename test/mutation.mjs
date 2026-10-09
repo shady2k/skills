@@ -11,7 +11,7 @@ const root = mkdtempSync(join(tmpdir(), 'skill-gate-mutations-'));
 const mutations = [
   ...['dependency-cycle', 'nonleaf-dependency', 'submitted-without-evidence', 'implemented-without-evidence',
     'time-record-damaged', 'time-span-conflict', 'time-span-unclaimed', 'time-span-overlap', 'time-span-unreceipted',
-    'time-work-unclaimed'].map((id) => ({
+    'time-work-unclaimed', 'time-void-idle'].map((id) => ({
     name: id, file: 'check.mjs', failure: `FAIL  bad/${id}.json`,
     change: (code) => {
       const at = code.indexOf(`id: '${id}'`);
@@ -24,6 +24,10 @@ const mutations = [
     change: (code) => code.replaceAll('if (s !== table.rows', 'if (false && s !== table.rows') },
   { name: 'time-retry-is-one-record', file: 'time-format.mjs', runs: 'check.mjs', failure: 'FAIL  good/time-records.json',
     change: (code) => code.replace('if (!distinct.has(canon(r.body))) distinct.set(canon(r.body), r);', 'distinct.set(r.comment, r);') },
+  { name: 'time-void-retires', file: 'time-format.mjs', runs: 'check.mjs', failure: 'FAIL  good/time-void-corrects.json',
+    change: (code) => code.replace('else voided.add(target.comment);', 'else;') },
+  { name: 'time-void-of-void', file: 'time-format.mjs', runs: 'check.mjs', failure: 'FAIL  bad/time-void-idle.json',
+    change: (code) => code.replace(": target.kind === 'void' ?", ': false ?') },
   { name: 'time-running-span', file: 'check.mjs', failure: 'FAIL  good/time-records.json',
     change: (code) => code.replace(": item && item.status !== 'active' ? `${s.item} is ${item.status}` : null;", ": `${s.item} is ${item?.status}`;") },
   { name: 'age-correction', file: 'check.mjs', failure: 'FAIL  ages-from: later real work',

@@ -5,7 +5,8 @@
 // the receipt that ends it, with what the session spent, measured from its
 // transcript; the stops, lone decisions and CI runs inside it; a feature's
 // summary when it closes; the owner's verdict; how a resumed session picked
-// the work up. Nothing is kept on this machine, so every machine reads the
+// the work up; the voids that retire a damaged or wrong record, since a
+// tracker may only append. Nothing is kept on this machine, so every machine reads the
 // same history.
 //
 // This script never talks to the tracker. It reads the project adapter's
@@ -23,7 +24,7 @@ import {
 } from './ledger.mjs';
 import {
   ACCEPTED, BUCKETS, ENDS, EVENTS, GRADES, PHASES, REASONS, RESULTS, ROLES, WORK,
-  formatRecord, newSpanId, parseRecord, roundTable, spansOf,
+  formatRecord, newSpanId, parseRecord, recordsOf, roundTable, spansOf,
 } from './time-format.mjs';
 
 // Where a record cannot be written here: the transcript is on another machine.
@@ -792,6 +793,16 @@ export function run(argv) {
       const it = item(b, opts.item);
       return post([{ item: it.id, body: formatRecord('recovery', { at: iso(nowMs()), grade: need(opts, 'grade', GRADES), from: opts.from, to: opts.to, note: opts.note }) }], opts);
     }
+    case 'void': {
+      const b = v();
+      if (!opts.comment) throw new Usage('--comment <id> is required: the comment of the record to void');
+      if (!opts.note) throw new Usage('--note <why> is required: a void says why');
+      const r = recordsOf(b.backlog).find((x) => x.comment === opts.comment);
+      if (!r) throw new Usage(`the comment ${opts.comment} is not a record of the set in the backlog`);
+      if (r.kind === 'void') throw new Usage(`the comment ${opts.comment} is a void, and a void is not voided: post the record again instead`);
+      if (b.voided.has(r.comment)) throw new Usage(`the comment ${opts.comment} is already voided`);
+      return post([{ item: r.item, body: formatRecord('void', { comment: r.comment, at: iso(nowMs()), note: opts.note }) }], opts);
+    }
     case 'gaps': {
       const g = gaps(v(), opts);
       if (opts.json) return JSON.stringify(g, null, 2);
@@ -849,6 +860,8 @@ runs.mjs finish --item <feature> --result pull-request|abandoned|stopped [--pr <
   this session's receipt, then the feature's summary: forecast against work by phase, occupied time
 runs.mjs verdict --item <feature> --accepted as-is|after-changes|abandoned [--avoidable N] [--missed N] [--corrections N] [--rescues N] [--note <text>]
 runs.mjs recovery --item <id> --grade R0|R1|R2|R3 [--from <harness>] [--to <harness>] [--note <text>]
+runs.mjs void --comment <id> --note <why>
+  retires a damaged or wrong record, which a tracker cannot delete; a correction then writes the right one
 runs.mjs gaps      spans that ended with no receipt: recovered here, or named where they are not
 runs.mjs time [--since <date>] [--until <date>] [--item <id>] [--no-transcripts]
 runs.mjs stalled | pace [--tasks N] | report | list
@@ -1235,6 +1248,29 @@ async function selftest() {
     writeFileSync(file, JSON.stringify(backlog));
     expect('misuse: a receipt of unknown time for a span whose transcript is here', misuse(['receipt', '--span', hc.fields.span, '--end', 'finished', '--unknown', '--note', 'x', '--backlog', file, '--project', 'demo']));
     postAll(JSON.parse(cli('gaps', '--json')).recover.filter((x) => x.item === 'demo-h1'));
+
+    // A tracker may only append: a damaged or wrong record is voided, never removed.
+    backlog.issues.push({ id: 'demo-v1', title: 'Voided', type: 'task', status: 'active', labels: [], parent: null, blockedBy: [], body: '', updatedAt: T(clock) });
+    postAll([{ item: 'demo-v1', body: '[shady2k-time v1] claim span: 0badc0de; at: 2026-01-01T00:00:00Z; agent: x; role: worker' }]);
+    const bad = `c${posted}`;
+    expect('a hand-written one-line record is damaged', spansOf(backlog).damaged.some((r) => r.comment === bad));
+    const vd = act('void', '--comment', bad, '--note', 'written by hand on one line');
+    expect('void: retires the damaged record, and reads clean itself', vd.length === 1 && vd[0].item === 'demo-v1' && !parseRecord(vd[0].body).problems.length
+      && !spansOf(backlog).damaged.length && !spansOf(backlog).idle.length);
+    writeFileSync(file, JSON.stringify(backlog));
+    const vargs = (...a) => ['void', ...a, '--backlog', file, '--project', 'demo'];
+    expect('misuse: a void with no reason', misuse(vargs('--comment', `c${posted - 1}`)));
+    expect('misuse: voiding what is already voided', misuse(vargs('--comment', bad, '--note', 'x')));
+    expect('misuse: voiding a void', misuse(vargs('--comment', `c${posted}`, '--note', 'x')));
+    expect('misuse: voiding a comment that is not a record', misuse(vargs('--comment', 'no-such', '--note', 'x')));
+    const vc = parseRecord(act('claim', '--item', 'demo-v1', '--role', 'worker', '--harness', 'omp', '--session', 'vv', '--agent', 'omp-worker:t@m:b#vv')[0].body);
+    act('receipt', '--span', vc.fields.span, '--end', 'finished', '--unknown', '--note', 'its machine was wiped');
+    const wrong = `c${posted}`;
+    act('void', '--comment', wrong, '--note', 'voided by mistake');
+    expect('void: a voided receipt reopens its span, so its time cannot vanish quietly', !spansOf(backlog).spans.find((x) => x.id === vc.fields.span).receipt);
+    act('receipt', '--span', vc.fields.span, '--end', 'finished', '--unknown', '--note', 'its machine was wiped');
+    const back = spansOf(backlog).spans.find((x) => x.id === vc.fields.span);
+    expect('void: a mistaken void is undone by posting the record again, a new comment', back.receipt && back.receipt.comment !== wrong && !back.conflict.length);
 
     const all = spansOf(backlog);
     expect('every record the script printed reads clean, and no span conflicts', !all.damaged.length && all.spans.every((x) => !x.conflict.length));

@@ -107,6 +107,8 @@ milestone's name to `labels`, spelled as the config's `milestoneLabels` spell it
 `[shady2k-time` goes out with the tracker's own stable comment id, its time,
 its author and its body exactly as stored, damaged or not: the gate judges it,
 and a damaged record the adapter dropped is time lost with nothing to say so.
+A record is retired by a void that names its comment id, so the id must stay
+the same in every export.
 The run scripts read the same export, so the adapter is how every machine sees
 the same records. Posting a record is the tracker's ordinary comment
 operation, with the text the script printed, unchanged.

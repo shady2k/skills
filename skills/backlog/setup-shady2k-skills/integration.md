@@ -75,7 +75,7 @@ capabilities and their substitutes.
 | submitted | <preserve the worker result and evidence pending integration; clear worker hold> |
 | reopen | <invalidate obsolete integration/acceptance evidence and reassess consumers> |
 | close | <accepted work with stage evidence, or explicit cancellation/duplicate disposition> |
-| comment / edit | <notes, criteria, reparenting, state updates; a work record posted exactly as the run script printed it, never reflowed or edited> |
+| comment / edit | <notes, criteria, reparenting, state updates; a work record posted exactly as the run script printed it, never reflowed, edited or deleted; a wrong one is voided by the run script's record> |
 | defer / undefer | <review date; reversible metadata changes> |
 | milestone / label | <values read from config> |
 | ready | <open unheld leaves in the stage and checkout; implemented prerequisites satisfied only within that same stage after integration; accepted stages satisfy later stages of the same feature once their accepted revision is in the checkout; closed ones everywhere> |

@@ -475,8 +475,9 @@ An existing setup runs all of these too, even when versions match.
    work. Check that `submitted` results survive a handoff without being redone.
    Check dependency cycles and the exact task-reference parser. Post a claim
    record the run script printed on a proof issue, read it back through the
-   adapter's export and see it byte for byte; edit one number in a copy and see
-   the gate name it damaged.
+   adapter's export and see it byte for byte; edit one number in a copy, post
+   it, and see the gate name it damaged; then post the run script's `void` of
+   it and see the gate clear it.
    Where the project kept run records on a machine before (a state directory
    of the set's), they are this machine's only: say so to the owner once, and
    leave them; nothing reads them now.

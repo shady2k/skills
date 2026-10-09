@@ -760,3 +760,18 @@ never written is the gate's (a span that ended with no receipt, handed-in work
 nobody claimed) and the script's (recovery from a local transcript), not an
 agent's memory. A span is not split at midnight: a sync does not need exact
 time per day, so a stretch counts in the period it ended, once.
+
+A record cannot be removed. Some trackers keep comments append-only, and the
+gate's own fix once said "delete the damaged one": a worker's hand-typed claim
+then refused every commit under `block-new`, because the violation could age
+into the baseline only through the commit it refused. A wrong value in a
+well-formed receipt deadlocked the same way, through the conflict a corrected
+receipt makes. So a record is retired, not removed: a `void` record names its
+comment id, and readers act as if the record were not there. A correction is a
+void and then the right record. A void cannot be voided, so voids cannot undo
+each other in a loop; a mistaken one is undone by posting the record again,
+which is a new comment. A void that is damaged or names nothing retires
+nothing and is only a warning, so a broken void cannot block in turn. Voiding a
+receipt reopens its span, and the gate asks for its receipt again, so a void
+cannot make time vanish quietly. A damaged record stays an error: the fix is
+now one command the agent runs itself.
