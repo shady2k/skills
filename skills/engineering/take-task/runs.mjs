@@ -293,8 +293,7 @@ function summaryFor(v, feature, opts, { result, pr, note, extra = [] }) {
   // unknown: it is unreadable here, and the summary says so rather than
   // counting its span as one whose transcript is elsewhere.
   const unreadable = spans.filter((s) => !hasAdapter(harnessOf(s.session)));
-  const unknown = receipts.filter((r) => r.fields.unknown === 'yes' && !worker.has(r.fields.span)
-    && hasAdapter(harnessOf(spans.find((s) => s.id === r.fields.span)?.session))).length;
+  const unknown = receipts.filter((r) => r.fields.unknown === 'yes' && !worker.has(r.fields.span)).length;
   for (const r of receipts.filter((x) => x.table))
     for (const [p, row] of Object.entries(r.table.rows)) {
       if (p === 'total') continue;
@@ -329,7 +328,7 @@ function summaryFor(v, feature, opts, { result, pr, note, extra = [] }) {
   const occupied = stretches.length ? round(minutes(span(union(stretches)))) : null;
   const partial = missing || unreadable.length;
   const said = [note, unreadable.length
-    ? `${unreadable.length} span(s) belong to a harness this copy of the set cannot read (unsupported here): their time is not in these figures, and it is not unknown either`
+    ? `${unreadable.length} span(s) belong to a harness this copy of the set cannot read: unsupported here, so nothing is measured for them on this machine, and their time is not called unknown for that`
     : null].filter(Boolean).join('; ');
   const fields = {
     at: iso(nowMs()), result, started: iso(first), elapsed: round(minutes(nowMs() - first)),
@@ -566,7 +565,8 @@ function timeReport(v, opts) {
     period: { since: Number.isFinite(since) ? localStamp(since) : null, until: Number.isFinite(until) ? localStamp(until) : null },
     receipts: closed.length, total, work: WORK.reduce((n, b) => n + total[b], 0), phases, items: byItem,
     open: open.map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, harness: harnessOf(s.session), since: s.claim.fields.at })),
-    unknown: unknown.filter((s) => hasAdapter(harnessOf(s.session))).map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, since: s.claim.fields.at, why: s.receipt.fields.note })),
+    unknown: unknown.map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, harness: harnessOf(s.session), since: s.claim.fields.at, why: s.receipt.fields.note })),
+    localRead: !opts['no-transcripts'],
     damaged: v.damaged.length, conflicted: v.spans.filter((s) => s.conflict.length).length, unclaimed: unclaimed.length,
     unsupported,
   };
@@ -634,12 +634,13 @@ function describeTime(t) {
       const here = (t.localOpen || []).find((x) => x.span === o.span);
       const unreadable = (t.unsupported || []).some((u) => u.harness === o.harness);
       lines.push(`  ${o.item}, ${o.agent}, since ${localStamp(Date.parse(o.since))}${here ? `: so far ${h(here.work)} of work, measured on this machine only`
+        : !t.localRead ? ''
         : unreadable ? ': this copy of the set cannot read that harness, so nothing is measured for it here'
         : ': its transcript is not on this machine'}`);
     }
   }
   if (t.unknown?.length) {
-    lines.push(`Not in these figures either: ${t.unknown.length} stretch(es) whose time is unknown, since no machine has their transcript, so the figure is at least this:`);
+    lines.push(`Not in these figures either: ${t.unknown.length} stretch(es) were closed with their time unknown, so the figure is at least this:`);
     for (const u of t.unknown) lines.push(`  ${u.item}, ${u.agent}, from ${localStamp(Date.parse(u.since))}: ${u.why}`);
   }
   if (t.unsupported?.length)
@@ -691,7 +692,6 @@ function gaps(v, opts) {
  */
 function recoveredClaim(v, it, me, role, opts) {
   if (!opts.session) throw new Usage('a recovered claim is another session\'s: name it with --harness and --session');
-  adapter(harnessOf(me.key));
   if (opts.forecast || opts.due !== undefined || opts.away !== undefined) throw new Usage('a recovered claim carries no forecast: one written afterwards forecasts nothing');
   const at = parseWhen(opts.at ?? '');
   if (!Number.isFinite(at)) throw new Usage('--at <time> is required: the start the transcript shows');
@@ -1090,6 +1090,8 @@ async function selftest() {
       && JSON.parse(cli('time', '--item', 'X', '--json')).unsupported.length === 1);
     expect('time: local reading that was deliberately skipped is not reported as an unsupported harness',
       JSON.parse(cli('time', '--no-transcripts', '--json')).unsupported.length === 0);
+    expect('time: and nothing is then said about where a transcript is, which was not looked for',
+      !/its transcript is not on this machine/.test(cli('time', '--no-transcripts')));
     const gapU = JSON.parse(cli('gaps', '--json'));
     expect('gaps: a harness with no adapter is named unsupported, never as a transcript on another machine',
       gapU.unsupported.some((u) => u.harness === 'gemini' && u.agent.startsWith('gemini-agent'))
@@ -1113,8 +1115,9 @@ async function selftest() {
       gu.fields.unknown === 'yes' && !gu.problems.length && /unsupported here: no transcript adapter for gemini/.test(gu.fields.note)
       && /the agent ran where this copy of the set cannot read it/.test(gu.fields.note));
     const gtu = JSON.parse(cli('time', '--json'));
-    expect('time: an adapterless span closed as unknown is named unsupported, never also as a time unknown',
-      gtu.unsupported.length === 1 && !gtu.unknown.some((u) => u.agent.startsWith('gemini-agent'))
+    expect('time: an adapterless span closed as unknown is named unsupported, and its own record says why it is unknown',
+      gtu.unsupported.length === 1 && gtu.unknown.some((u) => u.harness === 'gemini' && /unsupported here: no transcript adapter for gemini/.test(u.why))
+      && !/no machine has their transcript/.test(cli('time'))
       && gtu.total.total === t.total.total);
 
     // Three more finished runs make a pace.
@@ -1334,7 +1337,7 @@ async function selftest() {
     expect('receipt --unknown: closes the span with no figures and its reason', !zu.problems.length && zu.fields.unknown === 'yes' && !zu.table && zu.fields.from === zc.fields.at);
     const tz = JSON.parse(cli('time', '--no-transcripts', '--json'));
     expect('time: a span of unknown time is named apart, not added', tz.unknown.some((u) => u.item === 'demo-z9') && !tz.items['demo-z9']);
-    expect('time: the text says the figure is at least this', /whose time is unknown/.test(cli('time', '--no-transcripts')));
+    expect('time: the text says the figure is at least this', /were closed with their time unknown/.test(cli('time', '--no-transcripts')));
     expect('misuse: a claim dated by another record while the transcript is here', misuse(['claim', '--recovered', '--item', 'demo-q70', '--role', 'worker', '--at', T(oldStart), ...oldAs, '--basis', 'x', '--backlog', file, '--project', 'demo']));
     // A run is its coordinator's clock: its worker's time unknown leaves the
     // effort short, not the run incomplete, and the run still makes a pace.
