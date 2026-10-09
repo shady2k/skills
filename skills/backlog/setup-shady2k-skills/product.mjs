@@ -333,6 +333,8 @@ function parseScalar(text, file, line) {
   if (first === "'" || first === '"') return unquote(trimmed, file, line);
   const plain = cutComment(trimmed).trim();
   if (plain === '' || plain === 'null' || plain === '~') return { ok: true, value: null };
+  if (/: /.test(plain) || plain.endsWith(':'))
+    return refusal(file, line, `the manifest ${file} holds "${plain}" on line ${line}: a value holding ": " is a mapping written on one line, and this reader takes a mapping one field per line`);
   if (plain === 'true' || plain === 'false') return { ok: true, value: plain === 'true' };
   if (/^[+-]?\d+$/.test(plain)) return { ok: true, value: Number(plain) };
   if (/^[+-]?(\d+\.\d*|\.\d+)([eE][+-]?\d+)?$/.test(plain)) return { ok: true, value: Number(plain) };
@@ -342,8 +344,8 @@ function parseScalar(text, file, line) {
 /** A field's name: a word, or a quoted one. An alias never stands in its place. */
 function parseKey(text, file, line) {
   const trimmed = text.trim();
-  if (trimmed === '')
-    return refusal(file, line, `the manifest ${file} writes a field with no name on line ${line}: a field is written "name: value"`);
+  // Nothing stands here: the field's own name is missing. The plain path below
+  // refuses it too, so this reader says it once, where it reads.
   const first = trimmed[0];
   if (first === '*')
     return refusal(file, line, `the manifest ${file} stands the alias "${trimmed}" in a mapping key's place on line ${line}: a field is named by its own word, never by an alias`);
@@ -380,7 +382,9 @@ function parseMapping(tokens, i, indent, file) {
     if (positions.has(key.value))
       return refusal(file, token.line, `the manifest ${file} names "${key.value}" twice, again on line ${token.line}: each field is given once`);
     positions.set(key.value, token.line);
-    if (pair.rest === '') {
+    // `field: # a comment` is a field with no value on its line: what stands
+    // indented under it is its block, and the comment is not the value.
+    if (cutComment(pair.rest).trim() === '') {
       if (i + 1 < tokens.length && tokens[i + 1].indent > indent) {
         const sub = parseBlock(tokens, i + 1, tokens[i + 1].indent, file);
         if (!sub.ok) return sub;
@@ -587,8 +591,27 @@ function runGit(folder, args, extra) {
   return { ok: true, output };
 }
 
-/** A word as YAML reads it back: plain where it can be, quoted where it cannot. */
-const yamlWord = (word) => (/^[A-Za-z0-9][A-Za-z0-9 ._+-]*$/.test(word) ? word : `'${word.replace(/'/g, "''")}'`);
+/**
+ * A word as YAML reads it back: plain where the plain spelling reads back as
+ * that same word, quoted where it does not — `123`, `true` and `null` are
+ * other YAML values, and a word with a space at its edge, a `:`, a `#` or a
+ * leading indicator is not a plain scalar at all. A name written into a
+ * manifest is a name the reader must give back, whatever it is called.
+ */
+const yamlWord = (word) => (/^[A-Za-z_][A-Za-z0-9 ._+-]*$/.test(word) && !/^(true|false|null)$/i.test(word)
+  ? word
+  : `'${word.replace(/'/g, "''")}'`);
+
+/**
+ * Whether a folder is a git repository of its own, rather than a folder
+ * standing inside one: `git` run in a folder with no repository of its own
+ * answers for the repository above it, so a command that wrote there would
+ * write to someone else's product.
+ */
+function ownRepository(folder, gitEnv) {
+  const top = runGit(folder, ['rev-parse', '--show-toplevel'], gitEnv);
+  return top.ok && resolve(top.output) === resolve(folder);
+}
 
 /**
  * Why a day cannot be used, or null when it can. A draft's day is written
@@ -732,6 +755,23 @@ function whyNotAFolderName(name) {
 }
 
 /**
+ * The word a field's key spells, however it spells it: bare, single- or
+ * double-quoted, with the escapes a double-quoted scalar takes. A key written
+ * `"n\u0061me"` names `name`, and the field it names is that one — a rename
+ * that matched the text of a key would leave the product's own field alone and
+ * write a second one beside it.
+ */
+function decodedKeyWord(key) {
+  const trimmed = key.trim();
+  if (trimmed === '') return null;
+  if (trimmed[0] === "'" || trimmed[0] === '"') {
+    const read = unquote(trimmed, '', 1);
+    return read.ok && typeof read.value === 'string' ? read.value : null;
+  }
+  return cutComment(trimmed).trim();
+}
+
+/**
  * The manifest's text with its `name` field written as the product's new
  * name, every other byte kept. The field is found by its own name, however
  * the manifest spells the key — bare, single- or double-quoted — and only
@@ -743,14 +783,26 @@ function manifestNamed(text, name) {
   let written = false;
   const out = lines.map((line) => {
     if (written) return line;
-    const lead = line.match(/^\s*/)[0];
-    const pair = splitPair(line.slice(lead.length));
-    if (pair === null) return line;
-    const key = pair.key.trim();
-    if (key !== 'name' && key !== '"name"' && key !== "'name'") return line;
+    const cr = line.endsWith('\r') ? '\r' : '';
+    const bare = cr === '' ? line : line.slice(0, -1);
+    const lead = bare.match(/^[ \t]*/)[0];
+    // Only the product's own field, which stands at the left margin: a
+    // `name` inside `repos:` or inside any other field belongs to that field,
+    // and renaming the product must never reach it.
+    if (lead !== '') return line;
+    const pair = splitPair(bare);
+    if (pair === null || decodedKeyWord(pair.key) !== 'name') return line;
     written = true;
-    const comment = pair.rest.slice(cutComment(pair.rest).length).trim();
-    return `${lead}${pair.key.replace(/\s+$/, '')}: ${yamlWord(name)}${comment === '' ? '' : ` ${comment}`}`;
+    // Everything else on the line stays as it was written: the key's own
+    // spelling, the spacing after the colon, a comment at its end, and a
+    // carriage return where the manifest has one.
+    const after = bare.slice(pair.key.length + 1);
+    const gap = after.match(/^[ \t]*/)[0];
+    const rest = after.slice(gap.length);
+    // The comment starts at its own `#`: the spaces before it were written by
+    // someone, and they stay where they are.
+    const comment = rest.slice(cutComment(rest).replace(/\s+$/, '').length);
+    return `${pair.key}:${gap}${yamlWord(name)}${comment}${cr}`;
   });
   if (!written) {
     if (out[out.length - 1] === '') out.splice(out.length - 1, 0, `name: ${yamlWord(name)}`);
@@ -782,7 +834,7 @@ function putRenameBack(from, to, manifest, gitEnv) {
  */
 export function renameProduct({ folder: given, name, gitEnv } = {}) {
   const read = readProduct(given === undefined ? '.' : given);
-  if (!read.ok) return { outcome: 'refused', message: read.message };
+  if (!read.ok) return { outcome: 'refused', message: read.message, file: read.file, line: read.line };
   const folder = read.product.folder;
 
   const why = whyNotAFolderName(name);
@@ -793,8 +845,8 @@ export function renameProduct({ folder: given, name, gitEnv } = {}) {
     return { outcome: 'refused', message: `the folder ${folder} is already named "${name}": naming a product to the name it has makes no commit` };
   if (existsSync(target))
     return { outcome: 'refused', message: `the folder ${target} is in the way: a product's name is the folder it lives in, and that name is taken` };
-  if (!existsSync(join(folder, '.git')))
-    return { outcome: 'refused', message: `the folder ${folder} is not a git repository: naming a product in place is one commit, and there is no repository to commit it into` };
+  if (!ownRepository(folder, gitEnv))
+    return { outcome: 'refused', message: `the folder ${folder} is not a git repository of its own: naming a product in place is one commit of the product's history, and a commit made here would land in the repository around it` };
 
   const status = runGit(folder, ['status', '--porcelain'], gitEnv);
   if (!status.ok) return { outcome: 'failed', message: `git status failed in ${folder}: ${status.output}` };
@@ -802,14 +854,19 @@ export function renameProduct({ folder: given, name, gitEnv } = {}) {
     return { outcome: 'refused', message: `the folder ${folder} holds changes that are not committed: commit them first, since naming the product is a commit of its own and would take them with it` };
 
   const manifest = readFileSync(join(folder, MANIFEST_FILE), 'utf8');
-  renameSync(folder, target);
+  // The move itself is a step like the commit that follows it: a folder that
+  // cannot be renamed failed, and says so with the name and the reason.
+  let moved = false;
   try {
+    renameSync(folder, target);
+    moved = true;
     writeFileSync(join(target, MANIFEST_FILE), manifestNamed(manifest, name));
     const add = runGit(target, ['add', '--', MANIFEST_FILE], gitEnv);
     if (!add.ok) throw new Error(`git add failed in ${target}: ${add.output}`);
     const commit = runGit(target, ['commit', '--quiet', '-m', `Name the product ${name}`], gitEnv);
     if (!commit.ok) throw new Error(`git commit failed in ${target}: ${commit.output}`);
   } catch (error) {
+    if (!moved) return { outcome: 'failed', message: `the folder ${folder} could not be renamed to ${target}: ${error.message}` };
     const back = putRenameBack(target, folder, manifest, gitEnv);
     return { outcome: 'failed', message: back === undefined ? error.message : `${error.message}; ${back}` };
   }
@@ -824,7 +881,7 @@ export function renameProduct({ folder: given, name, gitEnv } = {}) {
  */
 export function addRemote({ folder: given, url, gitEnv } = {}) {
   const read = readProduct(given === undefined ? '.' : given);
-  if (!read.ok) return { outcome: 'refused', message: read.message };
+  if (!read.ok) return { outcome: 'refused', message: read.message, file: read.file, line: read.line };
   const folder = read.product.folder;
 
   const wanted = typeof url === 'string' ? url.trim() : '';
@@ -833,6 +890,10 @@ export function addRemote({ folder: given, url, gitEnv } = {}) {
   if (wanted.startsWith('-'))
     return { outcome: 'refused', message: `the url "${wanted}" begins with "-", which a command line reads as an option: write the url itself` };
 
+  // The remote belongs to the product's own repository: added from a folder
+  // that has none of its own, git would add it to the repository around it.
+  if (!ownRepository(folder, gitEnv))
+    return { outcome: 'refused', message: `the folder ${folder} is not a git repository of its own: a product's remote is added to the product's repository, and a command run here would reach the one around it` };
   const remotes = runGit(folder, ['remote'], gitEnv);
   if (!remotes.ok) return { outcome: 'failed', message: `git remote failed in ${folder}: ${remotes.output}` };
   if (remotes.output.split('\n').map((line) => line.trim()).includes('origin'))
@@ -853,7 +914,7 @@ export function addRemote({ folder: given, url, gitEnv } = {}) {
  */
 export function bootstrapProduct({ folder: given, gitEnv } = {}) {
   const read = readProduct(given === undefined ? '.' : given);
-  if (!read.ok) return { outcome: 'refused', message: read.message };
+  if (!read.ok) return { outcome: 'refused', message: read.message, file: read.file, line: read.line };
   const folder = read.product.folder;
   const reposFolder = join(folder, 'repos');
   const reports = [];
@@ -879,8 +940,10 @@ export function bootstrapProduct({ folder: given, gitEnv } = {}) {
         name: repo.name,
         url: repo.url,
         state: 'present',
-        dirty: status.ok ? status.output !== '' : false,
-        message: status.ok ? undefined : `left alone and not read: ${status.output}`,
+        // Unknown is not clean: a checkout whose state could not be read is
+        // reported as it is found, never as one that is up to date.
+        dirty: status.ok ? status.output !== '' : null,
+        message: status.ok ? undefined : `left alone, and its state could not be read: ${status.output}`,
       });
       continue;
     }
@@ -1038,25 +1101,34 @@ function runCommand(command, { values, words }) {
     }
     return { code: 2, error: { kind: 'refused', message: read.message, file: read.file, line: read.line } };
   }
+  // A refusal that a manifest raised says where it was found, whoever asked.
+  const fault = (done) => ({
+    kind: done.outcome,
+    message: done.message,
+    ...(done.file === undefined ? {} : { file: done.file, line: done.line }),
+  });
+
   if (command === 'rename') {
     const done = renameProduct({ folder: words[0], name: words[1] });
     if (done.outcome === 'renamed')
       return { code: 0, lines: [`folder: ${done.folder}`, `id: ${done.id}`, `name: ${done.name}`], body: { folder: done.folder, id: done.id, name: done.name } };
-    return { code: done.outcome === 'refused' ? 2 : 1, error: { kind: done.outcome, message: done.message } };
+    return { code: done.outcome === 'refused' ? 2 : 1, error: fault(done) };
   }
   if (command === 'remote') {
     const done = addRemote({ folder: words[0], url: words[1] });
     if (done.outcome === 'added')
       return { code: 0, lines: [`folder: ${done.folder}`, `remote: ${done.remote}`, `url: ${done.url}`], body: { folder: done.folder, remote: done.remote, url: done.url } };
-    return { code: done.outcome === 'refused' ? 2 : 1, error: { kind: done.outcome, message: done.message } };
+    return { code: done.outcome === 'refused' ? 2 : 1, error: fault(done) };
   }
   const done = bootstrapProduct({ folder: words[0] });
-  if (done.outcome === 'refused') return { code: 2, error: { kind: 'refused', message: done.message } };
+  if (done.outcome === 'refused') return { code: 2, error: fault(done) };
   const lines = [`bootstrapped: ${done.folder}`];
   for (const repo of done.repos)
     lines.push(`repo: ${repo.name} ${repo.state}${repo.dirty ? ' dirty' : ''}${repo.message === undefined ? '' : `: ${repo.message}`}`);
-  const failed = done.repos.filter((repo) => repo.state === 'failed').length;
-  return { code: failed ? 1 : 0, lines, body: { folder: done.folder, repos: done.repos } };
+  // A checkout this run could not read is a step that did not finish: a
+  // report that hides it would say a repository is fine when nobody looked.
+  const unfinished = done.repos.filter((repo) => repo.state === 'failed' || repo.dirty === null).length;
+  return { code: unfinished ? 1 : 0, lines, body: { folder: done.folder, repos: done.repos } };
 }
 
 /** One run of the command line: 0, 1 or 2, with its own stream's output printed. */
@@ -1078,8 +1150,14 @@ export function main(argv) {
       return code;
     }
     if (error !== null) {
-      console.error(error.kind === 'misuse' ? `product: ${error.message}` : error.message);
-      if (error.kind === 'misuse') console.error(`product: ${USAGE}`);
+      if (error.kind === 'misuse') {
+        console.error(`product: ${error.message}`);
+        console.error(`product: ${USAGE}`);
+        return code;
+      }
+      // A refusal names where it was found, the way every check in this set
+      // does; a fault with no file of its own stands as it is worded.
+      console.error(error.file === undefined ? error.message : `${error.file}:${error.line}: ${error.message}`);
       return code;
     }
     for (const line of lines) console.log(line);

@@ -283,6 +283,68 @@ test('no-manifest: the folder named is refused, and the file it looked for is na
   } finally { done(root); }
 });
 
+test('unreadable-manifest: a manifest that cannot be read is refused, with the file and the line', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    rmSync(join(folder, 'workspace.yaml'));
+    spawnSync('mkdir', ['-p', join(folder, 'workspace.yaml')]);
+    const manifestFile = join(folder, 'workspace.yaml');
+
+    const read = runProgram('read', folder);
+    assert.equal(read.status, 2, read.stdout);
+    assert.ok(read.stderr.includes(manifestFile.slice(1)), `the refusal names the file: ${read.stderr}`);
+    assert.match(read.stderr, /could not be read/);
+
+    const asJson = runProgram('read', '--json', folder);
+    assert.equal(asJson.status, 2, asJson.stderr);
+    const error = JSON.parse(asJson.stdout).error;
+    assert.equal(error.file, manifestFile, 'the file the read stopped at');
+    assert.equal(error.line, 1, 'the line it stopped on, where none is known');
+  } finally { done(root); }
+});
+
+test('refusal-carries-where-it-was-found: every command\'s --json error holds the file and the line', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    writeFileSync(join(folder, 'workspace.yaml'), 'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: 5\n');
+    git(folder, 'add', 'workspace.yaml');
+    git(folder, 'commit', '-q', '-m', 'the manifest with a name that is a number');
+    const manifestFile = join(folder, 'workspace.yaml');
+
+    const wordFor = { rename: ['rename', folder, 'quiet-name'], remote: ['remote', folder, 'https://example.invalid/p.git'], bootstrap: ['bootstrap', folder] };
+    for (const [command, args] of Object.entries(wordFor)) {
+      const run = runProgram(...args, '--json');
+      assert.equal(run.status, 2, `${command}: ${run.stdout}`);
+      const error = JSON.parse(run.stdout).error;
+      assert.ok(error.file.endsWith('workspace.yaml'), `${command}: ${JSON.stringify(error)}`);
+      assert.equal(error.file, manifestFile, `${command} names the manifest it refused`);
+      assert.equal(error.line, 3, `${command} names the line the name stood on`);
+      assert.match(error.message, /"name"/, `${command} names the field the fault is at`);
+    }
+  } finally { done(root); }
+});
+
+test('refusal-names-where-first: the text output opens with the file and the line, as the checks do', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    writeFileSync(join(folder, 'workspace.yaml'), 'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: 5\n');
+    git(folder, 'add', 'workspace.yaml');
+    git(folder, 'commit', '-q', '-m', 'the manifest with a name that is a number');
+
+    const read = runProgram('read', folder);
+    assert.equal(read.status, 2, read.stdout);
+    const first = read.stderr.split('\n')[0];
+    const pattern = new RegExp(`^${folder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\/workspace\.yaml:3: `);
+    assert.ok(pattern.test(first), `the first line opens with where: ${JSON.stringify(read.stderr)}`);
+  } finally { done(root); }
+});
+
 test('manifest-grows: fields beside the ones this program knows are read and passed', () => {
   const root = scratch();
   try {
@@ -412,6 +474,55 @@ test('remote: origin added, a second refused, and nothing was pushed', () => {
     // that was pushed to it before the run, on the branch it was pushed to.
     assert.equal(git(published.bare, 'rev-list', '--all', '--count'), '1', 'nothing was pushed by the remote command');
     assert.equal(spawnSync('git', ['-C', published.bare, 'rev-parse', 'HEAD'], { encoding: 'utf8', env: testerEnv() }).status, 0, 'the branch the push made stands');
+  } finally { done(root); }
+});
+
+test('bootstrap-cannot-read-a-checkout: an unreadable checkout is reported, its state unknown, and it is left alone', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const published = publishedRepository(root, 'api');
+    const folder = draftWithManifest(home, `schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nrepos:\n  - name: api\n    url: ${published.bare}\n`);
+    const firstRun = runProgram('bootstrap', folder);
+    assert.equal(firstRun.status, 0, `${firstRun.stdout}${firstRun.stderr}`);
+    assert.match(firstRun.stdout, /^repo: api cloned$/m);
+
+    // The work of a person inside the clone, and an index git itself refuses.
+    writeFileSync(join(folder, 'repos', 'api', 'notes.txt'), 'the work of a person\n');
+    writeFileSync(join(folder, 'repos', 'api', '.git', 'index'), 'not an index at all\n');
+
+    const unknownRun = runProgram('bootstrap', folder);
+    assert.equal(unknownRun.status, 1, `${unknownRun.stdout}${unknownRun.stderr}`);
+    const line = unknownRun.stdout.split('\n').find((one) => one.startsWith('repo: api '));
+    assert.ok(line.startsWith('repo: api present'), `the checkout still reads as present: ${unknownRun.stdout}`);
+    assert.ok(line.includes('could not be read'), `and its state could not be read: ${line}`);
+    assert.equal(readFileSync(join(folder, 'repos', 'api', 'notes.txt'), 'utf8'), 'the work of a person\n', 'the checkout was left alone');
+
+    const asJson = runProgram('bootstrap', folder, '--json');
+    assert.equal(asJson.status, 1, asJson.stderr);
+    const reported = JSON.parse(asJson.stdout).repos[0];
+    assert.equal(reported.state, 'present');
+    assert.equal(reported.dirty, null, 'the state is unknown, not clean and not dirty');
+  } finally { done(root); }
+});
+
+test('remote-outside-a-repository: a folder that is no git repository of its own is refused, and the one around it gains nothing', () => {
+  const root = scratch();
+  try {
+    const outer = join(root, 'outer');
+    spawnSync('mkdir', ['-p', outer]);
+    git(outer, 'init', '-q', '-b', 'main');
+    const inner = join(outer, 'my-product');
+    spawnSync('mkdir', ['-p', inner]);
+    writeFileSync(join(inner, 'workspace.yaml'), 'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\n');
+    const url = join(root, 'far-away');
+    git(root, 'init', '-q', '-b', 'main', url);
+
+    const made = runProgram('remote', inner, url);
+    assert.equal(made.status, 2, made.stdout);
+    assert.ok(made.stderr.includes(inner.slice(1)), `the refusal names the folder: ${made.stderr}`);
+    assert.match(made.stderr, /not a git repository of its own/, "and says why: a command run here would reach the one around it");
+    assert.equal(git(outer, 'remote'), '', 'the repository around it gained no remote');
   } finally { done(root); }
 });
 
@@ -548,6 +659,64 @@ test('rename-keeps-the-name-line: a plain name with a trailing comment keeps the
     const read = runProgram('read', renamedTo);
     assert.equal(read.status, 0, read.stderr);
     assert.match(read.stdout, /^name: tide-model$/m);
+  } finally { done(root); }
+});
+
+test('rename-names-only-its-own-line: a name nested under another field is not touched', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder, id } = makeDraft(home);
+    const manifest = `schemaVersion: 1\nid: ${id}\nnotes:\n  name: a note\nname: a-draft\n`;
+    writeFileSync(join(folder, 'workspace.yaml'), manifest);
+    git(folder, 'add', 'workspace.yaml');
+    git(folder, 'commit', '-q', '-m', 'the manifest with a name under notes');
+
+    const made = runProgram('rename', folder, 'tide-model');
+    assert.equal(made.status, 0, made.stderr);
+    const renamedTo = join(home, 'tide-model');
+    const written = readFileSync(join(renamedTo, 'workspace.yaml'), 'utf8');
+    assert.ok(written.includes('  name: a note\n'), `the note's name stands where it did: ${JSON.stringify(written)}`);
+    assert.equal(written, manifest.replace(/^name:.*$/m, 'name: tide-model'), 'and only the product\'s own name was rewritten');
+    const read = runProgram('read', renamedTo);
+    assert.equal(read.status, 0, read.stderr);
+    assert.match(read.stdout, /^name: tide-model$/m);
+  } finally { done(root); }
+});
+
+test('rename-quotes-what-yaml-would-read-else: 123, true and null are named and read back as words', () => {
+  const root = scratch();
+  try {
+    for (const [name, quoted] of [['123', `'123'`], ['true', `'true'`], ['null', `'null'`]]) {
+      const home = join(root, `home-${name}`);
+      const { folder } = makeDraft(home);
+      const made = runProgram('rename', folder, name);
+      assert.equal(made.status, 0, `${name}: ${made.stderr}`);
+      const renamedTo = join(home, name);
+      const read = runProgram('read', renamedTo);
+      assert.equal(read.status, 0, `${name}: ${read.stderr}`);
+      assert.match(read.stdout, new RegExp(`^name: ${name}$`, 'm'), `${name} is read back as the word it is`);
+      const written = readFileSync(join(renamedTo, 'workspace.yaml'), 'utf8');
+      assert.ok(written.includes(`name: ${quoted}\n`), `${name} is quoted in the manifest: ${JSON.stringify(written)}`);
+    }
+  } finally { done(root); }
+});
+
+test("rename-keeps-the-comment's-space: one space before the # the name line held", () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder } = makeDraft(home);
+    const manifest = 'schemaVersion: 1\nid: 046b6c7f-0b8a-43b9-b70d-6fa34f2b1e01\nname: a-draft # keep this\n';
+    writeFileSync(join(folder, 'workspace.yaml'), manifest);
+    git(folder, 'add', 'workspace.yaml');
+    git(folder, 'commit', '-q', '-m', 'the manifest with its note');
+
+    const made = runProgram('rename', folder, 'named-product');
+    assert.equal(made.status, 0, made.stderr);
+    const written = readFileSync(join(home, 'named-product', 'workspace.yaml'), 'utf8');
+    assert.equal(written, manifest.replace(/^name:.*$/m, 'name: named-product # keep this'),
+      `one space before the #: ${JSON.stringify(written)}`);
   } finally { done(root); }
 });
 

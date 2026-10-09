@@ -1,228 +1,336 @@
 {
-  "about": "The manifest cases the self-test reads: a draft, a name the folder gives, fields a later version adds, and every refusal the reader gives, with its line.",
-  "folder": "idea-2026-10-09",
-  "cases": [
-    {
-      "name": "draft",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n",
-      "ok": {
-        "id": "8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
-        "name": "idea-2026-10-09",
-        "schemaVersion": 1
-      }
-    },
-    {
-      "name": "draft-without-a-name",
-      "text": "schemaVersion: 1\nid: 3b6a9c0d-1e2f-4a5b-8c7d-6e5f4a3b2c1d\n",
-      "ok": {
-        "id": "3b6a9c0d-1e2f-4a5b-8c7d-6e5f4a3b2c1d",
-        "name": "idea-2026-10-10",
-        "schemaVersion": 1
-      },
-      "folder": "idea-2026-10-10"
-    },
-    {
-      "name": "growth-scalar",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: leftover-listings\nwikiRevision: 7\n",
-      "ok": {
-        "id": "8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
-        "name": "leftover-listings",
-        "schemaVersion": 1
-      }
-    },
-    {
-      "name": "growth-mapping",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: leftover-listings\nnotes:\n  owner: a cafe owner\n  day: 2026-10-09\n",
-      "ok": {
-        "id": "8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
-        "name": "leftover-listings",
-        "schemaVersion": 1
-      }
-    },
-    {
-      "name": "full-manifest",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: leftover-listings\nskills:\n  shady2k: 0.90.0\nrepos:\n  - name: api\n    url: https://example.invalid/leftover-listings-api.git\n    branch: main\n  - name: web\n    url: https://example.invalid/leftover-listings-web.git\n",
-      "ok": {
-        "id": "8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
-        "name": "leftover-listings",
-        "schemaVersion": 1,
-        "repos": [
-          {
-            "name": "api",
-            "url": "https://example.invalid/leftover-listings-api.git",
-            "branch": "main"
-          },
-          {
-            "name": "web",
-            "url": "https://example.invalid/leftover-listings-web.git"
-          }
-        ],
-        "skills": {
-          "shady2k": "0.90.0"
-        }
-      }
-    },
-    {
-      "name": "no-manifest",
-      "text": null,
-      "line": 1,
-      "message": "holds no workspace.yaml: a product is recognised by its manifest"
-    },
-    {
-      "name": "empty-manifest",
-      "text": "",
-      "line": 1,
-      "message": "is empty: a product is recognised by its schemaVersion"
-    },
-    {
-      "name": "not-a-mapping",
-      "text": "- a\n- b\n",
-      "line": 1,
-      "message": "a manifest is a mapping of fields, and this is not one"
-    },
-    {
-      "name": "anchor",
-      "text": "schemaVersion: 1\nid: &same 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n",
-      "line": 2,
-      "message": "writes the anchor \"&same"
-    },
-    {
-      "name": "alias",
-      "text": "schemaVersion: 1\nid: *same\n",
-      "line": 2,
-      "message": "writes the alias \"*same"
-    },
-    {
-      "name": "alias-for-a-field",
-      "text": "*same: leftover-listings\n",
-      "line": 1,
-      "message": "stands the alias \"*same\" in a mapping key's place"
-    },
-    {
-      "name": "tag",
-      "text": "schemaVersion: 1\nid: !!str 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\n",
-      "line": 2,
-      "message": "writes the tag \"!!str"
-    },
-    {
-      "name": "flow-collection",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos: [{ name: api }]\n",
-      "line": 4,
-      "message": "fields are block mappings and block sequences of mappings"
-    },
-    {
-      "name": "second-document",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n---\nwikiRevision: 7\n",
-      "line": 4,
-      "message": "opens another document on line 4: a manifest is one document"
-    },
-    {
-      "name": "duplicate-field",
-      "text": "schemaVersion: 1\nschemaVersion: 2\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\n",
-      "line": 2,
-      "message": "names \"schemaVersion\" twice, again on line 2: each field is given once"
-    },
-    {
-      "name": "tab-indent",
-      "text": "schemaVersion: 1\n\tid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\n",
-      "line": 2,
-      "message": "indents with a tab on line 2: a manifest is indented with spaces"
-    },
-    {
-      "name": "neither-a-field-nor-an-item",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\njust a word\n",
-      "line": 4,
-      "message": "neither a field \"name: value\" nor a list item"
-    },
-    {
-      "name": "indented-under-a-complete-field",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n  owner: a cafe owner\n",
-      "line": 4,
-      "message": "under \"name\", which already holds"
-    },
-    {
-      "name": "no-schema-version",
-      "text": "id: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n",
-      "line": 1,
-      "message": "names no \"schemaVersion\": a product knows version 1"
-    },
-    {
-      "name": "unknown-schema-version",
-      "text": "schemaVersion: 2\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n",
-      "line": 1,
-      "message": "not a schema version this program knows"
-    },
-    {
-      "name": "no-id",
-      "text": "schemaVersion: 1\nname: idea-2026-10-09\n",
-      "line": 1,
-      "message": "names no \"id\": a product is identified by the id it was given at creation"
-    },
-    {
-      "name": "empty-id",
-      "text": "schemaVersion: 1\nid: \"\"\nname: idea-2026-10-09\n",
-      "line": 2,
-      "message": "holds \"\" at \"id\""
-    },
-    {
-      "name": "id-not-a-word",
-      "text": "schemaVersion: 1\nid: 42\nname: idea-2026-10-09\n",
-      "line": 2,
-      "message": "holds 42 at \"id\""
-    },
-    {
-      "name": "name-not-a-string",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: 7\n",
-      "line": 3,
-      "message": "not a name, which is a word"
-    },
-    {
-      "name": "skills-not-lines",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nskills:\n  - shady2k: 0.90.0\n",
-      "line": 4,
-      "message": "the set pinned here is written as \"shady2k: <version>\""
-    },
-    {
-      "name": "skills-entry-without-a-version",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nskills:\n  shady2k:\n",
-      "line": 5,
-      "message": "beside \"shady2k\": the version of the set pinned here, as a word"
-    },
-    {
-      "name": "repos-not-a-list",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos: api\n",
-      "line": 4,
-      "message": "the code repositories are a list"
-    },
-    {
-      "name": "repos-item-not-a-mapping",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos:\n  - api\n",
-      "line": 5,
-      "message": "holds \"api\" at \"repos\", on line 5: a code repository is written as"
-    },
-    {
-      "name": "repos-item-without-a-url",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos:\n  - name: api\n",
-      "line": 5,
-      "message": "holds nothing at \"repos\", beside \"url\": a code repository is cloned from the url it declares"
-    },
-    {
-      "name": "repos-name-not-a-folder",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos:\n  - name: ../escape\n    url: https://example.invalid/api.git\n",
-      "line": 5,
-      "message": "beside \"name\": a code repository is named by the folder it is cloned into"
-    },
-    {
-      "name": "repos-name-declared-twice",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos:\n  - name: api\n    url: https://example.invalid/api.git\n  - name: api\n    url: https://example.invalid/api-again.git\n",
-      "line": 7,
-      "message": "names the code repository \"api\" twice, on line 7: each repository is declared once"
-    },
-    {
-      "name": "repos-branch-not-a-word",
-      "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos:\n  - name: api\n    url: https://example.invalid/api.git\n    branch: 3\n",
-      "line": 7,
-      "message": "beside \"branch\": the branch a clone is taken from, as a word"
+ "about": "The manifest cases the self-test reads: a draft, a name the folder gives, fields a later version adds, and every refusal the reader gives, with its line.",
+ "folder": "idea-2026-10-09",
+ "cases": [
+  {
+   "name": "draft",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n",
+   "ok": {
+    "id": "8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+    "name": "idea-2026-10-09",
+    "schemaVersion": 1
+   }
+  },
+  {
+   "name": "draft-without-a-name",
+   "text": "schemaVersion: 1\nid: 3b6a9c0d-1e2f-4a5b-8c7d-6e5f4a3b2c1d\n",
+   "ok": {
+    "id": "3b6a9c0d-1e2f-4a5b-8c7d-6e5f4a3b2c1d",
+    "name": "idea-2026-10-10",
+    "schemaVersion": 1
+   },
+   "folder": "idea-2026-10-10"
+  },
+  {
+   "name": "growth-scalar",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: leftover-listings\nwikiRevision: 7\n",
+   "ok": {
+    "id": "8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+    "name": "leftover-listings",
+    "schemaVersion": 1
+   }
+  },
+  {
+   "name": "growth-mapping",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: leftover-listings\nnotes:\n  owner: a cafe owner\n  day: 2026-10-09\n",
+   "ok": {
+    "id": "8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+    "name": "leftover-listings",
+    "schemaVersion": 1
+   }
+  },
+  {
+   "name": "full-manifest",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: leftover-listings\nskills:\n  shady2k: 0.90.0\nrepos:\n  - name: api\n    url: https://example.invalid/leftover-listings-api.git\n    branch: main\n  - name: web\n    url: https://example.invalid/leftover-listings-web.git\n",
+   "ok": {
+    "id": "8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+    "name": "leftover-listings",
+    "schemaVersion": 1,
+    "repos": [
+     {
+      "name": "api",
+      "url": "https://example.invalid/leftover-listings-api.git",
+      "branch": "main"
+     },
+     {
+      "name": "web",
+      "url": "https://example.invalid/leftover-listings-web.git"
+     }
+    ],
+    "skills": {
+     "shady2k": "0.90.0"
     }
-  ]
+   }
+  },
+  {
+   "name": "no-manifest",
+   "text": null,
+   "line": 1,
+   "message": "holds no workspace.yaml: a product is recognised by its manifest"
+  },
+  {
+   "name": "empty-manifest",
+   "text": "",
+   "line": 1,
+   "message": "is empty: a product is recognised by its schemaVersion"
+  },
+  {
+   "name": "not-a-mapping",
+   "text": "- a\n- b\n",
+   "line": 1,
+   "message": "a manifest is a mapping of fields, and this is not one"
+  },
+  {
+   "name": "anchor",
+   "text": "schemaVersion: 1\nid: &same 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n",
+   "line": 2,
+   "message": "writes the anchor \"&same"
+  },
+  {
+   "name": "alias",
+   "text": "schemaVersion: 1\nid: *same\n",
+   "line": 2,
+   "message": "writes the alias \"*same"
+  },
+  {
+   "name": "alias-for-a-field",
+   "text": "*same: leftover-listings\n",
+   "line": 1,
+   "message": "stands the alias \"*same\" in a mapping key's place"
+  },
+  {
+   "name": "tag",
+   "text": "schemaVersion: 1\nid: !!str 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\n",
+   "line": 2,
+   "message": "writes the tag \"!!str"
+  },
+  {
+   "name": "flow-collection",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos: [{ name: api }]\n",
+   "line": 4,
+   "message": "fields are block mappings and block sequences of mappings"
+  },
+  {
+   "name": "second-document",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n---\nwikiRevision: 7\n",
+   "line": 4,
+   "message": "opens another document on line 4: a manifest is one document"
+  },
+  {
+   "name": "duplicate-field",
+   "text": "schemaVersion: 1\nschemaVersion: 2\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\n",
+   "line": 2,
+   "message": "names \"schemaVersion\" twice, again on line 2: each field is given once"
+  },
+  {
+   "name": "tab-indent",
+   "text": "schemaVersion: 1\n\tid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\n",
+   "line": 2,
+   "message": "indents with a tab on line 2: a manifest is indented with spaces"
+  },
+  {
+   "name": "neither-a-field-nor-an-item",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\njust a word\n",
+   "line": 4,
+   "message": "neither a field \"name: value\" nor a list item"
+  },
+  {
+   "name": "indented-under-a-complete-field",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n  owner: a cafe owner\n",
+   "line": 4,
+   "message": "under \"name\", which already holds"
+  },
+  {
+   "name": "no-schema-version",
+   "text": "id: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n",
+   "line": 1,
+   "message": "names no \"schemaVersion\": a product knows version 1"
+  },
+  {
+   "name": "unknown-schema-version",
+   "text": "schemaVersion: 2\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n",
+   "line": 1,
+   "message": "not a schema version this program knows"
+  },
+  {
+   "name": "no-id",
+   "text": "schemaVersion: 1\nname: idea-2026-10-09\n",
+   "line": 1,
+   "message": "names no \"id\": a product is identified by the id it was given at creation"
+  },
+  {
+   "name": "empty-id",
+   "text": "schemaVersion: 1\nid: \"\"\nname: idea-2026-10-09\n",
+   "line": 2,
+   "message": "holds \"\" at \"id\""
+  },
+  {
+   "name": "id-not-a-word",
+   "text": "schemaVersion: 1\nid: 42\nname: idea-2026-10-09\n",
+   "line": 2,
+   "message": "holds 42 at \"id\""
+  },
+  {
+   "name": "name-not-a-string",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: 7\n",
+   "line": 3,
+   "message": "not a name, which is a word"
+  },
+  {
+   "name": "skills-not-lines",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nskills:\n  - shady2k: 0.90.0\n",
+   "line": 4,
+   "message": "the set pinned here is written as \"shady2k: <version>\""
+  },
+  {
+   "name": "skills-entry-without-a-version",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nskills:\n  shady2k:\n",
+   "line": 5,
+   "message": "beside \"shady2k\": the version of the set pinned here, as a word"
+  },
+  {
+   "name": "repos-not-a-list",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos: api\n",
+   "line": 4,
+   "message": "the code repositories are a list"
+  },
+  {
+   "name": "repos-item-not-a-mapping",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos:\n  - api\n",
+   "line": 5,
+   "message": "holds \"api\" at \"repos\", on line 5: a code repository is written as"
+  },
+  {
+   "name": "repos-item-without-a-url",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos:\n  - name: api\n",
+   "line": 5,
+   "message": "holds nothing at \"repos\", beside \"url\": a code repository is cloned from the url it declares"
+  },
+  {
+   "name": "repos-name-not-a-folder",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos:\n  - name: ../escape\n    url: https://example.invalid/api.git\n",
+   "line": 5,
+   "message": "beside \"name\": a code repository is named by the folder it is cloned into"
+  },
+  {
+   "name": "repos-name-declared-twice",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos:\n  - name: api\n    url: https://example.invalid/api.git\n  - name: api\n    url: https://example.invalid/api-again.git\n",
+   "line": 7,
+   "message": "names the code repository \"api\" twice, on line 7: each repository is declared once"
+  },
+  {
+   "name": "repos-branch-not-a-word",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos:\n  - name: api\n    url: https://example.invalid/api.git\n    branch: 3\n",
+   "line": 7,
+   "message": "beside \"branch\": the branch a clone is taken from, as a word"
+  },
+  {
+   "name": "a-field-with-no-name",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n: a value\n",
+   "line": 4,
+   "message": "writes a field with no name on line 4"
+  },
+  {
+   "name": "first-line-indented",
+   "text": "  schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\n",
+   "line": 1,
+   "message": "indents its first line by 2 spaces"
+  },
+  {
+   "name": "a-line-at-a-place-of-its-own",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nnotes: a note\n  more: a word\n",
+   "line": 5,
+   "message": "which already holds \"a note\""
+  },
+  {
+   "name": "comment-after-a-block-field",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nrepos: # the repositories\n  - name: api\n    url: https://example.invalid/api.git\nname: idea-2026-10-09\n",
+   "ok": {
+    "id": "8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+    "name": "idea-2026-10-09",
+    "schemaVersion": 1,
+    "repos": [
+     {
+      "name": "api",
+      "url": "https://example.invalid/api.git"
+     }
+    ]
+   }
+  },
+  {
+   "name": "comment-after-a-field",
+   "text": "schemaVersion: 1\nname: idea-2026-10-09 # the draft\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\n",
+   "ok": {
+    "id": "8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+    "name": "idea-2026-10-09",
+    "schemaVersion": 1
+   }
+  },
+  {
+   "name": "plain-value-holding-a-colon",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: foo: bar\n",
+   "line": 3,
+   "message": "is a mapping written on one line"
+  },
+  {
+   "name": "quote-never-closed",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: \"a draft\n",
+   "line": 3,
+   "message": "never closes it"
+  },
+  {
+   "name": "text-after-a-quoted-value",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: \"a draft\" and more\n",
+   "line": 3,
+   "message": "after the quoted value"
+  },
+  {
+   "name": "anchor-for-a-field",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\n&key: a word\nname: idea-2026-10-09\n",
+   "line": 3,
+   "message": "where a field's name goes"
+  },
+  {
+   "name": "tag-for-a-field",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\n!!str: a word\nname: idea-2026-10-09\n",
+   "line": 3,
+   "message": "where a field's name goes"
+  },
+  {
+   "name": "flow-collection-for-a-field",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\n[a]: a word\nname: idea-2026-10-09\n",
+   "line": 3,
+   "message": "where a field's name goes"
+  },
+  {
+   "name": "field-named-by-an-empty-quote",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\n\"\": a word\nname: idea-2026-10-09\n",
+   "line": 3,
+   "message": "where a field's name goes"
+  },
+  {
+   "name": "item-holding-a-second-value",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\nrepos:\n  - api\n    more: a word\n",
+   "line": 6,
+   "message": "under an item that already holds a value"
+  },
+  {
+   "name": "escape-not-a-four-digit-code",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: \"a\\u00ZZ\"\n",
+   "line": 3,
+   "message": "that is not \\uXXXX"
+  },
+  {
+   "name": "escape-not-one-of-the-usual",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: \"a\\qb\"\n",
+   "line": 3,
+   "message": "only the usual escapes are written"
+  },
+  {
+   "name": "a-line-at-a-place-of-its-own-at-the-root",
+   "text": "a word\nschemaVersion: 1\n",
+   "line": 2,
+   "message": "at a place of its own"
+  }
+ ]
 }
