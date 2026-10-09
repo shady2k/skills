@@ -363,7 +363,8 @@ that needs the owner.
 Check that the agent doc, the glossary, the current specs and the architecture
 still describe the assembled revision, by the protocol's **What describes the
 present is kept true**; what this stage made false is updated in it. Get a
-review following [`review.md`](review.md), preferably from another model. Fix valid findings within scope and repeat the affected checks. If a fix
+review following [`review.md`](review.md), preferably from a reviewer on another
+model the set can reach from here ([`agents.md`](references/agents.md)). Fix valid findings within scope and repeat the affected checks. If a fix
 changes code after the full run, rerun the full checks on the final revision.
 Repeat mutation testing and review where a fix invalidated them; the rest is
 reused by **A passing result holds while what it covers is unchanged**.
