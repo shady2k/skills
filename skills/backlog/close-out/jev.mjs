@@ -56,8 +56,8 @@
  */
 import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { homedir, hostname, userInfo } from 'node:os';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { homedir, hostname, tmpdir, userInfo } from 'node:os';
 import { isAbsolute, join, resolve, sep } from 'node:path';
 import { runInNewContext } from 'node:vm';
 import { fileURLToPath } from 'node:url';
@@ -281,23 +281,32 @@ export function keyPlaceFile(env = process.env, top = gitOut(['rev-parse', '--sh
 
 export const KEY_ENV = 'JEV_API_KEY';
 
+// Whether a file's "key" says one of the three places the key can be found in.
+// The place's own arguments are never printed, and neither is anything else the
+// file holds: a wrong shape is reported by its file, not quoted.
+const placeOf = (where) => (typeof where?.env === 'string' && where.env ? 'env'
+  : typeof where?.file === 'string' && where.file ? 'file'
+    : Array.isArray(where?.command) && where.command.length ? 'command' : null);
+
 // Where the key is, read from this machine's file; said without its arguments,
 // which may hold what the key is guarded by. A file the machine holds but
-// cannot give is an error naming the file, never silently skipped for the
-// fallback below.
+// cannot give — unreadable, not JSON, or holding no usable place — is an error
+// naming the file, never silently skipped for the fallback below.
 export function keyPlace({ env = process.env, read = readFileSync, top } = {}) {
   let where;
   const file = keyPlaceFile(env, top);
   let text, got;
   try { text = read(file, 'utf8'); } catch (e) {
     if (e?.code === 'ENOENT') return null;
-    throw new Unavailable(`the Jev key's file ${file} could not be read: ${e.message}`);
+    throw new Unavailable(`the Jev key's file ${file} could not be read${e?.code ? ` (${e.code})` : ''}`);
   }
   try { got = JSON.parse(text); } catch {
     throw new Unavailable(`the Jev key's file ${file} is not JSON`);
   }
   where = got?.key;
-  if (!where || typeof where !== 'object') throw new Unavailable(`the Jev key's file ${file} does not say where the Jev key is`);
+  if (!placeOf(where))
+    throw new Unavailable(`the Jev key's file ${file} does not say where the key is; it takes `
+      + '{"env": name}, {"file": path} or {"command": [program, ...args]}');
   return where;
 }
 
@@ -326,12 +335,15 @@ export function readKeyHere({ env = process.env, read = readFileSync, top, run =
   return readKey(where, { env, read, run });
 }
 
-// Which source the key came from, never what the key is.
+// Which source the key came from, never what the key is. The file is named
+// even when it holds an environment variable of its own, so the status line
+// says whether this machine's file was used or the fallback.
 export function keyNote({ env = process.env, read = readFileSync, top } = {}) {
-  const where = keySource({ env, read, top });
-  if (where === null) throw new Unavailable(keyMissing(env, top));
-  return where.env === KEY_ENV && where.file === undefined && where.command === undefined
-    ? `${KEY_ENV} in the process's environment` : described(where);
+  const place = keyPlace({ env, read, top });
+  if (place !== null) return `the machine file ${keyPlaceFile(env, top)} (${described(place)})`;
+  const v = env[KEY_ENV];
+  if (typeof v === 'string' && v.trim()) return `${KEY_ENV} in the process's environment`;
+  throw new Unavailable(keyMissing(env, top));
 }
 
 export function readKey(where, { env = process.env, run = execFileSync, read = readFileSync } = {}) {
@@ -557,6 +569,16 @@ async function selftest() {
     console.log(`${ok ? 'PASS' : 'FAIL'}  jev: ${name}${ok ? '' : ` (got ${JSON.stringify(got)})`}`);
   };
   const throws = (f, type) => { try { f(); return false; } catch (e) { return e instanceof type; } };
+  // Anything written to stdout or stderr while f runs, so a check can prove a
+  // value did not reach a log, an error line or a status line.
+  const capture = (f) => {
+    const said = [];
+    const [out, err] = [process.stdout.write.bind(process.stdout), process.stderr.write.bind(process.stderr)];
+    process.stdout.write = (c) => { said.push(String(c)); return true; };
+    process.stderr.write = (c) => { said.push(String(c)); return true; };
+    try { f(); } finally { process.stdout.write = out; process.stderr.write = err; }
+    return said.join('');
+  };
   const m = masker({ idPattern: 'proj-[a-z0-9]+', words: ['acme-portal'], people: ['jdoe', 'Alice Smith'] });
   const source = 'proj-7xk and proj-7xk depend on proj-9aa; jdoe mailed jane@example.org from 10.1.2.3 '
     + 'in acme-portal at /home/jdoe/app, commit 4a1ad662; token=abcd1234efgh and ghp_abcdefghijklmnopqrstuvwxyz123456 '
@@ -622,12 +644,18 @@ async function selftest() {
   saidK = '';
   try { readKeyHere(brokenFile); } catch (e) { saidK = e.message; }
   check('a broken file names itself and is not skipped', saidK.includes(keyPlaceFile({})) && !/k3y-abc/.test(saidK), saidK);
-  // 5: what the status says about where the key came from, never its value.
-  let fromVariable = '', fromFile = '';
-  try { fromVariable = keyNote({ env: { JEV_API_KEY: 'k3y-abc' }, read: () => { throw noFile; } }); } catch (e) { fromVariable = e.message; }
-  try { fromFile = keyNote({ env: {}, read: () => '{"key":{"env":"FILE_KEY"}}' }); } catch (e) { fromFile = e.message; }
+  // 5: what the status says about where the key came from, never its value. A
+  // file that names an environment variable of its own is still the file, and
+  // reads differently from the fallback.
+  const noteOfFile = (where) => keyNote({ env: {}, read: () => JSON.stringify({ key: where }), top: '' });
+  let fromVariable = '', fromFile = '', fileSaysVariable = '';
+  try { fromVariable = keyNote({ env: { JEV_API_KEY: 'k3y-abc' }, read: () => { throw noFile; }, top: '' }); } catch (e) { fromVariable = e.message; }
+  try { fromFile = noteOfFile({ env: 'FILE_KEY' }); } catch (e) { fromFile = e.message; }
+  try { fileSaysVariable = noteOfFile({ env: KEY_ENV }); } catch (e) { fileSaysVariable = e.message; }
   check('the status line names the source and never the value',
-    fromVariable === "JEV_API_KEY in the process's environment" && /FILE_KEY/.test(fromFile) && !/k3y-abc/.test(fromVariable), [fromVariable, fromFile]);
+    fromVariable === "JEV_API_KEY in the process's environment" && fromFile.includes(keyPlaceFile({}, '')) && /FILE_KEY/.test(fromFile)
+    && fileSaysVariable.includes(keyPlaceFile({}, '')) && fileSaysVariable !== fromVariable && !/k3y-abc/.test(fromVariable),
+    [fromVariable, fromFile, fileSaysVariable]);
   // 6: nothing said carries the value or the arguments a place is guarded by.
   const secret = 'top-s3cret-material';
   let saidC = '';
@@ -643,6 +671,49 @@ async function selftest() {
     JSON.stringify(keySource({ env: {}, read: () => '{"key":{"env":"FILE_KEY"}}' })) === '{"env":"FILE_KEY"}'
     && JSON.stringify(keySource({ env: { JEV_API_KEY: 'k' }, read: () => { throw noFile; } })) === '{"env":"JEV_API_KEY"}'
     && keySource({ env: {}, read: () => { throw noFile; } }) === null);
+
+  // 8: a file that holds no usable place is broken in the same way: named, and
+  // never skipped for the variable; nothing else the file holds is quoted.
+  for (const [name, text] of [['empty', '{"key": {}}'], ['a list', '{"key": []}'], ['no known place', `{"key": {"where": "vault-${secret}"}}`]]) {
+    saidK = '';
+    try { readKeyHere({ env: { JEV_API_KEY: 'k3y-abc' }, read: () => text, top: '' }); } catch (e) { saidK = e.message; }
+    check(`a file whose key is ${name} is named too`, saidK.includes(keyPlaceFile({})) && !saidK.includes(secret)
+      && !/k3y-abc/.test(saidK), saidK);
+  }
+  // 9: nothing a key is read from reaches a log, an error line or a status
+  // line. The planted line proves the capture would have seen a leak.
+  const plantedLine = 'planted-selftest-log-line';
+  const logged = capture(() => {
+    for (const where of [{ env: 'K' }, { file: '/x/k.txt' }, { command: ['vault', 'read', `--token=${secret}`] }]) {
+      for (const io of [{ env: { K: secret }, read: () => `${secret}\n`, run: () => secret },
+        { env: {}, read: () => { throw new Error('no'); }, run: () => { throw new Error('no'); } }]) {
+        try { readKey(where, io); } catch {}
+      }
+    }
+    try { keyNote({ env: { JEV_API_KEY: secret }, read: () => { throw noFile; }, top: '' }); } catch {}
+    try { readKeyHere({ env: {}, read: () => { throw noFile; }, top: '' }); } catch {}
+    console.error(`a reader that says too much: ${plantedLine}`);
+  });
+  check('no key value reaches a log, an error or a status line', logged.includes(plantedLine) && !logged.includes(secret),
+    logged.slice(0, 200));
+  // 10: the command line's own refusal, in a child process with no key anywhere,
+  // so what is checked is what an owner would see. It reaches no service: there
+  // is no key to reach it with.
+  const tmp = mkdtempSync(join(tmpdir(), 'jev-selftest-'));
+  try {
+    const cfg = join(tmp, 'config.json');
+    const homeFile = join(tmp, 'home', 'shady2k-skills', 'jev.json');
+    writeFileSync(cfg, '{"jev": {"consent": true}}');
+    const childEnv = { ...process.env, XDG_CONFIG_HOME: join(tmp, 'home') };
+    delete childEnv[KEY_ENV];
+    let said = '', code = 0;
+    try {
+      execFileSync(process.execPath, [fileURLToPath(import.meta.url), 'status', '--config', cfg],
+        { encoding: 'utf8', env: childEnv, stdio: ['ignore', 'ignore', 'pipe'] });
+    } catch (e) { code = e.status; said = String(e.stderr || ''); }
+    check('status with no key source exits 3 and says both ways', code === 3 && said.includes(homeFile) && said.includes(KEY_ENV)
+      && said.includes('{"key": {"env": "MY_JEV_KEY"}}') && /restart the MCP connection/.test(said), said);
+  } finally { rmSync(tmp, { recursive: true, force: true }); }
   check('a key from the environment', readKey({ env: 'K' }, { env: { K: ' abc \n' } }) === 'abc');
   check('an empty key is unavailable', throws(() => readKey({ env: 'K' }, { env: {} }), Unavailable));
   check('a key from a command', readKey({ command: ['vault', 'read'] }, { run: () => 'xyz\n' }) === 'xyz');

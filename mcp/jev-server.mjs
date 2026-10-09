@@ -415,36 +415,50 @@ async function selftest() {
   const asking = (q) => judge({ ...q, fetchImpl: keyed, people: [], wait: async () => {} });
   const callWith = (opts) => call({ questions: [{ id: 'q0', type: 'choice', question: 'Which is it?', answers: { a: 'A', b: 'B' } }], items: ['x'] },
     { dir: '/p', read: readCfg, asker: asking, configPath: () => 'cfg.json', ...opts });
+  // Every call's own writing is kept, so a check can prove no key value reached
+  // a log, an error line or the text an agent reads.
+  const said = [];
+  const quietly = async (f) => {
+    const [out, err] = [process.stdout.write.bind(process.stdout), process.stderr.write.bind(process.stderr)];
+    process.stdout.write = (c) => { said.push(String(c)); return true; };
+    process.stderr.write = (c) => { said.push(String(c)); return true; };
+    try { return await f(); } finally { process.stdout.write = out; process.stderr.write = err; }
+  };
   try {
     delete process.env.JEV_API_KEY;
     delete process.env.JEV_FILE_KEY;
     process.env.XDG_CONFIG_HOME = home;
     process.env.JEV_API_KEY = 'from-the-variable';
-    const fromVariable = await callWith({});
+    const fromVariable = await quietly(() => callWith({}));
     check('JEV_API_KEY alone, with no file, is used', carried.at(-1) === 'Bearer from-the-variable' && !fromVariable.isError
       && /1 of 1 answers settled/.test(fromVariable.content[0].text) && !/from-the-variable/.test(fromVariable.content[0].text),
       [carried.at(-1), fromVariable.content[0].text]);
     mkdirSync(join(home, 'shady2k-skills'), { recursive: true });
     writeFileSync(keyFile, '{"key": {"env": "JEV_FILE_KEY"}}');
     process.env.JEV_FILE_KEY = 'from-the-file';
-    const fromFile = await callWith({});
+    const fromFile = await quietly(() => callWith({}));
     check('a file that exists wins over JEV_API_KEY', carried.at(-1) === 'Bearer from-the-file' && !fromFile.isError, carried.at(-1));
     writeFileSync(keyFile, '{"key": ');
     const before = carried.length;
-    const broken = await callWith({});
+    const broken = await quietly(() => callWith({}));
     check('a file that is there but broken names itself and is not skipped', /unavailable here/.test(broken.content[0].text)
       && broken.content[0].text.includes(keyFile) && carried.length === before && !broken.content[0].text.includes('from-the-variable'),
       broken.content[0].text);
     rmSync(keyFile);
     delete process.env.JEV_API_KEY;
-    const neither = await callWith({});
+    const neither = await quietly(() => callWith({}));
     const t = neither.content[0].text;
     check('neither says both ways, with the exact path', /unavailable here/.test(t) && t.includes(keyFile) && /JEV_API_KEY/.test(t)
       && /{"key":/.test(t) && /restart the MCP connection/.test(t) && !/from-the-variable|from-the-file/.test(t), t);
     process.env.JEV_API_KEY = 'from-the-variable';
-    const refused = await callWith({ configPath: () => 'kcfg.json' });
+    const refused = await quietly(() => callWith({ configPath: () => 'kcfg.json' }));
     check('a project config that names a key is still refused', refused.isError && /belongs to the machine/.test(refused.content[0].text)
       && carried.length === before, refused.content[0].text);
+    // The capture is proved by planting a line in it: a leak anywhere in the
+    // calls above would have been kept here.
+    said.push('planted-server-log-line');
+    check('no call writes the key where a log or the agent could read it',
+      said.join('').includes('planted-server-log-line') && !/from-the-variable|from-the-file/.test(said.join('')), said.join('').slice(0, 200));
   } finally {
     for (const [k, v] of Object.entries(kept)) (v === undefined ? delete process.env[k] : (process.env[k] = v));
     rmSync(home, { recursive: true, force: true });
