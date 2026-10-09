@@ -251,10 +251,25 @@ function readLines(text, file) {
   return { ok: true, tokens: kept };
 }
 
-/** The end of a scalar's text where a comment starts, or the whole of it. */
+/**
+ * The end of a scalar's text where a comment starts, or the whole of it. A
+ * `#` inside a quoted value is the value's own character — a product called
+ * `Draft # part` is called that — so quotes are walked, escapes and all.
+ */
 function cutComment(text) {
+  let quote = null;
   for (let i = 0; i < text.length; i++) {
-    if (text[i] === '#' && (i === 0 || /\s/.test(text[i - 1]))) return text.slice(0, i);
+    const ch = text[i];
+    if (quote !== null) {
+      if (quote === '"' && ch === '\\') { i++; continue; }
+      if (ch === quote) {
+        if (quote === "'" && text[i + 1] === "'") { i++; continue; }
+        quote = null;
+      }
+      continue;
+    }
+    if (ch === "'" || ch === '"') { quote = ch; continue; }
+    if (ch === '#' && (i === 0 || /\s/.test(text[i - 1]))) return text.slice(0, i);
   }
   return text;
 }
@@ -265,6 +280,7 @@ function splitPair(content) {
   for (let i = 0; i < content.length; i++) {
     const ch = content[i];
     if (quote !== null) {
+      if (quote === '"' && ch === '\\') { i++; continue; }
       if (ch === quote) {
         if (quote === "'" && content[i + 1] === "'") { i++; continue; }
         quote = null;
@@ -332,10 +348,12 @@ function parseScalar(text, file, line) {
     return refusal(file, line, `the manifest ${file} writes the flow collection "${trimmed}" on line ${line}: fields are block mappings and block sequences of mappings, one per line`);
   if (first === "'" || first === '"') return unquote(trimmed, file, line);
   const plain = cutComment(trimmed).trim();
-  if (plain === '' || plain === 'null' || plain === '~') return { ok: true, value: null };
-  if (/: /.test(plain) || plain.endsWith(':'))
+  // The words YAML reads as another value, in every spelling YAML reads them
+  // in: `null`, `Null` and `~` are nothing, `true` and `True` are a truth.
+  if (plain === '' || /^(null|~)$/i.test(plain)) return { ok: true, value: null };
+  if (/^(true|false)$/i.test(plain)) return { ok: true, value: plain.toLowerCase() === 'true' };
+  if (/:\s/.test(plain) || plain.endsWith(':'))
     return refusal(file, line, `the manifest ${file} holds "${plain}" on line ${line}: a value holding ": " is a mapping written on one line, and this reader takes a mapping one field per line`);
-  if (plain === 'true' || plain === 'false') return { ok: true, value: plain === 'true' };
   if (/^[+-]?\d+$/.test(plain)) return { ok: true, value: Number(plain) };
   if (/^[+-]?(\d+\.\d*|\.\d+)([eE][+-]?\d+)?$/.test(plain)) return { ok: true, value: Number(plain) };
   return { ok: true, value: plain };

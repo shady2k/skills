@@ -720,6 +720,27 @@ test("rename-keeps-the-comment's-space: one space before the # the name line hel
   } finally { done(root); }
 });
 
+test('rename-keeps-a-hash-inside-the-quoted-name: the # of the name is not mistaken for a comment', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'home');
+    const { folder, id } = makeDraft(home);
+    const manifest = `schemaVersion: 1\nid: ${id}\nname: 'Draft # part' # keep this\n`;
+    writeFileSync(join(folder, 'workspace.yaml'), manifest);
+    git(folder, 'add', 'workspace.yaml');
+    git(folder, 'commit', '-q', '-m', 'the manifest with a hash inside the name');
+
+    const made = runProgram('rename', folder, 'named-product');
+    assert.equal(made.status, 0, made.stderr);
+    const written = readFileSync(join(home, 'named-product', 'workspace.yaml'), 'utf8');
+    assert.equal(written, `schemaVersion: 1\nid: ${id}\nname: named-product # keep this\n`,
+      `the name was rewritten and the comment kept, nothing cut: ${JSON.stringify(written)}`);
+    const read = runProgram('read', join(home, 'named-product'));
+    assert.equal(read.status, 0, read.stderr);
+    assert.match(read.stdout, /^name: named-product$/m);
+  } finally { done(root); }
+});
+
 test('proto-field-forges-nothing: a manifest built under __proto__ is refused, and one beside it reads', () => {
   const root = scratch();
   try {

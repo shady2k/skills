@@ -331,6 +331,42 @@
    "text": "a word\nschemaVersion: 1\n",
    "line": 2,
    "message": "at a place of its own"
+  },
+  {
+   "name": "a-plain-value-holding-a-colon-and-a-tab",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: foo:\tbar\n",
+   "line": 3,
+   "message": "is a mapping written on one line"
+  },
+  {
+   "name": "a-name-yaml-reads-as-a-truth",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: True\n",
+   "line": 3,
+   "message": "not a name, which is a word"
+  },
+  {
+   "name": "a-name-yaml-reads-as-nothing",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: NULL\n",
+   "line": 3,
+   "message": "not a name, which is a word"
+  },
+  {
+   "name": "a-quoted-value-holding-a-hash",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: 'Draft # part' # the person's own words\n",
+   "ok": {
+    "id": "8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+    "name": "Draft # part",
+    "schemaVersion": 1
+   }
+  },
+  {
+   "name": "an-escaped-key-beside-the-three",
+   "text": "schemaVersion: 1\nid: 8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f\nname: idea-2026-10-09\n\"ex\\\"tra\": a value\n",
+   "ok": {
+    "id": "8f2c1d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+    "name": "idea-2026-10-09",
+    "schemaVersion": 1
+   }
   }
  ]
 }
