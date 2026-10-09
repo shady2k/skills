@@ -310,12 +310,11 @@ never goes back to ready.
 
 Then end the worker session that produced it, by the protocol's **A started
 session answers to the one that started it**, and remove that worker's
-checkout and its branch, by the protocol's **A run removes the checkouts and
-branches it created**, since its three conditions hold here: the result is
-merged, what the worker wrote to the tracker in that checkout is carried over
-from its export, and its receipt is posted. Work that comes back goes to a
-fresh worker given the rework and that log, or to the old session resumed from
-its log where the agent can do that.
+checkout and its branch once the protocol's **A run removes the checkouts and
+branches it created** permits it: here, at integration, so that a worker's
+checkout does not outlive the result it produced. Work that comes back goes to
+a fresh worker given the rework and that log, or to the old session resumed
+from its log where the agent can do that.
 
 - A gap you know how to close: decide, and record the decision and its
   assumptions in the decision log. It goes into the pull request.
