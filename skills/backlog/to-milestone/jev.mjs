@@ -34,7 +34,11 @@
  * is, is this machine's and never the project's: a committed file that could
  * name a command to run would let whoever edits it run anything here. It is
  * kept in $XDG_CONFIG_HOME/shady2k-skills/jev.json (~/.config by default) as
- * {"key": {"env": name} | {"file": path} | {"command": [program, ...args]}}.
+ * {"key": {"env": name} | {"file": path} | {"command": [program, ...args]}},
+ * and that file is read first; when the file is not there, JEV_API_KEY in the
+ * process's environment is used instead. A file that is there but cannot be
+ * read, is not JSON or holds no key object is an error that names the file —
+ * the variable is not taken in its place.
  *
  *   node jev.mjs status  [--config <gate-config>]   (found in the working copy when left out)
  *   node jev.mjs ask     [--config <gate-config>] --question <text> --options <json>
@@ -275,20 +279,60 @@ export function keyPlaceFile(env = process.env, top = gitOut(['rev-parse', '--sh
   return file;
 }
 
+export const KEY_ENV = 'JEV_API_KEY';
+
 // Where the key is, read from this machine's file; said without its arguments,
-// which may hold what the key is guarded by.
+// which may hold what the key is guarded by. A file the machine holds but
+// cannot give is an error naming the file, never silently skipped for the
+// fallback below.
 export function keyPlace({ env = process.env, read = readFileSync, top } = {}) {
   let where;
   const file = keyPlaceFile(env, top);
-  try { where = JSON.parse(read(file, 'utf8')).key; } catch {
-    throw new Unavailable('this machine does not say where the Jev key is');
+  let text, got;
+  try { text = read(file, 'utf8'); } catch (e) {
+    if (e?.code === 'ENOENT') return null;
+    throw new Unavailable(`the Jev key's file ${file} could not be read: ${e.message}`);
   }
-  if (!where || typeof where !== 'object') throw new Unavailable('this machine does not say where the Jev key is');
+  try { got = JSON.parse(text); } catch {
+    throw new Unavailable(`the Jev key's file ${file} is not JSON`);
+  }
+  where = got?.key;
+  if (!where || typeof where !== 'object') throw new Unavailable(`the Jev key's file ${file} does not say where the Jev key is`);
   return where;
 }
 
 const described = (where) => (where.env ? `the environment variable ${where.env}` : where.file ? `the file ${where.file}`
   : Array.isArray(where.command) ? `the command ${where.command[0]}` : 'an unknown source');
+
+// The file first, then JEV_API_KEY in the process's environment; nothing else.
+export function keySource({ env = process.env, read = readFileSync, top } = {}) {
+  const place = keyPlace({ env, read, top });
+  if (place !== null) return place;
+  const v = env[KEY_ENV];
+  return typeof v === 'string' && v.trim() ? { env: KEY_ENV } : null;
+}
+
+// What to do when no source worked, said without any key value.
+export function keyMissing(env = process.env, top) {
+  return 'this machine has no Jev key: write {"key": {"env": "MY_JEV_KEY"}} to '
+    + `${keyPlaceFile(env, top)}, or {"key": {"file": "/path/to/key"}} or {"key": {"command": ["program", "args"]}}, `
+    + `or set ${KEY_ENV} where the Jev server is started, then restart the MCP connection (in Claude Code, /mcp)`;
+}
+
+// The key from where this machine says it is, without a project config.
+export function readKeyHere({ env = process.env, read = readFileSync, top, run = execFileSync } = {}) {
+  const where = keySource({ env, read, top });
+  if (where === null) throw new Unavailable(keyMissing(env, top));
+  return readKey(where, { env, read, run });
+}
+
+// Which source the key came from, never what the key is.
+export function keyNote({ env = process.env, read = readFileSync, top } = {}) {
+  const where = keySource({ env, read, top });
+  if (where === null) throw new Unavailable(keyMissing(env, top));
+  return where.env === KEY_ENV && where.file === undefined && where.command === undefined
+    ? `${KEY_ENV} in the process's environment` : described(where);
+}
 
 export function readKey(where, { env = process.env, run = execFileSync, read = readFileSync } = {}) {
   let key = '';
@@ -416,7 +460,7 @@ async function post(route, key, body, fetchImpl, wait = (ms) => new Promise((s) 
  * questions: [{ id, kind: choice|check|score, text, options }], options being
  * the answers (choice, check) or the levels, lowest first (score).
  */
-export async function judge({ config, questions, context = '', items, fetchImpl = fetch, keyReader = () => readKey(keyPlace()),
+export async function judge({ config, questions, context = '', items, fetchImpl = fetch, keyReader = () => readKeyHere(),
   people = knownPeople(), maskerImpl = masker, wait }) {
   const s = settings(config);
   if (!Array.isArray(questions) || !questions.length) throw new Misuse('at least one question');
@@ -558,6 +602,47 @@ async function selftest() {
   check('a key place inside the working copy is refused', throws(() => keyPlaceFile({ XDG_CONFIG_HOME: '/repo/cfg' }, '/repo'), Unavailable));
   check('the key place is read from the machine', keyPlace({ env: { XDG_CONFIG_HOME: '/x' }, top: '', read: (f) => (f === '/x/shady2k-skills/jev.json' ? '{"key":{"env":"K"}}' : '') }).env === 'K');
   check('no key place on the machine is unavailable', throws(() => keyPlace({ env: {}, top: '', read: () => { throw new Error('none'); } }), Unavailable));
+  // Order 1: no file, JEV_API_KEY alone.
+  const noFile = { code: 'ENOENT', message: 'no file' };
+  let got = '';
+  try { got = readKeyHere({ env: { JEV_API_KEY: ' k3y-abc ' }, read: () => { throw noFile; }, top: '' }); } catch (e) { got = e.message; }
+  check('JEV_API_KEY alone, with no file, is used', got === 'k3y-abc', got);
+  // Order 2: a file the machine can read wins.
+  try { got = readKeyHere({ env: { XDG_CONFIG_HOME: '/x', JEV_API_KEY: 'k3y-abc', FILE_KEY: 'k3y-file' },
+      read: (f) => (f === '/x/shady2k-skills/jev.json' ? '{"key":{"env":"FILE_KEY"}}' : ''), top: '' }); } catch (e) { got = e.message; }
+  check('a file that exists wins over JEV_API_KEY', got === 'k3y-file', got);
+  // Order 3: neither gives the actionable message, with no key value.
+  const neither = { env: {}, read: () => { throw noFile; }, top: '' };
+  let saidK = '';
+  try { readKeyHere(neither); } catch (e) { saidK = e.message; }
+  check('neither gives the actionable message', saidK.includes(keyPlaceFile({})) && saidK.includes('JEV_API_KEY')
+    && /restart the MCP connection \(in Claude Code, \/mcp\)/.test(saidK) && /\{"key":/.test(saidK), saidK);
+  // 4: a file there but broken is an error naming itself, never skipped for the variable.
+  const brokenFile = { env: { JEV_API_KEY: 'k3y-abc' }, read: () => 'not json at all', top: '' };
+  saidK = '';
+  try { readKeyHere(brokenFile); } catch (e) { saidK = e.message; }
+  check('a broken file names itself and is not skipped', saidK.includes(keyPlaceFile({})) && !/k3y-abc/.test(saidK), saidK);
+  // 5: what the status says about where the key came from, never its value.
+  let fromVariable = '', fromFile = '';
+  try { fromVariable = keyNote({ env: { JEV_API_KEY: 'k3y-abc' }, read: () => { throw noFile; } }); } catch (e) { fromVariable = e.message; }
+  try { fromFile = keyNote({ env: {}, read: () => '{"key":{"env":"FILE_KEY"}}' }); } catch (e) { fromFile = e.message; }
+  check('the status line names the source and never the value',
+    fromVariable === "JEV_API_KEY in the process's environment" && /FILE_KEY/.test(fromFile) && !/k3y-abc/.test(fromVariable), [fromVariable, fromFile]);
+  // 6: nothing said carries the value or the arguments a place is guarded by.
+  const secret = 'top-s3cret-material';
+  let saidC = '';
+  try { readKey({ command: ['vault', 'read', `--token=${secret}`] }, { run: () => { throw new Error('no'); } }); } catch (e) { saidC = e.message; }
+  const grab = (f) => { try { return f(); } catch (e) { return e.message; } };
+  const noteVariable = grab(() => keyNote({ env: { JEV_API_KEY: secret }, read: () => { throw noFile; } }));
+  const noteFile = grab(() => keyNote({ env: {}, read: () => `{"key":{"file":"/x/k.txt","note":"${secret}"}}` }));
+  const noteCommand = grab(() => keyNote({ env: {}, read: () => `{"key":{"command":["vault","read","--token=${secret}"]}}` }));
+  check('no source puts a key value in what it says', !saidC.includes(secret) && !noteVariable.includes(secret)
+    && !noteFile.includes(secret) && !noteCommand.includes(secret), [saidC, noteVariable, noteFile, noteCommand]);
+  // 7: what keySource gives for the three cases.
+  check('the place is the file when it exists, the variable when it does not, and nothing when neither is there',
+    JSON.stringify(keySource({ env: {}, read: () => '{"key":{"env":"FILE_KEY"}}' })) === '{"env":"FILE_KEY"}'
+    && JSON.stringify(keySource({ env: { JEV_API_KEY: 'k' }, read: () => { throw noFile; } })) === '{"env":"JEV_API_KEY"}'
+    && keySource({ env: {}, read: () => { throw noFile; } }) === null);
   check('a key from the environment', readKey({ env: 'K' }, { env: { K: ' abc \n' } }) === 'abc');
   check('an empty key is unavailable', throws(() => readKey({ env: 'K' }, { env: {} }), Unavailable));
   check('a key from a command', readKey({ command: ['vault', 'read'] }, { run: () => 'xyz\n' }) === 'xyz');
@@ -726,7 +811,7 @@ async function main(argv) {
       const { answers } = await ask({ config, kind: 'check', text: 'Is the sky in this sentence blue?',
         options: { true: 'It says the sky is blue.', false: 'It does not.' }, items: [{ id: 'probe', text: 'The sky is blue.' }], people: [] });
       if (answers[0].sent === false || answers[0].answer === null) throw new Unavailable(`the proving call failed: ${answers[0].why}`);
-      console.log(`available: consent recorded, key accepted by a call, route ${config.jev.route || 'openrouter'}, `
+      console.log(`available: consent recorded, key from ${keyNote()}, accepted by a call, route ${config.jev.route || 'openrouter'}, `
         + `${s.name}, answers taken at ${s.sure} and above`);
       return 0;
     }

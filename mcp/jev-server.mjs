@@ -6,7 +6,10 @@
  * it recalls it at the moment, and over three days of runs no agent did. This
  * server is a thin face over jev.mjs, which stays the one way text reaches Jev:
  * consent, the key, masking, the project's threshold and its Jev are its, and
- * the set's scripts keep calling it directly. What this adds is the shape of
+ * the set's scripts keep calling it directly. Where the key's place is read
+ * from is there too: this machine's file, or JEV_API_KEY in the environment
+ * this server was itself started in, which is the harness's and never a
+ * shell's alone. What this adds is the shape of
  * the call: several questions of Jev's three kinds at once, about one long
  * text or each item of a pile the agent names (a file cut into items, several
  * files, a short list) instead of reading it to hand it over; and back only what
@@ -17,9 +20,9 @@
  *   node jev-server.mjs            serve on stdin/stdout
  *   node jev-server.mjs --selftest
  */
-import { readFileSync, realpathSync, statSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, isAbsolute, relative, resolve, sep } from 'node:path';
+import { basename, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findConfig, judge, Unavailable } from '../skills/backlog/setup-shady2k-skills/jev.mjs';
 
@@ -389,6 +392,63 @@ async function selftest() {
   check('a notification gets no answer', (await handle({ jsonrpc: '2.0', method: 'notifications/initialized' }, {})) === null);
   const unknown = await handle({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'other' } }, {});
   check('an unknown tool is an error', unknown.error?.code === -32602, unknown);
+
+  // Where the key comes from, through the path an agent's call takes: this
+  // machine's file when it exists, else JEV_API_KEY in the environment the
+  // server itself was started in. The server adds nothing here; what it must do
+  // is hand the call's own words back, and say nothing about the key's value.
+  const home = mkdtempSync(join(tmpdir(), 'jev-server-key-'));
+  const kept = { XDG_CONFIG_HOME: process.env.XDG_CONFIG_HOME, JEV_API_KEY: process.env.JEV_API_KEY, JEV_FILE_KEY: process.env.JEV_FILE_KEY };
+  const keyFile = join(home, 'shady2k-skills', 'jev.json');
+  const configs = { 'cfg.json': '{"jev": {"consent": true}}', 'kcfg.json': '{"jev": {"consent": true, "key": {"env": "K"}}}' };
+  const readCfg = (dir, p) => { const k = basename(p); if (!(k in configs)) throw new Misuse(`${p} cannot be read`); return configs[k]; };
+  const carried = [];
+  const keyed = async (url, init) => {
+    const body = JSON.parse(init.body);
+    carried.push(init.headers.Authorization);
+    const keys = Object.keys(body.questions.q0.criteria);
+    const pick = keys.find((k) => k !== 'none') || keys[0];
+    return { ok: true, status: 200, text: async () =>
+      JSON.stringify({ answers: { q0: { type: 'choice', choice: pick,
+        probabilities: Object.fromEntries(keys.map((k) => [k, k === pick ? 0.99 : 0.005])) } }, usage: { cost: 0.00001 } }) };
+  };
+  const asking = (q) => judge({ ...q, fetchImpl: keyed, people: [], wait: async () => {} });
+  const callWith = (opts) => call({ questions: [{ id: 'q0', type: 'choice', question: 'Which is it?', answers: { a: 'A', b: 'B' } }], items: ['x'] },
+    { dir: '/p', read: readCfg, asker: asking, configPath: () => 'cfg.json', ...opts });
+  try {
+    delete process.env.JEV_API_KEY;
+    delete process.env.JEV_FILE_KEY;
+    process.env.XDG_CONFIG_HOME = home;
+    process.env.JEV_API_KEY = 'from-the-variable';
+    const fromVariable = await callWith({});
+    check('JEV_API_KEY alone, with no file, is used', carried.at(-1) === 'Bearer from-the-variable' && !fromVariable.isError
+      && /1 of 1 answers settled/.test(fromVariable.content[0].text) && !/from-the-variable/.test(fromVariable.content[0].text),
+      [carried.at(-1), fromVariable.content[0].text]);
+    mkdirSync(join(home, 'shady2k-skills'), { recursive: true });
+    writeFileSync(keyFile, '{"key": {"env": "JEV_FILE_KEY"}}');
+    process.env.JEV_FILE_KEY = 'from-the-file';
+    const fromFile = await callWith({});
+    check('a file that exists wins over JEV_API_KEY', carried.at(-1) === 'Bearer from-the-file' && !fromFile.isError, carried.at(-1));
+    writeFileSync(keyFile, '{"key": ');
+    const before = carried.length;
+    const broken = await callWith({});
+    check('a file that is there but broken names itself and is not skipped', /unavailable here/.test(broken.content[0].text)
+      && broken.content[0].text.includes(keyFile) && carried.length === before && !broken.content[0].text.includes('from-the-variable'),
+      broken.content[0].text);
+    rmSync(keyFile);
+    delete process.env.JEV_API_KEY;
+    const neither = await callWith({});
+    const t = neither.content[0].text;
+    check('neither says both ways, with the exact path', /unavailable here/.test(t) && t.includes(keyFile) && /JEV_API_KEY/.test(t)
+      && /{"key":/.test(t) && /restart the MCP connection/.test(t) && !/from-the-variable|from-the-file/.test(t), t);
+    process.env.JEV_API_KEY = 'from-the-variable';
+    const refused = await callWith({ configPath: () => 'kcfg.json' });
+    check('a project config that names a key is still refused', refused.isError && /belongs to the machine/.test(refused.content[0].text)
+      && carried.length === before, refused.content[0].text);
+  } finally {
+    for (const [k, v] of Object.entries(kept)) (v === undefined ? delete process.env[k] : (process.env[k] = v));
+    rmSync(home, { recursive: true, force: true });
+  }
   return failed ? 1 : 0;
 }
 
