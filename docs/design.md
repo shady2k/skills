@@ -775,3 +775,36 @@ nothing and is only a warning, so a broken void cannot block in turn. Voiding a
 receipt reopens its span, and the gate asks for its receipt again, so a void
 cannot make time vanish quietly. A damaged record stays an error: the fix is
 now one command the agent runs itself.
+
+## 21. The product's own documents, owned by the set (0.88)
+
+The owner started a product wiki in a separate project, which reads a
+product's documents from one product repository and shows them linked. Its
+first contract had the wiki define the forms and check them. The owner moved
+that to the set on 2026-10-09: the set owns every product document's form, its
+template, its examples and its check, and installs the check as a commit gate,
+so the forms hold with or without the wiki; the wiki reads them and runs the
+installed check on a change it accepts. A rule kept in two places drifts, and
+the set is where the agents that write the documents already take their rules
+from.
+
+This reverses one stance of §17. A requirements document beside the vision and
+the specs was refused there as a second copy. It is a second copy only when it
+says the same thing at the same level. The product's documents are a level
+above the specs, after ISO/IEC/IEEE 29148 and Wiegers: a product requirement
+says what a user can observe and names no part of the system, a capability
+requirement says how one part behaves and references the product requirement
+it serves. The check enforces what can be computed: a product requirement
+with code in it is refused, and every id named under `docs/` must resolve.
+
+The kinds and their fields follow the research the wiki's project gathered
+from standards and practice: Cohn's user story, Cockburn's use case fields
+(Wiegers' variant is incompatible with them, and only Cockburn's has goal
+levels and extensions bound to steps; the set adds the link to an architecture
+model's scenario), 29148's verification methods, Savoia's "X % of Y will do Z"
+for a prototype's prediction, and Spec Kit's "mark, don't guess", which here
+becomes an open question rather than a placeholder. Identity lives in the
+text (`# FR-012 — title`) so a reader and a wiki see the same thing; status is
+computed from links, never written; a document is superseded, not edited into
+another. A quote names its lines or times in a kept source and is verified
+there, so a requirement can be followed up to the words a person said.

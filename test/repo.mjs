@@ -131,7 +131,7 @@ if (catalogVersion !== version) fail(`the marketplace entry's version is ${catal
 // project's installation must be redone. The checks carry the setup version.
 const setupVersion = (protocol.match(/^Setup version: (.+)$/m) || [])[1];
 const rulesOf = (f) => (readFileSync(join(ROOT, 'skills/backlog/setup-shady2k-skills', f), 'utf8').match(/RULES_VERSION = '([^']+)'/) || [])[1];
-for (const f of ['check.mjs', 'check-commits.mjs', 'check-docs.mjs', 'check-present.mjs'])
+for (const f of ['check.mjs', 'check-commits.mjs', 'check-docs.mjs', 'check-present.mjs', 'check-product.mjs'])
   if (rulesOf(f) !== setupVersion) fail(`${f} is version ${rulesOf(f)}, the protocol's setup version is ${setupVersion}`);
 const semver = (v) => (v || '').split('.').map(Number);
 const [a, b] = [semver(setupVersion), semver(version)];

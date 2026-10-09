@@ -65,7 +65,7 @@ if (setupNext) {
     process.exit(1);
   }
   writeFileSync(protocol, text.replace(`Setup version: ${current}`, `Setup version: ${setupNext}`));
-  for (const f of ['check.mjs', 'check-commits.mjs', 'check-docs.mjs', 'check-present.mjs']) {
+  for (const f of ['check.mjs', 'check-commits.mjs', 'check-docs.mjs', 'check-present.mjs', 'check-product.mjs']) {
     const path = join(SETUP, f);
     const code = readFileSync(path, 'utf8');
     const bumped = code.replace(`RULES_VERSION = '${current}'`, `RULES_VERSION = '${setupNext}'`);

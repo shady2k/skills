@@ -1,0 +1,448 @@
+{
+ "about": "Cases over the complete example in good/: each edits it in memory (replace text in a file, add a file or remove one) and lists every finding the check gives, as \"rule file:line\". Clean is good/ itself.",
+ "cases": [
+  {
+   "name": "identity-line-without-its-dash",
+   "edits": [
+    {
+     "file": "docs/requirements/FR-002-listing-ends-at-closing.md",
+     "replace": "# FR-002 — A listing",
+     "with": "# FR-002 A listing"
+    }
+   ],
+   "expected": [
+    "dangling-reference docs/questions/Q-001-who-collects-unclaimed.md:3",
+    "dangling-reference docs/stories/US-001-list-leftovers.md:13",
+    "dangling-reference docs/system/capabilities/listing.md:9",
+    "document-form docs/requirements/FR-002-listing-ends-at-closing.md:1"
+   ]
+  },
+  {
+   "name": "unknown-field",
+   "edits": [
+    {
+     "file": "docs/requirements/FR-001-list-in-a-minute.md",
+     "replace": "Verified by: demonstration",
+     "with": "Verified by: demonstration\nOwner: the product owner"
+    }
+   ],
+   "expected": [
+    "document-form docs/requirements/FR-001-list-in-a-minute.md:5"
+   ]
+  },
+  {
+   "name": "missing-field",
+   "edits": [
+    {
+     "file": "docs/requirements/FR-001-list-in-a-minute.md",
+     "replace": "Verified by: demonstration\n",
+     "with": ""
+    }
+   ],
+   "expected": [
+    "document-form docs/requirements/FR-001-list-in-a-minute.md:1"
+   ]
+  },
+  {
+   "name": "field-value-outside-its-list",
+   "edits": [
+    {
+     "file": "docs/use-cases/UC-001-list-leftovers.md",
+     "replace": "Level: user goal",
+     "with": "Level: big"
+    }
+   ],
+   "expected": [
+    "document-form docs/use-cases/UC-001-list-leftovers.md:4"
+   ]
+  },
+  {
+   "name": "unknown-section",
+   "edits": [
+    {
+     "file": "docs/use-cases/UC-001-list-leftovers.md",
+     "replace": "## Open issues",
+     "with": "## Notes\nSomething.\n\n## Open issues"
+    }
+   ],
+   "expected": [
+    "document-form docs/use-cases/UC-001-list-leftovers.md:29"
+   ]
+  },
+  {
+   "name": "repeated-section",
+   "edits": [
+    {
+     "file": "docs/requirements/FR-002-listing-ends-at-closing.md",
+     "replace": "## Requirement",
+     "with": "## Requirement\nOne.\n\n## Requirement"
+    }
+   ],
+   "expected": [
+    "document-form docs/requirements/FR-002-listing-ends-at-closing.md:9"
+   ]
+  },
+  {
+   "name": "missing-section",
+   "edits": [
+    {
+     "file": "docs/hypotheses/H-001-owners-list-in-a-minute.md",
+     "replace": "## Metric\nThe share of evenings on which an owner listed something.\n\n",
+     "with": ""
+    }
+   ],
+   "expected": [
+    "document-form docs/hypotheses/H-001-owners-list-in-a-minute.md:1"
+   ]
+  },
+  {
+   "name": "empty-section",
+   "edits": [
+    {
+     "file": "docs/hypotheses/H-001-owners-list-in-a-minute.md",
+     "replace": "At least three evenings out of five, for at least three of the five owners.",
+     "with": ""
+    }
+   ],
+   "expected": [
+    "document-form docs/hypotheses/H-001-owners-list-in-a-minute.md:14"
+   ]
+  },
+  {
+   "name": "text-between-identity-and-sections",
+   "edits": [
+    {
+     "file": "docs/requirements/FR-002-listing-ends-at-closing.md",
+     "replace": "Verified by: test",
+     "with": "Verified by: test\nThis one matters."
+    }
+   ],
+   "expected": [
+    "document-form docs/requirements/FR-002-listing-ends-at-closing.md:5"
+   ]
+  },
+  {
+   "name": "placeholder",
+   "edits": [
+    {
+     "file": "docs/requirements/FR-002-listing-ends-at-closing.md",
+     "replace": "A listing stops being shown",
+     "with": "TBD: a listing stops being shown"
+    }
+   ],
+   "expected": [
+    "unfinished-content docs/requirements/FR-002-listing-ends-at-closing.md:7"
+   ]
+  },
+  {
+   "name": "unclarified-placeholder",
+   "edits": [
+    {
+     "file": "docs/use-cases/UC-001-list-leftovers.md",
+     "replace": "The owner is signed in as their cafe.",
+     "with": "[NEEDS CLARIFICATION: signed in how?]"
+    }
+   ],
+   "expected": [
+    "unfinished-content docs/use-cases/UC-001-list-leftovers.md:11"
+   ]
+  },
+  {
+   "name": "duplicate-id",
+   "edits": [
+    {
+     "add": "docs/requirements/FR-001-again.md",
+     "text": "# FR-001 — Again\n\nServes: UC-001\nVerified by: test\n\n## Requirement\nA cafe sees its listing.\n"
+    }
+   ],
+   "expected": [
+    "duplicate-id docs/requirements/FR-001-list-in-a-minute.md:1"
+   ]
+  },
+  {
+   "name": "spec-serves-a-missing-requirement",
+   "edits": [
+    {
+     "file": "docs/system/capabilities/listing.md",
+     "replace": "Serves FR-002.",
+     "with": "Serves FR-099."
+    }
+   ],
+   "expected": [
+    "dangling-reference docs/system/capabilities/listing.md:9"
+   ]
+  },
+  {
+   "name": "prototype-code-folder-missing",
+   "edits": [
+    {
+     "file": "docs/prototypes/P-001-leftover-map.md",
+     "replace": "Code: prototypes/leftover-map/",
+     "with": "Code: prototypes/gone/"
+    }
+   ],
+   "expected": [
+    "dangling-reference docs/prototypes/P-001-leftover-map.md:4"
+   ]
+  },
+  {
+   "name": "story-grows-from-a-use-case",
+   "edits": [
+    {
+     "file": "docs/stories/US-001-list-leftovers.md",
+     "replace": "Grew from: H-001",
+     "with": "Grew from: UC-001"
+    }
+   ],
+   "expected": [
+    "wrong-link docs/stories/US-001-list-leftovers.md:3"
+   ]
+  },
+  {
+   "name": "supersedes-another-kind",
+   "edits": [
+    {
+     "file": "docs/requirements/FR-002-listing-ends-at-closing.md",
+     "replace": "Verified by: test",
+     "with": "Verified by: test\nSupersedes: UC-001"
+    }
+   ],
+   "expected": [
+    "wrong-link docs/requirements/FR-002-listing-ends-at-closing.md:5"
+   ]
+  },
+  {
+   "name": "link-that-is-not-an-id",
+   "edits": [
+    {
+     "file": "docs/use-cases/UC-001-list-leftovers.md",
+     "replace": "Serves: US-001",
+     "with": "Serves: the owner's story"
+    }
+   ],
+   "expected": [
+    "document-form docs/use-cases/UC-001-list-leftovers.md:3"
+   ]
+  },
+  {
+   "name": "extension-names-no-step",
+   "edits": [
+    {
+     "file": "docs/use-cases/UC-001-list-leftovers.md",
+     "replace": "- 4a there is no connection",
+     "with": "- 7a there is no connection"
+    }
+   ],
+   "expected": [
+    "unknown-step docs/use-cases/UC-001-list-leftovers.md:27"
+   ]
+  },
+  {
+   "name": "extension-out-of-form",
+   "edits": [
+    {
+     "file": "docs/use-cases/UC-001-list-leftovers.md",
+     "replace": "- 4a there is no connection: the listing",
+     "with": "- when there is no connection the listing"
+    }
+   ],
+   "expected": [
+    "document-form docs/use-cases/UC-001-list-leftovers.md:27"
+   ]
+  },
+  {
+   "name": "main-scenario-not-numbered",
+   "edits": [
+    {
+     "file": "docs/use-cases/UC-001-list-leftovers.md",
+     "replace": "1. The owner opens the listing for tonight.\n2. The owner picks the dishes that are left and how many portions of each.\n3. The owner sets the price, half of the menu price by default.\n4. The owner confirms, and the listing is shown to people nearby.",
+     "with": "The owner opens the listing, picks the dishes, sets the price and confirms."
+    }
+   ],
+   "expected": [
+    "document-form docs/use-cases/UC-001-list-leftovers.md:19"
+   ]
+  },
+  {
+   "name": "written-status",
+   "edits": [
+    {
+     "file": "docs/questions/Q-001-who-collects-unclaimed.md",
+     "replace": "Who can answer: the cafe owner",
+     "with": "Who can answer: the cafe owner\nStatus: open"
+    }
+   ],
+   "expected": [
+    "written-status docs/questions/Q-001-who-collects-unclaimed.md:5"
+   ]
+  },
+  {
+   "name": "requirement-names-code",
+   "edits": [
+    {
+     "file": "docs/requirements/FR-002-listing-ends-at-closing.md",
+     "replace": "A listing stops being shown to anyone",
+     "with": "The `listings` table drops a listing"
+    }
+   ],
+   "expected": [
+    "system-part-in-requirement docs/requirements/FR-002-listing-ends-at-closing.md:7"
+   ]
+  },
+  {
+   "name": "quote-not-at-its-place",
+   "edits": [
+    {
+     "file": "docs/requirements/FR-001-list-in-a-minute.md",
+     "replace": "L12 \"I have no time",
+     "with": "L11 \"I have no time"
+    }
+   ],
+   "expected": [
+    "unverified-quote docs/requirements/FR-001-list-in-a-minute.md:13"
+   ]
+  },
+  {
+   "name": "quote-not-in-the-source",
+   "edits": [
+    {
+     "file": "docs/stories/US-001-list-leftovers.md",
+     "replace": "\"I would sell them for half the price if somebody nearby knew\"",
+     "with": "\"I would give them away\""
+    }
+   ],
+   "expected": [
+    "unverified-quote docs/stories/US-001-list-leftovers.md:16"
+   ]
+  },
+  {
+   "name": "quote-time-range-with-no-marks",
+   "edits": [
+    {
+     "file": "docs/stories/US-001-list-leftovers.md",
+     "replace": "00:01:10-00:01:40",
+     "with": "00:09:00-00:09:30"
+    }
+   ],
+   "expected": [
+    "unverified-quote docs/stories/US-001-list-leftovers.md:16"
+   ]
+  },
+  {
+   "name": "citation-out-of-form",
+   "edits": [
+    {
+     "file": "docs/requirements/FR-001-list-in-a-minute.md",
+     "replace": "- S-001 L12 \"I have no time",
+     "with": "- S-001 line 12: \"I have no time"
+    }
+   ],
+   "expected": [
+    "document-form docs/requirements/FR-001-list-in-a-minute.md:13"
+   ]
+  },
+  {
+   "name": "kept-quote-without-a-place",
+   "edits": [
+    {
+     "file": "docs/requirements/FR-001-list-in-a-minute.md",
+     "replace": "- S-001 L12 \"I have",
+     "with": "- S-001 \"I have"
+    }
+   ],
+   "expected": [
+    "document-form docs/requirements/FR-001-list-in-a-minute.md:13"
+   ]
+  },
+  {
+   "name": "quote-from-an-outside-source",
+   "edits": [
+    {
+     "file": "docs/hypotheses/H-001-owners-list-in-a-minute.md",
+     "replace": "- S-001 L12 \"it has to take a minute\"",
+     "with": "- S-001 L12 \"it has to take a minute\"\n- S-002 \"restaurants throw away a fifth of their food\""
+    }
+   ],
+   "expected": [
+    "outside-quote docs/hypotheses/H-001-owners-list-in-a-minute.md:22"
+   ]
+  },
+  {
+   "name": "outside-source-with-a-record",
+   "edits": [
+    {
+     "file": "docs/sources/S-002-market-report.md",
+     "replace": "Reference: https://example.org/food-waste-report",
+     "with": "Reference: https://example.org/food-waste-report\n\n## Record\nA page of it."
+    }
+   ],
+   "expected": [
+    "document-form docs/sources/S-002-market-report.md:8"
+   ]
+  },
+  {
+   "name": "outside-source-without-a-reference",
+   "edits": [
+    {
+     "file": "docs/sources/S-002-market-report.md",
+     "replace": "Reference: https://example.org/food-waste-report\n",
+     "with": ""
+    }
+   ],
+   "expected": [
+    "document-form docs/sources/S-002-market-report.md:3"
+   ]
+  },
+  {
+   "name": "story-missing-its-benefit",
+   "edits": [
+    {
+     "file": "docs/stories/US-001-list-leftovers.md",
+     "replace": "- So that: people nearby buy them instead of my throwing them away\n",
+     "with": ""
+    }
+   ],
+   "expected": [
+    "document-form docs/stories/US-001-list-leftovers.md:5"
+   ]
+  },
+  {
+   "name": "verdict-out-of-form",
+   "edits": [
+    {
+     "file": "docs/results/R-001-first-week.md",
+     "replace": "Confirmed: four owners",
+     "with": "Four owners"
+    }
+   ],
+   "expected": [
+    "document-form docs/results/R-001-first-week.md:12"
+   ]
+  },
+  {
+   "name": "date-out-of-form",
+   "edits": [
+    {
+     "file": "docs/results/R-001-first-week.md",
+     "replace": "Date: 2026-10-16",
+     "with": "Date: next Friday"
+    }
+   ],
+   "expected": [
+    "document-form docs/results/R-001-first-week.md:4"
+   ]
+  },
+  {
+   "name": "vision-missing",
+   "edits": [
+    {
+     "remove": "docs/vision.md"
+    }
+   ],
+   "expected": [
+    "dangling-reference docs/hypotheses/H-001-owners-list-in-a-minute.md:3",
+    "dangling-reference docs/questions/Q-002-delivery.md:3"
+   ]
+  }
+ ]
+}

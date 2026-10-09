@@ -39,6 +39,11 @@ performed again.
    not served, the problem and its evidence, the alternatives and the
    difference, the key journeys as the owner tells them with a named
    protagonist, the success signal with a counter-metric, and the exclusions.
+   What the conversation found is kept as the product's documents, by
+   [product.md](product.md): its record as a source, its beliefs as hypotheses,
+   the journeys as user stories and use cases, what a user must be able to
+   observe as product requirements, and what is still unknown as open
+   questions.
 5. **The first milestone is the MVP** (`to-milestone`). Its outcomes are the
    key journeys it carries end to end; its exclusions say what is out of the
    MVP. The owner makes the cut; the agent shows what each journey costs and
@@ -62,4 +67,5 @@ performed again.
 Nothing is written before step 4 unless the owner asks for it: steps 1 to 3
 are conversation, and what they found enters the vision when there is one.
 There is no product brief, PRFAQ or requirements document beside the vision,
-the charter and the specs: each of those would be a second copy of them.
+the product's documents, the charter and the specs: each of those would be a
+second copy of them.

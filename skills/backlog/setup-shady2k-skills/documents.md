@@ -44,6 +44,14 @@ docs/changes/<change>/change.md
 docs/changes/<change>/design.md     # when needed
 docs/decisions/NNNN-<slug>.md       # MADR-style decision records, never renumbered
 docs/explorations/                  # only when retention is requested
+docs/sources/S-NNN-<slug>.md        # product documents, when the product keeps them:
+docs/hypotheses/H-NNN-<slug>.md     #   forms in the protocol's product.md
+docs/stories/US-NNN-<slug>.md
+docs/use-cases/UC-NNN-<slug>.md
+docs/requirements/FR-NNN-<slug>.md
+docs/questions/Q-NNN-<slug>.md
+docs/prototypes/P-NNN-<slug>.md     # its code in prototypes/<folder>/
+docs/results/R-NNN-<slug>.md
 ```
 
 Specs are kept **by capability**, not by feature: a capability spec is the
@@ -113,6 +121,11 @@ That section is editorial guidance: the document gate does not read it, so a
 capability without it still passes, and review is what keeps it honest. The vision's optional sections (non-users, alternatives, key
 journeys, success signal) scale with the stakes: a small tool may skip them, a
 product for other people should not.
+The product's own documents (sources, hypotheses, user stories, use cases,
+product requirements, open questions, prototypes and results) have templates in
+`templates/product/`, one per kind. Unlike the others, their form is not the
+project's: it is fixed by the protocol's product documents, and
+`check-product.mjs` refuses a document out of it.
 Replace placeholders; do not publish empty scaffolds. Existing equivalent
 documents take precedence over creating duplicates. A small change may live in
 its task body, provided the deterministic export includes it and the accepted
@@ -223,6 +236,30 @@ Exit 0 means no dead reference this change made (`new errors: 0`), 1 means
 some, 2 means invalid input or invocation, an empty `presentDocuments` or none
 of them at the head included. It runs when a pull request is opened and in CI
 on every pull request, against its merge base, whoever opened it.
+
+## Product documents are checked as they are written
+
+`check-product.mjs` reads the product documents straight from the repository
+(the working tree, the staged files, or a revision) and needs no export and no
+setting. It refuses a document out of its form, a placeholder, a reused id, an
+id or prototype folder that does not exist, a link to a kind a document does
+not grow from, a use case's extension naming no step, a written status, a
+product requirement that names code, and a quote not at the place it cites. It
+resolves every id named anywhere under `docs/`, so a capability requirement
+serving a product requirement that is gone is refused too. A quote from a
+source kept outside the repository is reported, not refused. A repository with
+no product document passes untouched.
+
+```sh
+node check-product.mjs --selftest
+node check-product.mjs [--root <repository>] [--staged | --rev <revision>] [--json]
+```
+
+Each finding is `file:line: error|note rule: what is wrong — what green looks
+like`. Exit 0 means no error, 1 means errors, 2 means misuse or a tree that
+could not be read. `fixtures/product/good/` is a complete example product and
+`fixtures/product/cases.json` breaks it once per rule, with every finding
+expected; a tool that reads these documents tests against them.
 
 ## Executable contract
 

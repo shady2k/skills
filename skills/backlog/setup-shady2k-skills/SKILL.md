@@ -16,7 +16,9 @@ protocol's [**Speaking to the owner**](references/speaking.md).
 
 The set owns [the protocol](protocol.md), [the backlog rules](check.mjs),
 [the commit check](check-commits.mjs), [the present-documents
-check](check-present.mjs) and [the normalized model](model.md).
+check](check-present.mjs), [the product-documents check](check-product.mjs)
+with the forms it checks ([the product's documents](references/product.md))
+and [the normalized model](model.md).
 The project owns its config, tracker adapter, check commands and wiring.
 
 ## Show progress
@@ -340,11 +342,11 @@ adapter records a way that keeps both. A tracker without native `implemented` or
 to ready or closed. For `block-new`, verify that history can be exported and
 the historical config retrieved; otherwise agree an honest supported strength.
 
-**Checks:** run all four shipped checks in place where they are in the
+**Checks:** run all five shipped checks in place where they are in the
 project, or copy them unchanged (the backlog rules with
 [`time-format.mjs`](time-format.mjs) beside them, which they read records by,
 and the present-documents check with [`document-format.mjs`](document-format.mjs)), and record where they came from in the
-integration, not inside the copies. Without Node, port all four and prove the
+integration, not inside the copies. Without Node, port all five and prove the
 same fixtures. A matching version does not replace a byte comparison or port
 proof.
 
@@ -394,6 +396,14 @@ Run it once over the main line's history to see what it already reports:
 paths that are not this tree's (routes, generated folders) go into
 `presentIgnores` now, and the older drift it lists is filed as one debt item,
 not fixed in setup.
+
+**Wiring the product-documents check:** it runs in the commit hook on what
+is staged (`--staged`) and in CI on the revision a push or pull request
+brings (`--rev`), whatever the project's scope or strength, since a
+repository with no product document passes it untouched. Its refusals name the
+file and the line. It needs no setting: the forms and where they live are
+the protocol's [product documents](references/product.md), and a project that
+writes them starts from the templates in `templates/product/`.
 
 **Wiring the document gate:** build the deterministic export and the wrapper
 for the agreed evidence level, described in [documents.md](documents.md).
@@ -462,8 +472,8 @@ An existing setup runs all of these too, even when versions match.
 
 1. **Shipped checks:** from this skill's directory run
    `node check.mjs --selftest --config <project-config>`,
-   `node check-commits.mjs --selftest`, `node check-docs.mjs --selftest` and
-   `node check-present.mjs --selftest`
+   `node check-commits.mjs --selftest`, `node check-docs.mjs --selftest`,
+   `node check-present.mjs --selftest` and `node check-product.mjs --selftest`
    (the first uses its fixture config for the rules and the project config for
    portability). Compare installed copies byte for byte; ports run the corpus.
 2. **Tracker and adapter:** compare counts per status and ready leaves with the
@@ -506,7 +516,9 @@ An existing setup runs all of these too, even when versions match.
    fire; take away a file a hook reads and see the commit refused. On a
    scratch branch, move a file a present document names and see the
    present-documents check refuse it with that path; move it back, see it
-   clean. Never publish test commits.
+   clean. Stage a product document with a `Status:` field and see the commit
+   refused with its file and line; unstage it, see it clean. Never publish
+   test commits.
 4. **Execution commands:** each configured command exists and starts in the
    declared environment, proved the cheapest way that shows it works. Run a
    full suite only when that command has never been proved here, or it or its
@@ -561,7 +573,7 @@ earlier answers.
 ## 5. Land and record the verified version
 
 Land through the project's authorized workflow and check from the checkout
-people use: docs reachable, all four checks run, hooks installed in that
+people use: docs reachable, all five checks run, hooks installed in that
 clone. A separate branch alone is **written and proved, not installed**. Ask
 only for landing steps not already authorized.
 

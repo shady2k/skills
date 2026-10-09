@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.39.0
+Setup version: 0.40.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -27,6 +27,9 @@ file, read when a step needs it:
   outlive the work;
 - [starting.md](references/starting.md): a project from an empty folder, with
   not even an idea, to its first planned feature;
+- [product.md](references/product.md): the product's own documents — sources,
+  hypotheses, user stories, use cases, product requirements, open questions,
+  prototypes and results — their forms, their links and their check;
 - [judging.md](references/judging.md): handing a batch of judgements to Jev,
   where the project consented — where it helps, which answers are taken, what
   is masked, and how its accuracy is measured on request;
@@ -280,7 +283,9 @@ names nor excludes is open, not forbidden, and an exclusion binds only its own
 milestone. Where an outcome cannot be reached without delivering one that is
 out, that conflict goes to the owner with what each answer costs; it is not
 settled by quietly narrowing the outcome or quietly building the excluded one.
-Current capability specs describe
+Where the product keeps its own documents, they are the level above the
+specs, by [product.md](references/product.md)'s **Product documents are the
+level above the specs**. Current capability specs describe
 accepted behaviour on the main line; change records describe proposals as
 pinned requirement deltas. Design and decision records explain how and why,
 only where useful. Every project has a **glossary**: the words for its domain,

@@ -28,8 +28,9 @@ are the repository's installation, and each person's plugin and hooks are theirs
 ### Checks and execution
 
 - **Backlog adapter:** <path and export command; historical export when supported>
-- **Rules:** <paths/provenance for check.mjs with time-format.mjs beside it, check-commits.mjs, check-docs.mjs, and check-present.mjs with document-format.mjs beside it; verbatim copies or proved ports>
+- **Rules:** <paths/provenance for check.mjs with time-format.mjs beside it, check-commits.mjs, check-docs.mjs, check-present.mjs with document-format.mjs beside it, and check-product.mjs; verbatim copies or proved ports>
 - **Present documents:** <the check-present.mjs command a pull request's opening and CI run, and how CI finds the merge base; the documents themselves are in the config>
+- **Product documents:** <the check-product.mjs commands the commit hook (`--staged`) and CI (`--rev <revision>`) run>
 - **Work records:** <how the adapter exports each item's `[shady2k-time` comments raw with the tracker's comment id, time and author; the command the run script reads as `--backlog`; how a record is posted unchanged>
 - **Document adapter and gate:** <deterministic export from real docs/tasks; product/feature/acceptance/close commands; or "not installed yet" and the "Title" (id) of its task>
 - **Document policy:** <config source for approval and required checks; protected policy selection>

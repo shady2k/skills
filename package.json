@@ -1,6 +1,6 @@
 {
   "name": "shady2k-skills",
-  "version": "0.87.0",
+  "version": "0.88.0",
   "private": true,
   "description": "shady2k's agent skills",
   "repository": {
@@ -12,7 +12,7 @@
     "test:mutation": "node test/mutation.mjs",
     "test:codex": "node test/codex-smoke.mjs",
     "test:omp": "node test/omp-smoke.mjs",
-    "test": "node skills/backlog/setup-shady2k-skills/check.mjs --selftest --config test/origin-words.json && node skills/backlog/setup-shady2k-skills/check-commits.mjs --selftest && node skills/backlog/setup-shady2k-skills/check-docs.mjs --selftest && node skills/backlog/setup-shady2k-skills/check-present.mjs --selftest && node skills/productivity/report-to-shady2k/scan.mjs --selftest && node skills/backlog/setup-shady2k-skills/jev.mjs --selftest && node mcp/jev-server.mjs --selftest && node skills/engineering/take-task/ledger.mjs --selftest && node skills/engineering/take-task/runs.mjs --selftest && node test/repo.mjs && node test/setup-lock.mjs && node --test test/plugin-contract.test.mjs test/documents.test.mjs test/present.test.mjs && npm run test:pi",
+    "test": "node skills/backlog/setup-shady2k-skills/check.mjs --selftest --config test/origin-words.json && node skills/backlog/setup-shady2k-skills/check-commits.mjs --selftest && node skills/backlog/setup-shady2k-skills/check-docs.mjs --selftest && node skills/backlog/setup-shady2k-skills/check-present.mjs --selftest && node skills/backlog/setup-shady2k-skills/check-product.mjs --selftest && node skills/productivity/report-to-shady2k/scan.mjs --selftest && node skills/backlog/setup-shady2k-skills/jev.mjs --selftest && node mcp/jev-server.mjs --selftest && node skills/engineering/take-task/ledger.mjs --selftest && node skills/engineering/take-task/runs.mjs --selftest && node test/repo.mjs && node test/setup-lock.mjs && node --test test/plugin-contract.test.mjs test/documents.test.mjs test/present.test.mjs test/product.test.mjs && npm run test:pi",
     "setup-lock": "node test/setup-lock.mjs --write",
     "bump": "node scripts/bump.mjs",
     "test:pi": "node --test test/pi.test.mjs",
