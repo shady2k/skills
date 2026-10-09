@@ -42,6 +42,19 @@ for (const f of manifests) {
   }
   writeFileSync(path, bumped);
 }
+// product.mjs carries the plugin's version too, and prints it for `--version`:
+// a bump that leaves it behind ships a program that lies about itself.
+{
+  const path = join(SETUP, 'product.mjs');
+  const text = readFileSync(path, 'utf8');
+  const current = (text.match(/^export const PLUGIN_VERSION = '(.+)';$/m) || [])[1];
+  const bumped = text.replace(`export const PLUGIN_VERSION = '${current}';`, `export const PLUGIN_VERSION = '${next}';`);
+  if (!current || !later(next, current) || bumped === text) {
+    console.error(`${path}: PLUGIN_VERSION is ${current}; ${next} is not later or could not be written`);
+    process.exit(1);
+  }
+  writeFileSync(path, bumped);
+}
 // omp compares the catalog entry's version when it upgrades every plugin, and
 // Claude Code refuses an entry that disagrees with plugin.json.
 {
