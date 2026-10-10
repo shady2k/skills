@@ -6,8 +6,10 @@
 // transcript; the stops, lone decisions and CI runs inside it; a feature's
 // summary when it closes; the owner's verdict; how a resumed session picked
 // the work up; the voids that retire a damaged or wrong record, since a
-// tracker may only append. Nothing is kept on this machine, so every machine reads the
-// same history.
+// tracker may only append. Beside these time records, `exec` keeps in a journal
+// of its own (also comments on the items, nowhere else) the durations of the
+// long commands it runs: a command's next bound is read from them. Nothing is
+// kept on this machine, so every machine reads the same history.
 //
 // This script never talks to the tracker. It reads the project adapter's
 // export (--backlog, or - for stdin) and prints the records to post, each
@@ -15,11 +17,10 @@
 // the script's, never typed by an agent. What it measures, it measures from
 // this machine's transcripts through the ledger beside it.
 // take-task owns this file; close-out and ask-shady2k carry copies of it.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { homedir, hostname, tmpdir, userInfo } from 'node:os';
-import { isAbsolute, join } from 'node:path';
-import { dirname } from 'node:path';
+import { constants, homedir, hostname, tmpdir, userInfo } from 'node:os';
+import { dirname, isAbsolute, join } from 'node:path';
 import {
   Usage, adapter, adapterNames, collect, conversationOf, current, hasAdapter, localStamp, measure, parseWhen,
   projectName, recordedShapes, sessionEnvVars, span, transcriptOf, union, unnamedTranscripts,
@@ -192,6 +193,9 @@ export async function askJev(argv, { ask = null } = {}) {
 
 /** One command, as the command line runs it: Jev first where it may help, then the command. */
 export async function commandLine(args, { ask = null, err = (s) => console.error(s) } = {}) {
+  // exec runs a child of its own and prints its own record; nothing to measure
+  // from transcripts, so Jev is not asked and run() never sees the command.
+  if (args[0] === 'exec') { await execOnce(args, { err }); return undefined; }
   const j = await askJev(args, { ask });
   const text = run(args);
   if (j.failed) err(`Jev was not used (${j.failed}); a transcript that does not name its item is not placed.`);
@@ -775,6 +779,145 @@ function channelOf(env, top) {
   return { file, command };
 }
 
+// ---- exec --------------------------------------------------------------------
+
+// A long command - a test, a check, a build - runs here rather than bare. The
+// running rules' bound on such a command is applied by this, not remembered by
+// an agent: the bound is read back from the durations this subcommand recorded
+// for the same command before, the longest of the runs that came to an end of
+// their own, so a run it has stopped never loosens its own bound, and a hang is
+// stopped at as many runs as it wants and stays a finding like any other
+// failure. With nothing recorded, the bound is the estimate named with --first
+// before the first run, or the first-run default; both are a guess standing in
+// for the measurement only a run with an end of its own gives, and each is said
+// as one. The floor keeps a bad near-zero record from stopping every later run.
+const EXEC_HEAD = '<!-- shady2k-exec v1 -->';
+const FIRST_RUN = 900; // s: the first-run default, 15 min
+const EXEC_FLOOR = 10; // s: no bound below this
+const EXEC_GRACE = 5; // s: from SIGTERM to SIGKILL past the bound
+const EXEC_STOPPED = 'stopped';
+
+// The journal holds one record per run of a command, and the command is its
+// identity: the same command's runs finance one another wherever the item they
+// served. The records are the set's shape - lines of key: value the script
+// computed, posted exactly as printed - but they are the runner's own, beside
+// the time records: the gate reads spans, not command durations, and the shape
+// keeps a reader of those from ever taking one by mistake.
+function execRecord(fields) {
+  const order = ['item', 'command', 'started', 'duration', 'result', 'bound'];
+  return [EXEC_HEAD, ...order.filter((k) => fields[k] !== undefined).map((k) => `${k}: ${String(fields[k]).replace(/\s*\n\s*/g, ' ').trim()}`)].join('\n');
+}
+
+function execComment(body) {
+  const lines = String(body ?? '').replace(/\r\n?/g, '\n').trim().split('\n');
+  if (lines[0] !== EXEC_HEAD) return null;
+  const fields = {};
+  const problems = [];
+  for (const raw of lines.slice(1)) {
+    const kv = /^([a-z][a-z-]*):[ \t]*(.*)$/.exec(raw.trim());
+    if (!kv) { problems.push(`"${raw.slice(0, 40)}" is not a "key: value" line`); continue; }
+    if (kv[1] in fields) { problems.push(`${kv[1]} appears twice`); continue; }
+    fields[kv[1]] = kv[2].trim();
+  }
+  for (const k of ['item', 'command', 'started', 'duration', 'result']) if (!fields[k]) problems.push(`${k} is missing`);
+  for (const k of ['duration', 'bound']) if (fields[k] !== undefined && !/^\d+$/.test(fields[k])) problems.push(`${k} is not a whole number of seconds: ${fields[k]}`);
+  if (fields.started !== undefined && !Number.isFinite(Date.parse(fields.started))) problems.push(`started is not a time: ${fields.started}`);
+  return { item: fields.item, command: fields.command, started: fields.started, duration: fields.duration, result: fields.result, bound: fields.bound, problems };
+}
+
+function execJournal(backlog) {
+  const out = [];
+  const damaged = [];
+  for (const issue of backlog.issues || [])
+    for (const c of issue.comments || [])
+      if (String(c?.body ?? '').trimStart().startsWith(EXEC_HEAD)) {
+        const r = execComment(c.body);
+        (r && !r.problems.length ? out : damaged).push(r);
+      }
+  return { records: out, damaged };
+}
+
+const execKey = (argv) => argv.join(' ').replace(/\s+/g, ' ').trim();
+
+// The bound: the longest duration among this command's runs that had an end of
+// their own, never below the floor; where nothing is recorded, --first (whole
+// minutes) or the first-run default.
+function execBoundFor(journal, key, firstMin) {
+  const took = journal.filter((r) => r.command === key && r.result !== EXEC_STOPPED).map((r) => Number(r.duration));
+  return { seconds: took.length ? Math.max(EXEC_FLOOR, Math.max(...took)) : firstMin !== undefined ? firstMin * 60 : FIRST_RUN, took };
+}
+
+/**
+ * Runs one command under the bound the records give it, and prints its duration
+ * back as a record to post. Its narration is plain, so the transcript and the
+ * run's own logs stay greppable: stopped says so, with what the command took
+ * before. Jev is never asked here: nothing is read from a transcript, and the
+ * clock that matters is the child's own.
+ */
+async function execOnce(args, { err = (s) => console.error(s) } = {}) {
+  const sep = args.indexOf('--', 1);
+  const opts = sep === -1 ? {} : parseArgs(args.slice(1, sep));
+  const argv = sep === -1 ? [] : args.slice(sep + 1);
+  if (sep === -1 || !argv.length) throw new Usage('exec runs one long command; the command and its arguments go after `--`, its item and the backlog before them: exec --item <id> --backlog <export | -> -- npm test');
+  if (!opts.backlog) throw new Usage('--backlog <adapter export | -> is required, as for every command');
+  const backlog = readBacklog(opts.backlog);
+  const it = item(view(backlog), opts.item);
+  const key = execKey(argv);
+  let first;
+  if (opts.first !== undefined) {
+    if (!/^\d+$/.test(String(opts.first)) || Number(opts.first) < 1) throw new Usage('--first is a whole number of minutes, the estimate made before the first run of a command');
+    first = Number(opts.first);
+  }
+  const journal = execJournal(backlog);
+  if (journal.damaged.length)
+    err(`exec: ${journal.damaged.length} journal record(s) do not read clean and are left out; a bound set from this run is set from what is left`);
+  const bound = execBoundFor(journal.records, key, first);
+  if (first !== undefined && bound.took.length)
+    throw new Usage(`this command has ${bound.took.length} recorded duration(s): the bound is theirs and is never raised to let a step pass; run it without --first`);
+  err(bound.took.length
+    ? `exec ${key}: bound ${bound.seconds} s, the longest of its runs (took ${bound.took.map((n) => `${n} s`).join(', ')} before)`
+    : first !== undefined
+      ? `exec ${key}: bound ${first * 60} s, the estimate named with --first: nothing has recorded how long this command takes yet, so it is a guess said before the run, never a measurement`
+      : `exec ${key}: bound ${FIRST_RUN} s, the first-run default: nothing has recorded how long this command takes yet, and no estimate names one; --first <minutes> does, before the first run`);
+
+  const started = nowMs();
+  const child = spawn(argv[0], argv.slice(1), { stdio: 'inherit', detached: true });
+  let stopped = false;
+  const kill = (sig) => {
+    if (child.exitCode !== null || child.signalCode !== null) return false;
+    stopped = true;
+    try { process.kill(-child.pid, sig); } catch { try { child.kill(sig); } catch { /* the group is already gone */ } }
+    return true;
+  };
+  // Past the bound the whole group is stopped: SIGTERM, and SIGKILL after the
+  // grace, so a command that ignores the first is still not waited on.
+  let grace = null;
+  const stopAt = setTimeout(() => {
+    if (kill('SIGTERM')) grace = setTimeout(() => kill('SIGKILL'), EXEC_GRACE * 1000);
+  }, bound.seconds * 1000);
+  const done = await new Promise((resolve) => {
+    child.on('error', (e) => resolve({ error: e }));
+    child.on('close', (code, signal) => resolve({ code, signal }));
+  });
+  // The child gone before the grace, the pending SIGKILL timer would keep this
+  // process alive for it: cancelled with the rest.
+  clearTimeout(stopAt);
+  if (grace !== null) clearTimeout(grace);
+  if (done.error) {
+    err(`exec ${key}: it did not start (${done.error.message}); nothing is recorded, for nothing ran to be measured`);
+    process.exitCode = 127;
+    return;
+  }
+  const seconds = Math.round((nowMs() - started) / 1000);
+  const result = stopped ? EXEC_STOPPED : done.code !== null ? `exit ${done.code}` : `signal ${done.signal ?? '?'}`;
+  const tookBefore = bound.took.length
+    ? `this command took ${bound.took.map((n) => `${n} s`).join(', ')} before`
+    : `no duration of this command was recorded before: the bound was ${first !== undefined ? 'the estimate named with --first' : 'the first-run default'}`;
+  err(stopped ? `stopped after ${bound.seconds} s: ${tookBefore}` : `exec ${key}: ${seconds} s, ${result}; ${tookBefore}`);
+  console.log(post([{ item: it.id, body: execRecord({ item: it.id, command: key, started: iso(started), duration: seconds, result: result, bound: bound.seconds }) }], opts));
+  process.exitCode = stopped ? 124 : done.code !== null ? done.code : 128 + constants.signals[done.signal];
+}
+
 // ---- commands ----------------------------------------------------------------
 
 const FLAGS = ['json', 'no-transcripts', 'recovered', 'unknown'];
@@ -1230,6 +1373,13 @@ runs.mjs receipt [--span <id>] --end paused|finished|handed-over|stopped [--reas
 runs.mjs receipt --span <id> --end ... --unknown --note <why>
   closes a span whose transcript no machine has: its time unknown, the reason said
 runs.mjs event [--span <id>] --event stop|decision|ci [--reason owner|missing|other] [--note <text>]
+runs.mjs exec --item <id> --backlog <path | -> [--first <minutes>] -- <command and its arguments>
+  runs one long command (a test, a check, a build) under the bound of the same command's own
+  recorded durations: their longest, never below 10 s; with nothing recorded, the estimate --first
+  names before the first run, or the first-run default (15 min) -- a guess said first, never a
+  bound raised after a failure. Past the bound the command is stopped (SIGTERM, then SIGKILL) and
+  the exit is 124; a run it stopped loosens no bound. The duration record prints like the others,
+  and the next run of the same command reads its bound from it.
 runs.mjs finish --item <feature> --result pull-request|abandoned|stopped [--pr <url>] [--note <text>]
   this session's receipt, then the feature's summary: forecast against work by phase, occupied time
 runs.mjs verdict --item <feature> --accepted as-is|after-changes|abandoned [--avoidable N] [--missed N] [--corrections N] [--rescues N] [--note <text>]
@@ -1255,7 +1405,7 @@ transcript never names the item: only a sure yes counts, and the ones it is unsu
 The current session is found by itself where the harness names it (Claude Code, Codex, pi); else --harness
 claude-code|codex|pi|omp|prime-agent --session <id>.
 Transcripts belong to the project by its git repository: [--project <name>] [--repo <path>]. Add --json for data.
-Exit 0 done, 2 misuse, 3 the transcript is on another machine.`;
+Exit 0 done, 2 misuse, 3 the transcript is on another machine. exec exits with the command's own code, 124 when it was stopped past its bound, 127 when it did not start.`;
 
 // ---- self-test -----------------------------------------------------------------
 
@@ -1710,6 +1860,37 @@ async function selftest() {
     const back = spansOf(backlog).spans.find((x) => x.id === vc.fields.span);
     expect('void: a mistaken void is undone by posting the record again, a new comment', back.receipt && back.receipt.comment !== wrong && !back.conflict.length);
 
+    // exec: a long command runs under the bound its own recorded durations
+    // give it. The stop at the bound and the floor are watched in
+    // test/runs-exec.test.mjs; here, what the command line gives and reads.
+    const misuseExec = async (a) => { try { rawCache = null; await commandLine(['exec', '--backlog', file, ...a], { err: () => {} }); return false; } catch (e) { return e instanceof Usage; } };
+    expect('misuse: exec has no command to bound', await misuseExec(['--item', 'A']));
+    expect('misuse: exec bounds nothing on an item not in the backlog', await misuseExec(['--item', 'nope', '--', 'true']));
+    const printed = [];
+    const execErrs = [];
+    const execRun = async (...a) => {
+      rawCache = null; execErrs.length = 0; printed.length = 0;
+      try { return await commandLine(['exec', '--backlog', file, ...a], { err: (s) => execErrs.push(s) }); }
+      finally { console.log = log; }
+    };
+    const log = console.log;
+    console.log = (s) => printed.push(String(s));
+    await execRun('--item', 'A', '--', 'true');
+    expect('exec: the first run says its bound is the default, and records what it took',
+      process.exitCode === 0 && /bound 900 s, the first-run default/.test(execErrs[0] || '') && /duration: \d+\nresult: exit 0/.test(printed[0] || ''));
+    const execBody = (printed[0] || '').split('== post on A\n', 2)[1];
+    postAll([{ item: 'A', body: execBody }]);
+    writeFileSync(file, JSON.stringify(backlog));
+    await execRun('--item', 'A', '--', 'true');
+    expect("exec: the same command's next bound is the one its own record gives, at least the floor",
+      /bound 10 s, the longest of its runs \(took 0 s before\)/.test(execErrs[0] || ''));
+    expect('misuse: --first never raises a bound a record already set', await misuseExec(['--item', 'A', '--first', '5', '--', 'true']));
+    postAll([{ item: 'A', body: `${execBody}\nwith a stray line` }]);
+    writeFileSync(file, JSON.stringify(backlog));
+    await execRun('--item', 'A', '--', 'true');
+    expect('exec: a journal record that does not read clean is named and left out',
+      /journal record\(s\) do not read clean/.test(execErrs[0] || ''));
+
     const all = spansOf(backlog);
     expect('every record the script printed reads clean, and no span conflicts', !all.damaged.length && all.spans.every((x) => !x.conflict.length));
 
@@ -1829,8 +2010,9 @@ async function main() {
   if (args[0] === '--selftest') return selftest();
   if (!args.length || args[0] === '--help') { console.log(HELP); return args.length ? 0 : 2; }
   try {
-    console.log(await commandLine(args));
-    return 0;
+    const text = await commandLine(args);
+    if (text !== undefined) console.log(text);
+    return process.exitCode ?? 0;
   } catch (e) {
     if (e instanceof NotHere) { console.error(e.message); return 3; }
     if (!(e instanceof Usage)) throw e;
