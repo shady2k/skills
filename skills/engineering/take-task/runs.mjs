@@ -17,8 +17,9 @@
 // take-task owns this file; close-out and ask-shady2k carry copies of it.
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { hostname, tmpdir, userInfo } from 'node:os';
-import { join } from 'node:path';
+import { homedir, hostname, tmpdir, userInfo } from 'node:os';
+import { isAbsolute, join } from 'node:path';
+import { dirname } from 'node:path';
 import {
   Usage, adapter, adapterNames, collect, conversationOf, current, hasAdapter, localStamp, measure, parseWhen,
   projectName, recordedShapes, sessionEnvVars, span, transcriptOf, union, unnamedTranscripts,
@@ -745,6 +746,35 @@ function unknownReceipt(v, s, opts, { end, reason, note }) {
   return { item: s.item, body: formatRecord('receipt', fields, null) };
 }
 
+// ---- the owner's channel, one line ------------------------------------------
+
+// The command that carries a push is the owner's own, so it is kept where the
+// owner's things live: $XDG_CONFIG_HOME/shady2k-skills/notify.json, beside the
+// jev.json that keeps the Jev key, as {"command": [program, ...args]}; the one
+// line is the last argument. A committed file naming a command would let
+// whoever edits it run anything here, so the same rule as the Jev key's place:
+// a place inside this working copy is refused.
+const sep = process.platform === 'win32' ? '\\' : '/';
+function channelPlace(env = process.env, top = quiet(['rev-parse', '--show-toplevel'])) {
+  let base = env.XDG_CONFIG_HOME;
+  if (!base || !isAbsolute(base)) base = join(homedir(), '.config');
+  const file = join(base, 'shady2k-skills', 'notify.json');
+  if (top && (file === top || file.startsWith(top + sep)))
+    throw new Usage("the channel's place may not be inside this working copy: it is the person's, kept per machine in the user's config folder");
+  return file;
+}
+function channelOf(env, top) {
+  const file = channelPlace(env, top);
+  let text;
+  try { text = readFileSync(file, 'utf8'); } catch { return { file, command: null }; }
+  let c;
+  try { c = JSON.parse(text); } catch { throw new Usage(`${file} is not JSON`); }
+  const command = c?.command;
+  if (!Array.isArray(command) || !command.length || command.some((x) => typeof x !== 'string' || !x))
+    throw new Usage(`${file}: "command" is a list starting with the program, the rest passed before the line`);
+  return { file, command };
+}
+
 // ---- commands ----------------------------------------------------------------
 
 const FLAGS = ['json', 'no-transcripts', 'recovered', 'unknown'];
@@ -960,9 +990,227 @@ export function run(argv) {
       }));
       return print(rows, rows.map((r) => `${r.item}  ${r.result}${r.verdict ? `, ${r.verdict}` : ''}  ${r.title}`).join('\n') || 'no runs');
     }
+    case 'progress': {
+      if (opts.item) {
+        const b = v();
+        const it = item(b, opts.item);
+        const p = progressOf(b, b.tree(it.id), opts);
+        return opts.json ? JSON.stringify(p, null, 2) : describeProgress(p);
+      }
+      if (opts.period) {
+        const d = deliveryReport(v(), opts);
+        return opts.json ? JSON.stringify(d, null, 2) : describeDelivery(d);
+      }
+      throw new Usage('--item <feature or milestone> shows one piece of tracked work; --period <date> [--until <date>] shows the delivery metrics it can name');
+    }
+    case 'notify': {
+      const note = opts.note;
+      if (!note) throw new Usage('--note carries the one line to send');
+      if (opts.config) {
+        let config = null;
+        try { config = JSON.parse(readFileSync(opts.config, 'utf8')); } catch { throw new Usage(`cannot read the gate config ${opts.config}`); }
+        if (config.notifyPushes !== true)
+          throw new Usage('the project records no pushes: setup turned them off, or has not turned them on with the owner\'s yes -- say it to the owner in the conversation instead');
+      }
+      const { file, command } = channelOf();
+      if (!command) return `No notification channel is set on this machine (${file} names no command): the line waits in the conversation.`;
+      let sent;
+      try {
+        execFileSync(command[0], [...command.slice(1), note], { encoding: 'utf8', timeout: 15e3, stdio: ['ignore', 'pipe', 'pipe'] });
+        sent = true;
+      } catch (e) {
+        const why = e.killed ? 'the command overran its bound and was stopped' : `the command exited ${e.status ?? 'with an error'}`;
+        throw new Usage(`the channel did not take the line (${why}): say that a push failed to the owner in the conversation, and fall back to it -- never drop one silently`);
+      }
+      return sent ? `Sent: ${note}` : null;
+    }
     default:
       throw new Usage(`unknown command ${command ?? '(none)'}`);
   }
+}
+
+// ---- progress: one piece of tracked work, and the delivery metrics (skills-ikb)
+
+const h = (m) => `${(m / 60).toFixed(1)} h`;
+const pct = (n) => (Number.isFinite(n) ? Math.round(n) : null);
+
+// The forecast the scope carries: the bottom-most claimed items, the ones no
+// other claimed item in the tree covers. A coordinator's claim on the feature
+// and its workers' claims on the tasks are not added together: the bottom-most
+// item takes one. Unattributed gathers whatever a claim named no phase for.
+function scopeForecast(v, ids) {
+  const spans = v.spans.filter((s) => s.claim?.table && ids.includes(s.item));
+  const byItem = new Map();
+  for (const s of spans) byItem.set(s.item, [...(byItem.get(s.item) || []), s]);
+  // The bottom-most claimed items: one whose claimed descendant pays for it
+  // is not in the total, so no claim is counted under two.
+  const bottom = new Set([...byItem.keys()].filter((id) => !v.tree(id).slice(1).some((k) => byItem.has(k))));
+  const ph = {};
+  let total = 0;
+  for (const [id, list] of byItem) {
+    if (!bottom.has(id)) continue;
+    const t = list.reduce((a, s) => (s.claim.table.rows.total.forecast > a.claim.table.rows.total.forecast ? s : a)).claim.table.rows;
+    for (const p of new Set(Object.keys(t).filter((k) => k !== 'total'))) {
+      const m = Math.max(0, Number(t[p]?.forecast ?? 0)) || 0;
+      ph[PHASES.includes(p) ? p : 'unattributed'] = (ph[PHASES.includes(p) ? p : 'unattributed'] || 0) + m;
+    }
+    total += Math.max(0, Number(t.total.forecast ?? 0)) || 0;
+  }
+  return { ph, total, items: byItem, bottom };
+}
+
+function progressOf(v, ids, opts) {
+  const it = item(v, opts.item);
+  const scope = ids;
+  const closed = scope.filter((id) => v.by.get(id)?.status === 'closed');
+  const forecast = scopeForecast(v, scope);
+  const earned = { ph: {}, total: 0 };
+  for (const id of closed.filter((id) => forecast.bottom.has(id))) {
+    const list = forecast.items.get(id);
+    if (!list) continue;
+    const t = list.reduce((a, s) => (s.claim.table.rows.total.forecast > a.claim.table.rows.total.forecast ? s : a)).claim.table.rows;
+    for (const p of new Set(Object.keys(t).filter((k) => k !== 'total')))
+      earned.ph[PHASES.includes(p) ? p : 'unattributed'] = (earned.ph[PHASES.includes(p) ? p : 'unattributed'] || 0) + (Math.max(0, Number(t[p]?.forecast ?? 0)) || 0);
+    earned.total += Math.max(0, Number(t.total.forecast ?? 0)) || 0;
+  }
+  // Tasks and stages done of total; an accepted one is said by what a user
+  // can do, so its title carries it.
+  const leaves = scope.filter((id) => v.by.get(id)?.type === 'task');
+  const stages = scope.filter((id) => v.by.get(id)?.type === 'epic' && id !== it.id);
+  const nf = (list) => ({
+    of: list.length, done: list.filter((id) => closed.includes(id)).length,
+    titles: list.filter((id) => closed.includes(id)).map((id) => v.by.get(id)?.title || id),
+  });
+  // The time: by phase, and by what filled the recorded turns.
+  const t = timeReport(v, { item: opts.item, 'no-transcripts': opts['no-transcripts'] });
+  const work = t.work || 0;
+  const phasesT = t.phases || {};
+  const sharesPhase = Object.fromEntries(PHASES.map((p) => [p, work ? pct(100 * (phasesT[p] || 0) / work) : null]));
+  const sharesActivity = Object.fromEntries(['model', 'tools', 'coord', 'answer']
+    .map((b) => [b, work ? pct(100 * (t.total[b] || 0) / work) : null]));
+  // Stages: what each holds now, what of its forecast is left to pay.
+  const stageRows = stages.map((stage) => {
+    const ids2 = v.tree(stage);
+    const fc = scopeForecast(v, ids2);
+    const remaining = ids2.filter((c) => v.by.get(c)?.status !== 'closed')
+      .reduce((n, c) => n + (fc.items.get(c) ? Math.max(...fc.items.get(c).map((s) => s.claim.table.rows.total.forecast)) : 0), 0);
+    return {
+      id: stage, title: v.by.get(stage)?.title || '', status: v.by.get(stage)?.status,
+      remaining: round(remaining),
+      in_flight: ids2.filter((c) => c !== stage && ['active', 'submitted', 'implemented'].includes(v.by.get(c)?.status))
+        .map((c) => ({ id: c, title: v.by.get(c)?.title || '', status: v.by.get(c)?.status })),
+    };
+  });
+  // What is ahead: every stage not accepted, each with the end its remaining
+  // forecast names in agent time from now.
+  const ahead = stageRows.filter((r) => r.status !== 'closed')
+    .map((r) => ({ ...r, forecastEnd: !r.remaining ? null : localStamp(nowMs() + r.remaining * 60e3) }));
+  const remainingAll = ahead.reduce((n, r) => n + r.remaining, 0);
+  const claimDue = v.spans.filter((s) => s.claim && s.item === it.id && s.claim.fields.due).map((s) => s.claim.fields.due).at(0) || null;
+  // Where the owner set a date, the forecast is held against it: the date the
+  // item body keeps, or --target where the body does not carry it.
+  const bodyDate = /\b(\d{4}-\d{2}-\d{2})\b/.exec(it.body || '');
+  const target = opts.target ? parseWhen(opts.target) : bodyDate ? Date.parse(`${bodyDate[1]}T23:59:00Z`) : null;
+  const forecastEnd = remainingAll ? iso(nowMs() + remainingAll * 60e3) : null;
+  let targetStatus = null;
+  let marginMinutes = null;
+  if (target && remainingAll) {
+    marginMinutes = round((target - Date.parse(forecastEnd)) / 60e3);
+    const window = (target - nowMs()) / 60e3;
+    targetStatus = marginMinutes < 0 ? 'late' : marginMinutes <= 0.2 * window ? 'at risk' : 'on track';
+  }
+  // Burn-up over the run's days: the work its spans recorded by each day
+  // against the scope the claims carry. What the tracker holds closed now is
+  // the done line; moments of acceptance are not timed in the records.
+  const days = {};
+  for (const s of v.spans.filter((x) => scope.includes(x.item) && x.receipt?.table && !x.unknown)) {
+    const day = iso(s.end ?? s.start ?? nowMs()).slice(0, 10);
+    const row = days[day] ||= { work: 0, done: 0 };
+    row.work += s.receipt.table.rows.total.total;
+    if (closed.includes(s.item)) row.done += s.receipt.table.rows.total.total;
+  }
+  let cumAll = 0, cumDone = 0;
+  const burn = Object.entries(days).sort((a, b) => a[0].localeCompare(b[0])).map(([day, d]) => {
+    cumAll += d.work; cumDone += d.done;
+    return { day, thatDay: round(d.work), accepted: round(d.done), cumulative: round(cumAll), cumulativeAccepted: round(cumDone) };
+  });
+  return {
+    item: it.id, title: it.title || '', scope: scope.length,
+    forecast: { by_phase: forecast.ph, total: forecast.total },
+    earned: { by_phase: earned.ph, total: earned.total,
+      percent: forecast.total ? pct(100 * (earned.total / forecast.total)) : null,
+      basis: 'forecast hours of accepted work over the forecast of all work' },
+    items_done: { tasks: nf(leaves), stages: nf(stages) },
+    time: {
+      work: round(work), by_phase: Object.fromEntries(PHASES.map((p) => [p, round(phasesT[p] || 0)])),
+      shares_phase: sharesPhase, shares_activity: sharesActivity,
+    },
+    current_stage: stageRows.filter((r) => r.status === 'active'),
+    ahead, promised_by: claimDue,
+    target: target ? iso(target) : null, forecastEnd, margin: marginMinutes, targetStatus,
+    burn_up: burn,
+    burn_up_basis: 'the days spans of this work ended; accepted reads the tracker as it holds it now',
+  };
+}
+
+function describeProgress(p) {
+  const SHARE = (o) => Object.entries(o).filter(([, m]) => Number.isFinite(m) && m > 0).map(([k, m]) => `${k} ${m}%`).join(', ') || 'nothing recorded';
+  const aheadSaid = p.ahead.filter((r) => r.status !== 'closed');
+  return [
+    `${p.title} (${p.item})${p.earned.percent === null ? '' : `: ${p.earned.percent}% of the scope's forecast time is earned by accepted work`}`,
+    `${p.items_done.tasks.done} of ${p.items_done.tasks.of} tasks and ${p.items_done.stages.done} of ${p.items_done.stages.of} stages accepted.`,
+    "",
+    `Forecast of the scope ${h(p.forecast.total)}, earned by what is accepted ${h(p.earned.total)}${p.time.work ? `; time recorded so far ${h(p.time.work)}` : ''}.`,
+    ...p.time.work ? [`By phase ${SHARE(p.time.shares_phase)}; by what filled the turns ${SHARE(p.time.shares_activity)}.`] : [],
+    p.time.shares_phase.unattributed ? `Work with no phase is time no claim said what it was for (${p.time.shares_phase.unattributed}% of what is recorded): time and report name those spans.` : null,
+    ...p.current_stage.map((r) => `Now: ${r.title}, holding ${r.in_flight.map((c) => `${c.title} (${c.status})`).join(', ') || 'nothing in flight in it'}.`),
+    ...aheadSaid.length ? [`Ahead:${aheadSaid.map((r) => ` ${r.title}${r.remaining ? ` (forecast ${h(r.remaining)}, by ${r.forecastEnd})` : ' (its forecast is carried by what is in it)'}`).join(',')}.`] : [],
+    p.promised_by ? `The run promises its result by ${localStamp(Date.parse(p.promised_by))}.` : null,
+    ...(p.target ? [`Against the target date the item keeps (${localStamp(Date.parse(p.target))})${p.forecastEnd ? `: forecast end ${localStamp(Date.parse(p.forecastEnd))}${p.targetStatus ? ` -- ${p.targetStatus}, ${p.margin >= 0 ? `${h(p.margin)} of margin` : `past the date by ${h(-p.margin)}`}.` : ''}` : ': no forecast on record to hold against it'}`]
+      : []),
+    ...(p.burn_up.length ? [`Burn-up of the run, by the days its spans ended (done is what the tracker holds accepted now):`]
+      : []),
+    ...p.burn_up.map((b) => `  ${b.day} +${h(b.thatDay)}${b.accepted ? ` (accepted ${h(b.accepted)})` : ''}, cumulative ${h(b.cumulative)} of the ${h(p.forecast.total)} scope${b.cumulativeAccepted ? `, accepted ${h(b.cumulativeAccepted)}` : ''}`)
+  ].filter(Boolean).join('\n');
+}
+
+// The delivery metrics the records can and cannot name, over a period.
+function deliveryReport(v, opts) {
+  const since = opts.period ? parseWhen(opts.period) : -Infinity;
+  const until = opts.until ? parseWhen(opts.until, { end: true }) : Infinity;
+  if (Number.isNaN(since) || Number.isNaN(until)) throw new Usage('--period and --until need dates');
+  if (opts.item) throw new Usage('--period is a whole tracker window; leave --item out');
+  const at = (it) => v.summaries.find((s) => s.item === it)?.fields.at;
+  const runs = finishedRuns(v).filter((r) => r.result === 'pull-request' && at(r.item) && Date.parse(at(r.item)) >= since && Date.parse(at(r.item)) < until);
+  const startedOf = (it) => v.spans.filter((s) => s.item === it && s.claim).map((s) => s.start).filter((n) => Number.isFinite(n)).sort((a, b) => a - b)[0];
+  const lead = runs.filter((r) => Number.isFinite(startedOf(r.item))).map((r) => Date.parse(at(r.item)) - startedOf(r.item));
+  const verdict = (it) => v.verdicts.find((s) => s.item === it)?.fields;
+  const judged = runs.filter((r) => verdict(r.item));
+  const failed = judged.filter((r) => verdict(r.item).accepted !== 'as-is' || Number(verdict(r.item).corrections) > 0);
+  return {
+    period: { since: Number.isFinite(since) ? localStamp(since) : null, until: Number.isFinite(until) ? localStamp(until) : null },
+    leadTime: {
+      medianMinutes: lead.length ? round(quantile(lead, 0.5)) : null, runs: lead.length,
+      basis: 'the claim a run started with, to the summary that ended it, on features whose records carry both times',
+    },
+    changeFailureRate: {
+      percent: judged.length ? pct(100 * (failed.length / judged.length)) : null, judged: judged.length,
+      count: failed.length, items: failed.map((r) => r.item),
+      basis: 'a change failed where its verdict asked for changes, or corrections were recorded, or its run was abandoned',
+    },
+    deploymentFrequency: { computed: false, why: 'the set records the claims and results of runs, never what was deployed where and when; deployments live with whatever ships the product' },
+    timeToRestore: { computed: false, why: 'nothing this set records says that a change failed where users are, or when its fix reached them: a verdict, a stop event and a merge are not uptime' },
+  };
+}
+
+function describeDelivery(d) {
+  const row = (name, value) => `${name}: ${value}`;
+  return [
+    row('Lead time for changes', d.leadTime.runs ? `median ${h(d.leadTime.medianMinutes)} over ${d.leadTime.runs} finished run(s) -- ${d.leadTime.basis}` : 'no finished run in the period carries both its start and its end'),
+    row('Change failure rate', d.changeFailureRate.judged ? `${d.changeFailureRate.percent}% (${d.changeFailureRate.count} of ${d.changeFailureRate.judged}; ${d.changeFailureRate.basis})` : 'no judged run in the period'),
+    row('Deployment frequency', `not computed -- ${d.deploymentFrequency.why}`),
+    row('Time to restore', `not computed -- ${d.timeToRestore.why}`),
+  ].join('\n');
 }
 
 const HELP = `Every command reads the adapter's export: --backlog <path | ->. Commands that write print the
@@ -988,6 +1236,17 @@ runs.mjs verdict --item <feature> --accepted as-is|after-changes|abandoned [--av
 runs.mjs recovery --item <id> --grade R0|R1|R2|R3 [--from <harness>] [--to <harness>] [--note <text>]
 runs.mjs void --comment <id> --note <why>
   retires a damaged or wrong record, which a tracker cannot delete; a correction then writes the right one
+runs.mjs notify --note "<one line>" [--config <gate config>]
+  one line through the owner's own channel ($XDG_CONFIG_HOME/shady2k-skills/notify.json, the
+  command as {"command": [program, ...args]}, the line as the last argument); says plainly when none
+  is set, that the project records no pushes, or that a send failed. The gate config must record the pushes on
+runs.mjs progress --item <feature|milestone> [--no-transcripts] [--target <date>]
+  where the work stands as the records hold it: earned value (forecast hours of accepted work), tasks
+  and stages done of total, time by phase and its shares, what is in flight, what is ahead with its
+  forecast end, the forecast against the date the item or --target keeps, and a burn-up by day
+runs.mjs progress --period <date> [--until <date>]
+  the delivery metrics the records can name (lead time, change failure rate), and the two they cannot
+  (deployment frequency, time to restore), said plainly
 runs.mjs gaps      spans that ended with no receipt: recovered here, or named where they are not
 runs.mjs time [--since <date>] [--until <date>] [--item <id>] [--no-transcripts]
 runs.mjs stalled | pace [--tasks N] | report | list
@@ -1490,7 +1749,42 @@ async function selftest() {
     // The session that starts a run in another session records the claim for it
     // where the run cannot, by **Whoever started a run answers for it to the
     // owner**: the span is the run's, the record says who wrote it, and the
-    // run claims nothing again.
+    // run claims nothing again.    // The progress report reads one piece of tracked work out of the records
+    // on it: the scope's forecast, what of it is earned by accepted work, the
+    // shares, the burn-up -- and the two delivery metrics it cannot name.
+    const bump = (id) => backlog.issues.find((i) => i.id === id).status = 'closed';
+    postAll([{ item: 'B', body: formatRecord('claim', { span: 'pb1', at: T(clock - 120e3), session: 'claude-code:pv', agent: 'claude-p:t@m:b#pv', role: 'worker' }) },
+             { item: 'B', body: formatRecord('receipt', { span: 'pb1', from: T(clock - 120e3), to: T(clock - 60e3), end: 'finished' },
+               { columns: [...BUCKETS, 'total'], rows: { build: { model: 50, tools: 0, coord: 0, answer: 0, away: 0, idle: 0, total: 60 }, total: { model: 50, tools: 0, coord: 0, answer: 0, away: 0, idle: 0, total: 60 } } }) }]);
+    const prog = cli('progress', '--item', 'F', '--no-transcripts');
+    expect('progress: the earned share and the done counts are named',
+      /earned/.test(prog) && /of .* tasks and .* of .* stages accepted/.test(prog));
+    expect('progress: what is ahead or nothing in flight is said, never a stage invented',
+      /Ahead:/.test(prog) || /Now:/.test(prog) || prog.split('\n').length > 2);
+    expect('progress: shares are said as percentages ',
+      /by what filled the turns/.test(prog) && /%/.test(prog));
+    expect('progress: misuse without a scope', misuse(['progress', '--backlog', file]));
+    const del = cli('progress', '--period', '2026-01-01');
+    expect('progress: the delivery metrics say plainly which two the records cannot name',
+      /Deployment frequency: not computed/.test(del) && /Time to restore: not computed/.test(del)
+      && /Change failure rate/.test(del));
+    // One line to the owner, through the channel the person keeps per machine,
+    // under their config folder and never inside the working copy.
+    const noteFile = join(home, '.config', 'shady2k-skills', 'notify.json');
+    mkdirSync(dirname(noteFile), { recursive: true });
+    const marker = join(home, 'sent.txt');
+    const say = (text) => `process.stdout.write(process.argv[1]); const fs=require('fs'); fs.writeFileSync(${JSON.stringify(marker)}, process.argv[1]);`;
+    writeFileSync(noteFile, JSON.stringify({ command: [process.execPath, '-e', say()] }));
+    const note = 'progress digest: 40% earned, next stage by 16:20';
+    expect('notify: one line through the channel the person keeps', cli('notify', '--note', note) === `Sent: ${note}` && readFileSync(marker, 'utf8') === note);
+    writeFileSync(noteFile, JSON.stringify({ command: [process.execPath, '-e', 'process.exit(3)'] }));
+    expect('notify: a failed send is said plainly, not dropped', misuse(['notify', '--note', 'x']));
+    rmSync(noteFile, { force: true });
+    expect('notify: no channel says so and keeps the line', /No notification channel is set/.test(cli('notify', '--note', 'x')));
+    const gateCfg = join(home, 'gate-notify.json');
+    writeFileSync(gateCfg, JSON.stringify({ notifyPushes: false }));
+    expect('notify: the project records no pushes', misuse(['notify', '--note', 'x', '--config', gateCfg]));
+
     // Claims that judge posted state must read it: write the export first, as
     // cli() does around every call, so the check runs against what was posted.
     const misusePosted = (a) => { try { rawCache = null; writeFileSync(file, JSON.stringify(backlog)); run([...a]); return false; } catch (e) { return e instanceof Usage; } };

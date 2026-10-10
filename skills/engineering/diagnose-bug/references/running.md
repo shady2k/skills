@@ -57,8 +57,11 @@ the owner is there**, spend that time on what only they can give: the decision,
 the plan, the argument about what to build, the judgement of a result. Not on
 watching execution, not on progress they did not ask for, and not on waiting
 beside them for a job to finish. **While the owner is away**, execute:
-everything that needs nobody runs then, and independent work runs at once, by
-the protocol's **Parallelism**. The preflight asks when they expect to be away and for how
+everything that needs nobody runs then, and independent work starts together:
+where two pieces of work share no file and no dependency, they start at once,
+by the protocol's **Parallelism**, and serialising them is a reason said to the
+owner when it happens — a shared file, a dependency, a budget that holds only so
+many workers at once. The preflight asks when they expect to be away and for how
 long, and the run is shaped to fill that window rather than to fill the hour
 they are sitting in.
 
