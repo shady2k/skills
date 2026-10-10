@@ -141,20 +141,10 @@ of that list that have something to say — the decisions the agent took, the
 assumptions, the risks and the cost in time — not the steps done so far.
 
 Progress on a run this session supervises is pushed, not pulled, by
-running.md's **The run's progress is pushed, not pulled**, under the
-protocol's **Whoever started a run answers for it to the owner**: the owner
-is sent the progress report on the session's own motion, at each point that
-changes the picture and not on each passing step — a stage accepted; a
-forecast point reached or missed; the forecast crossing the target date it
-serves, that one at once; a run stopped or waiting on the owner; the work
-landed. Alongside, on a cadence agreed at the run's preflight — recommend
-once at the end of the owner's working day while a run is in flight; they may
-pick another, or none — the owner gets a short digest: how far the work is as
-a percentage of the whole, where that leaves it against the target date, what
-changed since the last one, what is next and when. Away from the conversation
-the digest goes through the notification channel the project records, if any:
-one short line with the status and the next time the owner will hear, the
-full report waiting in the conversation.
+running.md's **The run's progress is pushed, not pulled**. What is pushed is
+written by these rules like anything else: a share of the work with what it is
+a share of, the standing against the target date in words, and a pushed line
+that names the next time the owner will hear.
 
 **A run's question is worked before it is passed on.** What a run raises in
 another session reaches the owner only through the session that supervises
