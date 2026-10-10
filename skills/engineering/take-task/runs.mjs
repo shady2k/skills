@@ -936,7 +936,7 @@ runs.mjs claim --recovered --item <id> --role <role> --harness <h> --session <id
   the claim another session made and never wrote, at the start its transcript here shows; then gaps.
   Where no machine has the transcript, at the start the record named in --basis shows; then receipt --unknown
 runs.mjs receipt [--span <id>] --end paused|finished|handed-over|stopped [--reason owner|missing|other] [--note <text>] [--recovered]
-  what the span spent, measured from this machine's transcript (exit 3 when it is not here)
+  what the span spent, measured from this machine's transcript (exit 3 when it cannot be measured here)
 runs.mjs receipt --span <id> --end ... --unknown --note <why>
   closes a span whose transcript no machine has: its time unknown, the reason said
 runs.mjs event [--span <id>] --event stop|decision|ci [--reason owner|missing|other] [--note <text>]
@@ -954,7 +954,7 @@ transcript never names the item: only a sure yes counts, and the ones it is unsu
 The current session is found by itself where the harness names it (Claude Code, Codex, pi); else --harness
 claude-code|codex|pi|omp|prime-agent --session <id>.
 Transcripts belong to the project by its git repository: [--project <name>] [--repo <path>]. Add --json for data.
-Exit 0 done, 2 misuse, 3 the transcript is on another machine.`;
+Exit 0 done, 2 misuse, 3 unavailable here: absent, locally unmapped, or unreadable identity.`;
 
 // ---- self-test -----------------------------------------------------------------
 
