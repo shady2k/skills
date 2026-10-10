@@ -230,6 +230,24 @@ a time they can hold the run to, by **A forecast is checked against the date
 it serves**, and the overrun is filed as **Silence is not progress** files any
 other.
 
+**The run's progress is pushed, not pulled.** The session supervising the run
+sends the owner the progress report itself, at each point that changes the
+picture — a stage accepted, a forecast point reached or missed, the forecast
+crossing the date it serves (that one at once), a run stopped or waiting on
+the owner, the work landed — and not on each passing step, by [**Waiting is
+quiet**](speaking.md). On the cadence agreed at the preflight (the
+recommendation is once at the end of the owner's working day while a run is in
+flight; they may pick another or none), a short digest goes with it: how much
+is done as a share of the work, how that stands against the target date, what
+changed since the last one, what is next and when. The run script's
+`progress` reads what the records hold, so the digest is the record's, never
+an agent's memory; away from the conversation it goes through the
+notification channel the project records, one short line with the status and
+the next time, the full report in the conversation. A question for the owner
+rides neither: the supervising session works it first, by speaking.md's
+**A run's question is worked before it is passed on**, and a push says only
+that a decision waits, what about, and what waiting costs.
+
 **A run that never came back is found, not assumed.** An unattended run cannot
 report its own death; what it leaves behind is a hold that stops moving and a
 record with no end. So before it goes unattended its deadline, by **Silence is
