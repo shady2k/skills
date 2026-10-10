@@ -798,6 +798,27 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.97.0** watches the run so you do not have to. Before you leave, setup asks how you want to be
+  notified while away — nothing, the harness's own notification, or a command you already use — and
+  proves that channel once with a real test message; the channel and its token stay on your machine,
+  not in the project, whose config records only that pushes are on. While a run is in flight, progress
+  is pushed to you at every point that changes the picture and as a digest on the cadence the preflight
+  set, with percent done and how that stands against your target date; ask for it any time and
+  `ask-shady2k` reads the same figure: earned value, tasks and stages done, the recorded time and its
+  shares, the stage in flight, what is ahead with forecast ends, and a burn-up; the sync report gains
+  the delivery metrics the set's records can honestly carry, and says plainly that deployment
+  frequency and time to restore are not in them. Long commands (tests, checks, builds) now run
+  through the set's own runner, whose deadline comes from what the same command took here before, so
+  a hung command stops itself at that bound instead of holding a run for a night. The claim of a run
+  started in another session is written by the session that started it, and time recorded with no
+  claim is named in the records rather than lost as "unattributed". Two pieces of independent work
+  start together by default; serialising them is a reason said to you. A mutation receipt the gate
+  did not get is reported as "not made", never counted as passed, and never blocks acceptance:
+  survivors are filed tasks. **This release raises the setup version: projects rerun setup once.**
+  An installed plugin updates by version.
+
+
+
 - **0.96.0** separates a run's forecast from the date the owner is waiting on,
   and stops a slow background check from holding up the work. When you plan a
   feature you are asked once, in the preflight, whether it serves a date you
