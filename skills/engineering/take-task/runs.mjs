@@ -31,6 +31,13 @@ import {
 // Where a record cannot be written here: the transcript is on another machine.
 export class NotHere extends Error {}
 
+class Unmapped extends NotHere {
+  constructor(session) {
+    super(`the transcript of ${session} exists locally but is unmapped to this repository or item; establish its repository ownership before measuring it; --unknown is not permitted`);
+    this.code = 'TRANSCRIPT_UNMAPPED';
+  }
+}
+
 const nowMs = () => Date.now();
 const iso = (ms) => new Date(ms).toISOString().replace(/\.\d{3}Z$/, 'Z');
 const minutes = (ms) => ms / 60e3;
@@ -106,6 +113,19 @@ function raws(opts) {
 // sure worked on it.
 const judged = new Set();
 const rawOf = (opts, key, item) => raws(opts).find((r) => `${r.harness}:${r.id}` === key) || (item ? transcriptOf(key, item, { judged }) : null);
+
+function localTranscriptExists(key) {
+  const harness = harnessOf(key);
+  if (!hasAdapter(harness)) return false;
+  const a = adapter(harness);
+  const sid = key.slice(harness.length + 1);
+  return a.transcripts(sid).some((ref) => {
+    try {
+      const raw = a.read(ref);
+      return !raw || raw.id === sid;
+    } catch { return true; }
+  });
+}
 
 // ---- asking Jev where the text does not say ----------------------------------
 
@@ -233,6 +253,7 @@ function measureSpan(raw, from, to) {
 function receiptFor(v, s, opts, { end, reason, note, recovered = false, at = nowMs() }) {
   adapter(harnessOf(s.session));
   const raw = rawOf(opts, s.session, s.item);
+  if (!raw && localTranscriptExists(s.session)) throw new Unmapped(s.session);
   if (!raw) throw new NotHere(`the transcript of ${s.session} (${s.claim.fields.agent}) is not on this machine: its receipt is written where it is, or closed with --unknown where no machine has it; never typed by hand, which the gate refuses as damaged`);
   const from = s.start;
   const to = Math.max(from, endOf(s, raw, at));
@@ -696,6 +717,7 @@ function recoveredClaim(v, it, me, role, opts) {
   const at = parseWhen(opts.at ?? '');
   if (!Number.isFinite(at)) throw new Usage('--at <time> is required: the start the transcript shows');
   const raw = rawOf(opts, me.key, it.id);
+  if (!raw && localTranscriptExists(me.key)) throw new Unmapped(me.key);
   if (!raw && !opts.basis) throw new NotHere(`the transcript of ${me.key} is not on this machine: its claim is recovered where it is, or, where no machine has it, from another record that dates it (--basis); never typed by hand, which the gate refuses as damaged`);
   if (raw && opts.basis) throw new Usage('the transcript is here: the claim is dated by it, not by another record');
   if (raw && (at < raw.first - 60e3 || at > raw.last)) throw new Usage(`--at ${localStamp(at)} is outside the session's transcript, ${localStamp(raw.first)} to ${localStamp(raw.last)}`);
@@ -711,6 +733,7 @@ function recoveredClaim(v, it, me, role, opts) {
  */
 function unknownReceipt(v, s, opts, { end, reason, note }) {
   if (rawOf(opts, s.session, s.item)) throw new Usage(`the transcript of ${s.session} is here: its receipt is measured, not unknown`);
+  if (localTranscriptExists(s.session)) throw new Unmapped(s.session);
   if (!note) throw new Usage('--note says why the time is unknown: where the session ran, and why its transcript is on no machine');
   // A harness this copy cannot read is said in the record itself, so the note
   // never claims that a machine looked for the transcript and found none. The
@@ -913,7 +936,7 @@ runs.mjs claim --recovered --item <id> --role <role> --harness <h> --session <id
   the claim another session made and never wrote, at the start its transcript here shows; then gaps.
   Where no machine has the transcript, at the start the record named in --basis shows; then receipt --unknown
 runs.mjs receipt [--span <id>] --end paused|finished|handed-over|stopped [--reason owner|missing|other] [--note <text>] [--recovered]
-  what the span spent, measured from this machine's transcript (exit 3 when it is not here)
+  what the span spent, measured from this machine's transcript (exit 3 when it cannot be measured here)
 runs.mjs receipt --span <id> --end ... --unknown --note <why>
   closes a span whose transcript no machine has: its time unknown, the reason said
 runs.mjs event [--span <id>] --event stop|decision|ci [--reason owner|missing|other] [--note <text>]
@@ -931,7 +954,7 @@ transcript never names the item: only a sure yes counts, and the ones it is unsu
 The current session is found by itself where the harness names it (Claude Code, Codex, pi); else --harness
 claude-code|codex|pi|omp|prime-agent --session <id>.
 Transcripts belong to the project by its git repository: [--project <name>] [--repo <path>]. Add --json for data.
-Exit 0 done, 2 misuse, 3 the transcript is on another machine.`;
+Exit 0 done, 2 misuse, 3 unavailable here: absent, locally unmapped, or unreadable identity.`;
 
 // ---- self-test -----------------------------------------------------------------
 
@@ -1446,7 +1469,8 @@ async function main() {
     console.log(await commandLine(args));
     return 0;
   } catch (e) {
-    if (e instanceof NotHere) { console.error(e.message); return 3; }
+    if (e.code === 'TRANSCRIPT_UNREADABLE') { console.error(`${e.code}: ${e.message}`); return 3; }
+    if (e instanceof NotHere) { console.error(e.code ? `${e.code}: ${e.message}` : e.message); return 3; }
     if (!(e instanceof Usage)) throw e;
     console.error(`${e.message}\n\n${HELP}`);
     return 2;
