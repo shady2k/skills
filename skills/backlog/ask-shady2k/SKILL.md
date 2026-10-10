@@ -27,6 +27,9 @@ Do not make the user pick a mode.
   then the action.
 - **Orientation** (back after a break, a new or unfamiliar project, "where are
   we", "what are our options"): the full picture of sections 3 and 4.
+- **A progress report** ("a progress report: time, shares, what is done,
+  where we stand, what is ahead"; "how is the work going"): the figures
+  section 2's `progress` collects, told as the note below this list says.
 - **A report for the team's sync** ("for the standup", "what was done since
   yesterday", "over the weekend"): section 6 instead of the picture.
 - **How well Jev judges here** ("is Jev right", "does it lie"), where the
@@ -36,6 +39,20 @@ Do not make the user pick a mode.
   owner's terms, and nothing else of the picture.
 - **Free discussion**: `brainstorming`, with no setup or tracker needed.
   Evidence-only questions: `to-research`. Thinking commits to nothing.
+
+**The progress report is the owner's words, not the script's.** What
+`progress` printed is said by the protocol's [**Speaking to the
+owner**](references/speaking.md): the item by its title and never an id; the
+phases of the forecast by the kind of work that was done in them, never by
+their keys; every percentage with what it is a share of; the target date said
+as a time they can hold the work to, by **Waiting is quiet**. The routines the
+figures are drawn from are named once, here, for the agent's identification,
+and are not the owner's vocabulary either: a project status report and the
+status it takes against the target date; earned value, work done as the share
+of the forecast's hours it has completed; the burn-up chart, what is done drawn
+against the scope as time passed, with the forecast's and the target's lines.
+The owner's text keeps what the figures mean and drops the routines' names,
+with the rest of the kitchen.
 
 ## 2. Collect evidence
 
@@ -60,7 +77,11 @@ items, by the protocol's **How the work went is kept on the item**, and the run
 script ([`runs.mjs`](runs.mjs), run with `node` from this skill's folder over
 the adapter's export, in the format of [`time-format.mjs`](time-format.mjs))
 reads it the same from every machine: `report` and `pace`, how past runs went
-and how long work really takes here; `time`, where the recorded hours went,
+and how long work really takes here; `progress --item <feature or milestone>`,
+where the item stands now: the time its run has spent against the forecast,
+by phase and as shares of the whole, what is done, which stage is in flight
+and what is still ahead — for a milestone, the same rolled up over its
+features; `time`, where the recorded hours went,
 by phase and by who spent them, with what is still open said beside as
 incomplete, and on this machine only what its open sessions have spent so far
 and time in sessions that claimed nothing. Where the owner asks about this
@@ -230,6 +251,17 @@ whose transcripts nobody has written up, makes the figure "at least", said so.
   cost, by the protocol's **A forecast is checked against the date it
   serves**. Where no date was recorded, the forecast is named as the agent's
   own and stops there, not read as a promise someone made.
+- **Delivery:** the four delivery metrics the delivery practice tracks (DORA:
+  lead time for changes, deployment frequency, change failure rate, time to
+  restore), computed from what the records hold — the claims, the merges to
+  the main line, the red check runs, the reverts and reopened work — and told
+  as words: lead time for changes, from the claim that started work on it to
+  its merge to the main line; change failure rate, how often a result that
+  merged was reverted, reopened or sent back in the period; time to restore,
+  from a red run or a reopened outcome to the work that made it right again.
+  Deployment frequency is said plainly to be beyond the records of this set:
+  it holds merges and check runs, not what each deployment shipped. What is
+  computable is said instead, as how often work reached the main line.
 
 The team's own units, such as story points, stay the team's: do not produce or
 convert them. The report is text for the owner; writing it into any other

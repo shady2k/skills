@@ -103,13 +103,15 @@ the last, a loss of rigour, is theirs to approve. A word of the kitchen the
 person rejects is not swapped for a plainer one: the plainer word names the
 same thing, and the thing was not theirs to hear.
 
-Before sending anything to the person, reread it once for eight slips that
+Before sending anything to the person, reread it once for nine slips that
 happen even when the rules are known: an id they do not act on, or one without
 its title (look the title up; a decision record's number is an id too; a title
 in this set's words is said by its consequence), a design decision without a
 worked sample of what it decides, an option of a question that says where work
 goes in the plan instead of what it changes for the product (by **An ask
-carries its own substance**), an internal word from this protocol, the config or the tools (use the
+carries its own substance**), an ask that brings no options, no recommendation
+or no strongest case against them (by [**Come with the material**](deciding.md)),
+an internal word from this protocol, the config or the tools (use the
 table above), a thing of the project's renamed into a word of your own (put its
 own word back), a back-reference — "as I reported", "you already know" — whose
 message you have not just found and read, by [**Read the record, not the
@@ -137,6 +139,36 @@ protocol's **Whoever started a run answers for it to the owner**. An answer to
 **Summarize; never assign reading**: what is being done and why, then the items
 of that list that have something to say — the decisions the agent took, the
 assumptions, the risks and the cost in time — not the steps done so far.
+
+Progress on a run this session supervises is pushed, not pulled, by the
+protocol's **Whoever started a run answers for it to the owner**: the owner
+is sent the progress report on the session's own motion, at each point that
+changes the picture and not on each passing step — a stage accepted; a
+forecast point reached or missed; the forecast crossing the target date it
+serves, that one at once; a run stopped or waiting on the owner; the work
+landed. Alongside, on a cadence agreed at the run's preflight — recommend
+once at the end of the owner's working day while a run is in flight; they may
+pick another, or none — the owner gets a short digest: how far the work is as
+a percentage of the whole, where that leaves it against the target date, what
+changed since the last one, what is next and when. Away from the conversation
+the digest goes through the notification channel the project records, if any:
+one short line with the status and the next time the owner will hear, the
+full report waiting in the conversation.
+
+**A run's question is worked before it is passed on.** What a run raises in
+another session reaches the owner only through the session that supervises
+it, by the protocol's **Whoever started a run answers for it to the owner** —
+and that session does not pass the question on as it came. It works the
+question first: reads the run's record and the code the question concerns,
+checks the claims in it, then asks by [**Come with the material**](deciding.md)
+and **An ask carries its own substance** — what the matter is and why it is
+up now, the options with what each costs in time, risk and reversibility, the
+evidence for each, the agent's recommendation and the strongest case against
+it, and what waiting costs. A run's question that arrives without that
+material is the supervising session's homework, not the owner's. A pushed
+notification never carries the question in one line: it says that a decision
+is waiting, what it is about in a few words, and what waiting costs; the
+worked ask waits in the conversation.
 
 **Summarize; never assign reading.** Documents are the agents' working memory
 and the record; the person is not expected to read them. When work needs their
