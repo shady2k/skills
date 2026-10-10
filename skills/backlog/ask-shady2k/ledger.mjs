@@ -364,7 +364,7 @@ export function identify(project, { repo, cwds = [] } = {}) {
     // working copy is named after it and is still on disk.
     if (!commons.size) for (const d of cwds) if (d.split(sep).includes(project)) tryDir(d);
   }
-  const id = { project, commons, remotes: new Set(), checkouts: [], registered: [], roots: new Set() };
+  const id = { project, commons, remotes: new Set(), checkouts: [], registered: [], roots: new Set(), workspaceRoots: new Set() };
   for (const c of commons) {
     for (const r of remotesOf(c)) id.remotes.add(r);
     if (basename(c) === '.git') id.checkouts.push(dirname(c));
@@ -374,7 +374,11 @@ export function identify(project, { repo, cwds = [] } = {}) {
         try { id.registered.push(dirname(readFileSync(join(wt, n, 'gitdir'), 'utf8').trim())); } catch { /* half-made */ }
       }
   }
-  for (const p of id.registered) learnRoot(id, p);
+  for (const p of [...id.checkouts, ...id.registered]) {
+    learnRoot(id, p);
+    const parent = dirname(p);
+    if (id.roots.has(parent)) id.workspaceRoots.add(parent);
+  }
   return id;
 }
 
@@ -400,7 +404,7 @@ export function belongsTo(id, cwd, hints = {}, { roots = true } = {}) {
   const path = resolve(cwd);
   if (existsSync(path)) {
     const c = commonDir(path);
-    if (!c) return { yes: false };
+    if (!c) return roots && id.workspaceRoots.has(path) ? { yes: true, by: 'project workspace' } : { yes: false, unknown: true };
     if (id.commons.has(c)) return { yes: true, by: 'repository' };
     if (remotesOf(c).some((r) => id.remotes.has(r))) return { yes: true, by: 'remote' };
     return { yes: false };
@@ -1183,7 +1187,11 @@ const firstRow = (path) => {
     const buf = Buffer.alloc(8192);
     const n = readSync(fd, buf, 0, 8192, 0);
     return JSON.parse(String(buf.slice(0, n)).split('\n')[0] || '{}');
-  } catch { return {}; } finally { if (fd !== undefined) try { closeSync(fd); } catch { /* gone */ } }
+  } catch (cause) {
+    const error = new Error(`cannot read local transcript identity at ${path}; its absence is not established`, { cause });
+    error.code = 'TRANSCRIPT_UNREADABLE';
+    throw error;
+  } finally { if (fd !== undefined) try { closeSync(fd); } catch { /* gone */ } }
 };
 
 const piShapeLocation = (path) => {

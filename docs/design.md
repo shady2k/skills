@@ -761,6 +761,8 @@ nobody claimed) and the script's (recovery from a local transcript), not an
 agent's memory. A span is not split at midnight: a sync does not need exact
 time per day, so a stretch counts in the period it ended, once.
 
+A local transcript is not absent merely because its recorded cwd is outside Git. An existing non-Git cwd is attributable only when it is exactly the dedicated project workspace root established by a live checkout or registered worktree; historical hints from a missing clone, an arbitrary child directory, and a foreign Git repository do not establish that ownership. `--repo` names the actual project checkout, not an unrelated clone's directory name. A present but unplaced transcript is refused as `TRANSCRIPT_UNMAPPED`; unreadable local identity is refused as `TRANSCRIPT_UNREADABLE` rather than treated as absence. Neither may be closed with `--unknown` or dated from another claim's basis. Only an actually absent transcript follows the unknown-time policy. No transcript or its timestamps are rewritten to obtain a receipt.
+
 A record cannot be removed. Some trackers keep comments append-only, and the
 gate's own fix once said "delete the damaged one": a worker's hand-typed claim
 then refused every commit under `block-new`, because the violation could age
