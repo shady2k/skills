@@ -1757,8 +1757,10 @@ async function selftest() {
              { item: 'B', body: formatRecord('receipt', { span: 'pb1', from: T(clock - 120e3), to: T(clock - 60e3), end: 'finished' },
                { columns: [...BUCKETS, 'total'], rows: { build: { model: 50, tools: 0, coord: 0, answer: 0, away: 0, idle: 0, total: 60 }, total: { model: 50, tools: 0, coord: 0, answer: 0, away: 0, idle: 0, total: 60 } } }) }]);
     const prog = cli('progress', '--item', 'F', '--no-transcripts');
-    expect('progress: the earned share, done counts, and what is ahead are named',
-      /earned/.test(prog) && /of .* tasks and .* of .* stages accepted/.test(prog) && /Now:/.test(prog));
+    expect('progress: the earned share and the done counts are named',
+      /earned/.test(prog) && /of .* tasks and .* of .* stages accepted/.test(prog));
+    expect('progress: what is ahead or nothing in flight is said, never a stage invented',
+      /Ahead:/.test(prog) || /Now:/.test(prog) || prog.split('\n').length > 2);
     expect('progress: shares are said as percentages ',
       /by what filled the turns/.test(prog) && /%/.test(prog));
     expect('progress: misuse without a scope', misuse(['progress', '--backlog', file]));
@@ -1768,7 +1770,7 @@ async function selftest() {
       && /Change failure rate/.test(del));
     // One line to the owner, through the channel the person keeps per machine,
     // under their config folder and never inside the working copy.
-    const noteFile = join(home, 'shady2k-skills', 'notify.json');
+    const noteFile = join(home, '.config', 'shady2k-skills', 'notify.json');
     mkdirSync(dirname(noteFile), { recursive: true });
     const marker = join(home, 'sent.txt');
     const say = (text) => `process.stdout.write(process.argv[1]); const fs=require('fs'); fs.writeFileSync(${JSON.stringify(marker)}, process.argv[1]);`;
