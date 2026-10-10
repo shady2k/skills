@@ -292,7 +292,7 @@ when the new cost could change their decision.
 
 **A forecast is checked against the date it serves.** Two times, kept apart.
 The **forecast** is the agent's own commitment, worked out from the measured
-pace this rule makes; the **target date** is the owner's, set from outside
+pace by **Estimates are agent time**; the **target date** is the owner's, set from outside
 the project — a demo, a release, someone outside the work who waits — and
 kept with who set it and why, by [**A decision the owner gives is kept, not
 only obeyed**](speaking.md). One never overwrites the other, and neither is
@@ -312,6 +312,6 @@ Where the forecast passes the target date, the owner hears at once, before
 the date, by [**Waiting is quiet**](speaking.md): what will be late, by how
 much and why, and the two things left to choose, each said with what the
 product loses. Move the date, or take named items out of scope: these two
-are the levers, and quality hides among neither. A third — a check relaxed
+are the levers, and quality is not one of them. A third — a check relaxed
 to make the date — is presented as the loss of rigour it is, by [**Never
 show the kitchen**](speaking.md), and only the owner approves it.
