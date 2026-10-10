@@ -493,6 +493,10 @@ function report(v) {
       medianWorkMinutes: runs.length ? round(quantile(runs.map((r) => r.table.total?.work || 0), 0.5)) : null,
     },
     damaged: v.damaged.length,
+    // Tracked work whose span was never claimed, named rather than only
+    // counted: a decrease of average concurrency that is really a gap.
+    unclaimed: v.spans.filter((s) => s.receipt && !s.claim && !s.conflict.length)
+      .map((s) => ({ item: s.item, span: s.id, from: s.receipt.fields.from, to: s.receipt.fields.to ?? null })),
   };
 }
 
@@ -514,6 +518,10 @@ function describeReport(r) {
       : 'No finished run has a measured summary yet.',
   ];
   if (r.damaged) lines.push(`${r.damaged} record(s) are damaged and not counted: the gate names them.`);
+  if (r.unclaimed?.length) {
+    lines.push(`Tracked work recorded with no claim on the span, in no phase and no session (${r.unclaimed.length}):`);
+    for (const u of r.unclaimed) lines.push(`  ${u.item}, span ${u.span}, from ${localStamp(Date.parse(u.from))} to ${u.to ? localStamp(Date.parse(u.to)) : 'an end not dated'}`);
+  }
   return lines.join('\n');
 }
 
@@ -568,6 +576,12 @@ function timeReport(v, opts) {
     unknown: unknown.map((s) => ({ item: s.item, span: s.id, agent: s.claim.fields.agent, harness: harnessOf(s.session), since: s.claim.fields.at, why: s.receipt.fields.note })),
     localRead: !opts['no-transcripts'],
     damaged: v.damaged.length, conflicted: v.spans.filter((s) => s.conflict.length).length, unclaimed: unclaimed.length,
+    // Tracked work whose span was never claimed, named rather than only
+    // counted: a figure that quietly writes the time off as unattributed
+    // hides the gap this names.
+    unclaimedList: unclaimed.map((s) => ({
+      item: s.item, span: s.id, from: s.receipt.fields.from, to: s.receipt.fields.to ?? null, note: s.receipt.fields.note || null,
+    })),
     unsupported,
   };
   if (!opts['no-transcripts']) {
@@ -590,6 +604,7 @@ function timeReport(v, opts) {
       }
       let unassigned = 0;
       let sessions = 0;
+      const named = [];
       for (const r of rs) {
         if (r.parent) continue;
         const win = [{ start: Math.max(since, r.first), end: Math.min(until, r.last) }].filter((w) => w.end > w.start);
@@ -601,8 +616,9 @@ function timeReport(v, opts) {
         if (w < 0.5) continue;
         unassigned += w;
         sessions++;
+        named.push({ session: `${r.harness}:${r.id}`, work: round(w) });
       }
-      out.unassigned = { work: round(unassigned), sessions };
+      out.unassigned = { work: round(unassigned), sessions, list: named };
     }
   }
   return out;
@@ -646,8 +662,15 @@ function describeTime(t) {
   if (t.unsupported?.length)
     lines.push(`Unsupported here: ${t.unsupported.length} harness(es) this copy of the set cannot read; their transcripts are not read on this machine, and they are not counted with the times no machine knows:`,
       ...t.unsupported.map((u) => `  ${u.harness}, on ${u.items.join(', ')}: unsupported here: no transcript adapter for ${u.harness}; this copy reads ${adapterNames().join(', ')}`));
-  if (t.unassigned?.sessions) lines.push(`On this machine only: ${h(t.unassigned.work)} of work in ${t.unassigned.sessions} session(s) that claimed no item; it is on no item and no other machine sees it.`);
+  if (t.unassigned?.sessions) {
+    lines.push(`On this machine only: ${h(t.unassigned.work)} of work in ${t.unassigned.sessions} session(s) that claimed no item; it is on no item and no other machine sees it:`);
+    for (const u of t.unassigned.list) lines.push(`  ${u.session}: ${h(u.work)}`);
+  }
   if (t.damaged || t.conflicted || t.unclaimed) lines.push(`${t.damaged} damaged, ${t.conflicted} conflicting and ${t.unclaimed} unclaimed record(s) are not counted: the gate names them, and the figure is incomplete by them.`);
+  if (t.unclaimedList?.length) {
+    lines.push('Work recorded with no claim on the span: the time is tracked, and no phase, no session and no forecast holds it. Recover its claim on the machine that works here, or say where:');
+    for (const u of t.unclaimedList) lines.push(`  ${u.item}, span ${u.span}, from ${localStamp(Date.parse(u.from))} to ${u.to ? localStamp(Date.parse(u.to)) : 'an end not dated'}${u.note ? ` (${u.note})` : ''}`);
+  }
   return lines.join('\n');
 }
 
@@ -764,6 +787,30 @@ function spanOf(v, opts) {
   return mine[0];
 }
 
+// The session a run is started in, named --claims-for <harness:session>: the
+// run's own key, so its claim opens the span the run's records go into.
+function separateSession(value) {
+  const at = String(value ?? '').indexOf(':');
+  if (at <= 0) throw new Usage('--claims-for <harness:session> names the session the run runs in, like claude-code:<session id>');
+  const harness = value.slice(0, at);
+  const id = value.slice(at + 1);
+  if (!hasAdapter(harness)) throw new Usage(`--claims-for harness ${harness} is one this set does not read (${adapterNames().join(', ')})`);
+  if (!id.trim()) throw new Usage('--claims-for needs the session id after the colon');
+  return { harness, id, key: `${harness}:${id}` };
+}
+
+// What the claim promises: the forecast table, and the time its result is due.
+function promiseOf(opts, at) {
+  const table = opts.forecast ? parseForecast(opts.forecast) : null;
+  if (opts.due !== undefined && opts.away !== undefined) throw new Usage('--due names the promised time; --away adds to the forecast: give one');
+  let due;
+  if (opts.due !== undefined) {
+    due = parseWhen(opts.due);
+    if (!Number.isFinite(due)) throw new Usage('--due needs a time');
+  } else if (table) due = at + (table.rows.total.forecast + Number(count(opts, 'away') || 0)) * 60e3;
+  return { table, due: due === undefined ? undefined : iso(due) };
+}
+
 export function run(argv) {
   const [command, ...rest] = argv;
   const opts = parseArgs(rest);
@@ -775,10 +822,29 @@ export function run(argv) {
       const b = v();
       const it = item(b, opts.item);
       const role = need(opts, 'role', ROLES);
-      const me = thisSession(opts);
       const out = [];
+      const me = thisSession(opts);
       if (opts.recovered) return post([recoveredClaim(b, it, me, role, opts)], opts);
       if (opts.at !== undefined) throw new Usage('--at is only for a claim recovered from a transcript (--recovered): a claim made now is dated now');
+      // A session that starts a run in another session records the claim for it
+      // where the run cannot, by the protocol's **Whoever started a run answers
+      // for it to the owner**: the span is the run's (its session key), the
+      // promised time rides on the claim, and the record says which session
+      // wrote it. The run's time then lands in that span's receipt; the run
+      // claims nothing twice, so the started session taking up the same item
+      // is told so below, not refused.
+      if (opts['claims-for']) {
+        const run = separateSession(opts['claims-for']);
+        if (b.spans.some((s) => s.claim && s.session === run.key && s.item === it.id))
+          throw new Usage(`${run.key} already has a span on ${it.id}: claim for a run made once`);
+        const at = nowMs();
+        const { table, due } = promiseOf(opts, at);
+        const fields = {
+          span: newSpanId(), at: iso(at), session: run.key, agent: agentName(run, role, opts), role, sent: me.key,
+          due, away: count(opts, 'away'), tasks: count(opts, 'tasks'), stages: count(opts, 'stages'), note: opts.note,
+        };
+        return post([{ item: it.id, body: formatRecord('claim', fields, table) }], opts);
+      }
       // An in-process worker runs in its coordinator's session and shares its
       // key: a claim of its own would end the coordinator's open span, and the
       // coordinator's next record would find none. Refused, and said plainly.
@@ -791,21 +857,17 @@ export function run(argv) {
             `its time is the coordinator's, inside that span. Only a worker in a session of its own claims`);
       }
       for (const s of mineOpen(b, me.key)) {
-        if (s.item === it.id) throw new Usage(`this session already holds span ${s.id} on ${it.id}`);
+        if (s.item === it.id) throw new Usage(s.claim.fields.sent
+          ? `this session already holds span ${s.id} on ${it.id}: the session that started this run recorded its claim (${s.claim.fields.sent}) -- record nothing for starting; your receipt ends that span`
+          : `this session already holds span ${s.id} on ${it.id}`);
         // Taking the next item ends the span on the last one: its receipt goes first.
         out.push(receiptFor(b, s, opts, { end: 'paused', note: `took ${it.id}` }));
       }
       const at = nowMs();
-      const table = opts.forecast ? parseForecast(opts.forecast) : null;
-      if (opts.due !== undefined && opts.away !== undefined) throw new Usage('--due names the promised time; --away adds to the forecast: give one');
-      let due;
-      if (opts.due !== undefined) {
-        due = parseWhen(opts.due);
-        if (!Number.isFinite(due)) throw new Usage('--due needs a time');
-      } else if (table) due = at + (table.rows.total.forecast + Number(count(opts, 'away') || 0)) * 60e3;
+      const { table, due } = promiseOf(opts, at);
       const fields = {
         span: newSpanId(), at: iso(at), session: me.key, agent: agentName(me, role, opts), role,
-        due: due === undefined ? undefined : iso(due), away: count(opts, 'away'),
+        due, away: count(opts, 'away'),
         tasks: count(opts, 'tasks'), stages: count(opts, 'stages'), basis: opts.basis, note: opts.note,
       };
       out.push({ item: it.id, body: formatRecord('claim', fields, table) });
@@ -912,6 +974,9 @@ runs.mjs claim --item <id> --role coordinator|worker|agent [--forecast phase=min
 runs.mjs claim --recovered --item <id> --role <role> --harness <h> --session <id> --at <time> [--basis <record>] [--note <text>]
   the claim another session made and never wrote, at the start its transcript here shows; then gaps.
   Where no machine has the transcript, at the start the record named in --basis shows; then receipt --unknown
+runs.mjs claim --claims-for <harness:session> --item <id> --role <role> [--forecast ...] [--away <min> | --due <time>] [--tasks N] [--stages N] [--note <text>]
+  the claim for a run this session is starting in another session, which cannot claim yet: the span is the run's (its key), this
+  session's key is kept in the record, and the run claims nothing again -- its receipt ends the span
 runs.mjs receipt [--span <id>] --end paused|finished|handed-over|stopped [--reason owner|missing|other] [--note <text>] [--recovered]
   what the span spent, measured from this machine's transcript (exit 3 when it is not here)
 runs.mjs receipt --span <id> --end ... --unknown --note <why>
@@ -1422,6 +1487,33 @@ async function selftest() {
     expect('finish: a harness this copy cannot read is said in the summary, and its time is not called unknown or missing',
       fin2.kind === 'summary' && !fin2.problems.length && /unsupported here/.test(fin2.fields.note || '')
       && !fin2.fields.unknown && fin2.fields['occupied-partial'] === 'yes' && fin2.fields.missing === '0');
+    // The session that starts a run in another session records the claim for it
+    // where the run cannot, by **Whoever started a run answers for it to the
+    // owner**: the span is the run's, the record says who wrote it, and the
+    // run claims nothing again.
+    // Claims that judge posted state must read it: write the export first, as
+    // cli() does around every call, so the check runs against what was posted.
+    const misusePosted = (a) => { try { rawCache = null; writeFileSync(file, JSON.stringify(backlog)); run([...a]); return false; } catch (e) { return e instanceof Usage; } };
+    const forRun = act('claim', '--claims-for', 'claude-code:run-1', '--item', 'B', '--role', 'coordinator', '--due', T(clock + 3600e3), ...as('coord'));
+    const fc = parseRecord(forRun[0].body);
+    expect('claims-for: a clean record on the run session, naming the one that wrote it',
+      forRun.length === 1 && !fc.problems.length && fc.fields.session === 'claude-code:run-1' && fc.fields.sent === 'claude-code:coord'
+      && Date.parse(fc.fields.due) - Date.parse(fc.fields.at) === 3600e3 && fc.kind === 'claim');
+    expect('claims-for: once per run', misusePosted(['claim', '--claims-for', 'claude-code:run-1', '--item', 'B', '--role', 'coordinator', '--backlog', file, ...as('coord')]));
+    expect('claims-for: an unknown harness is refused', misuse(['claim', '--claims-for', 'no-such:run-2', '--item', 'B', '--role', 'coordinator', '--backlog', file, ...as('coord')]));
+    expect('claims-for: a shapeless key is refused', misuse(['claim', '--claims-for', 'run-3', '--item', 'B', '--role', 'coordinator', '--backlog', file, ...as('coord')]));
+    expect('claims-for: with --recovered is refused', misuse(['claim', '--claims-for', 'claude-code:run-4', '--recovered', '--item', 'B', '--role', 'coordinator', '--at', T(clock), '--backlog', file, ...as('coord')]));
+    expect('the started session is told, not refused', (() => {
+      try { writeFileSync(file, JSON.stringify(backlog)); run(['claim', '--item', 'B', '--role', 'coordinator', '--backlog', file, ...as('run-1')]); return false; }
+      catch (e) { return e instanceof Usage && /recorded its claim/.test(e.message); }
+    })());
+    // Tracked work whose span was never claimed is named in time and report,
+    // rather than lost in a count.
+    postAll([{ item: 'X', body: formatRecord('receipt', { span: 'orphan-1', from: T(clock - 30e3), end: 'finished', unknown: 'yes', note: 'no claim was ever made' }) }]);
+    const tOut = cli('time', '--project', 'demo');
+    const rOut = cli('report');
+    expect('time: the unclaimed span is named', /orphan-1/.test(tOut) && /Work recorded with no claim/.test(tOut));
+    expect('report: the unclaimed span is named', /orphan-1/.test(rOut) && /no claim on the span/.test(rOut));
   } catch (e) {
     expect(`the self-test ran to its end (${e.stack})`, false);
   } finally {
