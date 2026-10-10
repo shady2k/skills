@@ -193,6 +193,25 @@ session above it — works to the same contract, whatever starts it:
   a decision stays open until that is settled; nothing is left open in case.
   Handing the run over hands these sessions over by name.
 
+**Whoever started a run answers for it to the owner.** A session that starts a
+run in another session — a coordinator it hands a feature to, a worker, a long
+job — and stays with the owner does not pause between jobs while it runs:
+supervising that run is this session's own work, as running it is the other's.
+Before the run starts, its deadline — the estimate's upper end, by **Estimates**
+— is recorded where others can read it, as **A run that never came back is
+found** records a run's deadline, and the owner hears what is awaited, by what
+it gives the product and why it is being done now, and by when, said as a time
+they can hold the agent to, by [**Waiting is quiet**](speaking.md). From then
+on the run is watched by **Silence is not progress** — its own signs of life
+and its deadline, not only whether a result exists — and anything that moves
+the expected time is news to the owner when it happens, with the new time and
+why: a session that died and was replaced, a step that overran, work sent back
+for rework. Past the deadline the wait is not armed again and the silence is
+not waited out: what went wrong is found from the record the run left, by
+**A run that never came back is found**, the owner hears the cause and what is
+being done about it, and the overrun is filed as **Silence is not progress**
+files any other.
+
 **A run that never came back is found, not assumed.** An unattended run cannot
 report its own death; what it leaves behind is a hold that stops moving and a
 record with no end. So before it goes unattended its deadline, by **Silence is

@@ -9,7 +9,12 @@ The owner plans a feature with the agent, then leaves. This skill runs the
 whole feature without them, as the protocol's
 [**Autonomy**](references/running.md) describes: one coordinator carries it
 through all its stages to one pull request, and each worker takes one task. It also takes a single bug or task when that is all the
-owner asked for; the same rules apply at that size.
+owner asked for; the same rules apply at that size. Where this session hands
+the run to a coordinator in another session and stays with the owner, the
+owner's side of the run — the deadline recorded, what is awaited and by when,
+the news of a moved time, the cause past it — is kept by the protocol's
+**Whoever started a run answers for it to the owner**, and the rest of this
+skill is that coordinator's to keep.
 
 This project's **backlog integration** should have been provided to you: how
 its gate is run, how its tracker is driven, where its vision and charters
@@ -77,7 +82,10 @@ Before the owner leaves, prepare the run so it needs nobody:
 - which agents and models do which tasks, against each task's risk;
 - how long the run will likely take and when the pull request can be expected,
   said as a time the owner can hold it to: past it without word the run has
-  stopped, by the protocol's **A run that never came back is found**. Give it
+  stopped, by the protocol's **A run that never came back is found**. The
+  estimate the owner is given is the time the run is expected back by, and what
+  the supervising session's deadline for it is, by the protocol's **Whoever
+  started a run answers for it to the owner**. Give it
   in agent time, by the protocol's **Estimates**, starting from the measured
   pace: `pace --tasks <n>`, which also proposes the forecast by phase, with
   the absence named below. The clock past runs lasted, which it prints

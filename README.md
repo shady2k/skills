@@ -798,6 +798,19 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.95.0** answers for a run started in another session. When your session
+  hands a feature to a coordinator elsewhere and stays with you, supervising
+  that run is its job, not a pause between jobs: before the run starts it
+  records a deadline for it and tells you what is being waited for — by what it
+  gives the product and why now — and when the result is due, said as a time
+  you can hold it to. Anything that moves that time — a session that died and
+  was replaced, a step that overran, work sent back for rework — reaches you
+  with the new time and why. Past the deadline it finds out what went wrong
+  instead of waiting longer. "Nothing to show yet" without a when is no longer
+  a status, and a question like "where does it stand" gets a summary like any
+  other: what is being done and why, the decisions taken, the risks and the
+  cost in time, not a list of steps done.
+
 - **0.94.0** stops three parts of the set from being wired to a fixed list of agent tools. A worker that runs inside its coordinator's session — an in-process subagent, which some agents give their parent's session id — no longer ends the coordinator's time record: its claim is refused with the reason, and its effort stays inside the coordinator's span. The reviewer is now what it is, a reviewer on a different model that can be reached from this agent, reached by a subagent with a model override, an external agent CLI or an API; setup proves the chosen way with one real call and records the way and the model, so a way that stops working is repaired with you told, not silently replaced by the same model. And the agent-specific reading of session transcripts now sits behind one adapter per agent inside the run script, so an agent this copy cannot read is told plainly ("unsupported here: what is missing") instead of being counted with the times no machine knows, `node ledger.mjs adapters` says what this copy reads and what each agent cannot do, the install and connect commands for every supported agent live in one list, and a worker in a session of its own records its own leaf while one in its coordinator's session records nothing. Projects rerun setup once, so the reviewer is proved and the install lines are written.
 
 - **0.93.0** A finished feature no longer leaves its working copies behind. Each task the run gave its own checkout and branch to is cleared away once its work is merged, what the worker wrote to the tracker there is carried over, and its time is recorded — in that order, because a claim is harder to recover once its working copy is gone. A checkout still holding unmerged work stays, and the run's report names it with why; what the run did not create it never removes, merged or not. Asking where the project stands now lists such leftovers as cleanup you can approve.

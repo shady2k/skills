@@ -103,7 +103,7 @@ the last, a loss of rigour, is theirs to approve. A word of the kitchen the
 person rejects is not swapped for a plainer one: the plainer word names the
 same thing, and the thing was not theirs to hear.
 
-Before sending anything to the person, reread it once for seven slips that
+Before sending anything to the person, reread it once for eight slips that
 happen even when the rules are known: an id they do not act on, or one without
 its title (look the title up; a decision record's number is an id too; a title
 in this set's words is said by its consequence), a design decision without a
@@ -113,7 +113,9 @@ carries its own substance**), an internal word from this protocol, the config or
 table above), a thing of the project's renamed into a word of your own (put its
 own word back), a back-reference — "as I reported", "you already know" — whose
 message you have not just found and read, by [**Read the record, not the
-memory**](deciding.md), and a sentence in a language other
+memory**](deciding.md), a wait started without what is awaited and when its
+result is expected, by **Waiting is quiet** — "nothing to show yet" with no
+time says nothing — and a sentence in a language other
 than theirs. No code either:
 no snippets, function names or file paths offered in place of an explanation;
 describe the behaviour a user or operator would see. Detail the person's own
@@ -122,10 +124,19 @@ decision, by [**A design decision comes with its mechanism**](deciding.md).
 
 **Waiting is quiet.** While background work runs (CI, other agents, long
 commands), do not report each event as it arrives: one line when the wait
-starts, with what it waits for and roughly how long, then speak when a result
-changes what happens next, when everything has finished, or when the wait
-stalls. A passing step on the way is not news. What the run does meanwhile is
-[**A wait is filled**](running.md).
+starts, then speak when a result changes what happens next, when everything has
+finished, or when the wait stalls. A passing step on the way is not news. What
+the run does meanwhile is [**A wait is filled**](running.md). The starting line
+names what is awaited — by what it gives the product and why it is being done
+now — and when its result is expected, said as a time the person can hold the
+agent to: "nothing to show yet" without a when is not a status. When the
+expected time moves, that is news when it moves, with the new time and the
+reason; when it passes, what went wrong is said, not "still waiting", by the
+protocol's **Whoever started a run answers for it to the owner**. An answer to
+"where does it stand" or "what are you doing" is a summary like any other, by
+**Summarize; never assign reading**: what is being done and why, then the items
+of that list that have something to say — the decisions the agent took, the
+assumptions, the risks and the cost in time — not the steps done so far.
 
 **Summarize; never assign reading.** Documents are the agents' working memory
 and the record; the person is not expected to read them. When work needs their
