@@ -206,6 +206,30 @@ questionnaire**.
   Explain what each means for leaving: inline and subagents end with the
   session; separate sessions survive while the machine runs; a cloud session
   needs no machine of theirs. The preflight of each feature run confirms it.
+- **How the owner is told when away:** the channel that carries a run's
+  messages when the owner is not at the screen. Its values: none; the
+  harness's own notification where it has one; or a command the owner
+  already uses — a push service, a messenger bot, a webhook, any command
+  that takes a short text — named exactly as they invoke it. Setup looks for
+  what this machine already has (an installed notification command or skill)
+  before asking, and recommends that; recommend none where it finds nothing
+  and the owner does not name one. Say in plain words what the channel is
+  for: the run's progress digest, a point the run could not settle by
+  itself, a decision waiting on the owner. What the push carries is the same
+  summary the protocol's **Summarize; never assign reading** already holds
+  every message the owner reads to, sent on the measure the protocol's
+  **Waiting is quiet** gives, while the protocol's **The owner's time is the
+  scarce one** governs what a run does in their absence: the channel carries
+  no second format of report and none of the kitchen. The channel is the
+  person's, not the project's: the command is kept outside the repository,
+  per machine, in the set's per-user config folder, in a file beside the one
+  `jev.json` already defines, which the run script's `notify` command reads;
+  tokens and keys are never written into the repository or the extension —
+  they stay where the owner's command already reads them, its own config or
+  an environment variable. The project's config records only that pushes
+  are on, in `notifyPushes`, which turns on only with the owner's yes at
+  setup, together with the channel being proved (proof 4). A rerun keeps
+  the recorded answer.
 - **How changes reach the main line:** whether it accepts a direct push or
   requires a pull request, which checks it requires and how long they take.
   Found by looking, recorded, never asked again. Where CI runs product checks
@@ -349,6 +373,7 @@ them and propose it instead.
     "sure": 0.9,
     "model": "jev-1.13"
   },
+  "notifyPushes": false,
   "scope": "<personal | team>",
   "artifactLanguage": "en",
   "projectWords": ["<project names>"],
@@ -363,6 +388,12 @@ The execution numbers are examples, not choices. `findingBudget` and
 `currentMilestone` stay null only while no live slice is admitted.
 `timeRecordsExempt` is written once, when time records are adopted (step 2 of
 the proofs), and only shrinks after.
+`notifyPushes` is the project's only note about the owner's channel: the
+channel itself — the command and wherever it keeps its token — is the
+person's, kept in the set's per-user config folder, beside `jev.json`, and
+the key stays out of the repository. It turns on only with the owner's yes
+at setup, together with the channel being proved.
+
 The config holds only choices the whole team shares. It records no
 installation state: the installed checks' versions on the main line are the
 repository's installation, and each person's plugin, hooks and runtime are
@@ -577,9 +608,17 @@ real commits and this repository's own checks are proved.
    environment changed since; otherwise the earlier proof stands. Before any
    run longer than a few minutes, say what it proves and how long it takes.
    Never run anything only "for completeness". Check a bounded mutation sample
-   and the reviewer or its fallback. Report every proof not performed. A
-   failure needs a repair or an agreed, supported change of settings, not a
-   success stamp.
+   and the reviewer or its fallback. Where `notifyPushes` is on, prove the
+   channel the way the reviewer is proved, with one real call: the run
+   script's `notify` command sends one real test message, and the owner's
+   word that it arrived is the proof — nothing sent and nothing confirmed is
+   a channel not proved, and pushes stay off until it is. A channel that
+   stops working later is said plainly the moment it is found: the `notify`
+   command reports a failure rather than pretending, and the run falls back
+   to the conversation until the channel is repaired or retired with the
+   owner's agreement, never silently dropped.
+   Report every proof not performed. A failure needs a repair or an agreed,
+   supported change of settings, not a success stamp.
 5. **Jev**, where the project consented: from this skill's directory,
    `node jev.mjs status --config <project-config>` says it is available, and
    says which source it used — the machine's file, with its path, or
