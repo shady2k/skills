@@ -266,7 +266,15 @@ match the agreed execution settings and the task's risk, and switch before it
 starts where they do not.
 
 Nothing runs unbounded: every worker, review or long command is bounded and
-watched by the protocol's **Silence is not progress**.
+watched by the protocol's **Silence is not progress**. Long commands — tests,
+checks and builds — run through the run journal's runner `runs.mjs exec`, which
+keeps, in its own journal beside the time records, the durations it recorded
+for every command it has run: from them it takes the command's bound, and back
+there it records the duration with its result, so the bound is the command's
+own history and nothing the agent remembers; a long command run outside `exec`
+is missing its bound. Where nothing is recorded yet, the first run runs under
+the default the runner carries, or the estimate named with `--first` before it
+runs, by the protocol's **Estimates**.
 
 Before a leaf is started, and whenever a decision of this run retires what
 other open leaves are written against, apply the protocol's **What would make
