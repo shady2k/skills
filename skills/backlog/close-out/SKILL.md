@@ -116,6 +116,19 @@ Record the answer with `verdict`, as counts and a short note, posted on the
 feature. Only the owner can judge these; never fill them in yourself. If they
 skip it, record nothing and do not ask again for this feature.
 
+Alongside the owner's questions, the feature's retrospective is taken from the
+run's own record, and it is a blameless retrospective — named so because
+nothing in it is assigned. By the protocol's [**How the work went is kept on
+the item**](protocol.md), the summary holds the forecast against the work by
+phase: read off it the three largest overruns against the forecast by phase,
+each with its cause as the record holds it — the cause and not the culprit,
+by the protocol's [**Whoever started a run answers for it to the
+owner**](references/running.md) — and file each as a finding through the
+integration's finding route, the same lane a bug is filed in. A stage that ran
+under forecast is said too, when its cause is a practice worth keeping. The
+retrospective needs nobody's verdict; only the record and this session read
+it — the owner reads what was filed, in the report of section 5.
+
 Then look through its handoff notes, run notes and review findings for traps
 that would cost time again, by the protocol's [**A lesson that outlives the work
 is kept where every agent reads**](references/keeping.md): proposed to the owner
