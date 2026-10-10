@@ -46,6 +46,8 @@ const mutations = [
     name: `documents-${id}`, file: 'check-docs.mjs', failure: `FAIL  documents/${id}:`,
     change: (code) => code.replace('if (condition) violations.push', `if (condition && id !== '${id}') violations.push`),
   })),
+  { name: 'documents-mutation-not-made', file: 'check-docs.mjs', failure: 'FAIL  documents/a-mutation-run-that-is-not-made-is-not-a-refusal:',
+    change: (code) => code.replace("kindOf.get(id) === 'mutation'", 'false') },
   { name: 'documents-applies-to', file: 'check-docs.mjs', failure: 'FAIL  documents/check-for-other-kind:',
     change: (code) => code.replace('!c.appliesTo || c.appliesTo.includes(change.kind)', 'true') },
   ...[['old-debt', "was && was.how === false ? 'old-dead'", "false ? 'old-dead'", 'older-drift-is-debt'],

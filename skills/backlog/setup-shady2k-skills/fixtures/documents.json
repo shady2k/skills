@@ -577,6 +577,9 @@
           "path": "evidence/revision",
           "value": "older"
         }
+      ],
+      "notes": [
+        "not-made:mutation"
       ]
     },
     {
@@ -662,6 +665,118 @@
       ]
     },
     {
+      "name": "a-mutation-run-that-is-not-made-is-not-a-refusal",
+      "receipts": true,
+      "notes": [
+        "not-made:mutation"
+      ],
+      "expected": [],
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "evidence/checks",
+          "value": [
+            {
+              "id": "full",
+              "status": "passed",
+              "reference": "fixture:full"
+            },
+            {
+              "id": "review",
+              "status": "passed",
+              "reference": "fixture:review"
+            },
+            {
+              "id": "export-test",
+              "status": "passed",
+              "reference": "fixture:export-test"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a-failed-mutation-run-is-recorded-evidence",
+      "receipts": true,
+      "notes": [
+        "not-made:mutation"
+      ],
+      "expected": [],
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "evidence/checks/1/status",
+          "value": "failed"
+        }
+      ]
+    },
+    {
+      "name": "a-stale-mutation-receipt-is-recorded-evidence",
+      "receipts": true,
+      "notes": [
+        "not-made:mutation"
+      ],
+      "expected": [],
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "evidence/checks/1/revision",
+          "value": "older-sample"
+        }
+      ]
+    },
+    {
+      "name": "notes-do-not-refuse-the-change",
+      "receipts": true,
+      "notes": [
+        "not-made:mutation"
+      ],
+      "expected": [
+        "open-question"
+      ],
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "model/change/openQuestions",
+          "value": [
+            "Who may waive a test?"
+          ]
+        },
+        {
+          "path": "evidence/checks",
+          "value": [
+            {
+              "id": "full",
+              "status": "passed",
+              "reference": "fixture:full"
+            },
+            {
+              "id": "review",
+              "status": "passed",
+              "reference": "fixture:review"
+            },
+            {
+              "id": "export-test",
+              "status": "passed",
+              "reference": "fixture:export-test"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "missing-receipts",
       "expected": [
         "stale-evidence",
@@ -678,6 +793,9 @@
           "path": "evidence",
           "value": null
         }
+      ],
+      "notes": [
+        "not-made:mutation"
       ]
     },
     {
@@ -1220,6 +1338,9 @@
           "path": "model/revision",
           "value": "candidate-2"
         }
+      ],
+      "notes": [
+        "not-made:mutation"
       ]
     },
     {

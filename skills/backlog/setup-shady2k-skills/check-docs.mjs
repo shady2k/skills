@@ -120,6 +120,10 @@ const WHY = {
   'unpinned-check': 'the policy says what this check does not read, so the export carries a revision of its own inputs for it (checkRevisions): the wrapper computes it with checkRevision',
   'unproved-check': 'this check needs a receipt with status passed and a reference',
 };
+// A mutation run measures how strong the tests are; it never decides whether
+// the change is correct. What its run gave to this revision is reported and
+// never refused, and its survivors are filed tasks, not a verdict it passes.
+const NOT_MADE = 'a mutation run measures how strong the tests are, it never refuses a change: record what happened, file its survivors as tasks';
 
 export function checkDocuments(model, policy, evidence = null) {
   schema(model, modelSchema, 'model');
@@ -243,14 +247,27 @@ export function checkDocuments(model, policy, evidence = null) {
     // nothing about its inputs reads the whole revision, as before.
     const pinOf = (id) => model.checkRevisions?.find((r) => r.id === id)?.revision;
     for (const c of policy.requiredChecks) check('unpinned-check', (c.ignores?.length ?? 0) > 0 && !pinOf(c.id), `policy/${c.id}`);
+    const kindOf = new Map(policy.requiredChecks.map((c) => [c.id, c.kind]));
+    const notes = [];
     for (const id of needed) {
       const receipt = evidence?.checks.find((c) => c.id === id);
+      const stale = Boolean(evidence && receipt)
+        && (receipt.revision ?? evidence.revision) !== (pinOf(id) ?? model.revision);
+      if (kindOf.get(id) === 'mutation' && (!receipt || receipt.status !== 'passed' || !present(receipt.reference) || stale)) {
+        notes.push({ id: 'not-made', at: id, why: NOT_MADE });
+        continue;
+      }
       check('unproved-check', !receipt || receipt.status !== 'passed' || !present(receipt.reference), id);
       if (evidence && receipt) check('stale-evidence', (receipt.revision ?? evidence.revision) !== (pinOf(id) ?? model.revision), id);
     }
+    if (notes.length) violations.notes = notes;
   }
   return violations;
 }
+
+// The notes ride on the returned array, so serializing the array alone would
+// drop them; wrappers read them through this export.
+export const notesOf = (result) => result.notes ?? [];
 
 // Fixture patches mutate only an in-memory copy; shipped source is never edited.
 export function fixtureCases() {
@@ -281,14 +298,19 @@ export function selftest() {
   let failures = 0;
   const unexplained = new Set();
   for (const c of fixtureCases()) {
-    let actual;
+    let actual, actualNotes;
     try {
       const found = checkDocuments(c.model, c.policy, c.evidence);
       for (const v of found) if (!v.why) unexplained.add(v.id);
+      const notes = notesOf(found);
+      for (const n of notes) if (!n.why) unexplained.add(`not-made:${n.at}`);
       actual = [...new Set(found.map((v) => v.id))].sort();
-    } catch { actual = ['invalid-input']; }
-    const ok = same(actual, [...c.expected].sort());
-    console.log(`${ok ? 'PASS' : 'FAIL'}  documents/${c.name}: ${JSON.stringify(actual)}`);
+      actualNotes = [...new Set(notes.map((n) => `not-made:${n.at}`))].sort();
+    } catch { actual = ['invalid-input']; actualNotes = []; }
+    const wantedNotes = [...(c.notes ?? [])].sort();
+    const ok = same(actual, [...c.expected].sort()) && same(actualNotes, wantedNotes);
+    console.log(`${ok ? 'PASS' : 'FAIL'}  documents/${c.name}: ${JSON.stringify(actual)}` +
+      (wantedNotes.length || actualNotes?.length ? ` notes: ${JSON.stringify(actualNotes ?? [])}` : ''));
     if (!ok) failures++;
   }
   // A refusal that names no remedy sends its reader to read the rules instead.
@@ -326,9 +348,11 @@ function main(args) {
     ? `Change ${c.id}, kind ${c.kind}: ${c.deltas.length} delta(s), ${c.preserves.length} preserved, ` +
       `${c.coverage.length} covered; capabilities in the baseline: ${model.baseline.map((x) => x.id).join(', ') || 'none yet'}`
     : `Phase ${model.phase}, no change record`;
-  console.log(options['--json'] ? JSON.stringify({ version: RULES_VERSION, violations })
-    : violations.length
-      ? [context, ...violations.map((v) => `${v.id}: ${v.at}${v.why ? ` \u2014 ${v.why}` : ''}`)].join('\n')
+  const notes = notesOf(violations);
+  console.log(options['--json'] ? JSON.stringify({ version: RULES_VERSION, violations, notes })
+    : violations.length || notes.length
+      ? [context, ...violations.map((v) => `${v.id}: ${v.at}${v.why ? ` \u2014 ${v.why}` : ''}`),
+         ...notes.map((n) => `not-made: ${n.at} \u2014 ${n.why}`)].join('\n')
       : 'Document gate: clean');
   return violations.length ? 1 : 0;
 }

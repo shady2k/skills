@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { checkDocuments, decided, digest, fixtureCases } from '../skills/backlog/setup-shady2k-skills/check-docs.mjs';
+import { checkDocuments, decided, digest, fixtureCases, notesOf } from '../skills/backlog/setup-shady2k-skills/check-docs.mjs';
 import { checkRevision, parseCapability, parseVision, parseMilestone, pathMatcher } from '../skills/backlog/setup-shady2k-skills/document-format.mjs';
 
 const script = new URL('../skills/backlog/setup-shady2k-skills/check-docs.mjs', import.meta.url);
@@ -60,6 +60,41 @@ test('changing policy invalidates prior receipts even when required IDs are unch
   assert.ok(checkDocuments(c.model, c.policy, c.evidence).some((v) => v.id === 'stale-evidence'));
 });
 
+test('a mutation run that was not made is reported, never refused and never passed', () => {
+  const redo = (edit) => {
+    const c = good(); edit(c.evidence);
+    const result = checkDocuments(c.model, c.policy, c.evidence);
+    assert.deepEqual([...new Set(result.map((v) => v.id))], [], JSON.stringify(result.map((v) => v.id)));
+    const note = notesOf(result).find((n) => n.at === 'mutation');
+    assert.ok(note, 'mutation absent from the notes');
+    assert.equal(note.id, 'not-made');
+    assert.ok(note.why && !note.why.includes('undefined'));
+  };
+  for (const status of ['failed', 'skipped', 'unsupported']) {
+    redo((e) => { e.checks.find((x) => x.id === 'mutation').status = status; });
+  }
+  redo((e) => { e.checks = e.checks.filter((x) => x.id !== 'mutation'); });
+  redo((e) => { e.checks.find((x) => x.id === 'mutation').reference = ''; });
+  // The receipt stood for an older revision: it measures nothing here now.
+  redo((e) => { e.checks.find((x) => x.id === 'mutation').revision = 'older-sample'; });
+  redo((e) => { e.checks.find((x) => x.id === 'mutation').status = 'passed'; e.checks.find((x) => x.id === 'mutation').reference = ''; });
+});
+
+test('a mutation run that was made stands as a passed receipt and brings no note', () => {
+  const c = good(); c.model.phase = 'acceptance';
+  const result = checkDocuments(c.model, c.policy, c.evidence);
+  assert.deepEqual([...new Set(result.map((v) => v.id))], []);
+  assert.deepEqual(notesOf(result), []);
+});
+
+test('a required check of another kind keeps refusing without its receipt', () => {
+  const c = good(); c.model.phase = 'acceptance';
+  c.evidence.checks = c.evidence.checks.filter((x) => x.id !== 'full');
+  const result = checkDocuments(c.model, c.policy, c.evidence);
+  assert.ok(result.some((v) => v.id === 'unproved-check'), JSON.stringify([...new Set(result.map((v) => v.id))]));
+  assert.deepEqual(notesOf(result), []);
+});
+
 test('every required receipt must be successful and retrievable', () => {
   for (const status of ['failed', 'skipped', 'unsupported']) {
     const c = good(); c.evidence.checks[0].status = status;
@@ -88,6 +123,31 @@ test('CLI distinguishes clean, violations and malformed input', () => {
   c.model.phase = 'skip'; save('model.json', c.model);
   assert.equal(run(...args).status, 2);
   writeFileSync(input, '{'); assert.equal(run(...args).status, 2);
+});
+
+test('CLI reports notes beside violations and exits 0 when notes are the only finding', () => {
+  const c = good();
+  c.evidence.checks = c.evidence.checks.filter((x) => x.id !== 'mutation');
+  const input = save('note-model.json', c.model), policy = save('note-policy.json', c.policy), evidence = save('note-evidence.json', c.evidence);
+  const args = ['--input', input, '--policy', policy, '--evidence', evidence];
+  const json = run(...args, '--json');
+  assert.equal(json.status, 0, json.stderr);
+  const parsed = JSON.parse(json.stdout);
+  assert.deepEqual(parsed.violations, []);
+  assert.deepEqual(parsed.notes.map((n) => `${n.id}@${n.at}@${typeof n.why}`), ['not-made@mutation@string']);
+  const text = run(...args);
+  assert.equal(text.status, 0, text.stderr);
+  const lines = text.stdout.trim().split('\n').filter((l) => l.startsWith('not-made'));
+  assert.equal(lines.length, 1);
+  assert.match(lines[0], /^not-made: mutation \u2014 /);
+  // A real violation beside the notes still refuses, and the note travels with it.
+  c.model.change.openQuestions = ['Unsettled authorization boundary'];
+  save('note-model.json', c.model);
+  const refused = run(...args, '--json');
+  assert.equal(refused.status, 1);
+  const returned = JSON.parse(refused.stdout);
+  assert.deepEqual(returned.violations.map((v) => v.id), ['open-question']);
+  assert.deepEqual(returned.notes.map((n) => n.at), ['mutation']);
 });
 
 test('CLI fails closed on all invocation mistakes', () => {
