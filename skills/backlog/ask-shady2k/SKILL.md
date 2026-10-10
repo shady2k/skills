@@ -88,7 +88,14 @@ and time in sessions that claimed nothing. Where the owner asks about this
 machine's sessions themselves, the ledger beside it ([`ledger.mjs`](ledger.mjs))
 reads them whole: `time` and `sessions`, including the workers' own working
 copies and subagents, and which figures a harness did not record (a harness
-that keeps no cost has an unknown cost, not a free one). Its `stalled` names
+that keeps no cost has an unknown cost, not a free one). Its `stats` prints
+the same reading drawn — a day as hour bars by kind of activity, the longer
+periods as a map of the days, a legend, the day's totals with percentages by
+phase and by kind, and the models and agents with their hours. Where the
+owner asks for statistics, "stats", or how their day went, run it and show
+the view as printed: it is their own picture, and the words around it follow
+**Speaking to the owner** — the names in its tables are the records', not
+said in more kitchen than the table itself. Its `stalled` names
 runs that left no summary and
 passed the time their result was promised for: report each with what it last did and when, next to the
 hold it left on the work, and offer taking it over or ending its record. For a run

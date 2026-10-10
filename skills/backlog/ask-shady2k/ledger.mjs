@@ -631,7 +631,7 @@ export function readClaude(path, sub = null) {
         tokens.output += u.output_tokens || 0;
         tokens.cacheRead += u.cache_read_input_tokens || 0;
       }
-      const g = { start: prev, end: at, mid, phase: null };
+      const g = { start: prev, end: at, mid, phase: null, model: d.message?.model || null };
       gens.push(g);
       for (const c of calls) use.set(c.id, { at, name: c.name, input: c.input, gen: g });
       prev = at;
@@ -742,12 +742,16 @@ export function readCodex(path) {
   let open = null;
   let prev = NaN;
   let lastAt = NaN;
-  const endTurn = (at) => { if (open) { turns.push({ start: open.start, end: at }); open = null; } };
+  // The model of the turn, from its turn_context when the record holds one;
+  // every turn resets it.
+  let turnModel = null;
+  const endTurn = (at) => { turnModel = null; if (open) { turns.push({ start: open.start, end: at }); open = null; } };
 
   for (const d of all) {
     const at = parseTime(d.timestamp);
     const p = d.payload || {};
     if (!Number.isFinite(at)) continue;
+    if (d.type === 'turn_context' && typeof p.model === 'string') { turnModel = p.model; continue; }
     // A task is a turn: what an earlier one showed says nothing about it.
     if (p.type === 'task_started') { endTurn(lastAt); open = { start: at }; phase.owner(); gens.push({ owner: true, at }); prev = at; lastAt = at; continue; }
     if (p.type === 'task_complete' || p.type === 'turn_aborted') { endTurn(at); lastAt = at; continue; }
@@ -777,7 +781,7 @@ export function readCodex(path) {
       // script, not a wait on another agent.
       const cell = p.name === 'wait' && /"cell_id"\s*:\s*"?(\d+)/.exec(text);
       const kind = cell ? cells.get(cell[1]) || 'shell' : category(p.name, text);
-      const g = { start: prev, end: at, kind, phase: phase.of(kind) };
+      const g = { start: prev, end: at, kind, phase: phase.of(kind), model: turnModel };
       gens.push(g);
       use.set(p.call_id, { at, name: p.name, kind, gen: g, escalated: /require_escalated/.test(text) });
       prev = at;
@@ -802,7 +806,7 @@ export function readCodex(path) {
       }
       prev = at;
     } else if (p.type === 'reasoning' || (p.type === 'message' && p.role === 'assistant') || p.type === 'agent_message') {
-      gens.push(p.type === 'reasoning' ? { start: prev, end: at, kind: null, phase: null } : { start: prev, end: at, kind: 'reply', phase: phase.now });
+      gens.push(p.type === 'reasoning' ? { start: prev, end: at, kind: null, phase: null, model: turnModel } : { start: prev, end: at, kind: 'reply', phase: phase.now, model: turnModel });
       prev = at;
     }
   }
@@ -917,7 +921,7 @@ export function readPi(path, { harness = 'pi', parent: given = null } = {}) {
       }
       const kinds = calls.map((c) => category(PI_TOOLS[c.name] || c.name, c.arguments));
       const kind = strongest(kinds);
-      const g = { start: from, end, kind, phase: phase.of(kind) };
+      const g = { start: from, end, kind, phase: phase.of(kind), model: m.model || null };
       gens.push(g);
       calls.forEach((c, k) => use.set(c.id, { start: end, name: c.name, kind: kinds[k], gen: g }));
       if (m.stopReason !== 'toolUse') endTurn(end);
@@ -966,6 +970,20 @@ const PRIORITY = { ask: 1, tool: 2, wait: 3, model: 4, turn: 5 };
  * away, and nobody. They add up to the session's clock inside the windows,
  * exactly, because every instant is counted once.
  */
+// A session's model minutes, when its record names a model for the model
+// generating; what no record names is kept under "(not recorded)". The
+// minutes already carry whatever the harness's own totals took out.
+const MODELS_UNNAMED = '(not recorded)';
+const modelsOf = (laid) => {
+  const models = {};
+  for (const g of laid) {
+    if (g.bucket !== 'model' || !(g.ms > 0)) continue;
+    const name = g.model || MODELS_UNNAMED;
+    models[name] = (models[name] || 0) + g.ms;
+    }
+  const minutes = (ms) => ms / 60e3;
+  return Object.fromEntries(Object.entries(models).sort((a, b) => b[1] - a[1]).map(([k, ms]) => [k, minutes(ms)]));
+};
 export function measure(raw, { answerMinutes = ANSWER_MINUTES, windows = null, now = Date.now() } = {}) {
   const lo = raw.first;
   const hi = raw.last;
@@ -983,7 +1001,7 @@ export function measure(raw, { answerMinutes = ANSWER_MINUTES, windows = null, n
     else if (p.kind === 'delegate' || p.kind === 'wait') ivs.push({ ...p, label: 'wait' });
     else ivs.push({ ...p, label: 'tool' });
   }
-  for (const g of raw.gens) ivs.push({ start: g.start, end: g.end, label: 'model', kind: g.kind, phase: g.phase });
+  for (const g of raw.gens) ivs.push({ start: g.start, end: g.end, label: 'model', kind: g.kind, phase: g.phase, model: g.model || null });
   for (const t of raw.turns) ivs.push({ start: t.start, end: t.end, label: 'turn', kind: 'coordination', phase: null });
 
   // Lay every interval on the clock and let the most specific one covering
@@ -1018,12 +1036,18 @@ export function measure(raw, { answerMinutes = ANSWER_MINUTES, windows = null, n
   const phases = {};
   const occupied = [];
   const activeIvs = [];
-  const put = (phase, bucket, kind, ms) => {
-    if (!(ms > 0)) return;
-    buckets[bucket] += ms;
-    const p = (phases[phase] ||= { model: 0, tool: 0, coordination: 0, answer: 0, away: 0, idle: 0, model_kinds: {}, tool_kinds: {} });
-    p[bucket] += ms;
-    if (bucket === 'model' || bucket === 'tool') p[`${bucket}_kinds`][kind] = (p[`${bucket}_kinds`][kind] || 0) + ms;
+  const laid = []; // what filled the clock, piece by piece: the statistics
+  // views read this, as the day by the hour and the heat of the days.
+  const put = (phase, bucket, kind, ivs, model = null) => {
+    for (const { start, end } of ivs) {
+      const ms = end - start;
+      if (!(ms > 0)) continue;
+      buckets[bucket] += ms;
+      const p = (phases[phase] ||= { model: 0, tool: 0, coordination: 0, answer: 0, away: 0, idle: 0, model_kinds: {}, tool_kinds: {} });
+      p[bucket] += ms;
+      if (bucket === 'model' || bucket === 'tool') p[`${bucket}_kinds`][kind] = (p[`${bucket}_kinds`][kind] || 0) + ms;
+      laid.push({ start, end, ms, phase, bucket, kind, model });
+    }
   };
   const merged = [];
   for (const s of segs) {
@@ -1045,20 +1069,20 @@ export function measure(raw, { answerMinutes = ANSWER_MINUTES, windows = null, n
       const spoke = raw.owner.some((m) => m.at > s.start && m.at <= s.end + 30e3);
       if (spoke) {
         const bucket = s.end - s.start <= cap ? 'answer' : 'away';
-        put(phase, bucket, bucket, ms);
+        put(phase, bucket, bucket, inside);
         if (bucket === 'answer') occupied.push(...inside);
-      } else put(phase, 'idle', 'idle', ms);
+      } else put(phase, 'idle', 'idle', inside);
       continue;
     }
     if (v.label === 'ask') {
-      put(phase, v.owner, v.owner, ms);
+      put(phase, v.owner, v.owner, inside);
       if (v.owner === 'answer') occupied.push(...inside);
       continue;
     }
     occupied.push(...inside);
     if (v.label !== 'wait') activeIvs.push(...inside);
-    if (v.label === 'tool' || v.label === 'model') put(phase, v.label, v.kind, ms);
-    else put(phase, 'coordination', v.kind || 'coordination', ms);
+    if (v.label === 'tool' || v.label === 'model') put(phase, v.label, v.kind, inside, v.model || null);
+    else put(phase, 'coordination', v.kind || 'coordination', inside);
   }
 
   // The harness's own totals, where it kept them for exactly this session,
@@ -1086,6 +1110,14 @@ export function measure(raw, { answerMinutes = ANSWER_MINUTES, windows = null, n
         p.coordination += p[bucket] * (1 - f);
         p[bucket] *= f;
         for (const k of Object.keys(p[`${bucket}_kinds`])) p[`${bucket}_kinds`][k] *= f;
+      }
+      // What a piece of the clock gave to the narrowed bucket, it now shares
+      // with coordination, in the same proportion.
+      for (let i = laid.length - 1; i >= 0; i--) {
+        const g = laid[i];
+        if (g.bucket !== bucket) continue;
+        if (g.ms * (1 - f) > 1e-9) laid.splice(i + 1, 0, { ...g, bucket: 'coordination', kind: 'coordination', ms: g.ms * (1 - f), model: null });
+        g.ms *= f;
       }
       buckets.coordination += from - to;
       buckets[bucket] = to;
@@ -1130,6 +1162,11 @@ export function measure(raw, { answerMinutes = ANSWER_MINUTES, windows = null, n
       answer: minutes(v.answer), away: minutes(v.away), idle: minutes(v.idle),
       kinds: Object.fromEntries(Object.entries(v.kinds).map(([k, ms]) => [k, minutes(ms)])),
     }])),
+    // What the model generating was named, where the record names it, in
+    // minutes already narrowed with the bucket; a generation the record
+    // names no model for is (not recorded), not lost.
+    segments: laid,
+    models: modelsOf(laid),
     // Stretches of the clock: the agent working, for how many ran at once;
     // and anything a forecast covers (working, waiting inside a turn, the
     // owner answering), for how long a run occupied.
@@ -1668,14 +1705,481 @@ export function describeSessions(sessions) {
     '? is a figure the session did not record, "parent" one counted in the session that started it. Local time.'].join('\n');
 }
 
+// ---- statistics -------------------------------------------------------------
+//
+// `stats`: what the same reading of sessions gives (`time`, `sessions`),
+// laid where a person looks at it. A day as 24 hour rows, each hour a stacked
+// bar by kind of activity; the longer periods as a heat map of agent-hours a
+// day. Nothing is measured twice: every figure is either a ledger figure of
+// the same window or a sum of the pieces of the clock the buckets are laid
+// in. What the record does not carry is unknown, never zero; a session the
+// window cuts has only its pieces inside it, and none of its cost.
+
+const HOUR_MS = 3600e3;
+const DAY_MS = 24 * HOUR_MS;
+
+// The kinds of activity the day's bar stacks. The ledger's kinds fold into
+// them; a kind none of them names is talking: planning, a shell run for
+// neither, a reply. Waiting is what nobody did: the rest of a turn (whose
+// workers' minutes are their own sessions'), and the gaps no work filled.
+const STATS_GROUPS = ['develop', 'test', 'analyze', 'delegate', 'git', 'talk', 'answer', 'wait'];
+const STATS_LABELS = { develop: 'develop', test: 'test', analyze: 'analyze', delegate: 'review/deleg',
+  git: 'git/ci', talk: 'talking', answer: 'answered', wait: 'waiting/idle' };
+// Small codes, because a row must fit beside its bar in 80 columns.
+const STATS_CODES = { develop: 'dev', test: 'test', analyze: 'read', delegate: 'deleg', git: 'git',
+  talk: 'talk', answer: 'you', wait: 'idle' };
+const groupOf = ({ bucket, kind }) => (bucket === 'answer' ? 'answer'
+  : bucket === 'coordination' || bucket === 'idle' || bucket === 'away' || kind === 'wait' ? 'wait'
+    : kind === 'develop' || kind === 'build' ? 'develop'
+      : kind === 'test' ? 'test'
+        : kind === 'analyze' ? 'analyze'
+          : kind === 'delegate' ? 'delegate'
+            : kind === 'git' || kind === 'ci' ? 'git' : 'talk');
+
+// Colour: one accent, mid-tones that read the same on a dark and on a light
+// terminal, gray for what nobody did; the heat climbs from blue into green.
+// Plain text where asked, and always when no terminal is on the other end.
+const STATS_COLORS = { develop: 114, test: 179, analyze: 75, delegate: 176, git: 80, talk: 151,
+  answer: 152, wait: 240, accent: 117, dim: 245, dimmer: 238 };
+const HEAT_CHARS = [' ', '░', '▒', '▓', '█'];
+const HEAT_COLORS = [null, 24, 31, 38, 44];
+const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const blankGroups = () => Object.fromEntries(STATS_GROUPS.map((g) => [g, 0]));
+const addTo = (to, from) => { for (const g of STATS_GROUPS) to[g] += from[g] || 0; };
+const localDay = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const dayStartOf = (day) => { const [y, m, d] = day.split('-').map(Number); return new Date(y, m - 1, d).getTime(); };
+const pct1 = (share) => { if (!Number.isFinite(share)) return null; const r = Math.round(share * 1000) / 10; return r % 1 ? r.toFixed(1) : String(r); };
+
+// The laid pieces of the clock, split on the local hour and the local day.
+// A piece the harness's totals narrowed is split in the proportion it kept.
+function hourRows(sessions, since, until) {
+  const rows = new Map();
+  const row = (h) => {
+    let r = rows.get(h);
+    if (!r) { r = { groups: blankGroups(), agentMs: 0, ivs: [] }; rows.set(h, r); }
+    return r;
+  };
+  for (const s of sessions) {
+    for (const g of s.segments || []) {
+      if (!(g.ms > 0)) continue;
+      const group = groupOf(g);
+      let at = Math.max(g.start, since);
+      const end = Math.min(g.end, until);
+      if (!(end > at)) continue;
+      const whole = end - at;
+      while (at < end) {
+        const d = new Date(at);
+        const he = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours() + 1).getTime();
+        const piece = Math.min(end, he) - at;
+        row(d.getHours()).groups[group] += g.ms * (piece / whole);
+        at += piece;
+      }
+    }
+    for (const o of s.occupied || []) {
+      let at = Math.max(o.start, since);
+      const end = Math.min(o.end, until);
+      while (at < end) {
+        const d = new Date(at);
+        const hs = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()).getTime();
+        const he = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours() + 1).getTime();
+        const piece = Math.min(end, he) - at;
+        const r = row(d.getHours());
+        r.agentMs += piece;
+        r.ivs.push([at, Math.min(at + piece, he)]);
+        at += piece;
+      }
+    }
+  }
+  return rows;
+}
+
+// Every hour of one local day: what filled it, by kind; the agent-hours of
+// the hour, where several sessions at once make more than one; and how many
+// were working at the peak of that hour.
+function hoursOfDay(sessions, since, until) {
+  const rows = hourRows(sessions, since, until);
+  const out = [];
+  for (let h = 0; h < 24; h++) {
+    const r = rows.get(h);
+    const hour = `${String(h).padStart(2, '0')}:00`;
+    if (!r) { out.push({ hour, groups: blankGroups(), agentMillis: 0, peak: 0 }); continue; }
+    const edges = r.ivs.flatMap(([a, b]) => [[a, 1], [b, -1]]).sort((x, y) => x[0] - y[0] || x[1] - y[1]);
+    let open = 0, peak = 0;
+    for (const [, delta] of edges) { open += delta; peak = Math.max(peak, open); }
+    out.push({ hour, groups: r.groups, agentMillis: r.agentMs, peak });
+  }
+  return out;
+}
+
+// The agent-hours of every local day the period holds, as the day view
+// counts them: what any session occupied, sessions counted as they overlap.
+function heatDays(sessions, since, until) {
+  const days = new Map();
+  for (const s of sessions) for (const o of s.occupied || []) {
+    if (!(o.end > o.start)) continue;
+    let at = o.start;
+    while (at < o.end) {
+      const d = new Date(at);
+      const ds = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      const de = ds + DAY_MS;
+      if (o.end > ds && o.start < de) days.set(localDay(Math.max(at, ds)), (days.get(localDay(Math.max(at, ds))) || 0) + Math.min(o.end, de) - Math.max(o.start, ds));
+      at = Math.min(o.end, de);
+    }
+  }
+  const out = [];
+  // The days are stepped in local arithmetic, so a DST shift moves no day
+  // off its row.
+  for (let at = since; at < until;) {
+    const d = new Date(at);
+    const key = localDay(at);
+    out.push({ day: key, agentMillis: days.get(key) || 0 });
+    at = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
+  }
+  return out;
+}
+
+// Who the time was: by agent, and by model where the record names one. Cost
+// is a figure of the session, never of a model; where a session carries
+// both, it is divided over its models by the minutes each got - a split,
+// said so where it is shown. A model no record names is "(not recorded)",
+// and a session that carries a cost but names no model is counted there.
+const AGENT_NAMES = { 'codex': 'Codex', 'claude-code': 'Claude Code', 'omp': 'omp',
+  'prime-agent': 'Prime Agent', 'pi': 'Pi' };
+function whoOf(sessions) {
+  const agents = {};
+  const models = {};
+  let modelsWithUnknownCost = 0;
+  for (const s of sessions) {
+    const a = (agents[s.harness] ||= { name: AGENT_NAMES[s.harness] || s.harness, clockMillis: 0, cost: null, unknown: 0 });
+    a.clockMillis += s.wallMinutes * 60e3;
+    if (typeof s.costUSD === 'number' && s.costIn === 'own') a.cost = (a.cost || 0) + s.costUSD;
+    else if (s.costIn !== 'parent') a.unknown++;
+    const ms = Object.values(s.models || {}).reduce((x, y) => x + y, 0);
+    if (!(ms > 0)) continue;
+    const cost = typeof s.costUSD === 'number' && s.costIn === 'own' ? s.costUSD : null;
+    if (cost === null && s.costIn !== 'parent') modelsWithUnknownCost++;
+    for (const [name, mms] of Object.entries(s.models || {})) {
+      const m = (models[name] ||= { millis: 0, cost: 0, costKnown: false });
+      m.millis += mms * 60e3;
+      if (cost !== null) { m.cost += cost * (mms / ms); m.costKnown = true; }
+    }
+  }
+  const order = (o, key) => Object.fromEntries(Object.entries(o).sort((x, y) => y[1][key] - x[1][key]));
+  return { agents: order(agents, 'clockMillis'), models: order(models, 'millis'), modelsWithUnknownCost };
+}
+
+// The figures every period shows, all read from the ledger of the window.
+function statsBase(project, sessions, since, until, period) {
+  const l = ledger(project, { sessions, since, until });
+  const heat = heatDays(sessions, since, until);
+  // The longest stretch of the agent's own work: the union of what measure
+  // already calls active, which excludes the owner answering, a turn's wait
+  // and nobody's gaps; sessions running end for end make one stretch.
+  let longest = null;
+  for (const b of union(sessions.flatMap((s) => s.active || [])))
+    if (!longest || b.end - b.start > longest.ms) longest = { ...b, ms: b.end - b.start };
+  const busiest = heat.reduce((a, d) => (!a || d.agentMillis > a.agentMillis ? d : a), null);
+  const started = sessions.filter((s) => s.whole || s.startMs > since).length;
+  const workHours = l.workHours || 0;
+  // Shares come from raw minutes, never from the ledger's rounded hours:
+  // two minutes of a six-minute session would round twice to a hundred
+  // percent a phase.
+  const workMinutes = sessions.reduce((n, s) => n + s.modelMinutes + s.toolMinutes + s.answerMinutes, 0);
+  const kindMinutes = {};
+  const phaseMinutes = {};
+  for (const s of sessions) {
+    for (const [k, m] of Object.entries(s.kinds)) kindMinutes[k] = (kindMinutes[k] || 0) + m;
+    for (const [pn, v] of Object.entries(s.phases)) phaseMinutes[pn] = (phaseMinutes[pn] || 0) + v.model + v.tool + v.answer;
+  }
+  const share = (h, of) => (of ? pct1((h || 0) / of) : null);
+  const who = whoOf(sessions);
+  return {
+    period,
+    project,
+    window: { from: since === null ? null : localStamp(since), to: until === null ? null : localStamp(until) },
+    found: sessions.length,
+    days: heat,
+    busiest: busiest && busiest.agentMillis > 0
+      ? { day: busiest.day, agentMillis: busiest.agentMillis, hours: round(busiest.agentMillis / HOUR_MS) } : null,
+    longest: longest ? { hours: round(longest.ms / HOUR_MS), from: localStamp(longest.start), to: localStamp(longest.end) } : null,
+    concurrent: l.threads.peak,
+    sessions: {
+      started, inCheckout: l.inCheckout, inSideCopies: l.inSideCopies, subagents: l.subagents,
+      open: l.open, cut: l.cut, unresolved: l.unresolved,
+    },
+    conserves: l.conserves,
+    clockHours: l.clockHours,
+    workHours, model: l.model, tools: l.tools, answered: l.answering, ownerMessages: l.ownerMessages,
+    coordination: l.coordination, away: l.away, idle: l.idle,
+    kinds: Object.entries(kindMinutes).filter(([, m]) => m > 0).sort((a, b) => b[1] - a[1])
+      .map(([name, m]) => ({ name, hours: round(m / 60), workShare: share(m, workMinutes) })),
+    phases: PHASE_NAMES.filter((name) => (phaseMinutes[name] || 0) > 0).sort((a, b) => phaseMinutes[b] - phaseMinutes[a])
+      .map((name) => ({ name, hours: round(phaseMinutes[name] / 60), workShare: share(phaseMinutes[name], workMinutes) })),
+    noPhaseWorkHours: round((phaseMinutes.unattributed || 0) / 60),
+    noPhaseShare: workMinutes ? share(phaseMinutes.unattributed || 0, workMinutes) : null,
+    fromStamps: l.fromStamps, harnessClockDisagrees: l.harnessClockDisagrees,
+    agents: who.agents, models: who.models, modelsWithUnknownCost: who.modelsWithUnknownCost,
+    costUSD: l.costUSD, costUnknown: l.costUnknown,
+    linesAdded: l.linesAdded, linesRemoved: l.linesRemoved, linesUnknown: l.linesUnknown,
+    tokens: l.tokens,
+  };
+}
+
+export function statsDay(project, sessions, since, until) {
+  const base = statsBase(project, sessions, since, until, 'day');
+  base.hours = hoursOfDay(sessions, since, until);
+  const barTotals = blankGroups();
+  for (const r of base.hours) addTo(barTotals, r.groups);
+  const whole = Object.values(barTotals).reduce((a, b) => a + b, 0);
+  base.activity = Object.fromEntries(STATS_GROUPS.map((g) => [g, whole ? pct1(barTotals[g] / whole) : null]));
+  return base;
+}
+
+export function statsStretch(project, sessions, since, until, period) {
+  return statsBase(project, sessions, since, until, period);
+}
+
+// ---- the drawing ------------------------------------------------------------
+//
+// --json prints the figures above as they are; this is how they are drawn.
+// One accent, a calm palette of mid-tones, blocks and shades; plain text on
+// --no-color, when NO_COLOR is set, and when no terminal is on the other end.
+
+const srow = (label, value, width = 33) => row(label, value, width);
+// Long lines wrap at word boundaries, keeping their indentation; a
+// continuation starts where the line did.
+const wrap = (line, W) => {
+  if (stripCodes(line).length <= W || !line.trim()) return [line];
+  const indent = /^ */.exec(line)[0];
+  const room = W - indent.length;
+  const out = [];
+  let cur = '';
+  for (const part of line.trim().split(' · ')) {
+    // A roster part turns whole: shares and names are not cut apart. A part
+    // that is alone over the room wraps by words.
+    const cand = cur ? `${cur} · ${part}` : part;
+    if (stripCodes(cand).length > room) {
+      if (cur) { out.push(indent + cur); cur = ''; }
+      let w = '';
+      for (const word of part.split(' ')) {
+        if (w && stripCodes(w).length + 1 + stripCodes(word).length > room) { out.push(indent + w); w = word; }
+        else w = w ? `${w} ${word}` : word;
+      }
+      cur = w;
+    } else cur = cand;
+  }
+  if (cur) out.push(indent + cur);
+  return out;
+};
+const paintIn = (color) => (code, s) => (color && code != null ? `\x1b[38;5;${code}m${s}\x1b[0m` : s);
+// What a coloured string measures as on the terminal: without the codes.
+const stripCodes = (s) => s.replace(/\x1b\[[0-9;]*m/g, '');
+const namedDay = (day) => {
+  const [y, m, d] = day.split('-').map(Number);
+  return `${d} ${MONTHS[m - 1]} ${y}`;
+};
+const h1 = (hours) => `${(Math.round(hours * 10) / 10).toFixed(1)} h`;
+const roster = (pairs) => pairs.map(([k, text]) => `${k} ${text}`).join(' · ');
+const shares = (list) => list.map(({ name, workShare }) => `${name} ${workShare}%`).join(' · ');
+const shortStamp = (stamp) => `${stamp.slice(11, 16)} ${namedDay(stamp.slice(0, 10))}`;
+const spanText = (w) => w.from && w.to ? `${namedDay(w.from.slice(0, 10))} → ${namedDay(localDay(dayStartOf(w.to.slice(0, 10)) - 1))}` : 'nothing on record';
+
+function statsRows(v, p) {
+  const out = [];
+  out.push(srow('on the clock', `${v.clockHours} h`));
+  out.push(srow('working', `${v.workHours} h (the model ${v.model}, tools ${v.tools})`));
+  out.push(srow('the owner answered', `${v.answered} h over ${v.ownerMessages} message(s)`));
+  out.push(srow('waiting under the hood', `${v.coordination} h`));
+  out.push(srow('the owner away', `${v.away} h`));
+  out.push(srow('nobody', `${v.idle} h`));
+  const at = v.sessions;
+  out.push(srow('sessions started', `${at.started} (in the checkout ${at.inCheckout}, other working copies ${at.inSideCopies}, subagents ${at.subagents})`));
+  out.push(srow('at once, at the peak', `${v.concurrent} session(s)`));
+  out.push('');
+  out.push(srow('by kind', v.kinds.length ? shares(v.kinds) : 'nothing the records name'));
+  out.push(srow('by phase', v.phases.some((f) => f.hours > 0) ? shares(v.phases) : 'nothing the records name'));
+  out.push(srow('with no phase', `${v.noPhaseShare ?? '?'}% of the work, unattributed as far as the records show`));
+  return out;
+}
+
+function costLines(v, p) {
+  const out = [];
+  const agents = Object.entries(v.agents).map(([, a]) =>
+    [a.name, `${h1(a.clockMillis / HOUR_MS)}${typeof a.cost === 'number' ? ` $${round(a.cost)}` : ''}`]);
+  out.push(srow('by agent', agents.length ? roster(agents) : 'nothing was run by an agent this set reads'));
+  const modelBits = Object.entries(v.models).map(([name, m]) =>
+    [name, `${h1(m.millis / HOUR_MS)}${m.costKnown && round(m.cost) > 0 ? ` $${round(m.cost)}` : ''}`]);
+  if (modelBits.length) {
+    out.push(srow('by model', roster(modelBits) + (Object.values(v.models).some((m) => m.cost > 0)
+      ? ` (cost split over a session's models by its minutes${v.modelsWithUnknownCost ? `, ${v.modelsWithUnknownCost} session(s) with a cost name no model` : ''})` : '')));
+  } else out.push(srow('by model', 'no record names a model for its model time'));
+  out.push(srow('cost', `$${v.costUSD ?? '?'}${v.costUnknown ? ` (unknown for ${v.costUnknown} session(s), not in it)` : ''}`));
+  return out;
+}
+
+const notesOf = (v) => {
+  const out = [];
+  if (v.sessions.cut) out.push(`${v.sessions.cut} session(s) cross the edge of the period: only their minutes inside it are counted, and none of their cost.`);
+  if (v.sessions.open) out.push(`${v.sessions.open} session(s) may still be running: counted up to their last record.`);
+  if (v.sessions.unresolved) out.push(`${v.sessions.unresolved} session(s) ran in a working copy that is gone and could not be tied to this repository; they are not counted.`);
+  if (v.harnessClockDisagrees) out.push(`${v.harnessClockDisagrees} session(s) kept a clock of their own that disagrees with their stamps; the stamps were used.`);
+  return out;
+};
+
+const tailOf = (v) => [
+  ...(v.conserves ? [] : ['THESE DO NOT ADD UP TO THE CLOCK: a record could not be laid out.']),
+  '', ...notesOf(v).map((note) => `· ${note}`),
+  v.fromStamps.model || v.fromStamps.tool
+    ? `The model's and tools' minutes of ${Math.max(v.fromStamps.model, v.fromStamps.tool)} session(s) are measured from their stamps; the rest are the harness's own totals.`
+    : `Dates are this machine\'s local time.`,
+];
+
+// The stacked bar of an hour: every kind in its own order, as many cells as
+// its share of the hour gives it; the minutes nobody fills are dotted.
+function barOf(groups, p, width, scale) {
+  const parts = [];
+  const sums = [];
+  let seen = 0;
+  for (const g of STATS_GROUPS) sums.push([g, groups[g] || 0]);
+  for (const [g, ms] of sums) {
+    const cells = Math.round(((seen + ms) / scale) * width) - Math.round((seen / scale) * width);
+    if (cells > 0) parts.push(p(STATS_COLORS[g], '█'.repeat(cells)));
+    seen += ms;
+  }
+  const empty = width - Math.round((seen / scale) * width);
+  if (empty > 0) parts.push(p(STATS_COLORS.dimmer, '·'.repeat(empty)));
+  return parts.join('');
+}
+
+const heatLevel = (ms) => {
+  const hours = ms / HOUR_MS;
+  return hours <= 0 ? 0 : hours < 0.15 ? 1 : hours < 0.5 ? 2 : hours < 1.25 ? 3 : 4;
+};
+const cellPaint = (ms, p) => {
+  const level = heatLevel(ms);
+  return HEAT_CHARS[level] === ' ' ? ' ' : p(HEAT_COLORS[level], HEAT_CHARS[level]);
+};
+
+function dayView(v, p, W) {
+  const out = [p(STATS_COLORS.accent, `${v.project} — ${namedDay(v.window.from.slice(0, 10))}`),
+    p(STATS_COLORS.dim, 'the day by the hour; shares are of the hours the rows stack, overlap counted'),
+    ''];
+  const legend = [['develop', 'analyze', 'git/ci', 'answered'], ['test', 'deleg', 'talking', 'waiting/idle']];
+  const keys = [['develop', 'analyze', 'git', 'answer'], ['test', 'delegate', 'talk', 'wait']];
+  // The legend pads by the visible width of each label, not by a string the
+  // colour codes have already widened.
+  for (let i = 0; i < legend.length; i++)
+    out.push(`  ${legend[i].map((label, j) => `${p(STATS_COLORS[keys[i][j]], '▉')} ${label}${' '.repeat(Math.max(1, 13 - label.length))}`).join('')}`);
+  out.push('');
+  if (!v.found) out.push(p(STATS_COLORS.dim, `No session of ${v.project} was found on this machine in the period.`));
+  const barWidth = W - 58;
+  for (const r of v.hours) {
+    const total = STATS_GROUPS.reduce((n, g) => n + r.groups[g], 0);
+    if (!(total > 0) && !(r.agentMillis > 0)) { out.push(`${p(STATS_COLORS.dimmer, r.hour.slice(0, 2))}  ${'·'.repeat(barWidth)}`); continue; }
+    const agent = r.agentMillis > 0 ? p(STATS_COLORS.accent, h1(r.agentMillis / HOUR_MS).padStart(5)) : '     ';
+    const peak = r.peak > 1 ? p(STATS_COLORS.accent, `×${r.peak}`.padEnd(3)) : '   ';
+    // The bar is one hour wide; an hour several sessions filled still fits,
+    // scaled to its own total. The agent-hours say the overlap aloud.
+    const bits = STATS_GROUPS.map((g) => [g, r.groups[g]]).filter(([, ms]) => ms > 0)
+      .sort((a, b) => b[1] - a[1]).slice(0, 4)
+      .map(([g, ms]) => p(STATS_COLORS[g], `${STATS_CODES[g]} ${pct1(ms / total)}%`));
+    const scale = Math.max(HOUR_MS, total);
+    out.push(`${p(STATS_COLORS.dim, r.hour.slice(0, 2))}  ${barOf(r.groups, p, barWidth, scale)} ${agent} ${peak} ${bits.join('  ')}`);
+  }
+  out.push('');
+  out.push(srow('by activity',
+    roster(Object.entries(v.activity).filter(([, x]) => x !== null && x > 0).map(([g, x]) => [STATS_LABELS[g], `${x}%`])) || 'nothing was on the records'));
+  return [...out, '', ...statsRows(v, p), '', ...costLines(v, p), '',
+    srow('the longest stretch of work', v.longest ? `${v.longest.hours} h, to ${shortStamp(v.longest.to)}` : 'nothing was on the records'),
+    ...tailOf(v)];
+}
+
+// The heat of the longer periods: weekday rows, calendar weeks as columns,
+// like the activity picture the agents show. What is too wide for the
+// terminal keeps its newest weeks and says what it left off.
+function heatGrid(v, p, W) {
+  if (!v.days.length) return [];
+  const days = new Map(v.days.map((d) => [d.day, d.agentMillis]));
+  const noon = (key) => new Date(`${key}T12:00:00`).getTime();
+  const atOf = (base, days) => { const d = new Date(base); return new Date(d.getFullYear(), d.getMonth(), d.getDate() + days).getTime(); };
+  const mondayOf = (ms) => { const d = new Date(ms); return new Date(d.getFullYear(), d.getMonth(), d.getDate() - (d.getDay() + 6) % 7); };
+  let base = mondayOf(noon(v.days[0].day));
+  const end = noon(v.days.at(-1).day);
+  const all = [];
+  while (base <= end) {
+    const cells = [];
+    for (let i = 0; i < 7; i++) {
+      const key = localDay(atOf(base, i));
+      cells.push({ key, ms: days.get(key) || 0 });
+    }
+    all.push(cells);
+    base = new Date(base.getFullYear(), base.getMonth(), base.getDate() + 7);
+  }
+  const shown = all.slice(-Math.floor((W - 6) / 3));
+  const out = [];
+  if (all.length > shown.length) out.push(p(STATS_COLORS.dimmer, `…${all.length - shown.length} earlier week(s) left off the map; --json has every day.`));
+  // The columns are calendar weeks; each is named by the day of the month
+  // it begins on, two figures so the cells and the labels line up.
+  const labels = shown.map((cells) => String(new Date(`${cells[0].key}T12:00:00`).getDate()).padStart(2));
+  out.push(`    ${labels.join(' ')}`);
+  for (let i = 0; i < 7; i++) {
+    const cells = shown.map((c) => c[i]);
+    out.push(`${p(STATS_COLORS.dim, WEEKDAYS[i])}  ${cells.map((c) => cellPaint(c.ms, p)).join(' ')}`);
+  }
+  return out;
+}
+
+// A week is seven days: the heat reads as a list of its days, each with its
+// own figures beside it.
+function weekList(v, p) {
+  return v.days.map((d) => {
+    const dt = new Date(`${d.day}T12:00:00`);
+    const ms = d.agentMillis > 0 ? p(STATS_COLORS.dim, `  ${h1(d.agentMillis / HOUR_MS)}`) : '';
+    const cell = d.agentMillis > 0 ? cellPaint(d.agentMillis, p) : p(STATS_COLORS.dimmer, '·');
+    return `  ${p(STATS_COLORS.dim, WEEKDAYS[(dt.getDay() + 6) % 7])} ${namedDay(d.day)}  ${cell}${ms}`;
+  });
+}
+
+function stretchView(v, p, W) {
+  const names = { week: 'the week', month: 'the month', all: 'all time' };
+  const out = [p(STATS_COLORS.accent, `${v.project} — ${names[v.period]} ${spanText(v.window)}`),
+    p(STATS_COLORS.dim, 'agent-hours a day, local time'),
+    ''];
+  out.push(...(v.period === 'week' ? weekList(v, p) : heatGrid(v, p, W)));
+  out.push('');
+  out.push(`  less ${HEAT_CHARS.slice(1).map((ch, i) => p(HEAT_COLORS[i + 1], ch)).join('')} more — the level of a day`);
+  if (v.busiest) out.push('');
+  if (v.busiest) out.push(srow('the busiest day', `${namedDay(v.busiest.day)}, ${v.busiest.hours} h`));
+  if (!v.found) out.push('');
+  if (!v.found) out.push(p(STATS_COLORS.dim, `No session of ${v.project} was found on this machine in the period.`));
+  return [...out, '', ...statsRows(v, p), '', ...costLines(v, p), '',
+    srow('the longest stretch of work', v.longest ? `${v.longest.hours} h, to ${shortStamp(v.longest.to)}` : 'nothing was on the records'),
+    ...tailOf(v)];
+}
+
+export function describeStats(v, fmt = {}) {
+  const color = fmt.color ?? false;
+  const W = (fmt.width ?? 80) <= 90 ? 80 : 100;
+  const p = paintIn(color);
+  const lines = v.period === 'day' ? dayView(v, p, W) : stretchView(v, p, W);
+  return lines.flatMap((line) => wrap(line.replace(/[ \t]+$/, ''), W)).join('\n');
+}
+
 // ---- command line ----------------------------------------------------------
 
 const HELP = `ledger.mjs time [--since <date>] [--until <date>] [--project <name>] [--repo <path>] [--json]
 ledger.mjs sessions [--since <date>] [--until <date>] [--project <name>] [--repo <path>] [--json]
+ledger.mjs stats [--day [<date>] | --week | --month | --all] [--json] [--no-color]
 ledger.mjs adapters [--json]
 ledger.mjs subagents --harness <h> --session <id> [--json]
 time     where this project's hours went: the model, tools, coordination, the owner, and nobody
 sessions one line per session, including other working copies and subagents
+stats    the same reading, drawn: a day as 24 hour rows, each hour a stacked bar
+         by kind of activity, a legend, and the day's totals; the longer
+         periods as a heat map of agent-hours a day, with the headlines.
+         Default --day today; --day names one day.
 adapters the agents this copy of the set reads, and what each cannot do here
 subagents the sessions one session started, where the harness keeps them apart
 --since, --until  a date is a day on this machine's clock (--until includes it); a time
@@ -1684,6 +2188,8 @@ subagents the sessions one session started, where the harness keeps them apart
 --answer-minutes <n> where a gap before the owner's message, or a question waiting on him,
 stops being him answering and becomes him away (${ANSWER_MINUTES} by default): the one figure
 here that is a judgement rather than a measurement
+Colour: --no-color for plain text, or NO_COLOR, or no terminal. The width is
+         the terminal's, capped at 100 columns and no less than 80.
 Sessions are read from this machine's harness records and belong to the project by its git
 repository; --project defaults to the checkout's name.
 Exit 0 done, 2 misuse.`;
@@ -1695,7 +2201,15 @@ export function run(argv) {
     const a = rest[i];
     if (!a.startsWith('--')) throw new Usage(`unexpected ${a}`);
     const key = a.slice(2);
-    if (key === 'json') { opts.json = true; continue; }
+    // The valueless flags: `stats` names its period with one of them, and
+    // every command may ask for the drawing or the json.
+    if (key === 'json' || key === 'no-color' || key === 'week' || key === 'month' || key === 'all') { opts[key] = true; continue; }
+    if (key === 'day') {
+      const next = rest[i + 1];
+      if (next !== undefined && !String(next).startsWith('--')) { opts.day = next; i++; }
+      else opts.day = true;
+      continue;
+    }
     if (i + 1 >= rest.length) throw new Usage(`${a} needs a value`);
     opts[key] = rest[++i];
   }
@@ -1722,6 +2236,50 @@ export function run(argv) {
     case 'time': {
       const l = ledger(project, opts);
       return print(l, describeLedger(l));
+    }
+    case 'stats': {
+      const picked = ['day', 'week', 'month', 'all'].filter((k) => opts[k] !== undefined);
+      if (picked.length > 1) throw new Usage('one of --day [<date>], --week, --month or --all');
+      const period = picked[0] || 'day';
+      const now = new Date();
+      const today = localDay(Date.now());
+      let since, until, day = null;
+      if (period === 'day') {
+        if (opts.day !== undefined && opts.day !== true) {
+          if (Number.isNaN(parseWhen(opts.day))) throw new Usage('--day needs a date');
+          day = opts.day;
+        } else day = today;
+        since = parseWhen(day);
+        until = parseWhen(day, { end: true });
+      } else {
+        // A week is the last seven days, a month the last thirty, ending
+        // today; all time opens with the first session's local day. Midnight
+        // arithmetic stays local, so a DST shift does not move an edge.
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (period === 'week' ? 6 : 29));
+        since = start.getTime();
+        until = parseWhen(today, { end: true });
+      }
+      // All time reads every session this machine has; only then does it
+      // know what its own window is.
+      const sessions = findSessions(project, {
+        since: period === 'all' ? undefined : since, until: period === 'all' ? undefined : until,
+        answerMinutes: opts['answer-minutes'], repo: opts.repo,
+      });
+      let view;
+      if (period === 'day') view = statsDay(project, sessions, since, until);
+      else {
+        // All time runs from the first session's local day to the last's; a
+        // week and a month keep the ending period whatever the sessions did.
+        if (period === 'all' && sessions.length) {
+          since = dayStartOf(localDay(Math.min(...sessions.map((s) => s.startMs))));
+          until = dayStartOf(localDay(Math.max(...sessions.map((s) => s.endMs)))) + DAY_MS;
+        }
+        view = statsStretch(project, sessions, since, until, period);
+      }
+      if (opts.json) return print(view, null);
+      const color = !opts['no-color'] && !process.env.NO_COLOR && process.stdout.isTTY;
+      const width = (process.stdout.columns || 100) >= 100 ? 100 : 80;
+      return describeStats(view, { color, width });
     }
     case 'sessions': {
       const s = findSessions(project, {
@@ -2010,6 +2568,7 @@ function selftest() {
     const codexNew = [
       { type: 'session_meta', timestamp: T(400), payload: { id: 'yyyy', cwd: demo } },
       { type: 'event_msg', timestamp: T(400), payload: { type: 'task_started' } },
+      { type: 'turn_context', timestamp: T(400), payload: { model: 'gpt-6.1-sol' } },
       { type: 'response_item', timestamp: T(400), payload: { type: 'message', role: 'user', content: [{ type: 'input_text', text: '# AGENTS.md instructions for /w' }] } },
       { type: 'response_item', timestamp: T(400), payload: { type: 'message', role: 'user', content: [{ type: 'input_text', text: 'spec it' }] } },
       { type: 'event_msg', timestamp: T(400), payload: { type: 'item_completed', item: { type: 'UserMessage' } } },
@@ -2024,6 +2583,9 @@ function selftest() {
     write(join(home, 'codex', 'sessions', '2026', '01', '01', 'rollout-2026-01-01T16-40-00-yyyy.jsonl'), codexNew);
     s = findSessions('demo').find((x) => x.id === 'yyyy');
     expect('the current Codex shape: one owner message, the injected context is not his', s.schema === 'codex-items' && s.ownerMessages === 1);
+    expect('a Codex turn names its model, and its minutes go to the name',
+      !(MODELS_UNNAMED in s.models) && s.models['gpt-6.1-sol'] > 0
+      && Math.abs(Object.values(s.models).reduce((a, b) => a + b, 0) - s.modelMinutes) < 0.02);
     expect('a Codex turn that read a skill of the set is that skill\'s phase', s.phases.plan?.kinds.analyze > 0);
     expect('a call waiting for the owner\'s approval is his wait, the rest the tool\'s',
       Math.round(s.awayMinutes) === 29 && Math.round(s.phases.build.tool) === 1 && adds(s));
@@ -2181,6 +2743,71 @@ function selftest() {
 
     expect('where answering stops and being away begins can be moved',
       JSON.parse(run(['sessions', '--project', 'demo', '--answer-minutes', '1', '--json'])).find((x) => x.id === 'aaaa').answerMinutes === 0);
+
+
+    // Statistics (skills-oeh): a day by the hour; the heat of the days. Two
+    // overlapping sessions, an idle gap, an hour the owner answered, a week
+    // with a second day; plain text without a terminal, and 80 columns.
+    const statDayLocal = localStamp(Date.parse(T(0)), { time: false });
+    const stat = JSON.parse(run(['stats', '--project', 'demo', '--day', statDayLocal, '--json']));
+    expect('the day view shows every hour of the day', stat.hours.length === 24
+      && stat.hours.every((r) => Object.keys(r.groups).length === 8));
+    const hourOf = (t2) => new Date(T(t2)).getHours();
+    expect('the hour the owner was asked into has him answering', stat.hours[hourOf(14)].groups.answer > 0);
+    expect('the gaps no work filled are waiting/idle in their hour',
+      stat.hours.reduce((a, r) => a + r.groups.wait, 0) > 0);
+    expect('the kinds of the hour bar make up the whole', Math.abs(Object.values(stat.activity)
+      .map((x) => Number(x) || 0).reduce((a, b) => a + b, 0) - 100) < 0.2);
+    // Overlap: a second session working while the first still is.
+    write(join(claudeDir(demo), 'over1.jsonl'), [
+      { type: 'user', timestamp: T(600), cwd: demo, origin: { kind: 'human' }, message: { content: 'go' } },
+      { type: 'assistant', timestamp: T(603), message: { id: 'o1', content: [{ type: 'tool_use', id: 'oa', name: 'Read', input: {} }] } },
+      { type: 'user', timestamp: T(613), message: { content: [{ type: 'tool_result', tool_use_id: 'oa' }] } },
+    ]);
+    write(join(claudeDir(demo), 'over2.jsonl'), [
+      { type: 'user', timestamp: T(604), cwd: demo, origin: { kind: 'human' }, message: { content: 'go too' } },
+      { type: 'assistant', timestamp: T(607), message: { id: 'ob1', content: [{ type: 'tool_use', id: 'ob', name: 'Read', input: {} }] } },
+      { type: 'user', timestamp: T(615), message: { content: [{ type: 'tool_result', tool_use_id: 'ob' }] } },
+    ]);
+    const overDay = JSON.parse(run(['stats', '--project', 'demo', '--day', statDayLocal, '--json']));
+    expect('two sessions in one hour show as two working at once', Math.max(...overDay.hours.map((r) => r.peak)) >= 2);
+    // A week: the heat holds a second day, and the longest real stretch.
+    write(join(claudeDir(demo), 'next-day.jsonl'), [
+      { type: 'user', timestamp: T(1500), cwd: demo, origin: { kind: 'human' }, message: { content: 'later' } },
+      { type: 'assistant', timestamp: T(1502), message: { id: 'd1', content: [{ type: 'text', text: 'done' }] } },
+    ]);
+    const week = JSON.parse(run(['stats', '--project', 'demo', '--all', '--json']));
+    expect('the heat shows the days a session worked, day by day',
+      week.days.some((d) => d.agentMillis > 0)
+      && new Set(week.days.filter((d) => d.agentMillis > 0).map((d) => d.day)).size >= 2);
+    expect('the longest stretch of work is work, not an open window', week.longest.hours > 0);
+    expect('the busiest day carries the most occupied', week.busiest.day
+      && week.busiest.agentMillis >= Math.max(...week.days.map((d) => d.agentMillis)));
+    // The drawing: plain where asked and where no terminal answers; the
+    // 80 and the 100 both hold; colour where the terminal takes it.
+    expect('plain text where asked and where no terminal answers',
+      !run(['stats', '--project', 'demo', '--no-color', '--day', statDayLocal]).includes('\x1b'));
+
+
+    const at80 = describeStats(week, { width: 80 }).split('\n');
+    const at100 = describeStats(week, { width: 100 }).split('\n');
+    expect('fits in 100 columns and degrades to 80',
+      Math.max(...at80.map((l) => l.length)) <= 80 && Math.max(...at100.map((l) => l.length)) <= 100);
+    expect('a week carries its heat cell on each worked day', /[░▒▓█]/.test(describeStats(
+      statsStretch('demo', findSessions('demo'), parseWhen('2026-01-01'), parseWhen('2026-01-08'), 'week'), { width: 80 })));
+    expect('colour where the terminal takes it, none where it does not',
+      describeStats(JSON.parse(run(['stats', '--project', 'demo', '--day', statDayLocal, '--json'])),
+        { color: true, width: 80 }).includes('38;5;114m'));
+    // The models: where the record names them, the minutes go to the name.
+    write(join(claudeDir(demo), 'modl.jsonl'), [
+      { type: 'user', timestamp: T(900), cwd: demo, origin: { kind: 'human' }, message: { content: 'go' } },
+      { type: 'assistant', timestamp: T(901), message: { id: 'mm1', model: 'claude-opus-5', content: [{ type: 'text', text: 'done' }] } },
+    ]);
+    expect('a model name rides where the record gives it, and the minutes go with it',
+      (() => { const mm = findSessions('demo').find((x) => x.id === 'modl');
+        return mm.models['claude-opus-5'] === 1 && !(MODELS_UNNAMED in mm.models); })());
+    expect('every session lays piecewise on its clock', findSessions('demo').every((sx) =>
+      Math.abs(sx.segments.reduce((a, g) => a + g.ms, 0) - sx.wallMinutes * 60e3) < 60e3));
 
     const misuse = (a) => { try { run(a); return false; } catch (e) { return e instanceof Usage; } };
     expect('misuse: unknown command', misuse(['frobnicate', '--project', 'demo']));

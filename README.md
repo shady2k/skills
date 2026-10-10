@@ -712,6 +712,15 @@ preflight quotes its estimate with what it rests on. The scripts beside
 machine's sessions, `runs.mjs time`, `pace` and `report` for the records in
 the tracker.
 
+Ask `ask-shady2k` for your statistics ("stats", "what did the day look like")
+and it prints the picture as drawn: `ledger.mjs stats` shows one day as
+twenty-four hour rows, each hour a stacked bar by kind of activity with the
+day's totals by phase and by kind; the week, the month and all time come as a
+heat map of agent-hours a day with the headlines — the busiest day, the
+longest single stretch of work, sessions, cost, hours by agent and, where the
+records name them, by model. Colour on a terminal, plain text on paper,
+`--json` for other tools.
+
 **What it is not.** Not a timesheet of you: your time away is in no estimate,
 and the line between answering and away is there to keep it out. The figures
 go nowhere but your own tracker. Only where the project agreed to Jev, a
@@ -797,6 +806,19 @@ can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
+
+- **0.98.0** shows you your work in one picture. `ledger.mjs stats` lays a day
+  out by the hour: twenty-four rows, each an hour as a stacked bar by kind of
+  activity — developing, testing, reading, reviewing and delegating, git and
+  CI, talking, you answering, waiting — with the hour's agent-hours and how
+  many sessions were working at once; the day's totals follow, by phase and by
+  kind, with sessions, cost, and hours and cost by agent and, where the
+  records name them, by model. The week, the month and all time come as a
+  heat map of agent-hours a day, with the busiest day and the longest single
+  stretch of work among the headlines. `ask-shady2k` runs it and shows it as
+  printed when you ask for statistics or for how your day went. Colour reads
+  on dark and light terminals; plain text without one, and `--json` for other
+  tools.
 
 - **0.97.0** watches the run so you do not have to. Before you leave, setup asks how you want to be
   notified while away — nothing, the harness's own notification, or a command you already use — and
