@@ -927,10 +927,13 @@ async function execOnce(args, { err = (s) => console.error(s) } = {}) {
   // child may exit before the grace; a descendant that ignored the TERM has
   // its KILL then all the same, unref'd, so this run does not stay open for it.
   let grace = null;
-  // The tree is read before the TERM fires: once its middle men have died, a
-  // grandchild is reparented and no longer names whose work it belongs to.
+  let tree = null;
+  // The tree is read before the TERM fires, and kept: once the TERM has killed
+  // its middle men, their children are reparented and no longer name whose
+  // work they are, so the KILL after the grace and the KILL when the child
+  // closes early signal the tree as it was read, never a recomputed one.
   const stopAt = setTimeout(() => {
-    const tree = descendantsOf(child.pid);
+    tree = descendantsOf(child.pid);
     kill('SIGTERM', tree);
     grace = setTimeout(() => kill('SIGKILL', tree), EXEC_GRACE * 1000);
   }, bound.seconds * 1000);
@@ -940,10 +943,9 @@ async function execOnce(args, { err = (s) => console.error(s) } = {}) {
   });
   clearTimeout(stopAt);
   if (grace !== null) clearTimeout(grace);
-  // The child's own exit does not retire the rest of the group: whatever
-  // ignored the TERM gets its KILL now, once -- the group does not outlive
-  // the bound.
-  if (stopped) kill('SIGKILL', descendantsOf(child.pid));
+  // A close that beats the grace does not cancel the stop: the group and the
+  // tree recorded at the stop are given their KILL from here, nothing between.
+  if (stopped && tree !== null) kill('SIGKILL', tree);
   if (done.error) {
     err(`exec ${execSay(argv)}: it did not start (${done.error.message}); nothing is recorded, for nothing ran to be measured`);
     process.exitCode = 127;
