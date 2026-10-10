@@ -283,7 +283,12 @@ node check-docs.mjs --input exported-documents.json --policy document-policy.jso
 
 `fixtures/documents.json` contains a complete example and positive/negative cases.
 The exported functions `checkDocuments(model, policy, evidence)` and `digest(value)`
-allow a project wrapper to call the same rules without temporary files. Digest is
+allow a project wrapper to call the same rules without temporary files. The
+violations come back the way they always did; where a required `mutation`
+check made no run, the gate adds `result.notes` to the same return
+(`notesOf(result)` reads them), reports each as `not-made: <check id>` in
+text output, puts `notes` beside `violations` in JSON, and exits 0 when notes
+are its only finding. Digest is
 SHA-256 of recursively key-sorted JSON; array order remains significant.
 
 All fields below are required unless explicitly nullable; empty arrays/strings
@@ -360,7 +365,9 @@ Change:
   no deltas. Add regression coverage without rewriting a correct requirement.
 - `coverage`: `{capability, requirement, checks: [check IDs]}` for every changed
   or preserved requirement, including removed behaviour. Tests may be planned
-  at admission, but must resolve to successful receipts at acceptance.
+  at admission, but must resolve to successful receipts at acceptance, in the
+  receipt's kind's way: a required `mutation` check resolves to its not-made
+  note, never a refusal.
 
 Snapshots contain **all requirements in each affected capability**, including
 unchanged ones. Read the baseline from the actual target before applying the
@@ -398,6 +405,14 @@ Kinds: `static`, `test`, `mutation`, `review`, `manual`. The configured list mus
 not be empty; setup establishes actual full checks, mutation/review requirements
 and approved fallbacks. Kind labels are descriptive, not proof of what ran.
 Non-code work uses its corresponding checks; skipped/unsupported is never passed.
+A `mutation` receipt is recorded evidence, never a refusal (**a test fails when
+its behaviour breaks**; its strength is measured once): where a required
+`mutation` check gave this revision nothing to stand on — no receipt, a status
+other than passed, no reference, or its pin moved past — the gate reports the run as not
+made in its output, beside the violations, and never counts it as passed or
+refuses the change for it. A surviving mutant is a missing test filed for its
+owner, not a fault of the change, and what landing carries is the owner's
+decision. Every other kind of receipt keeps the refusal above.
 
 `appliesTo` lists the change kinds a check is required for; without it, every
 kind. Required checks follow what a change can touch: a `supporting` change,
@@ -411,8 +426,9 @@ revision?}` where status is `passed`, `failed`, `skipped` or `unsupported`, and
 `revision` is the one its check read when it ran; a check without its own
 falls back to the evidence's. A receipt is stale where that differs from the
 check's pin in the export (`checkRevisions`, else `revision`), and only that
-receipt: the others stand. A policy entry with `ignores` and no pin in the
-export is `unpinned-check`. The wrapper retrieves
+receipt: the others stand. A stale `mutation` receipt is the same report, not
+a refusal; the exception above covers every way a run comes short. A policy
+entry with `ignores` and no pin in the export is `unpinned-check`. The wrapper retrieves
 and verifies runner/approval records; references identify the actual evidence.
 An approval's reference records the summary the owner was shown, since that is
 what they approved, not the document text they were not asked to read.
@@ -463,7 +479,8 @@ else enforces is one to hold to harder, not more lightly. Write both sentences
 into the project's copy; the first one alone has been read as permission.
 
 Setup proves real entry points using recoverable failures: missing vision on a
-new product, missing scenario, invalid task, stale requirement, missing/stale
-receipt, unmerged delta and unrelated parallel change. Verify the clean case
+new product, missing scenario, invalid task, stale requirement, a missing or
+stale receipt for a check that refuses (a `mutation` check's is not made, never
+a refusal), unmerged delta and unrelated parallel change. Verify the clean case
 after restoring each violation. The integration records the gate as installed
 only after this proof; at the records level, receipt forgery is not a proof case.
