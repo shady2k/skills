@@ -140,7 +140,8 @@ protocol's **Whoever started a run answers for it to the owner**. An answer to
 of that list that have something to say — the decisions the agent took, the
 assumptions, the risks and the cost in time — not the steps done so far.
 
-Progress on a run this session supervises is pushed, not pulled, by the
+Progress on a run this session supervises is pushed, not pulled, by
+running.md's **The run's progress is pushed, not pulled**, under the
 protocol's **Whoever started a run answers for it to the owner**: the owner
 is sent the progress report on the session's own motion, at each point that
 changes the picture and not on each passing step — a stage accepted; a

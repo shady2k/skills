@@ -802,7 +802,9 @@ const EXEC_STOPPED = 'stopped';
 // served. The records are the set's shape - lines of key: value the script
 // computed, posted exactly as printed - but they are the runner's own, beside
 // the time records: the gate reads spans, not command durations, and the shape
-// keeps a reader of those from ever taking one by mistake.
+// keeps a reader of those from ever taking one by mistake. An adapter keeps
+// these comments where it keeps the time records (model.md names both heads);
+// they are part of the run's record, not notes.
 function execRecord(fields) {
   const order = ['item', 'command', 'started', 'duration', 'result', 'bound'];
   return [EXEC_HEAD, ...order.filter((k) => fields[k] !== undefined).map((k) => `${k}: ${String(fields[k]).replace(/\s*\n\s*/g, ' ').trim()}`)].join('\n');
@@ -837,7 +839,12 @@ function execJournal(backlog) {
   return { records: out, damaged };
 }
 
-const execKey = (argv) => argv.join(' ').replace(/\s+/g, ' ').trim();
+// The command's identity is its argument list whole, kept as JSON in the
+// journal: joining arguments loses boundaries, and `tool "a b"` and `tool a b`
+// are different commands whose durations finance nothing together.
+const execKey = (argv) => JSON.stringify(argv);
+const execSay = (argv) => argv.map((a) => (/['\s]/.test(a) ? `'${a.replace(/'/g, "\\'")}'` : a)).join(' ');
+
 
 // The bound: the longest duration among this command's runs that had an end of
 // their own, never below the floor; where nothing is recorded, --first (whole
@@ -875,36 +882,41 @@ async function execOnce(args, { err = (s) => console.error(s) } = {}) {
   if (first !== undefined && bound.took.length)
     throw new Usage(`this command has ${bound.took.length} recorded duration(s): the bound is theirs and is never raised to let a step pass; run it without --first`);
   err(bound.took.length
-    ? `exec ${key}: bound ${bound.seconds} s, the longest of its runs (took ${bound.took.map((n) => `${n} s`).join(', ')} before)`
+    ? `exec ${execSay(argv)}: bound ${bound.seconds} s, the longest of its runs (took ${bound.took.map((n) => `${n} s`).join(', ')} before)`
     : first !== undefined
-      ? `exec ${key}: bound ${first * 60} s, the estimate named with --first: nothing has recorded how long this command takes yet, so it is a guess said before the run, never a measurement`
-      : `exec ${key}: bound ${FIRST_RUN} s, the first-run default: nothing has recorded how long this command takes yet, and no estimate names one; --first <minutes> does, before the first run`);
+      ? `exec ${execSay(argv)}: bound ${first * 60} s, the estimate named with --first: nothing has recorded how long this command takes yet, so it is a guess said before the run, never a measurement`
+      : `exec ${execSay(argv)}: bound ${FIRST_RUN} s, the first-run default: nothing has recorded how long this command takes yet, and no estimate names one; --first <minutes> does, before the first run`);
 
   const started = nowMs();
   const child = spawn(argv[0], argv.slice(1), { stdio: 'inherit', detached: true });
   let stopped = false;
   const kill = (sig) => {
-    if (child.exitCode !== null || child.signalCode !== null) return false;
     stopped = true;
+    // The group whole, the direct child included or already gone: a descendant
+    // of it must not outlive the bound any more than the child itself.
     try { process.kill(-child.pid, sig); } catch { try { child.kill(sig); } catch { /* the group is already gone */ } }
-    return true;
   };
   // Past the bound the whole group is stopped: SIGTERM, and SIGKILL after the
-  // grace, so a command that ignores the first is still not waited on.
+  // grace, so a command that ignores the first is still not waited on. The
+  // child may exit before the grace; a descendant that ignored the TERM has
+  // its KILL then all the same, unref'd, so this run does not stay open for it.
   let grace = null;
   const stopAt = setTimeout(() => {
-    if (kill('SIGTERM')) grace = setTimeout(() => kill('SIGKILL'), EXEC_GRACE * 1000);
+    kill('SIGTERM');
+    grace = setTimeout(() => kill('SIGKILL'), EXEC_GRACE * 1000);
   }, bound.seconds * 1000);
   const done = await new Promise((resolve) => {
     child.on('error', (e) => resolve({ error: e }));
     child.on('close', (code, signal) => resolve({ code, signal }));
   });
-  // The child gone before the grace, the pending SIGKILL timer would keep this
-  // process alive for it: cancelled with the rest.
   clearTimeout(stopAt);
   if (grace !== null) clearTimeout(grace);
+  if (stopped) {
+    const final = setTimeout(() => kill('SIGKILL'), EXEC_GRACE * 1000);
+    if (typeof final.unref === 'function') final.unref();
+  }
   if (done.error) {
-    err(`exec ${key}: it did not start (${done.error.message}); nothing is recorded, for nothing ran to be measured`);
+    err(`exec ${execSay(argv)}: it did not start (${done.error.message}); nothing is recorded, for nothing ran to be measured`);
     process.exitCode = 127;
     return;
   }
@@ -913,7 +925,7 @@ async function execOnce(args, { err = (s) => console.error(s) } = {}) {
   const tookBefore = bound.took.length
     ? `this command took ${bound.took.map((n) => `${n} s`).join(', ')} before`
     : `no duration of this command was recorded before: the bound was ${first !== undefined ? 'the estimate named with --first' : 'the first-run default'}`;
-  err(stopped ? `stopped after ${bound.seconds} s: ${tookBefore}` : `exec ${key}: ${seconds} s, ${result}; ${tookBefore}`);
+  err(stopped ? `stopped after ${bound.seconds} s: ${tookBefore}` : `exec ${execSay(argv)}: ${seconds} s, ${result}; ${tookBefore}`);
   console.log(post([{ item: it.id, body: execRecord({ item: it.id, command: key, started: iso(started), duration: seconds, result: result, bound: bound.seconds }) }], opts));
   process.exitCode = stopped ? 124 : done.code !== null ? done.code : 128 + constants.signals[done.signal];
 }
@@ -997,6 +1009,7 @@ export function run(argv) {
       const role = need(opts, 'role', ROLES);
       const out = [];
       const me = thisSession(opts);
+      if (opts.recovered && opts['claims-for']) throw new Usage('--claims-for and --recovered are different claims of different sessions: a claim for a run about to start is not recovered');
       if (opts.recovered) return post([recoveredClaim(b, it, me, role, opts)], opts);
       if (opts.at !== undefined) throw new Usage('--at is only for a claim recovered from a transcript (--recovered): a claim made now is dated now');
       // A session that starts a run in another session records the claim for it
@@ -1149,7 +1162,8 @@ export function run(argv) {
     case 'notify': {
       const note = opts.note;
       if (!note) throw new Usage('--note carries the one line to send');
-      if (opts.config) {
+      if (!opts.config) throw new Usage('--config <gate config> is what says the project records pushes: without it nothing is known and nothing is sent');
+      {
         let config = null;
         try { config = JSON.parse(readFileSync(opts.config, 'utf8')); } catch { throw new Usage(`cannot read the gate config ${opts.config}`); }
         if (config.notifyPushes !== true)
@@ -1235,8 +1249,10 @@ function progressOf(v, ids, opts) {
   const stageRows = stages.map((stage) => {
     const ids2 = v.tree(stage);
     const fc = scopeForecast(v, ids2);
-    const remaining = ids2.filter((c) => v.by.get(c)?.status !== 'closed')
-      .reduce((n, c) => n + (fc.items.get(c) ? Math.max(...fc.items.get(c).map((s) => s.claim.table.rows.total.forecast)) : 0), 0);
+    // The stage's outstanding work is its bottom-most claims only, never an
+    // ancestor and its claimed descendants both, so nesting does not inflate.
+    const remaining = [...fc.bottom].filter((c) => v.by.get(c)?.status !== 'closed')
+      .reduce((n, c) => n + Math.max(...fc.items.get(c).map((s) => s.claim.table.rows.total.forecast)), 0);
     return {
       id: stage, title: v.by.get(stage)?.title || '', status: v.by.get(stage)?.status,
       remaining: round(remaining),
@@ -1268,9 +1284,12 @@ function progressOf(v, ids, opts) {
   const days = {};
   for (const s of v.spans.filter((x) => scope.includes(x.item) && x.receipt?.table && !x.unknown)) {
     const day = iso(s.end ?? s.start ?? nowMs()).slice(0, 10);
+    const w = WORK.reduce((n, b) => n + s.receipt.table.rows.total[b], 0);
     const row = days[day] ||= { work: 0, done: 0 };
-    row.work += s.receipt.table.rows.total.total;
-    if (closed.includes(s.item)) row.done += s.receipt.table.rows.total.total;
+    // The agent's work only: the owner's absence and nobody's gaps are no work
+    // the scope is paid for.
+    row.work += w;
+    if (closed.includes(s.item)) row.done += w;
   }
   let cumAll = 0, cumDone = 0;
   const burn = Object.entries(days).sort((a, b) => a[0].localeCompare(b[0])).map(([day, d]) => {
@@ -1305,7 +1324,7 @@ function describeProgress(p) {
     "",
     `Forecast of the scope ${h(p.forecast.total)}, earned by what is accepted ${h(p.earned.total)}${p.time.work ? `; time recorded so far ${h(p.time.work)}` : ''}.`,
     ...p.time.work ? [`By phase ${SHARE(p.time.shares_phase)}; by what filled the turns ${SHARE(p.time.shares_activity)}.`] : [],
-    p.time.shares_phase.unattributed ? `Work with no phase is time no claim said what it was for (${p.time.shares_phase.unattributed}% of what is recorded): time and report name those spans.` : null,
+    p.time.shares_phase.unattributed ? `Work with no phase (${p.time.shares_phase.unattributed}% of what is recorded) is time a claim holds without saying what stage of the work it was: the shares say so plainly rather than passing it into a phase.` : null,
     ...p.current_stage.map((r) => `Now: ${r.title}, holding ${r.in_flight.map((c) => `${c.title} (${c.status})`).join(', ') || 'nothing in flight in it'}.`),
     ...aheadSaid.length ? [`Ahead:${aheadSaid.map((r) => ` ${r.title}${r.remaining ? ` (forecast ${h(r.remaining)}, by ${r.forecastEnd})` : ' (its forecast is carried by what is in it)'}`).join(',')}.`] : [],
     p.promised_by ? `The run promises its result by ${localStamp(Date.parse(p.promised_by))}.` : null,
@@ -1326,7 +1345,8 @@ function deliveryReport(v, opts) {
   const at = (it) => v.summaries.find((s) => s.item === it)?.fields.at;
   const runs = finishedRuns(v).filter((r) => r.result === 'pull-request' && at(r.item) && Date.parse(at(r.item)) >= since && Date.parse(at(r.item)) < until);
   const startedOf = (it) => v.spans.filter((s) => s.item === it && s.claim).map((s) => s.start).filter((n) => Number.isFinite(n)).sort((a, b) => a - b)[0];
-  const lead = runs.filter((r) => Number.isFinite(startedOf(r.item))).map((r) => Date.parse(at(r.item)) - startedOf(r.item));
+  const lead = runs.filter((r) => Number.isFinite(startedOf(r.item)))
+    .map((r) => round((Date.parse(at(r.item)) - startedOf(r.item)) / 60e3));
   const verdict = (it) => v.verdicts.find((s) => s.item === it)?.fields;
   const judged = runs.filter((r) => verdict(r.item));
   const failed = judged.filter((r) => verdict(r.item).accepted !== 'as-is' || Number(verdict(r.item).corrections) > 0);
@@ -1386,10 +1406,11 @@ runs.mjs verdict --item <feature> --accepted as-is|after-changes|abandoned [--av
 runs.mjs recovery --item <id> --grade R0|R1|R2|R3 [--from <harness>] [--to <harness>] [--note <text>]
 runs.mjs void --comment <id> --note <why>
   retires a damaged or wrong record, which a tracker cannot delete; a correction then writes the right one
-runs.mjs notify --note "<one line>" [--config <gate config>]
+runs.mjs notify --note "<one line>" --config <gate config>
   one line through the owner's own channel ($XDG_CONFIG_HOME/shady2k-skills/notify.json, the
   command as {"command": [program, ...args]}, the line as the last argument); says plainly when none
-  is set, that the project records no pushes, or that a send failed. The gate config must record the pushes on
+  is set, that the project records no pushes, or that a send failed. The gate config is required:
+  what it records about the pushes is the consent, and nothing is sent without saying it
 runs.mjs progress --item <feature|milestone> [--no-transcripts] [--target <date>]
   where the work stands as the records hold it: earned value (forecast hours of accepted work), tasks
   and stages done of total, time by phase and its shares, what is in flight, what is ahead with its
@@ -1933,7 +1954,6 @@ async function selftest() {
     // run claims nothing again.    // The progress report reads one piece of tracked work out of the records
     // on it: the scope's forecast, what of it is earned by accepted work, the
     // shares, the burn-up -- and the two delivery metrics it cannot name.
-    const bump = (id) => backlog.issues.find((i) => i.id === id).status = 'closed';
     postAll([{ item: 'B', body: formatRecord('claim', { span: 'pb1', at: T(clock - 120e3), session: 'claude-code:pv', agent: 'claude-p:t@m:b#pv', role: 'worker' }) },
              { item: 'B', body: formatRecord('receipt', { span: 'pb1', from: T(clock - 120e3), to: T(clock - 60e3), end: 'finished' },
                { columns: [...BUCKETS, 'total'], rows: { build: { model: 50, tools: 0, coord: 0, answer: 0, away: 0, idle: 0, total: 60 }, total: { model: 50, tools: 0, coord: 0, answer: 0, away: 0, idle: 0, total: 60 } } }) }]);

@@ -42,7 +42,7 @@ An adapter reads whatever the project's tracker holds and prints this:
 | `holder`    | who holds it, `null` for nobody; optional  | Omit the key if the tracker cannot say. `null` on an active issue is a violation. |
 | `integration` | `{ "revision": "...", "evidence": "..." } | Required on implemented leaves under a stage; coordinator records the integrated revision and related-check evidence. |
 | `delivery` | `{ "revision": "...", "evidence": "..." } | Required on submitted leaves; durable result revision/location and local-check evidence, before integration. |
-| `comments` | `[{ "id", "at", "author", "body" }]` | The item's comments whose body starts with `[shady2k-time`: the set's records of claims and time, in `time-format.mjs`. Others may be left out. |
+| `comments` | `[{ "id", "at", "author", "body" }]` | The item's comments whose body starts with `[shady2k-time` (the set's records of claims and time, in `time-format.mjs`) or with `<!-- shady2k-exec v1 -->` (the command runner's journal of durations, in `runs.mjs`). Others may be left out. |
 
 ## Execution mapping
 

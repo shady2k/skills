@@ -30,7 +30,7 @@ test('exec: the first-run default, the record it prints, and what another copy r
   assert.match(r.stdout, /== post on A/);
   assert.match(r.stdout, /duration: 0/);
   assert.match(r.stdout, /<!-- shady2k-exec v1 -->/);
-  assert.match(r.stdout, /command: echo hello/);
+  assert.match(r.stdout, /command: \["echo","hello"\]/);
   assert.match(r.stdout, /result: exit 0/);
   assert.match(r.stdout, /bound: 900/);
 
@@ -46,6 +46,11 @@ test('exec: the first-run default, the record it prints, and what another copy r
   r = run(['--', 'echo', 'other']);
   assert.equal(r.status, 0);
   assert.match(r.stderr, /exec echo other: bound 900 s, the first-run default/);
+  // The boundary of the arguments is the identity: `echo hello world` is not
+  // `echo hello`, even though one started with the other.
+  r = run(['--', 'echo', 'hello', 'world']);
+  assert.equal(r.status, 0);
+  assert.match(r.stderr, /exec echo hello world: bound 900 s, the first-run default/);
 
   // --first is the estimate said before the first run of a command with none
   // recorded, and refused where its durations exist: the bound is theirs.
@@ -63,7 +68,7 @@ test('exec: the first-run default, the record it prints, and what another copy r
 
   // A journal comment that does not read clean is named, never counted.
   const left = JSON.parse(readFileSync(backlog)).issues[0].comments;
-  left.push({ id: 'c2', body: `${HEAD}\nitem: A\ncommand: echo hello\nduration: wrong` });
+  left.push({ id: 'c2', body: `${HEAD}\nitem: A\ncommand: ${JSON.stringify(['echo', 'hello'])}\nduration: wrong` });
   writeFileSync(backlog, JSON.stringify({ issues: [{ id: 'A', title: 'x', status: 'active', type: 'task', comments: left }] }));
   r = run(['--', 'echo', 'hello']);
   assert.equal(r.status, 0);
@@ -75,8 +80,8 @@ test('exec: the bound comes from the longest completed duration, never below the
   const home = mkdtempSync(join(tmpdir(), 'runs-exec-test-'));
   const backlog = join(home, 'bl.json');
   writeFileSync(backlog, JSON.stringify({ issues: [{ id: 'A', title: 'x', status: 'active', type: 'task', comments: [
-    { id: 'c1', body: recordBody({ item: 'A', command: 'echo hello', started: '2026-10-09T10:00:00Z', duration: '45', result: 'exit 0', bound: '45' }) },
-    { id: 'c2', body: recordBody({ item: 'A', command: 'echo hello', started: '2026-10-09T10:10:00Z', duration: '20', result: 'exit 1', bound: '45' }) },
+    { id: 'c1', body: recordBody({ item: 'A', command: JSON.stringify(['echo', 'hello']), started: '2026-10-09T10:00:00Z', duration: '45', result: 'exit 0', bound: '45' }) },
+    { id: 'c2', body: recordBody({ item: 'A', command: JSON.stringify(['echo', 'hello']), started: '2026-10-09T10:10:00Z', duration: '20', result: 'exit 1', bound: '45' }) },
   ] }] }));
   const run = (args, timeout = 5000) => spawnSync(process.execPath, [script.pathname, 'exec', '--item', 'A', '--backlog', backlog, ...args],
     { encoding: 'utf8', timeout });
@@ -106,7 +111,7 @@ test('exec: past the bound the command is stopped, its record does not loosen th
   const home = mkdtempSync(join(tmpdir(), 'runs-exec-test-'));
   const backlog = join(home, 'bl.json');
   writeFileSync(backlog, JSON.stringify({ issues: [{ id: 'A', title: 'x', status: 'active', type: 'task', comments: [
-    { id: 'c1', body: recordBody({ item: 'A', command: 'sleep 12', started: '2026-10-09T10:00:00Z', duration: '3', result: 'exit 0', bound: '10' }) },
+    { id: 'c1', body: recordBody({ item: 'A', command: JSON.stringify(['sleep', '12']), started: '2026-10-09T10:00:00Z', duration: '3', result: 'exit 0', bound: '10' }) },
   ] }] }));
   const run = () => spawnSync(process.execPath, [script.pathname, 'exec', '--item', 'A', '--backlog', backlog, '--', 'sleep', '12'],
     { encoding: 'utf8', timeout: 30000 });

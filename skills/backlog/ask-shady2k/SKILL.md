@@ -253,15 +253,18 @@ whose transcripts nobody has written up, makes the figure "at least", said so.
   own and stops there, not read as a promise someone made.
 - **Delivery:** the four delivery metrics the delivery practice tracks (DORA:
   lead time for changes, deployment frequency, change failure rate, time to
-  restore), computed from what the records hold — the claims, the merges to
-  the main line, the red check runs, the reverts and reopened work — and told
-  as words: lead time for changes, from the claim that started work on it to
-  its merge to the main line; change failure rate, how often a result that
-  merged was reverted, reopened or sent back in the period; time to restore,
-  from a red run or a reopened outcome to the work that made it right again.
-  Deployment frequency is said plainly to be beyond the records of this set:
-  it holds merges and check runs, not what each deployment shipped. What is
-  computable is said instead, as how often work reached the main line.
+  restore), each said as words, from what the run script computes for the
+  period. Lead time for changes is there: from a feature's claim that started
+  the run to the summary that ended it, on finished runs for which the records
+  carry both times. Change failure rate is said from what the records apply:
+  a change failed where the owner's verdict asked for changes or recorded
+  corrections, over the runs the owner judged. Two of the four are beyond
+  what this set records, and that is said plainly: the records hold claims
+  and results, never what was deployed where and when (deployment frequency),
+  and no record says that a change failed where users are or when its fix
+  reached them (time to restore) — what replaces them is said instead, how
+  often work reached the main line, and what the record names as needing
+  changes. Never call the substitutes the metrics they stand in for.
 
 The team's own units, such as story points, stay the team's: do not produce or
 convert them. The report is text for the owner; writing it into any other
