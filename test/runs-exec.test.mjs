@@ -107,6 +107,42 @@ test('exec: the floor keeps a bad near-zero record from stopping every later run
   assert.match(r.stderr, /exec echo tight: bound 10 s, the longest of its runs \(took 0 s before\)/);
 });
 
+
+test('exec: a detached descendant of the command is stopped with the group', () => {
+  // The command keeps running while it detached a writer of its own, in its
+  // own process group. Past the bound the whole command is stopped -- the
+  // detached writer included -- and nothing of what the command started is
+  // still writing after the stop.
+  const home = mkdtempSync(join(tmpdir(), 'runs-exec-tree-'));
+  const pidFile = join(home, 'pid');
+  const marker = join(home, 'writes');
+  const main = ['node', '-e',
+    `const cp=require('node:child_process'); const ch=cp.spawn(process.execPath, ['-e', 'const fs=require("node:fs"); fs.writeFileSync(${JSON.stringify(pidFile)}, String(process.pid)); const w=()=>fs.writeFileSync(${JSON.stringify(marker)}, "x"); w(); setInterval(w, 50);'], {detached: true, stdio: 'ignore'}); ch.unref(); setInterval(()=>{}, 1000);`];
+  const backlog = join(home, 'bl.json');
+  writeFileSync(backlog, JSON.stringify({ issues: [{ id: 'A', title: 'x', status: 'active', type: 'task', comments: [
+    // A prior run of the same command that ended of its own at 3 s: the bound
+    // is the longest of those, floored, so this run stops at 10 s and the
+    // detached writer must go with it.
+    { id: 'c1', body: recordBody({ item: 'A', command: JSON.stringify(main), started: '2026-10-09T10:00:00Z', duration: '3', result: 'exit 0', bound: '10' }) },
+  ] }] }));
+  const run = () => spawnSync(process.execPath, [script.pathname, 'exec', '--item', 'A', '--backlog', backlog, '--', ...main],
+    { encoding: 'utf8', timeout: 30000, env: { ...process.env, NO_COLOR: '1' } });
+  const r = run();
+  assert.equal(r.status, 124);
+  assert.match(r.stderr, /stopped after 10 s/);
+  assert.match(r.stdout, /result: stopped/);
+  // The detached writer was started and then stopped: its pid no longer
+  // answers, within a moment of the command's stop.
+  const pid = Number(readFileSync(pidFile, 'utf8'));
+  assert.ok(Number.isFinite(pid));
+  const gone = () => { try { process.kill(pid, 0); return false; } catch { return true; } };
+  const stopped = Date.now();
+  while (!gone() && Date.now() - stopped < 3000) {
+    const until = Date.now() + 50;
+    while (Date.now() < until);
+  }
+  assert.ok(gone(), 'the detached writer outlived its command stop');
+});
 test('exec: past the bound the command is stopped, its record does not loosen the bound', () => {
   const home = mkdtempSync(join(tmpdir(), 'runs-exec-test-'));
   const backlog = join(home, 'bl.json');

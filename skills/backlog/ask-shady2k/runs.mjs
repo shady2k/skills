@@ -18,7 +18,7 @@
 // this machine's transcripts through the ledger beside it.
 // take-task owns this file; close-out and ask-shady2k carry copies of it.
 import { execFileSync, spawn } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { constants, homedir, hostname, tmpdir, userInfo } from 'node:os';
 import { dirname, isAbsolute, join } from 'node:path';
 import {
@@ -861,6 +861,30 @@ function execBoundFor(journal, key, firstMin) {
  * before. Jev is never asked here: nothing is read from a transcript, and the
  * clock that matters is the child's own.
  */
+// The group the command runs in, plus everything restarted detached from it:
+// a child of the command may spawn its own group, and stopping the work means
+// stopping what the work started, not only its own process. Held enough to
+// name one child's descendants; a name it cannot read is left to the group.
+function descendantsOf(root) {
+  const parents = new Map();
+  try {
+    for (const dir of readdirSync('/proc')) {
+      if (!/^\d+$/.test(dir)) continue;
+      const stat = readFileSync(join('/proc', dir, 'stat'), 'utf8');
+      const rest = stat.slice(stat.lastIndexOf(')') + 1);
+      const m = /^ (\S) (-?\d+)/.exec(rest.slice(0, 40));
+      if (m) parents.set(Number(dir), Number(m[2]));
+    }
+  } catch { return []; }
+  const out = [];
+  for (const [pid, ppid] of parents) {
+    let cur = ppid;
+    for (let hops = 0; Number.isFinite(cur) && cur > 1 && hops < 4096; cur = parents.get(cur) ?? 0, hops++)
+      if (cur === root) { out.push(pid); break; }
+  }
+  return out;
+}
+
 async function execOnce(args, { err = (s) => console.error(s) } = {}) {
   const sep = args.indexOf('--', 1);
   const opts = sep === -1 ? {} : parseArgs(args.slice(1, sep));
@@ -890,20 +914,25 @@ async function execOnce(args, { err = (s) => console.error(s) } = {}) {
   const started = nowMs();
   const child = spawn(argv[0], argv.slice(1), { stdio: 'inherit', detached: true });
   let stopped = false;
-  const kill = (sig) => {
+  const kill = (sig, tree = []) => {
     stopped = true;
-    // The group whole, the direct child included or already gone: a descendant
-    // of it must not outlive the bound any more than the child itself.
+    // The group whole, the direct child included or already gone, and whatever
+    // the command started detached from it: nothing of the work outlives its
+    // bound. A pid the map cannot name is left to its own group's signal.
     try { process.kill(-child.pid, sig); } catch { try { child.kill(sig); } catch { /* the group is already gone */ } }
+    for (const pid of tree) { try { process.kill(pid, sig); } catch { /* it ended meanwhile */ } }
   };
   // Past the bound the whole group is stopped: SIGTERM, and SIGKILL after the
   // grace, so a command that ignores the first is still not waited on. The
   // child may exit before the grace; a descendant that ignored the TERM has
   // its KILL then all the same, unref'd, so this run does not stay open for it.
   let grace = null;
+  // The tree is read before the TERM fires: once its middle men have died, a
+  // grandchild is reparented and no longer names whose work it belongs to.
   const stopAt = setTimeout(() => {
-    kill('SIGTERM');
-    grace = setTimeout(() => kill('SIGKILL'), EXEC_GRACE * 1000);
+    const tree = descendantsOf(child.pid);
+    kill('SIGTERM', tree);
+    grace = setTimeout(() => kill('SIGKILL', tree), EXEC_GRACE * 1000);
   }, bound.seconds * 1000);
   const done = await new Promise((resolve) => {
     child.on('error', (e) => resolve({ error: e }));
@@ -911,10 +940,10 @@ async function execOnce(args, { err = (s) => console.error(s) } = {}) {
   });
   clearTimeout(stopAt);
   if (grace !== null) clearTimeout(grace);
-  if (stopped) {
-    const final = setTimeout(() => kill('SIGKILL'), EXEC_GRACE * 1000);
-    if (typeof final.unref === 'function') final.unref();
-  }
+  // The child's own exit does not retire the rest of the group: whatever
+  // ignored the TERM gets its KILL now, once -- the group does not outlive
+  // the bound.
+  if (stopped) kill('SIGKILL', descendantsOf(child.pid));
   if (done.error) {
     err(`exec ${execSay(argv)}: it did not start (${done.error.message}); nothing is recorded, for nothing ran to be measured`);
     process.exitCode = 127;
@@ -1954,9 +1983,17 @@ async function selftest() {
     // run claims nothing again.    // The progress report reads one piece of tracked work out of the records
     // on it: the scope's forecast, what of it is earned by accepted work, the
     // shares, the burn-up -- and the two delivery metrics it cannot name.
-    postAll([{ item: 'B', body: formatRecord('claim', { span: 'pb1', at: T(clock - 120e3), session: 'claude-code:pv', agent: 'claude-p:t@m:b#pv', role: 'worker' }) },
+    postAll([{ item: 'B', body: formatRecord('claim', { span: 'pb1', at: T(clock - 120e3), session: 'claude-code:pv', agent: 'claude-p:t@m:b#pv', role: 'worker' },
+               { columns: ['forecast'], rows: { build: { forecast: 60 }, total: { forecast: 60 } } }) },
              { item: 'B', body: formatRecord('receipt', { span: 'pb1', from: T(clock - 120e3), to: T(clock - 60e3), end: 'finished' },
                { columns: [...BUCKETS, 'total'], rows: { build: { model: 50, tools: 0, coord: 0, answer: 0, away: 0, idle: 0, total: 60 }, total: { model: 50, tools: 0, coord: 0, answer: 0, away: 0, idle: 0, total: 60 } } }) }]);
+    const pjson = JSON.parse(cli('progress', '--item', 'F', '--json', '--no-transcripts'));
+    expect('progress: earned value is the arithmetic it says, nothing claimed and nothing accepted is 0',
+      pjson.forecast.total === 60 && pjson.earned.total === 0 && pjson.earned.percent === 0);
+    backlog.issues.find((i) => i.id === 'B').status = 'closed';
+    const pjson2 = JSON.parse(cli('progress', '--item', 'F', '--json', '--no-transcripts'));
+    expect('progress: the accepted work earns its forecast, done counts follow',
+      pjson2.earned.total === 60 && pjson2.earned.percent === 100 && pjson2.items_done.tasks.done === 1);
     const prog = cli('progress', '--item', 'F', '--no-transcripts');
     expect('progress: the earned share and the done counts are named',
       /earned/.test(prog) && /of .* tasks and .* of .* stages accepted/.test(prog));
@@ -1976,12 +2013,15 @@ async function selftest() {
     const marker = join(home, 'sent.txt');
     const say = (text) => `process.stdout.write(process.argv[1]); const fs=require('fs'); fs.writeFileSync(${JSON.stringify(marker)}, process.argv[1]);`;
     writeFileSync(noteFile, JSON.stringify({ command: [process.execPath, '-e', say()] }));
+    const gateOn = join(home, 'gate-notify-on.json');
+    writeFileSync(gateOn, JSON.stringify({ notifyPushes: true }));
+    expect('notify: no consent named is nothing sent', misuse(['notify', '--note', 'x']));
     const note = 'progress digest: 40% earned, next stage by 16:20';
-    expect('notify: one line through the channel the person keeps', cli('notify', '--note', note) === `Sent: ${note}` && readFileSync(marker, 'utf8') === note);
+    expect('notify: one line through the channel the person keeps', cli('notify', '--note', note, '--config', gateOn) === `Sent: ${note}` && readFileSync(marker, 'utf8') === note);
     writeFileSync(noteFile, JSON.stringify({ command: [process.execPath, '-e', 'process.exit(3)'] }));
-    expect('notify: a failed send is said plainly, not dropped', misuse(['notify', '--note', 'x']));
+    expect('notify: a failed send is said plainly, not dropped', misuse(['notify', '--note', 'x', '--config', gateOn]));
     rmSync(noteFile, { force: true });
-    expect('notify: no channel says so and keeps the line', /No notification channel is set/.test(cli('notify', '--note', 'x')));
+    expect('notify: no channel says so and keeps the line', /No notification channel is set/.test(cli('notify', '--note', 'x', '--config', gateOn)));
     const gateCfg = join(home, 'gate-notify.json');
     writeFileSync(gateCfg, JSON.stringify({ notifyPushes: false }));
     expect('notify: the project records no pushes', misuse(['notify', '--note', 'x', '--config', gateCfg]));
