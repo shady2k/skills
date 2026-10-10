@@ -490,11 +490,12 @@ const strongest = (kinds) => RANK.find((k) => kinds.includes(k)) || 'reply';
 // A skill of this set that led a turn names that turn's phase. A skill that is
 // not a phase of the work (a notification, a search of past sessions) names
 // nothing.
-const PHASES = {
+export const PHASES = {
   'ask-shady2k': 'orient',
   brainstorming: 'explore',
   'to-research': 'explore',
   'model-domain': 'explore',
+  'define-product': 'plan',
   'to-spec': 'plan',
   'to-stages': 'plan',
   'to-prototype': 'plan',

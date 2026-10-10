@@ -807,6 +807,9 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.98.1** counts the time spent shaping a product idea with
+  `define-product` as planning in the statistics; it was showing as time of
+  no known phase.
 - **0.98.0** shows you your work in one picture. `ledger.mjs stats` lays a day
   out by the hour: twenty-four rows, each an hour as a stacked bar by kind of
   activity — developing, testing, reading, reviewing and delegating, git and

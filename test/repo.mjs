@@ -18,6 +18,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pluginContract } from './plugin-contract.mjs';
+import { PHASES } from '../skills/engineering/take-task/ledger.mjs';
 import { SHARED, needs } from './sync-protocol.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -48,6 +49,13 @@ const skills = files.filter((f) => f.endsWith('/SKILL.md')).map((f) => dirname(f
 const listed = JSON.parse(readFileSync(join(ROOT, '.claude-plugin/plugin.json'), 'utf8')).skills.map((p) => join(ROOT, p));
 for (const s of skills) if (!listed.includes(s)) fail(`${relative(ROOT, s)} is not in plugin.json`);
 for (const l of listed) if (!skills.includes(l)) fail(`plugin.json lists ${relative(ROOT, l)}, which has no SKILL.md`);
+
+// The ledger attributes a session's time by the skill that led it: a skill
+// missing from PHASES reports as unattributed, and an entry with no folder
+// can never lead.
+for (const s of skills) if (!PHASES[s.split('/').pop()]) fail(`${relative(ROOT, s)} has no phase in the ledger's PHASES`);
+for (const n of Object.keys(PHASES))
+  if (!skills.some((s) => s.split('/').pop() === n)) fail(`the ledger's PHASES lists ${n}, which has no SKILL.md`);
 
 for (const s of skills) {
   const front = readFileSync(join(s, 'SKILL.md'), 'utf8').split('---')[1] || '';
