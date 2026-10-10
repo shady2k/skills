@@ -1743,8 +1743,17 @@ const STATS_COLORS = { develop: 114, test: 179, analyze: 75, delegate: 176, git:
   answer: 152, wait: 240, accent: 117, dim: 245, dimmer: 238 };
 const HEAT_CHARS = [' ', '░', '▒', '▓', '█'];
 const HEAT_COLORS = [null, 24, 31, 38, 44];
+// Plain mode needs a shape per kind, not only a colour: the bar still says
+// what filled the hour when the terminal is on paper.
+const PLAIN_GLYPHS = { develop: '█', test: '▓', analyze: '▒', delegate: '▐', git: '▆',
+  talk: '▄', answer: '▀', wait: '░' };
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// A kind's outside name where the record's own would confuse: a tool that
+// only sleeps is 'sleep', not the kind of nothing the bar uses.
+const KIND_LABELS = { wait: 'sleep' };
 
 const blankGroups = () => Object.fromEntries(STATS_GROUPS.map((g) => [g, 0]));
 const addTo = (to, from) => { for (const g of STATS_GROUPS) to[g] += from[g] || 0; };
@@ -1894,6 +1903,15 @@ function statsBase(project, sessions, since, until, period) {
     for (const [pn, v] of Object.entries(s.phases)) phaseMinutes[pn] = (phaseMinutes[pn] || 0) + v.model + v.tool + v.answer;
   }
   const share = (h, of) => (of ? pct1((h || 0) / of) : null);
+  // The one split the bars show: the kinds of activity over everything the
+  // records laid on the clock, waiting in. The kinds of work alone come
+  // beneath as their own line, clearly labelled.
+  const groupMs = blankGroups();
+  for (const s of sessions) for (const g of s.segments || [])
+    if (g.ms > 0) groupMs[groupOf(g)] += g.ms;
+  const laidAll = STATS_GROUPS.reduce((n, g) => n + groupMs[g], 0);
+  const activity = Object.fromEntries(STATS_GROUPS.map((g) =>
+    [g, laidAll > 0 ? pct1(groupMs[g] / laidAll) : null]));
   const who = whoOf(sessions);
   return {
     period,
@@ -1914,12 +1932,13 @@ function statsBase(project, sessions, since, until, period) {
     workHours, model: l.model, tools: l.tools, answered: l.answering, ownerMessages: l.ownerMessages,
     coordination: l.coordination, away: l.away, idle: l.idle,
     kinds: Object.entries(kindMinutes).filter(([, m]) => m > 0).sort((a, b) => b[1] - a[1])
-      .map(([name, m]) => ({ name, hours: round(m / 60), workShare: share(m, workMinutes) })),
+      .map(([name, m]) => ({ name: KIND_LABELS[name] || name, hours: round(m / 60), workShare: share(m, workMinutes) })),
     phases: PHASE_NAMES.filter((name) => (phaseMinutes[name] || 0) > 0).sort((a, b) => phaseMinutes[b] - phaseMinutes[a])
       .map((name) => ({ name, hours: round(phaseMinutes[name] / 60), workShare: share(phaseMinutes[name], workMinutes) })),
     noPhaseWorkHours: round((phaseMinutes.unattributed || 0) / 60),
     noPhaseShare: workMinutes ? share(phaseMinutes.unattributed || 0, workMinutes) : null,
     fromStamps: l.fromStamps, harnessClockDisagrees: l.harnessClockDisagrees,
+    activity,
     agents: who.agents, models: who.models, modelsWithUnknownCost: who.modelsWithUnknownCost,
     costUSD: l.costUSD, costUnknown: l.costUnknown,
     linesAdded: l.linesAdded, linesRemoved: l.linesRemoved, linesUnknown: l.linesUnknown,
@@ -1973,7 +1992,11 @@ const wrap = (line, W) => {
   if (cur) out.push(indent + cur);
   return out;
 };
-const paintIn = (color) => (code, s) => (color && code != null ? `\x1b[38;5;${code}m${s}\x1b[0m` : s);
+const paintIn = (color) => {
+  const paint = (code, s) => (color && code != null ? `\x1b[38;5;${code}m${s}\x1b[0m` : s);
+  paint.color = color;
+  return paint;
+};
 // What a coloured string measures as on the terminal: without the codes.
 const stripCodes = (s) => s.replace(/\x1b\[[0-9;]*m/g, '');
 const namedDay = (day) => {
@@ -1997,8 +2020,8 @@ function statsRows(v, p) {
   const at = v.sessions;
   out.push(srow('sessions started', `${at.started} (in the checkout ${at.inCheckout}, other working copies ${at.inSideCopies}, subagents ${at.subagents})`));
   out.push(srow('at once, at the peak', `${v.concurrent} session(s)`));
-  out.push('');
-  out.push(srow('by kind', v.kinds.length ? shares(v.kinds) : 'nothing the records name'));
+
+  out.push(srow('of the work, without waiting', v.kinds.length ? shares(v.kinds) : 'nothing the records name'));
   out.push(srow('by phase', v.phases.some((f) => f.hours > 0) ? shares(v.phases) : 'nothing the records name'));
   out.push(srow('with no phase', `${v.noPhaseShare ?? '?'}% of the work, unattributed as far as the records show`));
   return out;
@@ -2009,12 +2032,25 @@ function costLines(v, p) {
   const agents = Object.entries(v.agents).map(([, a]) =>
     [a.name, `${h1(a.clockMillis / HOUR_MS)}${typeof a.cost === 'number' ? ` $${round(a.cost)}` : ''}`]);
   out.push(srow('by agent', agents.length ? roster(agents) : 'nothing was run by an agent this set reads'));
-  const modelBits = Object.entries(v.models).map(([name, m]) =>
-    [name, `${h1(m.millis / HOUR_MS)}${m.costKnown && round(m.cost) > 0 ? ` $${round(m.cost)}` : ''}`]);
-  if (modelBits.length) {
-    out.push(srow('by model', roster(modelBits) + (Object.values(v.models).some((m) => m.cost > 0)
-      ? ` (cost split over a session's models by its minutes${v.modelsWithUnknownCost ? `, ${v.modelsWithUnknownCost} session(s) with a cost name no model` : ''})` : '')));
-  } else out.push(srow('by model', 'no record names a model for its model time'));
+  // Models with a share worth a row stand alone; the small ones fold into
+  // one line, and the caveat about the split is a footnote, not a bracket.
+  const allModels = Object.entries(v.models);
+  const big = allModels.filter(([, m]) => m.millis >= 0.1 * HOUR_MS);
+  const small = allModels.filter(([, m]) => m.millis < 0.1 * HOUR_MS);
+  let modelText = null;
+  if (big.length) {
+    const bits = big.map(([name, m]) =>
+      [name, `${h1(m.millis / HOUR_MS)}${m.costKnown && round(m.cost) > 0 ? ` $${round(m.cost)}` : ''}`]);
+    if (small.length) {
+      const ms = small.reduce((n, [, m]) => n + m.millis, 0);
+      const cost = small.reduce((n, [, m]) => n + m.cost, 0);
+      bits.push([`other ${small.length} model(s)`, `${h1(ms / HOUR_MS)}${cost >= 0.01 ? ` $${round(cost)}` : ''}`]);
+    }
+    modelText = roster(bits);
+  } else modelText = allModels.length ? 'no share a figure of its own' : 'no record names a model for its model time';
+  out.push(srow('by model', modelText));
+  if (allModels.length && (Object.values(v.models).some((m) => m.costKnown) || v.modelsWithUnknownCost))
+    out.push(`  ${p(STATS_COLORS.dim, `cost is split over a session's models by its minutes${v.modelsWithUnknownCost ? `, ${v.modelsWithUnknownCost} session(s) with a cost name no model` : ''}`)}`);
   out.push(srow('cost', `$${v.costUSD ?? '?'}${v.costUnknown ? ` (unknown for ${v.costUnknown} session(s), not in it)` : ''}`));
   return out;
 }
@@ -2036,57 +2072,79 @@ const tailOf = (v) => [
     : `Dates are this machine\'s local time.`,
 ];
 
-// The stacked bar of an hour: every kind in its own order, as many cells as
-// its share of the hour gives it; the minutes nobody fills are dotted.
-function barOf(groups, p, width, scale) {
+// The stacked bar of an hour, on one scale for the whole day: the busiest
+// hour fills the bar, the hour's own length follows its fill, the kinds keep
+// their shares inside, and the minutes nobody fills trail behind the work in
+// shades. Plain mode shapes each kind instead of colouring it.
+function barOf(groups, p, width, peak) {
+  if (!(peak > 0)) return p(STATS_COLORS.dimmer, '·'.repeat(width));
+  const cellsOf = (ms) => Math.round((ms / peak) * width);
+  const draw = (g, n) => p(STATS_COLORS[g], n > 0 ? (p.color ? '█'.repeat(n) : PLAIN_GLYPHS[g].repeat(n)) : '');
   const parts = [];
-  const sums = [];
-  let seen = 0;
-  for (const g of STATS_GROUPS) sums.push([g, groups[g] || 0]);
-  for (const [g, ms] of sums) {
-    const cells = Math.round(((seen + ms) / scale) * width) - Math.round((seen / scale) * width);
-    if (cells > 0) parts.push(p(STATS_COLORS[g], '█'.repeat(cells)));
-    seen += ms;
+  let busySeen = 0, laidMs = 0, busyMs = 0;
+  for (const g of STATS_GROUPS) {
+    laidMs += groups[g] || 0;
+    if (g === 'wait') continue;
+    busyMs += groups[g] || 0;
+    const end = cellsOf(busyMs);
+    if (end > busySeen) { parts.push(draw(g, end - busySeen)); busySeen = end; }
   }
-  const empty = width - Math.round((seen / scale) * width);
-  if (empty > 0) parts.push(p(STATS_COLORS.dimmer, '·'.repeat(empty)));
+  const laidCells = cellsOf(laidMs);
+  if (laidCells > busySeen)
+    parts.push(p(STATS_COLORS.wait, (p.color ? '█' : '░').repeat(laidCells - busySeen)));
+  const pad = width - Math.max(laidCells, busySeen);
+  if (pad > 0) parts.push(p(STATS_COLORS.dimmer, '·'.repeat(pad)));
   return parts.join('');
 }
 
-const heatLevel = (ms) => {
-  const hours = ms / HOUR_MS;
-  return hours <= 0 ? 0 : hours < 0.15 ? 1 : hours < 0.5 ? 2 : hours < 1.25 ? 3 : 4;
+const legendCell = (g, label, p) => {
+  const mark = p.color ? p(STATS_COLORS[g], '▉') : p(STATS_COLORS[g], PLAIN_GLYPHS[g]);
+  return `${mark} ${label}` + ' '.repeat(Math.max(1, 14 - label.length));
 };
-const cellPaint = (ms, p) => {
-  const level = heatLevel(ms);
+
+// Four levels against the busiest day of the view, as the legend promises:
+// the busiest day is full, the rest are shares of it.
+const heatLevel = (ms, peak) => {
+  if (!(peak > 0) || !(ms > 0)) return 0;
+  const part = ms / peak;
+  return part < 1 / 6 ? 1 : part < 1 / 2 ? 2 : part < 9 / 10 ? 3 : 4;
+};
+const cellPaint = (ms, peak, p) => {
+  const level = heatLevel(ms, peak);
   return HEAT_CHARS[level] === ' ' ? ' ' : p(HEAT_COLORS[level], HEAT_CHARS[level]);
 };
 
 function dayView(v, p, W) {
-  const out = [p(STATS_COLORS.accent, `${v.project} — ${namedDay(v.window.from.slice(0, 10))}`),
-    p(STATS_COLORS.dim, 'the day by the hour; shares are of the hours the rows stack, overlap counted'),
+  const day = v.window.from.slice(0, 10);
+  const dow = DAY_NAMES[(new Date(`${day}T12:00:00`).getDay() + 6) % 7];
+  const out = [p(STATS_COLORS.accent, `${v.project} — ${dow} ${namedDay(day)}`),
+    p(STATS_COLORS.dim, 'the day by the hour; the busiest hour is the full bar, hour shares in whole percents'),
     ''];
   const legend = [['develop', 'analyze', 'git/ci', 'answered'], ['test', 'deleg', 'talking', 'waiting/idle']];
   const keys = [['develop', 'analyze', 'git', 'answer'], ['test', 'delegate', 'talk', 'wait']];
   // The legend pads by the visible width of each label, not by a string the
   // colour codes have already widened.
   for (let i = 0; i < legend.length; i++)
-    out.push(`  ${legend[i].map((label, j) => `${p(STATS_COLORS[keys[i][j]], '▉')} ${label}${' '.repeat(Math.max(1, 13 - label.length))}`).join('')}`);
+    out.push(`  ${legend[i].map((label, j) => legendCell(keys[i][j], label, p)).join('   ')}`);
+  // One clause where a person first meets the two names that carry a
+  // meaning worth a look.
+  out.push(p(STATS_COLORS.dim, '  talking: planning, shell runs for neither, replies; answered: minutes with the owner'));
   out.push('');
   if (!v.found) out.push(p(STATS_COLORS.dim, `No session of ${v.project} was found on this machine in the period.`));
   const barWidth = W - 58;
+  // The busiest hour of the day is the full bar: one scale for all 24 rows.
+  const peak = Math.max(...v.hours.map((r) => STATS_GROUPS.reduce((n, g) => n + r.groups[g], 0)));
   for (const r of v.hours) {
     const total = STATS_GROUPS.reduce((n, g) => n + r.groups[g], 0);
     if (!(total > 0) && !(r.agentMillis > 0)) { out.push(`${p(STATS_COLORS.dimmer, r.hour.slice(0, 2))}  ${'·'.repeat(barWidth)}`); continue; }
     const agent = r.agentMillis > 0 ? p(STATS_COLORS.accent, h1(r.agentMillis / HOUR_MS).padStart(5)) : '     ';
-    const peak = r.peak > 1 ? p(STATS_COLORS.accent, `×${r.peak}`.padEnd(3)) : '   ';
-    // The bar is one hour wide; an hour several sessions filled still fits,
-    // scaled to its own total. The agent-hours say the overlap aloud.
+    const conc = r.peak > 1 ? p(STATS_COLORS.accent, `×${r.peak}`.padEnd(3)) : '   ';
+    // Three kinds, whole percents: the row has to hold beside its bar in
+    // both widths.
     const bits = STATS_GROUPS.map((g) => [g, r.groups[g]]).filter(([, ms]) => ms > 0)
-      .sort((a, b) => b[1] - a[1]).slice(0, 4)
-      .map(([g, ms]) => p(STATS_COLORS[g], `${STATS_CODES[g]} ${pct1(ms / total)}%`));
-    const scale = Math.max(HOUR_MS, total);
-    out.push(`${p(STATS_COLORS.dim, r.hour.slice(0, 2))}  ${barOf(r.groups, p, barWidth, scale)} ${agent} ${peak} ${bits.join('  ')}`);
+      .sort((a, b) => b[1] - a[1]).slice(0, 3)
+      .map(([g, ms]) => p(STATS_COLORS[g], `${STATS_CODES[g]} ${Math.round(100 * ms / total)}%`));
+    out.push(`${p(STATS_COLORS.dim, r.hour.slice(0, 2))}  ${barOf(r.groups, p, barWidth, peak)} ${agent} ${conc} ${bits.join('  ')}`);
   }
   out.push('');
   out.push(srow('by activity',
@@ -2101,6 +2159,7 @@ function dayView(v, p, W) {
 // terminal keeps its newest weeks and says what it left off.
 function heatGrid(v, p, W) {
   if (!v.days.length) return [];
+  const peak = Math.max(...v.days.map((d) => d.agentMillis));
   const days = new Map(v.days.map((d) => [d.day, d.agentMillis]));
   const noon = (key) => new Date(`${key}T12:00:00`).getTime();
   const atOf = (base, days) => { const d = new Date(base); return new Date(d.getFullYear(), d.getMonth(), d.getDate() + days).getTime(); };
@@ -2126,7 +2185,7 @@ function heatGrid(v, p, W) {
   out.push(`    ${labels.join(' ')}`);
   for (let i = 0; i < 7; i++) {
     const cells = shown.map((c) => c[i]);
-    out.push(`${p(STATS_COLORS.dim, WEEKDAYS[i])}  ${cells.map((c) => cellPaint(c.ms, p)).join(' ')}`);
+    out.push(`${p(STATS_COLORS.dim, WEEKDAYS[i])}  ${cells.map((c) => cellPaint(c.ms, peak, p)).join(' ')}`);
   }
   return out;
 }
@@ -2134,10 +2193,11 @@ function heatGrid(v, p, W) {
 // A week is seven days: the heat reads as a list of its days, each with its
 // own figures beside it.
 function weekList(v, p) {
+  const peak = Math.max(...v.days.map((d) => d.agentMillis));
   return v.days.map((d) => {
     const dt = new Date(`${d.day}T12:00:00`);
     const ms = d.agentMillis > 0 ? p(STATS_COLORS.dim, `  ${h1(d.agentMillis / HOUR_MS)}`) : '';
-    const cell = d.agentMillis > 0 ? cellPaint(d.agentMillis, p) : p(STATS_COLORS.dimmer, '·');
+    const cell = d.agentMillis > 0 ? cellPaint(d.agentMillis, peak, p) : p(STATS_COLORS.dimmer, '·');
     return `  ${p(STATS_COLORS.dim, WEEKDAYS[(dt.getDay() + 6) % 7])} ${namedDay(d.day)}  ${cell}${ms}`;
   });
 }
@@ -2791,8 +2851,30 @@ function selftest() {
 
     const at80 = describeStats(week, { width: 80 }).split('\n');
     const at100 = describeStats(week, { width: 100 }).split('\n');
-    expect('fits in 100 columns and degrades to 80',
-      Math.max(...at80.map((l) => l.length)) <= 80 && Math.max(...at100.map((l) => l.length)) <= 100);
+    const strip = (l) => l.replace(/\x1b\[[0-9;]*m/g, '');
+    const statDayText = localStamp(Date.parse(T(0)), { time: false });
+    const statDay = () => JSON.parse(run(['stats', '--project', 'demo', '--day', statDayText, '--json']));
+    const vis = (view, W, color) => describeStats(view, { color, width: W }).split('\n')
+      .map(strip).map((s) => s.replace(/[ \t]+$/, ''));
+    const widths = new Set([80, 100]);
+    const fitsAll = [...widths].every((W) => [true, false].every((color) =>
+      [statDay(), week, JSON.parse(run(['stats', '--project', 'demo', '--all', '--json']))]
+        .every((view) => vis(view, W, color).every((l) => l.length <= W))));
+    expect('every row of the busy hours fits 100 columns and degrades to 80, colour and not', fitsAll);
+    const dayRows = vis(statDay(), 80, true).filter((l) => /^\d\d {2}/.test(l));
+    const filledOf = new Map(dayRows.map((l) => [l.slice(0, 2), (l.match(/[█▓▒░▐▆▄▀]/g) || []).length]));
+    const hourData = statDay().hours.filter((r) => STATS_GROUPS.some((g) => r.groups[g] > 0));
+    const filledIn = (r) => STATS_GROUPS.reduce((n, g) => n + r.groups[g], 0);
+    const fullest = hourData.reduce((a, r) => (filledIn(r) > filledIn(a) ? r : a), hourData[0]);
+    const quietest = hourData.reduce((a, r) => (filledIn(r) < filledIn(a) ? r : a), hourData[0]);
+    expect('the busiest hour is the full bar, a quieter hour a shorter one',
+      hourData.length >= 2 && filledOf.get(fullest.hour.slice(0, 2)) > filledOf.get(quietest.hour.slice(0, 2)));
+    expect('plain mode keeps the kinds in the bar', vis(statDay(), 80, false).some((l) => l.includes('▓') && l.includes('│') === false)
+      && vis(statDay(), 80, false).some((l) => l.includes('░')));
+    expect('the two splits are told apart and both shown',
+      statDayText && (() => { const s = run(['stats', '--project', 'demo', '--no-color']);
+        return s.includes('by activity') && s.includes('of the work, without waiting')
+          && !s.includes('by kind'); })());
     expect('a week carries its heat cell on each worked day', /[░▒▓█]/.test(describeStats(
       statsStretch('demo', findSessions('demo'), parseWhen('2026-01-01'), parseWhen('2026-01-08'), 'week'), { width: 80 })));
     expect('colour where the terminal takes it, none where it does not',
