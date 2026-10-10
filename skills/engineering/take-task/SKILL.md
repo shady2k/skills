@@ -78,6 +78,17 @@ Before the owner leaves, prepare the run so it needs nobody:
   protocol's **A started session answers to the one that started it**; where
   there is none, say so here with the fallback and its consequence;
 - which agents and models do which tasks, against each task's risk;
+- **whether the feature serves a date the owner set from outside the run**
+  — a demo, a release, someone outside the project who waits. One question in
+  this batch, and none is invented where the owner has none, by **A question
+  is searched for before it is asked**; where there is one, it is recorded on
+  the feature item, not only in conversation, with who set it and why, by the
+  protocol's **A decision the owner gives is kept, not only obeyed** — not
+  into the ledger's `--due`, which keeps the promised time of the run itself
+  (below) — and the forecast is checked
+  against it here, before the owner leaves: where the forecast passes it,
+  this batch leads with what will be late, why, and the two levers, by the
+  protocol's **A forecast is checked against the date it serves**;
 - how long the run will likely take and when the pull request can be expected,
   said as a time the owner can hold it to: past it without word the run has
   stopped, by the protocol's **A run that never came back is found**. That
@@ -221,9 +232,9 @@ a bar cannot catch instead of teaching it one round at a time. Fill it from the
 integration and the project's recorded conventions: how errors and logs are
 written here, the protocol's building rules the work touches (**A missing input
 is an error**, **Same input, same output**, **A test fails when its behaviour
-breaks**), and the mutation command for changed files with the time it may
-take. A kind of finding the review returns twice in this run goes into every
-later worker's brief.
+breaks**, whose strength the stage's mutation run will judge). A kind of
+finding the review returns twice in this run goes into every later worker's
+brief.
 
 **Where the project agreed to Jev, the brief carries it too**: a worker that
 does not run the set learns of it nowhere else, and the batches it is good at
@@ -296,10 +307,8 @@ a failing check.
 Workers run static checks and the tests related to their change, including
 neighbouring behaviour it affects, from the narrowest scope outward as the
 protocol's [**Cheapest check first**](references/checks.md) says; a failing
-test is iterated on alone, not with its suite. Where the project's mutation
-tool runs on the changed files within the brief's time, the worker runs it
-before reporting and deals with what survives. The full suite, mutation testing
-of the stage and final review happen at stage acceptance. A shared change can
+test is iterated on alone, not with its suite. The full suite, the stage's
+mutation run and the final review happen at stage acceptance. A shared change can
 rightly widen a worker's related tests.
 
 A worker's report holds the task, its linked commits, the changed behaviour, check
@@ -353,26 +362,43 @@ With a stage's results merged, run the project's full required checks and the
 stage's DONE WHEN on the assembled revision, here, through the integration's
 full-check command. Acceptance starts no CI: the pull request stays in progress
 until step 7, and fixes merged after a review stay there too (the protocol's
-**Know what a push starts, and push once**). Where the stage carries the spec's
+**Know what a push starts, and push once**). Acceptance is a stage boundary:
+the time by phase is read against the forecast the run claimed, and the
+forecast is checked against the target date again, by the protocol's **A
+forecast is checked against the date it serves**. Where the stage carries the spec's
 place of observation, walk the happy path there yourself the way a person
 reaches it, and record what you saw; a walk you could not make is recorded as
-not made. Then run mutation testing on changed logic within the configured
-time budget. Investigate survivors that matter, telling apart equivalent mutations, missing tests and tool failures;
-many survivors, a long log of the full checks, or a review's many findings
-(which are real, which repeat one already handled) are piles of Jev's shape by
-**The agent decides where Jev helps**, and you read what it leaves unsettled.
-Unsupported tools, timeouts and skipped checks are reported as such, never as
-passed. Use the project's agreed fallback; without one, stop as for a decision
-that needs the owner.
+not made. Mutation testing on the stage's changed logic starts once, here, as soon as
+the revision is assembled, and runs beside the walk and the review, off the
+run's path: it measures how strong the tests are, not whether the change is
+right, and no next step consumes its result, so nothing waits on it, by
+**The path is what the next step consumes** — a worker reports without it
+(step 4), and acceptance never holds the stage for it. A surviving mutant in changed logic
+that is not an equivalent mutation is a missing test, filed as a task by this
+run; where the logic a mutant survived in is high-risk (loss of data, access,
+money), that task is taken first in this feature, before it closes, without
+blocking landing. Many survivors, a long log of the full checks, or a review's
+many findings (which are real, which repeat one already handled) are piles of
+Jev's shape by **The agent decides where Jev helps**, and you read what it
+leaves unsettled. Unsupported tools, timeouts and a run that did not finish
+are reported as such, never as passed, and hold nothing up: the project's
+agreed fallback is used where it exists, and where it does not, the gap in how
+strong the tests have been proven to be is a finding filed against the
+project's checks.
 
 Check that the agent doc, the glossary, the current specs and the architecture
 still describe the assembled revision, by the protocol's **What describes the
 present is kept true**; what this stage made false is updated in it. Get a
 review following [`review.md`](review.md), preferably from a reviewer on another
-model the set can reach from here ([`agents.md`](references/agents.md)). Fix valid findings within scope and repeat the affected checks. If a fix
-changes code after the full run, rerun the full checks on the final revision.
-Repeat mutation testing and review where a fix invalidated them; the rest is
-reused by **A passing result holds while what it covers is unchanged**.
+model the set can reach from here ([`agents.md`](references/agents.md)); the
+rounds converge by **One review, then approval with comments** — one full
+review, blocking findings verified on their fixes' own diffs, the rest held by
+the checks. Fix valid findings within scope and repeat the affected checks. If
+a fix changes code after the full run, rerun the full checks on the final
+revision. Review is repeated where a fix invalidated it. A later fix reuses
+the mutation result by **A passing result holds while what it covers is
+unchanged**: only a fix that changed the logic itself invalidates it, and
+touching other code reruns nothing.
 
 Record the stage's base and final revisions, included tasks, criteria, test and
 mutation results, and review findings with what was done about each. For

@@ -223,7 +223,13 @@ whose transcripts nobody has written up, makes the figure "at least", said so.
   ahead and the outside waits, and saying which of them the date depends on
   ("ready Tuesday if stage 2 is accepted today, Wednesday otherwise"). Where
   they name a date, such as the sprint's end, say whether the work fits it,
-  with what margin and what risks it.
+  with what margin and what risks it. And where the charter or a feature
+  records a target date the owner set, no forecast is reported without it:
+  the forecast is said against the date, and where the two disagree, that
+  disagreement is the forecast's first sentence, with what each lever would
+  cost, by the protocol's **A forecast is checked against the date it
+  serves**. Where no date was recorded, the forecast is named as the agent's
+  own and stops there, not read as a promise someone made.
 
 The team's own units, such as story points, stay the team's: do not produce or
 convert them. The report is text for the owner; writing it into any other

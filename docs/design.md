@@ -220,16 +220,18 @@ so real same-stage dependants need not wait for the entire batch. Submitted
 results survive a handoff before integration, and implemented results survive
 a handoff before acceptance.
 
-At the stage boundary: full required tests, mutation testing of changed logic
-within its configured budget, then final review, preferably another model.
-Meaningful surviving mutations require investigation; unsupported tools and
-timeouts are not passes. Setup defines the fallback. Review covers both behaviour
+At the stage boundary: full required tests and final review, preferably another
+model, with mutation testing of changed logic within its configured budget
+running beside them — it reads test strength, not change correctness, and
+holds no step up; a meaningful surviving mutant is filed as a missing test, and
+unsupported tools and timeouts are not passes. Setup defines the fallback. Review covers both behaviour
 and maintainability against original requirements and assembled changes, with
 one disposition of findings.
 
 Corrections invalidate affected evidence. A code change after the full run
-requires full checks on the final revision before acceptance; repeat mutation
-checks/review when their evidence changed. Then close included tasks and the stage.
+requires full checks on the final revision before acceptance; repeat review
+where its evidence changed, and repeat the mutation run only when the fix
+changed the logic it measures. Then close included tasks and the stage.
 A feature still has its own criterion, and unrelated features need not wait.
 
 ## 8. Documents, task links and names

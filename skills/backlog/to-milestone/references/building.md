@@ -127,9 +127,13 @@ which is their job.
 
 **A test fails when its behaviour breaks.** A test that still passes with the
 behaviour it names broken guards nothing. Its expected value comes from the
-requirement or an independent example, and it is checked by breaking what it
-guards: a mutation run on the changed code where the project has one, by hand
-on the line it is about where it has not.
+requirement or an independent example, and its strength is checked by breaking
+what it guards: a mutation run on the changed code where the project has one,
+by hand on the line it is about where it has not. The run starts once on the
+revision under acceptance and reads nothing but test strength: a surviving
+mutant, short of an equivalent mutation, is a missing test to file, not a
+fault of the change, and a run that did not finish is reported as not judged,
+never as passed.
 
 **Doubles only at the boundaries.** Mocks and fakes stand in for the outside
 dependencies of **Dependencies point inward**, never for the product's own

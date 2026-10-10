@@ -181,7 +181,12 @@ bookkeeping. Where the only thing at stake is bookkeeping, the set's or the
 plan's, ask the product question underneath it or do not ask. A question
 the agent thinks is not worth the person's time is not asked: either it hides a
 real decision, which is then the question, or what needs reporting is the rule
-that forces it.
+that forces it. A forecast that will pass the date it serves is itself brought
+as this ask, and it follows this rule together with **A forecast is checked
+against the date it serves** ([running.md](running.md)): that one says the
+ask's substance and its levers by name, and what is added here is the order
+and the length — the lateness and its why are the first sentences, the levers
+and their costs follow them, and the ask stays a few lines.
 
 **Written for someone who was not there.** What the agent read — code, logs,
 measurements, the tracker, earlier sessions — is its own, however long it has

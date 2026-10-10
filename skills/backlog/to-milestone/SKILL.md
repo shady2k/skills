@@ -81,7 +81,13 @@ The draft covers:
    milestone absorbs before something must leave. Recommend it from the ending
    milestone's count and the agreed scope, as the protocol's findings lane
    counts it. Raising it admits more unplanned work and can delay delivery; keeping it means deferring or trading off when it is reached.
-6. **The next milestone**, as feature titles only.
+6. **A target date**, where the milestone serves one the owner set from
+   outside the project — a demo, a release, someone outside the work who
+   waits: taken with who set it and why, and written into the charter with
+   that. None is invented where the owner has none; the run's forecast stays
+   the agent's own, later checked against the recorded date by the protocol's
+   **A forecast is checked against the date it serves**.
+7. **The next milestone**, as feature titles only.
 
 ## 3. Write it
 
@@ -91,7 +97,8 @@ it the charter is kept as a draft and the vision and charter are not accepted.
 
 - The charter at `<charters directory>/<milestone label>.md`: name, date,
   outcomes with their checks, out, carried over, the finding-budget decision
-  with a pointer to its value in config, and the next milestone's titles.
+  with a pointer to its value in config, the target date with who set it and
+  why, where there is one, and the next milestone's titles.
 - One feature issue per outcome. **Search first**: adopt an existing feature,
   live or deferred by the previous charter, by undeferring it and giving it the
   milestone's label and a DONE WHEN. Create only what is missing, as the

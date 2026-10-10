@@ -798,6 +798,27 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.96.0** separates a run's forecast from the date the owner is waiting on,
+  and stops a slow background check from holding up the work. When you plan a
+  feature you are asked once, in the preflight, whether it serves a date you
+  set from outside the project — a demo, a release, someone waiting. That date
+  is recorded with who set it and why, and the agent's own forecast is checked
+  against it before you leave and at every stage stop, so a forecast that will
+  pass your date reaches you before the date arrives, with the two things you
+  can still choose: move the date, or take named items out of scope; a lighter
+  check is never a third option the run helps itself to. When a run misses its
+  own forecast, you hear what took longer and a new, measured estimate. A run
+  also stops spending its time in sequence: a step now holds up the work only
+  when the next step needs its result, and everything else starts as soon as
+  its input exists and runs in parallel. Mutation testing moved off that path:
+  it runs once, when a stage's work is collected, beside the review, instead
+  of by each worker and again after every fix — a surviving mutant is filed as
+  a missing test (taken first in the feature when the risk is data, access or
+  money), and the run never reports a mutation check that did not finish as
+  passed. Milestone charters can carry a target date with who set it and why;
+  a standup report answers the forecast against that date and says plainly
+  when they disagree.
+
 - **0.95.0** answers for a run started in another session. When your session
   hands a feature to a coordinator elsewhere and stays with you, supervising
   that run is its job, not a pause between jobs: before the run starts it

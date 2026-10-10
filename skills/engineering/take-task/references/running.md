@@ -104,6 +104,17 @@ state of one job, never the state of the run. What fills a wait never lands on
 what is being waited for: a wait restarted by its own filler is waited twice.
 What the owner hears meanwhile is [**Waiting is quiet**](speaking.md).
 
+**The path is what the next step consumes.** A step is on a run's critical
+path — the line of steps the pull request waits on — where the next step
+needs its result; everything whose input already exists starts then and runs
+beside the path, by the protocol's **Parallelism**. Being worth doing is not
+being on the path: a check whose result no next step waits on, a measurement,
+a record that can be made now, runs beside review and the walk rather than in
+front of anything that waits on them. Where a phase overruns, a step that
+held the path while nothing consumed its result is where the comparison at
+the boundary reads first, by **A forecast is checked against the date it
+serves**.
+
 **Sessions and landing.** The owner opens the agent in the main checkout and
 talks; talking changes nothing, and a conversation that keeps nothing leaves
 no branch behind. When the first thing is to be kept (a task, a spec, a
@@ -166,7 +177,9 @@ deadline the overrun is a fact about the work,
 not a reason to wait: never wait on to see whether it finishes, never start it
 again hoping for a better run, and never raise the bound to make the step pass.
 Stop it, find out why it took longer, and file that as a finding like any
-other failure this run owns. Durations are tracked as performance regressions
+other failure this run owns; where anyone still waits on the work it was
+doing, its end is restated from the pace it showed, by **A forecast is checked
+against the date it serves**. Durations are tracked as performance regressions
 are: how long tests, a compile, a check or any other operation takes is
 recorded with its result, compared with what the same work took before, and a
 change explained, green or not.
@@ -208,9 +221,11 @@ the expected time is news to the owner when it happens, with the new time and
 why: a session that died and was replaced, a step that overran, work sent back
 for rework. Past the deadline the wait is not armed again and the silence is
 not waited out: what went wrong is found from the record the run left, by
-**A run that never came back is found**, the owner hears the cause and what is
-being done about it, and the overrun is filed as **Silence is not progress**
-files any other.
+**A run that never came back is found**, the owner hears what took longer —
+the cause and not the culprit — and hears the reforecast, the new end said as
+a time they can hold the run to, by **A forecast is checked against the date
+it serves**, and the overrun is filed as **Silence is not progress** files any
+other.
 
 **A run that never came back is found, not assumed.** An unattended run cannot
 report its own death; what it leaves behind is a hold that stops moving and a
@@ -274,3 +289,29 @@ four failing tests), tell the person once: what grew and why, what was
 already done, the new estimate, and whether the work continues. Continue on
 the same authority when it still serves what they agreed to; stop for them
 when the new cost could change their decision.
+
+**A forecast is checked against the date it serves.** Two times, kept apart.
+The **forecast** is the agent's own commitment, worked out from the measured
+pace this rule makes; the **target date** is the owner's, set from outside
+the project — a demo, a release, someone outside the work who waits — and
+kept with who set it and why, by [**A decision the owner gives is kept, not
+only obeyed**](speaking.md). One never overwrites the other, and neither is
+passed off as the other: quoting the forecast as the owner's date, or bending
+the forecast to fit the date, loses who promised what.
+
+The forecast is checked against the date at the preflight, at every stage
+boundary, and the moment anything moves it. At a boundary the recorded time
+by phase — the ledger keeps it — is compared with the forecast by phase, and
+the largest overrun is taken to its cause, not wrapped in a longer forecast.
+A missed forecast is said to the owner with what took longer — read from the
+run's record, the cause and not the culprit — and with the reforecast, a new
+end worked out from the pace the run now shows; the overrun itself is what
+**Silence is not progress** files, and nothing files it twice.
+
+Where the forecast passes the target date, the owner hears at once, before
+the date, by [**Waiting is quiet**](speaking.md): what will be late, by how
+much and why, and the two things left to choose, each said with what the
+product loses. Move the date, or take named items out of scope: these two
+are the levers, and quality hides among neither. A third — a check relaxed
+to make the date — is presented as the loss of rigour it is, by [**Never
+show the kitchen**](speaking.md), and only the owner approves it.

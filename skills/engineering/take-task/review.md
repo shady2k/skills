@@ -1,7 +1,10 @@
 # Final review of a stage
 
-Review the assembled stage after its tests and mutation checks, not each worker
-separately. Give reviewers the base and final revisions, the combined diff, the
+Review the assembled stage after its tests and full checks, not each worker
+separately. The stage's mutation run goes beside this review, not before it —
+its results are a reading of test strength, not a gate the review waits
+behind, by **The path is what the next step consumes**. Give reviewers the
+base and final revisions, the combined diff, the
 task criteria, the spec or short delta, the original bug symptoms and the
 project's standards. They read the requirements and the change themselves,
 not the implementer's conclusions.
@@ -52,6 +55,19 @@ Where the list reaches the owner, its findings are numbered, so one can be
 answered by its number, and each says in the owner's words what the code does,
 what goes wrong, the fix, and what happens if it is left.
 
-Fix within scope, verify the final result and re-review what the fixes touched.
-Never close on a review of an older revision. Say which tests and review checks
-were repeated after the fixes and which still-valid evidence was kept.
+**One review, then approval with comments.** The reviewer reads the whole
+change once, and the answer is a code review's approval with comments: what
+blocks acceptance, and the rest as comments, trusting the author with the
+minor fixes. Each finding is sorted by what it blocks. **Blocking** is wrong
+behaviour against a criterion or requirement, loss of data, access or money,
+a statement of the present this change made false, or changed behaviour no
+check watches; the rest is **not blocking**, and a style preference never
+blocks. A blocking finding is fixed within scope and then verified against
+that finding alone, on the fix's own diff: the reviewer reads nothing else
+into the verification, and anything else it notices is filed, not looped into
+a new round. A non-blocking finding is fixed under the run's own checks and
+goes back to the reviewer no more; where it is not fixed now, it is filed as
+further work. A blocker whose fix fails verification twice gets no third
+round: the finding returns to the design — the spec or the split — or to the
+owner as a decision. Never close on a review of an older revision. Say which
+tests were repeated after the fixes and which still-valid evidence was kept.

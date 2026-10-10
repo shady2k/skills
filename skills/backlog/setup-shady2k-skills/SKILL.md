@@ -229,8 +229,10 @@ questionnaire**.
   stages or tasks; record only real conflicts and prerequisites.
 - **Verification:** commands for static checks, related tests and full checks;
   mutation testing of changed logic, its time budget and what to do with a
-  meaningful survivor. Without tooling, agree an explicit alternative or an
-  escalation at acceptance; a skipped mutation check is never "passed".
+  meaningful survivor. Without tooling, agree an explicit alternative and its
+  budget at setup; where none is agreed and none exists, a mutation check that
+  cannot run is reported as never made, never used as "passed", and holds
+  nothing up.
   Required checks follow what a change can touch, by **Cheapest check first**.
   Show the cost of each long check, so the owner sees what it buys.
 - **Jev:** whether this project's text may be sent to Jev, a fast decision

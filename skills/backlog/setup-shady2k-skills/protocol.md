@@ -171,8 +171,9 @@ effort stays inside the coordinator's span.
 Workers have distinct owners and an atomic claim or a serialized assignment:
 reading back a field that anyone can overwrite is not a lock. If a merge
 changes or fails, reopen the affected work and recheck what depends on it. The
-assembled stage gets full tests, mutation checks of changed logic and a final
-review. Acceptance on that revision is what allows its tasks and the stage to
+assembled stage gets full tests, a final review, and mutation testing of the
+changed logic started once as the revision is assembled and running beside the
+review: it measures how strong the tests are, and holds no step up. Acceptance on that revision is what allows its tasks and the stage to
 close, not the moment they close: they stay open and accepted until the work
 lands on the main line and its current specs are synced. A parent has its own
 criterion too.
