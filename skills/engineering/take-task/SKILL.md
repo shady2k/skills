@@ -109,7 +109,12 @@ Before the owner leaves, prepare the run so it needs nobody:
   that the project has never had is work with a cost in this batch, and an
   approval it needs is taken here, by **Autonomy**, put as one sentence of
   what will be true afterwards that is not true now;
-- how to reach the owner when the run stops, if the harness can notify.
+- how to reach the owner when the run stops: the notification channel the
+  project records for pushes, if any, naming it as setup proved it; and the
+  **cadence** of the pushed progress digest while the run is in flight — the
+  recommendation is once at the end of their working day, and they may pick
+  another or none. The report itself is pushed at each point that changes the
+  picture, not on each passing step, by the protocol's **Waiting is quiet**;
 
 Bring all of it as **one batch**, each item with a recommendation and its
 consequence, for the owner to accept whole or change by item. It opens with
@@ -213,9 +218,11 @@ person, machine, branch, session), never the person, and never a bare role;
 the run script's `claim` prints that name with the record.
 
 Take stages in the order their real dependencies allow, several at once where
-they are independent. Dispatch independent ready tasks in parallel where
-resources allow. Add dependencies only by the protocol's rules, never from list
-order, hierarchy or a shared milestone.
+they are independent. Two pieces of work that share no file and no dependency
+start at once, by the protocol's **Parallelism**; serialising them is a reason
+said to the owner when it happens — a shared file, a dependency, a budget that
+holds only so many workers. Add dependencies only by the protocol's rules, never
+from list order, hierarchy or a shared milestone.
 
 Give each worker its task and criterion, the relevant spec, the glossary's
 entries for the parts it touches, dependencies, base revision, owned scope,
@@ -340,7 +347,11 @@ from its log where the agent can do that.
   for the answer the owner may already have given, by **A question is searched for
   before it is asked**, and act on one found; otherwise stop only the
   affected work, send the ready decision it describes, and continue the
-  independent rest. Resume when the answer comes, recording it.
+  independent rest. Resume when the answer comes, recording it. Where a
+  worker's question is relayed by this session, it is worked first — the
+  record and the code are read, the claims checked — by speaking.md's
+  **A run's question is worked before it is passed on**; a question that
+  arrives without its material is this session's homework, not the owner's.
 - Unrelated bugs, debt and questions go through `to-backlog`; a question for the
   owner that blocks nothing is filed there as a decision they hold, and the
   pull request's report names it by title. Making this
