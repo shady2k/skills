@@ -561,7 +561,13 @@ branches, "the last committed revision" names nothing, and the baseline is the
 store's snapshot published at or before the base revision. CI uses the PR
 merge-base or the previous head of a push, never a branch's merge-base with
 itself. Misuse fails loudly (exit 2); `report` relaxes
-only policy violations (exit 1), not a broken command.
+only policy violations (exit 1), not a broken command. Where the project keeps
+time records, the local hook recovers before it judges: every span that has
+ended and whose receipt this machine can recover is posted exactly as the run
+script's recovery prints it, so a receipt one session left unwritten stops
+nobody else's commit, and the time is still recorded. It ends no span whose
+session is still live and invents no end, and a recovery that fails leaves the
+verdict as the gate gave it.
 
 **Wiring the commit check:** it runs in commit-msg and CI. The project adapter
 turns the chosen message convention into the input of `check-commits.mjs`.
@@ -572,7 +578,11 @@ and fails if it unexpectedly finds none.
 document gate's range, the backlog gate's baseline), in the pre-push hook and
 in CI alike: for each pushed ref, the commits of its tip, a tag peeled to its
 commit, that no ref the remote already has reaches, never a merge-base taken
-as a baseline for a ref the remote does not have yet. Where the store lives
+as a baseline for a ref the remote does not have yet. A ref the remote has
+whose object is not in this clone bounds nothing here and is skipped, by the
+pattern and never by a namespace: an object this clone does not hold cannot
+reach a local commit from here, so excluding it changes no answer, and it
+never makes the range uncomputable. Where the store lives
 off the branches, the code refs carry no tracker records and none is looked
 for in them: the tracker transitions over a pushed range are read from the
 store's own history over that range, by the protocol's **The tracker stays in
@@ -758,8 +768,10 @@ real commits and this repository's own checks are proved.
    a valid leaf. Verify both CI range calculations on representative
    revisions. Through the real pre-push entry point, on a scratch remote: a
    tag, and a new branch, on a commit the remote already holds pass with
-   "nothing to check"; a tag or branch carrying a new commit without a task
-   link is refused; a hook given no ref lines is refused. Run the connect command in a scratch clone and see its hooks
+   "nothing to check"; a ref outside the heads and tags namespaces that points
+   to a commit this clone does not hold leaves a linked push passing, because
+   such a ref bounds nothing here; a tag or branch carrying a new commit
+   without a task link is refused; a hook given no ref lines is refused. Run the connect command in a scratch clone and see its hooks
    fire; take away a file a hook reads and see the commit refused. On a
    scratch branch, move a file a present document names and see the
    present-documents check refuse it with that path; move it back, see it

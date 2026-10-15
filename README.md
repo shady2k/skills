@@ -881,6 +881,19 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.115.0** stops three refusals that were about the machine or the branch
+  rather than the work. A push is no longer refused because the remote holds
+  refs your clone never fetched: a ref whose commit is not in your clone bounds
+  nothing there and is skipped. A time record one session forgot no longer
+  stops everyone's commits when this machine can still recover it: the commit
+  hook recovers and posts the receipt before the gate judges, so only time no
+  machine can recover stays an error, and a live session's span is left alone.
+  And a refusal that read a value from your config now says so: it judged by
+  this checkout's config, and if the value was changed on the main line,
+  bringing the branch up to date is what clears it. Projects rerun setup
+  (0.46.0) so their hooks recover before they judge and their push check skips
+  refs it cannot read.
+
 - **0.114.0** stops two concurrent tracker commands from stopping with a false
   "inspect the lock" error when the other command is only between its lock steps,
   and stops the tracker leaving a diagnostic file behind for every write it

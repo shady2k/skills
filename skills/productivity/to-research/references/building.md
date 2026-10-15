@@ -92,7 +92,8 @@ the input is not there. Where several independent things are wrong, all of
 them are reported in one run, not only the first.
 An empty result that was computed is not a missing input: a push whose
 commits the remote already holds introduces none, and the guard says so and
-passes. What fails closed is the enumeration that could not be made, or came
+passes. Nor is a reference whose object this copy does not hold: it can bound
+nothing here, so it is skipped, and what the guard can read is still read. What fails closed is the enumeration that could not be made, or came
 back empty where something had to be there; the two are told apart by what
 was asked, never by the count alone.
 
