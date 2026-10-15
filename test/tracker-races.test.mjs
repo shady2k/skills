@@ -194,3 +194,53 @@ test('SIGKILL leaves an inspectable own candidate and a subsequent attempt prese
     const item=storeItems(ctx,'A')[0];assert.equal(item.holder,'after-crash');assert.ok(item.comments.some(c=>c.text==='survived-crash'));
   } finally {await stopAllWatchers(ctx);rmSync(ctx.scratch,{recursive:true,force:true});}
 });
+
+for(const mode of ['failed','accepted-timeout','remote-update','code-head-update']) test(`record ${mode} preserves concurrent live writes without speculative publication`,async()=>{
+  const ctx=newCtx(`race-record-${mode}`);
+  try {
+    const ready=bringUp(ctx,'A');assert.equal(ready.code,0,ready.out);
+    if(mode==='remote-update'||mode==='code-head-update') {const b=bringUp(ctx,'B');assert.equal(b.code,0,b.out);}
+    const arrived=join(ctx.scratch,'arrived'),go=join(ctx.scratch,'go');
+    const marker=`if(!globalThis.recordBarrier){globalThis.recordBarrier=true;writeFileSync(${JSON.stringify(arrived)},'ready');while(!existsSync(${JSON.stringify(go)}))await sleep(10);${mode==='failed'?'return {ok:false,unreachable:true};':mode==='accepted-timeout'?"await gitOk(['push','origin',`${oid}:${CURRENT.ref}`],{cwd:CURRENT.store});return {ok:false,unreachable:true};":''}}`;
+    const file=join(ctx.scratch,'record-barrier.mjs');
+    writeFileSync(file,src().replace('async function pushOnce(oid) {','async function pushOnce(oid) {'+marker).replace('async function pushOid(oid, { quiet, attempts = 3 } = {}) {','async function pushOid(oid, { quiet, attempts = 3 } = {}) {'+marker));
+    const revision=git(ctx.codeA,['rev-parse','HEAD']);
+    const child=spawn(process.execPath,[file,'record','--revision',revision,'--recipe',ctx.recipe,'--repo',ctx.codeA,'--state',ctx.stateA],{stdio:['ignore','pipe','pipe']});
+    let output='';child.stdout.on('data',b=>output+=b);child.stderr.on('data',b=>output+=b);const done=new Promise(r=>child.on('close',r));ctx.watchers.push(child);
+    await until(()=>existsSync(arrived));
+    assert.equal(post(ctx,'A','i-1','live-during-record').code,0);
+    // Commit locally; the failed case also exercises an independent publisher.
+    if(mode==='failed') {const p=mech(ctx,'publish',[]);assert.equal(p.code,0,p.out);}
+    else {const live=storeOf(ctx,'A');assert.equal(spawnSync(process.execPath,[ctx.fake,'export'],{cwd:live}).status,0);git(live,['add','fake/items.jsonl']);git(live,['-c','core.hooksPath=/dev/null','-c','user.name=proof','-c','user.email=proof@local','commit','-m','live during record']);}
+    const before=git(storeOf(ctx,'A'),['rev-parse','HEAD']);
+    const speculative=git(ctx.remote,['ls-tree','-r','--name-only','refs/tracker/state','--','.tracker-sync/recordings']);
+    if(mode==='code-head-update') git(ctx.codeA,['-c','core.hooksPath=/dev/null','-c','user.name=proof','-c','user.email=proof@local','commit','--allow-empty','-m','advance code during record']);
+    if(mode==='remote-update'||mode==='code-head-update') {assert.equal(post(ctx,'B','i-1','remote-during-record').code,0);assert.equal(mech(ctx,'publish',[],{machine:'B'}).code,0);}
+    writeFileSync(go,'go');assert.equal(await done,mode==='failed'?4:0,output);
+    const ancestry=spawnSync('git',['-C',storeOf(ctx,'A'),'merge-base','--is-ancestor',before,'HEAD']);
+    assert.equal(ancestry.status,0,'record rollback erased concurrent committed live history');
+    assert.ok(storeItems(ctx,'A')[0].comments.some(c=>c.text==='live-during-record'));
+    assert.equal(speculative,'','ordinary publisher exposed an unaccepted recording');
+    if(mode==='failed') assert.match(output,/unknown/);
+    if(mode==='remote-update') assert.ok(storeItems(ctx,'A')[0].comments.some(c=>c.text==='remote-during-record'));
+    if(mode!=='failed') {
+      const recorded=git(ctx.remote,['show',`refs/tracker/state:.tracker-sync/recordings/${revision}.jsonl`]);
+      assert.ok(!recorded.includes('live-during-record'),'retry recaptured a later state for the same revision');
+    }
+  } finally {await stopAllWatchers(ctx);rmSync(ctx.scratch,{recursive:true,force:true});}
+});
+
+test('record preserves missing recipe dependency exit 2 and installed version provenance',async()=>{
+  const ctx=newCtx('record-missing-runtime');
+  try {
+    const ready=bringUp(ctx,'A');assert.equal(ready.code,0,ready.out);
+    const installed=join(ctx.scratch,'tracker-sync.mjs');writeFileSync(installed,src());
+    writeFileSync(join(ctx.scratch,'tracker-sync.version'),'0.112.0\n');
+    assert.equal(spawnSync(process.execPath,[installed,'version'],{encoding:'utf8'}).stdout.trim(),'0.112.0');
+    const custom=join(ctx.scratch,'missing-recipe.mjs');
+    writeFileSync(custom,`import original from ${JSON.stringify(pathToFileURL(ctx.recipe).href)};export default {...original,import:'definitely-missing-tracker-runtime --import'};`);
+    const result=spawnSync(process.execPath,[installed,'record','--recipe',custom,'--repo',ctx.codeA,'--state',ctx.stateA],{encoding:'utf8'});
+    assert.equal(result.status,2,result.stderr);assert.match(result.stderr,/definitely-missing-tracker-runtime/);
+    assert.equal(storeItems(ctx,'A')[0].holder,'');
+  } finally {await stopAllWatchers(ctx);rmSync(ctx.scratch,{recursive:true,force:true});}
+});

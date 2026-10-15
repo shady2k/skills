@@ -696,7 +696,7 @@ async function pushOnce(oid) {
  * Local writers and publishers keep using the live store while the immutable
  * candidate is on the wire. Only acceptance integrates it under the local lock.
  * Copy local recipe configuration too, but never follow a pointer to live data. */
-async function conditionalCandidate(kind,decl,map,item) {
+async function isolatedCandidate(kind,item,prepare) {
   const live=CURRENT.store, previousEnv=CURRENT.recipeEnv, previousThrow=THROW_ERRORS, previousIsolation=CURRENT.isolatedFrom;
   const candidate=join(machineDir(CURRENT.flags,CURRENT.repoRoot),`candidate-${randomUUID()}`);
   const diagnostic={kind,item,pid:process.pid,createdAt:nowIso(),phase:'preparing',files:0,bytes:0,snapshotMs:0,importMs:0};
@@ -736,14 +736,9 @@ async function conditionalCandidate(kind,decl,map,item) {
       const imported=await recipe('import',{});
       diagnostic.importMs=Date.now()-importStart;save();
       if(imported.code!==0) return {failed:imported,decl:'import'};
-      const w=await recipe(decl,map);
-      if(w.code===3) return {lost:text(w)};
-      if(w.code!==0) return {failed:w,decl};
-      const exported=await recipe('export',{});
-      if(exported.code!==0) return {failed:exported,decl:'export'};
-      return {oid:await commitState(`tracker store: ${kind} ${item}`,[before])};
+      return prepare(before);
     });
-    if(!step.oid) {diagnostic.phase=step.lost?'lost':'recipe-failed';save();return step;}
+    if(!step.oid) {diagnostic.phase=step.already?'already-recorded':step.lost?'lost':'recipe-failed';save();return step;}
     diagnostic.oid=step.oid;diagnostic.phase='pushing';save();
     // Network outside the mutation lock. A refused/unreachable candidate is
     // discarded, not rolled back over another local operation's completed work.
@@ -760,30 +755,38 @@ async function conditionalCandidate(kind,decl,map,item) {
     }
   }
 }
+async function conditionalCandidate(kind,decl,map,item) {
+  return isolatedCandidate(kind,item,async before=>{
+    const w=await recipe(decl,map);
+    if(w.code===3) return {lost:text(w)};
+    if(w.code!==0) return {failed:w,decl};
+    const exported=await recipe('export',{});
+    if(exported.code!==0) return {failed:exported,decl:'export'};
+    return {oid:await commitState(`tracker store: ${kind} ${item}`,[before])};
+  });
+}
+async function reconcileCandidate(step) {
+  if(!step.pushed?.unreachable) return;
+  const observed=await fetchRemote();
+  if(observed.ok && observed.tip && (await git(['merge-base','--is-ancestor',step.oid,observed.tip],{cwd:CURRENT.store})).code===0) {
+    step.pushed={ok:true,reconciled:true};
+    const diagnostic=JSON.parse(readFileSync(step.diagnostic,'utf8'));diagnostic.phase='accepted-reconciled';
+    if(diagnostic.retainedRef) await git(['update-ref','-d',diagnostic.retainedRef,step.oid],{cwd:CURRENT.store});
+    delete diagnostic.retainedRef;writeFileSync(step.diagnostic,JSON.stringify(diagnostic,null,2)+'\n');
+  }
+}
+async function integrateCandidate(step) {
+  await locked(async()=>{await recipeOk('export',{});await mergeAndCommit(step.oid);});
+}
 async function conditional(kind, decl, map, item) {
   for(let attempt=0;attempt<3;attempt++) {
     await syncOnce({needsRemote:true,quiet:true});
     const step=await conditionalCandidate(kind,decl,map,item);
-    if(step.pushed?.unreachable) {
-      // A lost acknowledgement can follow an accepted push. Reconcile the exact
-      // candidate object before describing its effect; a failed probe is unknown.
-      const observed=await fetchRemote();
-      if(observed.ok && observed.tip && (await git(['merge-base','--is-ancestor',step.oid,observed.tip],{cwd:CURRENT.store})).code===0)
-        { step.pushed={ok:true,reconciled:true};
-          const diagnostic=JSON.parse(readFileSync(step.diagnostic,'utf8'));diagnostic.phase='accepted-reconciled';
-          if(diagnostic.retainedRef) await git(['update-ref','-d',diagnostic.retainedRef,step.oid],{cwd:CURRENT.store});
-          delete diagnostic.retainedRef;writeFileSync(step.diagnostic,JSON.stringify(diagnostic,null,2)+'\n');
-        }
-    }
+    await reconcileCandidate(step);
     if(step.lost) die(3,`${kind} lost: ${step.lost.split('\n')[0]||'the condition no longer holds'}; read again and take other work`);
     if(step.failed) die(step.failed.code===127||step.failed.missing?2:1,`the recipe's ${step.decl} command failed (${step.failed.code}): ${text(step.failed)||'no output'}`);
     if(step.pushed.ok) {
-      await locked(async()=>{
-        await recipeOk('export',{});
-        // Always merge the accepted object with the current live state. Its
-        // HEAD/database may have advanced during the push; never reset them.
-        await mergeAndCommit(step.oid);
-      });
+      await integrateCandidate(step);
       writeConfig(CURRENT.flags,CURRENT.repoRoot,{lastPublish:nowIso(),lastPublishOk:true});
       say(`${kind} landed on the remote: ${item}`);return;
     }
@@ -795,22 +798,17 @@ async function conditional(kind, decl, map, item) {
   }
   die(3,`${kind} lost: three pushes were refused; read again and take other work`);
 }
-let RECORDED_REV = null;
-let RECORDED_BEFORE = null;
 async function recordRun({ revision, checkout, fromTree }) {
-  const ck = checkout ? resolve(checkout) : CURRENT.repoRoot;
-  // What the remote already holds is read before anything is written: a recording
-  // that is there is success, and one that is there with DIFFERENT content is a
-  // refusal. Where the remote cannot be read, neither can be told apart, and
-  // nothing is recorded.
-  const remote = await fetchRemote();
-  if (!remote.ok)
-    die(4, `the remote is unreachable (${remote.said}), so whether this revision is already recorded cannot be checked: nothing is recorded here`);
-  const oid = await locked(async () => {
-    const ck2 = ck;
-    await recipeOk('export', {});
+  const ck=checkout?resolve(checkout):CURRENT.repoRoot;
+  let captured;
+  for(let attempt=0;attempt<3;attempt++) {
+    const remote=await fetchRemote();
+    if(!remote.ok) die(4,'the remote is unreachable, so recording identity cannot be checked; nothing new was recorded');
+    const step=await isolatedCandidate('record',revision||'HEAD',async()=>{
+      const ck2=ck;
     let rev = revision;
     let parts;
+    if (!captured) {
     if (fromTree) {
       rev = rev || (await gitOk(['rev-parse', 'HEAD'], { cwd: ck2 })).trim();
       if ((await git(['cat-file', '-e', `${rev}^{commit}`], { cwd: CURRENT.store })).code !== 0)
@@ -825,6 +823,9 @@ async function recordRun({ revision, checkout, fromTree }) {
         die(1, `revision ${String(rev).slice(0, 12)} is not ${ck2}'s HEAD (${head.slice(0, 12)}): only a revision cut or landed now is recorded, because a later state is not that revision's`);
       parts = stateFiles().map((p) => [p, existsSync(join(CURRENT.store, p)) ? readFileSync(join(CURRENT.store, p), 'utf8') : null]);
     }
+    captured={rev,parts};
+    }
+    ({rev,parts}=captured);
     const file = join(CURRENT.store, '.tracker-sync', 'recordings', `${rev}.jsonl`);
     // What the remote holds for this revision, read before anything is said about
     // "already recorded": a recording this machine kept while the remote's publish
@@ -848,31 +849,26 @@ async function recordRun({ revision, checkout, fromTree }) {
     if (there && there !== sideText(parts))
       die(1, `${String(rev).slice(0, 12)} is already recorded on the remote with a different state; neither is moved, a person must decide`);
     if (there) return { already: String(rev).slice(0, 12), where: 'on the remote' };
-    mkdirSync(dirname(file), { recursive: true });
-    writeFileSync(file, sideText(parts));
-    RECORDED_REV = String(rev).slice(0, 12);
-    RECORDED_BEFORE = await headOid();
-    return { oid: await commitState(`tracker store: record ${String(rev).slice(0, 12)}`, [RECORDED_BEFORE]) };
-  });
-  if (oid.already) {
-    writeConfig(CURRENT.flags, CURRENT.repoRoot, { lastRecord: nowIso() });
-    say(`tracker-sync: ${oid.already} is already recorded ${oid.where}; a recording is written once and never moved, so nothing was written`);
-    return;
-  }
-  const pushed = await pushOid(oid.oid, { quiet: true });
-  if (!pushed.ok) {
-    // A recording is "written once" against the ref, not against this machine:
-    // one that never lands is one the other machines cannot see, and each of
-    // them would record the same revision again. So it is undone, and said.
-    await locked(async () => {
-      await gitOk(['reset', '--hard', RECORDED_BEFORE], { cwd: CURRENT.store });
-      keepIdentity();
-      await recipeOk('import', {});
+      // Capture the revision's state once, before merging remote changes.
+      // Retries preserve that exact recording rather than recapturing later work.
+      if(!remote.noRef) await mergeAndCommit(remote.tip);
+      mkdirSync(dirname(file),{recursive:true});writeFileSync(file,sideText(parts));
+      return {oid:await commitState(`tracker store: record ${String(rev).slice(0,12)}`,[await headOid()])};
     });
-    die(4, `${RECORDED_REV} was not recorded: its push did not land (${pushed.unreachable ? 'the remote is unreachable' : 'the remote refused it'}), and a recording the other machines cannot see would let each of them record the same revision again. Nothing was recorded here`);
+    if(step.already) {
+      writeConfig(CURRENT.flags,CURRENT.repoRoot,{lastRecord:nowIso()});
+      say(`tracker-sync: ${step.already} is already recorded ${step.where}; a recording is written once and never moved, so nothing was written`);return;
+    }
+    if(step.failed) die(step.failed.code===127||step.failed.missing?2:1,`the recipe's ${step.decl} command failed (${step.failed.code}): ${text(step.failed)||'no output'}`);
+    await reconcileCandidate(step);
+    if(step.pushed.ok) {
+      await integrateCandidate(step);
+      writeConfig(CURRENT.flags,CURRENT.repoRoot,{lastRecord:nowIso()});
+      say(`tracker-sync: recorded the store at ${String(captured.rev).slice(0,12)}`);return;
+    }
+    if(step.pushed.unreachable) die(4,`recording outcome is unknown: the remote may have accepted candidate ${step.oid}; reconcile remote state before retrying`);
   }
-  writeConfig(CURRENT.flags, CURRENT.repoRoot, { lastRecord: nowIso() });
-  say(`tracker-sync: recorded the store at ${RECORDED_REV}`);
+  die(4,'the remote refused three recording candidates; live work was preserved; reconcile remote state before retrying');
 }
 // ---- connect, status, export, watch ----------------------------------------
 
