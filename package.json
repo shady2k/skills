@@ -19,7 +19,8 @@
     "test:pi:smoke": "node test/pi-smoke.mjs",
     "test:prime:smoke": "node test/prime-smoke.mjs",
     "build": "node scripts/build-skills.mjs",
-    "build:check": "node scripts/build-skills.mjs --check && node scripts/check-authoring-duplicates.mjs"
+    "build:check": "node scripts/build-skills.mjs --check && node scripts/check-authoring-duplicates.mjs",
+    "test:skills:smoke": "node test/skills-installer-smoke.mjs"
   },
   "keywords": [
     "pi-package"

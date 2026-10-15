@@ -36,26 +36,69 @@ The official command is `npx skills add shady2k/skills` (plural). The upstream
 from a skill-folder URL. Source inspected: vercel-labs/skills commit
 `13e4063a1cf913f5606d57d42ab83a86f5001e04`, package 1.7.2.
 `src/skills.ts` discovers literal `SKILL.md`; authoring `.md.in` and `.md.inc`
-files cannot become additional skills. No downloaded installer was executed.
+files cannot become additional skills. `npm run test:skills:smoke` runs the pinned official package with an asserted
+repository URL and npm integrity before installation. It uses disposable HOME,
+XDG directories, target projects, source copies and npm cache, distinct empty
+npm configs, no inherited credentials, disabled telemetry and lifecycle scripts.
+It installs all 24 entries and a standalone take-task folder, checking every
+installed resource byte and concrete Markdown link. It is an explicit network
+smoke, not part of the offline test suite.
 Every installed skill keeps its entry and reachable dependencies in its own
 folder. Existing Claude/Codex/Pi/omp contracts and smoke tests remain in place.
 
+## Coverage of reviewed duplication
+
+38 templates do not mean 38 shared policies. Only these exact text groups have
+been extracted so far:
+
+| Group | Current authoring owner and uses | Status |
+| --- | --- | --- |
+| Backlog prerequisite, setup-version-check wording | `backlog-prerequisite-b698bf32`, owned by refine-practices; take-task, close-out, refine-practices | One source for this exact variant |
+| Backlog prerequisite, protocol-description wording | `backlog-prerequisite-ec8ec1b3`, owned by to-spec; check-upkeep, groom-backlog, to-backlog, to-design, to-stages, to-milestone, to-spec | One source for this exact variant |
+| Speaking callout | `speaking-callout-bc8756d6`, owned by to-spec; nine entries | One source for this exact text |
+| Reviewer policy | setup entry and agents reference templates | Still independently authored |
+| MODELDIR / ENGINE | describe-repository and write-intended-model templates | Still independently authored |
+| Preparing an owner question | deciding and speaking reference templates | Still independently authored |
+
+Even the two prerequisite variants repeat some assertions. Thus the stronger
+requirement, one authoring owner for every assertion, is **not yet achieved**.
+The empty exact-paragraph baseline is not evidence of semantic deduplication.
+
+The next safe stage is a separately reviewed semantic change. Inventory each
+assertion and its owner first; preserve invocation-specific duties at their
+call site. Make agents own the reviewer definition, route/proof/repair/fallback
+policy; setup should state only its step and any acceptance-setting choice and
+link that policy. Put shared model-folder and engine-location rules in one
+model-environment reference; retain each command's distinct missing-engine and
+clean-checkout requirements in its entry. Let deciding own the worked-question
+checklist; speaking should own routing through the supervising session and
+notification wording, then reference deciding for the checklist. Reconcile the
+two prerequisite variants under one prerequisite policy as part of that stage.
+Review intentional wording/loading changes and tests separately; retain this
+commit as the byte-identical baseline. Do not silently choose one existing
+variant as the semantic winner or automatically delete near-duplicates.
+
 ## Project configuration at runtime: proposal only
 
-Keep publish-time common rules separate from current project state. `take-task`
-needs the project's integration, reviewer route, execution policy, budget and
-current run state; setup already records these choices. Reading JSON or the
-integration directly remains sufficient for isolated settings. A small computed
-preflight summary could help only where multiple sources must be reconciled:
-chosen reviewer and reachable route, permitted concurrency, remaining budget,
-setup compatibility and resumed run status. It should cite the sources and
-report conflicts instead of inventing defaults or permissions.
+Direct reading remains sufficient for static individual settings: project
+language, configured check commands, document paths, selected reviewer/fallback
+and a concurrency limit. A template would only repeat their JSON or integration
+values, add cache invalidation and risk hiding an unresolved conflict.
 
-If later approved, make that summary a read-only command callable from any
-harness's shell, with explicit project root; harnesses without a shell read the
-same source files. Never mutate the installed SKILL.md. Scope any cache by
-canonical project root, relevant config content hashes, setup/plugin versions
-and command schema version; live budget/run state must be refreshed each time.
-Do not embed secrets. Configuration changes invalidate summaries and never grant
-new authority. This needs no change to today's Git or skills installation.
-No runtime compiler, cache or new invocation requirement is implemented here.
+| Existing step | Potential on-demand specialization | Why reading config alone is insufficient |
+| --- | --- | --- |
+| take-task preflight, worker dispatch and review | A short effective execution profile: configured concurrency, agreed reviewer/fallback and the route actually reachable in this harness | Policy comes from gate config/integration; executable availability is live harness state. Do not call a model just to render a profile |
+| take-task resume and claim | Current coordinator/held items, run route and next permitted action | This comes from current ledger and tracker/remote state, not static config; never cache claims or infer permission from a summary |
+| take-task / to-milestone finding budget | Remaining allowance and whether an owner decision is required | Config supplies policy; actual spending comes from current milestone/tracker data |
+| setup rerun or compatibility preflight | Retained settings, incompatible setup versions, missing prerequisites and conflicts across integration/config | Requires comparing multiple sources and installed versions; simple reading is enough if no reconciliation is required |
+
+These are candidates for a small read-only context command, not dynamically
+rewritten SKILL.md files. If approved, call it through each harness's shell with
+an explicit project root; without a shell, read the same sources directly. The
+published Git installation remains usable without the helper. Key any static
+cache by canonical project root, relevant content hashes, setup/plugin versions
+and context schema version; refresh live availability, run/claim and budget
+state on every use. Shared user config may supply preferences only under an
+explicit precedence policy; conflicts require disclosure, not silent override.
+Never mix projects, embed secrets, persist credentials or treat config as new
+consent. No runtime generator, cache or new dependency is implemented here.

@@ -35,9 +35,14 @@ performed. Whitespace variants and paraphrases are outside the exact checker.
 The official installer source reviewed was vercel-labs/skills 1.7.2 at
 `13e4063a1cf913f5606d57d42ab83a86f5001e04`: the command is
 `npx skills add`, plural, and discovery searches for literal `SKILL.md`.
-No downloaded installer was executed. All 24 skill folders were copied to
-disposable directories and their concrete local Markdown links checked there.
-This filesystem smoke is not a real installer/harness discovery run.
+The real pinned official npx installer was subsequently executed through
+`npm run test:skills:smoke`. Before execution the smoke checks npm's repository
+URL, exact version and expected SHA-512 integrity. All HOME/XDG/target/cache and
+source locations are disposable, npm configs are distinct empty files, lifecycle
+scripts and telemetry are disabled, and no credentials are inherited. It lists
+and installs all 24 skills, asserts no extra authoring discovery, installs a
+standalone take-task folder, and compares every installed resource byte and
+concrete local Markdown link. No install-time compilation is involved.
 
 ## Checks on Mac mini
 
@@ -54,7 +59,8 @@ This filesystem smoke is not a real installer/harness discovery run.
 | Codex/omp smoke | Blocked: tests require Linux and bubblewrap |
 | Pi installation smoke | Blocked: Pi CLI absent |
 | Prime smoke | Blocked: prepared `PRIME_AGENT_KERNEL_PYTHON` absent |
-| Real skills installer smoke | Not run: source checkout has no built dist/dependency installation |
+| Real skills installer smoke | Pass: official skills@1.7.2, 24 entries and standalone take-task, byte-identical resources/links |
+| Linux build/Pi/repository/setup-lock contracts | Pass: 10/10 tests plus both contract gates in existing container image |
 
 The new tests exercise byte preservation, deterministic includes, unknown IDs,
 cycles, duplicate inclusion through nesting, malformed directives, stale manual
@@ -80,11 +86,36 @@ fixed and regression-tested. Its anchored-link follow-up was also fixed in the
 builder, retained packager and tests. It did not constitute a different-model
 or actual harness acceptance run.
 
+## Linux availability follow-up
+
+OrbStack and Docker are running. Read-only probes checked the existing
+`nikolaik/python-nodejs:python3.11-nodejs24` and
+`lifemodel-test-deps:30c19c7ebad9a1575084ee0e` images, the running hermes
+container, and the three running Debian machines aip-client/aip-entry/aip-exit.
+No suitable environment with bubblewrap plus Codex/omp/Pi CLI was found. Node
+and Git are present in the checked containers. The installed host omp binary is
+for macOS, so mounting it would not provide a Linux CLI. No image was pulled,
+software installed, global setting changed or running container modified.
+
+An ephemeral container from the existing python3.11-nodejs24 image ran build and
+Pi tests (10/10), repository contract and setup lock successfully, without
+network, with read-only root/source mounts and disposable tmpfs. This does not
+replace Codex/omp install/update smoke, whose executables and sandbox dependency
+are missing from the checked Linux environments.
+
+## Remaining policy ownership
+
+Only prerequisite variants and the nine-entry speaking callout are centralized.
+Reviewer policy, model environment rules and deciding/speaking question content
+still have independent authoring sites. The one-owner-per-assertion requirement
+is not yet met. The proposed semantic follow-up and concrete runtime-context
+candidates are documented in skill-authoring.md; neither is implemented here.
+
 ## Next step
 
 Review the local implementation and the runtime-context proposal in
 [skill-authoring.md](skill-authoring.md). Keep runtime compilation out of this
-change. Run the real installer in isolated configuration and the preserved
-Linux harness smoke tests before publication; resolve or explicitly account for
+change. The real installer isolation check now passes. Run the preserved
+Linux harness smoke tests in a prepared environment before publication; resolve or explicitly account for
 the existing baseline failures. Push, PR and release require separate agreement.
 The old personal checkout and the cloned base checkout have no tracked changes.
