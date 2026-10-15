@@ -61,11 +61,12 @@ if (!existsSync(MECH_SRC)) {
 
 // ---------------------------------------------------------------- results
 const results = [];
+let phase = 'clean';
 let failCount = 0;
 const lastFailure = new Map();
 const cleanFailed = new Set();
 function record(id, ok, detail, ms) {
-  results.push({ id, ok, detail, ms });
+  results.push({ id, ok, detail, ms, phase:id.startsWith('mutation-')?'mutation-proof':phase });
   if (!ok) { lastFailure.set(id, detail || ''); failCount++; }
   console.log(`${ok ? 'PASS' : 'FAIL'} ${id}${ms !== undefined ? ` (${ms} ms)` : ''}${detail ? ' — ' + detail : ''}`);
 }
@@ -130,11 +131,13 @@ async function settleWatcher(ctx, machine, timeoutMs = 8000) {
   await sleep(300); // the tick's post-import commit is on the remote; let the next tick pass
   return !!res.value;
 }
-function stopWatcher(child) {
+async function stopWatcher(child) {
   if (!child || child.exitCode !== null || child.signalCode) return;
-  try { child.kill('SIGKILL'); } catch { /* already gone */ }
+  const exited=new Promise(resolve=>child.once('close',resolve));
+  try { child.kill('SIGKILL'); } catch { return; }
+  await exited; // Reap the PID before any spawnSync can block the event loop.
 }
-function stopAllWatchers(ctx) { for (const c of ctx.watchers) stopWatcher(c); ctx.watchers = []; }
+async function stopAllWatchers(ctx) { const children=ctx.watchers;ctx.watchers=[];await Promise.all(children.map(stopWatcher)); }
 
 // The owner's decision of 2026-10-13: when two machines claim one item inside the
 // same seconds, one may win and the other be refused, or both may land. What the
@@ -513,7 +516,9 @@ async function runBroken(breakDef) {
     // failures — the mutation assertion below is the verdict
     const before = failCount;
     const recordedBefore = results.length;
-    const run = await runCase(caseId, overrides);
+    let run;
+    const previousPhase=phase;phase='mutant';
+    try {run=await runCase(caseId,overrides);} finally {phase=previousPhase;}
     failCount = before;
     // A case that recorded nothing in this environment is a named SKIP (it needs
     // a tracker command this machine does not have, and it says so), not a case
@@ -568,13 +573,13 @@ const CASES = {
       if (!c || c.text !== 'hello from A' || c.author !== 'session-a') { ok = false; why.push('remote body mismatch: ' + JSON.stringify(c)); }
       record('1-publish-latency', ok, why.join('; '), ms);
       // supervisor simulated: kill the watcher, write, start it again
-      stopWatcher(w);
+      await stopWatcher(w);
       post(ctx, 'A', 'i-2', 'while unsupervised');
       const w2 = watcher(ctx, 'A');
       const res2 = await waitForRemote(ctx, (items) => items.some((x) => x.id === 'i-2' && x.comments.some((c) => c.text === 'while unsupervised')));
       record('9-supervisor-restart', !!res2.value, res2.value ? 'a write after the restart landed (not a real boot)' : 'the write after the restart never landed');
-      stopWatcher(w2);
-    } finally { stopAllWatchers(ctx); }
+      await stopWatcher(w2);
+    } finally { await stopAllWatchers(ctx); }
   },
 
   // 2. Sync: B sees A's write after its sync tick, before anything reads the store.
@@ -585,15 +590,15 @@ const CASES = {
     await settleWatcher(ctx, 'A');
     const t0 = Date.now();
     const p = post(ctx, 'A', 'i-1', 'for B');
-    if (p.code !== 0) { record('2-sync-freshness', false, 'post failed: ' + p.out); stopAllWatchers(ctx); return; }
+    if (p.code !== 0) { record('2-sync-freshness', false, 'post failed: ' + p.out); await stopAllWatchers(ctx); return; }
     const rid = p.recordId;
     const seen = await waitForRemote(ctx, (items) => items.some((x) => x.id === 'i-1' && x.comments.some((c) => c.id === rid)), 5000);
     if (!seen.value) {
       const logs = ctx.watchers.map((c) => c.logPath).filter((f) => f && existsSync(f)).map((f) => f + ': ' + readFileSync(f, 'utf8').split('\n').slice(-6).join(' | '));
       record('2-sync-freshness', false, 'A never published; watcher logs: ' + logs.join(' ;; '));
-      stopAllWatchers(ctx); return;
+      await stopAllWatchers(ctx); return;
     }
-    stopWatcher(wA); ctx.watchers = [];
+    await stopWatcher(wA); ctx.watchers = [];
     const sB = mech(ctx, 'sync', [], { machine: 'B' });
     if (sB.code !== 0) { record('2-sync-freshness', false, 'sync on B failed: ' + sB.out); return; }
     const items = storeItems(ctx, 'B');
@@ -614,7 +619,7 @@ const CASES = {
       const its = storeItems(ctx, 'B');
       return its.some((x) => x.id === 'i-2' && x.comments.some((c) => c.id === rid2));
     }, 15000, 200);
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
     record('2-sync-timer', !!fresh.value, fresh.value ? '' : 'the timer loop never brought the write to B');
   },
 
@@ -649,7 +654,7 @@ const CASES = {
     const ms = Date.now() - t0;
     const ok = !!res.value && ms <= 5000;
     record('3-unreachable-remote', ok, ok ? '' : (res.value ? 'published after ' + ms + ' ms' : 'never published'), ms);
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
   },
 
   // 4. Refused push: A's commit and B's commit both land; the refused push
@@ -674,24 +679,24 @@ const CASES = {
     const aCommit = sh('git', ['-C', storeA, 'log', '--format=%H', '-20']).stdout.split('\n').map((c) => c.trim())
       .find((c) => c && sh('git', ['-C', storeA, 'cat-file', '-p', c + ':fake/items.jsonl']).stdout.includes('A offline'));
     if (!aCommit) { record('4-refused-push', false, 'A never committed its offline write: ' + pubA.out.split('\n')[0]); rmSync(hook); return; }
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
     // B comes up and also commits offline (B starts from the same remote state)
     r = bringUp(ctx, 'B');
-    if (r.code !== 0) { record('4-refused-push', false, 'bring-up B under the refusal: ' + r.out); rmSync(hook); stopAllWatchers(ctx); return; }
+    if (r.code !== 0) { record('4-refused-push', false, 'bring-up B under the refusal: ' + r.out); rmSync(hook); await stopAllWatchers(ctx); return; }
     const pB = post(ctx, 'B', 'i-2', 'B offline');
-    if (pB.code !== 0) { record('4-refused-push', false, 'post B failed: ' + pB.out); rmSync(hook); stopAllWatchers(ctx); return; }
+    if (pB.code !== 0) { record('4-refused-push', false, 'post B failed: ' + pB.out); rmSync(hook); await stopAllWatchers(ctx); return; }
     const ridB = pB.recordId;
     const storeB = storeOf(ctx, 'B');
     const pubB = mech(ctx, 'publish', [], { machine: 'B' });
     const bCommit = sh('git', ['-C', storeB, 'log', '--format=%H', '-20']).stdout.split('\n').map((c) => c.trim())
       .find((c) => c && sh('git', ['-C', storeB, 'cat-file', '-p', c + ':fake/items.jsonl']).stdout.includes('B offline'));
-    if (!bCommit) { record('4-refused-push', false, 'B never committed its offline write: ' + pubB.out.split('\n')[0]); rmSync(hook); stopAllWatchers(ctx); return; }
+    if (!bCommit) { record('4-refused-push', false, 'B never committed its offline write: ' + pubB.out.split('\n')[0]); rmSync(hook); await stopAllWatchers(ctx); return; }
     // both sides' ancestry is divergent: neither is the other's ancestor
     const divA = sh('git', ['-C', storeA, 'merge-base', '--is-ancestor', remoteNow, aCommit]);
     const divB = sh('git', ['-C', storeB, 'merge-base', '--is-ancestor', remoteNow, bCommit]);
     if (divA.code !== 0 || divB.code !== 0) {
       record('4-refused-push', false, 'the offline commits do not share the expected base');
-      rmSync(hook); stopAllWatchers(ctx); return;
+      rmSync(hook); await stopAllWatchers(ctx); return;
     }
     // the remote answers again: whoever pushes first wins, the other must
     // merge per item and push a two-parent merge commit
@@ -724,7 +729,7 @@ const CASES = {
     // merge, not a refused push repeated until it became fast-forward
     const merges = sh('git', ['-C', ctx.remote, 'log', '--merges', '--format=%P', 'refs/tracker/state']).stdout.trim().split('\n').filter((l) => l.trim().split(/\s+/).length >= 2);
     record('F2-ancestry-two-parents', merges.length >= 1, 'merge commits with parents: ' + JSON.stringify(merges));
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
   },
 
   // 5. Claim: of two claims exactly one lands; the loser exits 3, says so,
@@ -779,7 +784,7 @@ const CASES = {
     const i1After = remoteItems(ctx).find((x) => x.id === 'i-1');
     if (!doubled && i1After && i1After.holder !== winnerHolder) { ok = false; why.push('the rejected claim leaked through the watcher'); }
     record('5-claim-race', ok, why.join('; '));
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
   },
 
   // 5b. A claim racing a status transition: one wins, the other exits 3.
@@ -811,7 +816,7 @@ const CASES = {
     }
     record('5b-claim-vs-transition', oneLost || /said the overwrite/.test(said),
       'first transition exit ' + t1.code + ', second exit ' + t2.code + ' (' + (t2.out || t1.out).split('\n')[0].slice(0, 90) + ')');
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
   },
 
   // 6. Recording: written once, read back raw, refused a second time, and
@@ -995,7 +1000,7 @@ const CASES = {
     const p = post(ctx, 'A', 'i-1', 'with hostile hooks');
     const rid = p.recordId;
     const pub = await waitForRemote(ctx, (items) => items.some((x) => x.id === 'i-1' && x.comments.some((c) => c.id === rid)), 6000);
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
     const cl = claim(ctx, 'A', 'i-2', 'holder-A');
     const head = sh('git', ['-C', ctx.codeA, 'rev-parse', 'HEAD']).stdout.trim();
     const recd = mech(ctx, 'record', ['--revision', head, '--checkout', ctx.codeA], { machine: 'A' });
@@ -1037,7 +1042,7 @@ const CASES = {
     const within = latencies.every((l) => l !== null && l <= 5000);
     record('F7-sustained-writes', within && latencies.every((l) => l !== null),
       'per-write latencies ms: ' + JSON.stringify(latencies), Date.now() - t0);
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
   },
 
   'F7-stalled-remote': async (ctx) => {
@@ -1060,7 +1065,7 @@ const CASES = {
     const alive = survived.value === true && loop.exitCode === null && loop.signalCode === null;
     const local = storeItems(ctx, 'A').some((x) => x.id === 'i-1');
     sh('git', ['-C', ctx.codeA, 'remote', 'set-url', 'origin', ctx.remote]);
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
     record('F7-stalled-remote-no-starve', alive && local,
       alive ? (local ? 'the loop survived the stalled remote and local reads still work' : 'local reads stopped')
             : 'the sync loop died on a stalled remote');
@@ -1072,7 +1077,7 @@ const CASES = {
     // mid-backoff when the remote answered still has time to publish.
     const res = await waitForRemote(ctx, (items) => items.some((x) => x.id === 'i-1' && x.comments.some((c) => c.text === 'after the stall')), 30000);
     record('F7-after-stall-publishes', !!res.value, res.value ? '' : 'no publish after the remote returned');
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
   },
 
   // F10. Exit statuses 0..5, each observed for its case.
@@ -1114,13 +1119,13 @@ const CASES = {
     const onRemote = await waitUntil(async () => remoteItems(ctx).some((x) => x.id === 'i-1' && x.holder === 'holder-A'), 30000, 250);
     if (!onRemote.value) {
       ok = false; why.push('A\'s claim never reached the remote within 30 s (exit ' + c1.code + ')');
-      stopAllWatchers(ctx); record('F10-exit-statuses', ok, why.join('; ')); return;
+      await stopAllWatchers(ctx); record('F10-exit-statuses', ok, why.join('; ')); return;
     }
     let c2 = claim(ctx, 'B', 'i-1', 'holder-B');
     if (c2.code === 4) c2 = claim(ctx, 'B', 'i-1', 'holder-B'); // a momentarily unreadable remote: a session reads again
     if (c2.code !== 3) { ok = false; why.push('claim on an item held and visible on the remote exit ' + c2.code + ' (want 3)'); }
     else why.push('claim on an item held and visible on the remote refused (3)');
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
     // 4: unreachable remote
     sh('git', ['-C', ctx.codeB, 'remote', 'set-url', 'origin', '/nonexistent/remote.git']);
     const r4 = mech(ctx, 'sync', [], { machine: 'B' });
@@ -1142,7 +1147,7 @@ const CASES = {
       const log = w.logPath && existsSync(w.logPath) ? readFileSync(w.logPath, 'utf8') : '';
       return /refused|did not land|rejected/.test(log) ? true : null;
     }, 25000, 500);
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
     rmSync(hook);
     const neverLanded = !remoteItems(ctx).some((x) => x.id === 'i-2' && x.comments.some((c) => c.text === 'refused ref'));
     const notUnreachable = !/unreachable/i.test(w ? '' : '') || true;
@@ -1215,7 +1220,7 @@ const CASES = {
     const p = post(ctx, 'A', 'i-1', 'id across machines');
     const rid = p.recordId;
     await waitForRemote(ctx, (items) => items.some((x) => x.id === 'i-1' && x.comments.some((c) => c.id === rid)), 6000);
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
     mech(ctx, 'sync', [], { machine: 'B' });
     const onB = storeItems(ctx, 'B').some((x) => x.id === 'i-1' && x.comments.some((c) => c.id === rid));
     record('11-same-id-both-machines', onB, onB ? 'id ' + rid + ' on both' : 'id ' + rid + ' missing on B');
@@ -1225,7 +1230,7 @@ const CASES = {
     const storeB2 = storeOf(ctx, 'B');
     const v = fakeVoid(ctx, 'B', rid);
     const published = await waitForRemote(ctx, (items) => items.some((x) => x.type === 'void' && x.target === rid), 6000);
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
     mech(ctx, 'sync', [], { machine: 'A' });
     const onA = storeItems(ctx, 'A').some((x) => x.type === 'void' && x.target === rid);
     record('11-void-retires-on-both', v.code === 0 && !!published.value && onA,
@@ -1518,7 +1523,7 @@ async function runCase(caseId, overrides) {
     // Between cases: every watcher of this case is gone, and the store's lock
     // (killed with its holder) is left to be broken by the next command rather
     // than being raced by it. A case's leftovers must not decide the next case.
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
     // Long enough that a killed watcher's push is not still landing while the
     // next case reads the remote: a case's leftovers must not decide a case.
     await sleep(2000);
@@ -1566,16 +1571,16 @@ async function brLeg() {
     // the post runs with the watcher stopped: br rebuilds its database in
     // place and a concurrent sync tick's import races the recovery files
     const pA = sh('node', [ctx.recipe, 'post', '--item', itemId, '--text', recordBody], { cwd: storeA });
-    if (pA.code !== 0) { record('12-br-recipe', false, 'br post failed: ' + pA.out.slice(0, 200)); stopAllWatchers(ctx); return; }
+    if (pA.code !== 0) { record('12-br-recipe', false, 'br post failed: ' + pA.out.slice(0, 200)); await stopAllWatchers(ctx); return; }
     const rid = pA.stdout.trim().split('\n').pop().trim();
     // publish before the watcher runs again: the post's write sits
     // uncommitted in the worktree, and a sync tick's fast-forward would
     // reset --hard over it
     const pubNow = mech(ctx, 'publish', [], { machine: 'A' });
-    if (pubNow.code !== 0) { record('12-br-recipe', false, 'publish after br post: ' + pubNow.out.slice(0, 200)); stopAllWatchers(ctx); return; }
+    if (pubNow.code !== 0) { record('12-br-recipe', false, 'publish after br post: ' + pubNow.out.slice(0, 200)); await stopAllWatchers(ctx); return; }
     const w = watcher(ctx, 'A');
     const pub = await waitForRemote(ctx, (items) => items.some((x) => x.comments && x.comments.some((c) => String(c.id) === rid)), 15000);
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
     const syncB = mech(ctx, 'sync', [], { machine: 'B' });
     console.log('B sync: exit ' + syncB.code + ' ' + syncB.out.split('\n')[0].slice(0, 100));
     const storeB = storeOf(ctx, 'B');
@@ -1615,7 +1620,7 @@ async function brLeg() {
     }
     const vId = vPost.stdout.trim().split('\n').pop().trim();
     const publishB = mech(ctx, 'publish', [], { machine: 'B' });
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
     mech(ctx, 'sync', [], { machine: 'A' });
     const hasVoid = (machine) => {
       const raw = sh('cat', [join(storeOf(ctx, machine), '.beads', 'issues.jsonl')]).stdout;
@@ -1627,7 +1632,7 @@ async function brLeg() {
     mech(ctx, 'sync', [], { machine: 'B' });
     const onB = hasVoid('B');
     record('12-br-void-retires-both-b', onA && onB, 'the void record ' + vId + ' names ' + rid + ' on both machines: A=' + onA + ' B=' + onB);
-  } finally { stopAllWatchers(ctx); if (!KEEP) { try { rmSync(ctx.scratch, { recursive: true, force: true }); } catch {} } }
+  } finally { await stopAllWatchers(ctx); if (!KEEP) { try { rmSync(ctx.scratch, { recursive: true, force: true }); } catch {} } }
 }
 
 
@@ -1708,7 +1713,7 @@ async function brTwoMachines() {
     const aHas = rid && (brItemIn(ctx, 'A', free.id) || { comments: [] }).comments.some((c) => String(c.id) === rid);
     record('13-br-record-reaches-a', !!aHas, aHas ? 'record ' + rid + ' reached A' : 'record ' + (rid || '(none)') + ' did not reach A');
   } finally {
-    stopAllWatchers(ctx);
+    await stopAllWatchers(ctx);
     await sleep(1000);
   }
   if (!KEEP) { try { rmSync(ctx.scratch, { recursive: true, force: true }); } catch { /* scratch cleanup */ } }
@@ -1750,8 +1755,10 @@ async function main() {
     console.log('FATAL: no case ran — a proof that runs nothing must not pass');
     process.exit(2);
   }
-  const pass = results.filter((r) => r.ok).length;
-  console.log(`\n${pass}/${results.length} assertions passed across ${ranCases} cases`);
+  const verdict=results.filter(r=>r.phase!=='mutant');
+  const pass=verdict.filter(r=>r.ok).length;
+  const mutants=results.filter(r=>r.phase==='mutant');
+  console.log(`\n${pass}/${verdict.length} clean/proof assertions passed across ${ranCases} cases; ${mutants.length} intentional-mutant observations excluded from the verdict`);
   process.exit(failCount ? 1 : 0);
 }
 
@@ -1759,4 +1766,6 @@ process.on('exit', () => {
   if (!KEEP) { try { rmSync(SCRATCH, { recursive: true, force: true }); } catch { /* best effort */ } }
 });
 
-main().catch((e) => { console.error('proof harness failed: ' + (e && e.stack ? e.stack.split('\n')[0] : e)); process.exit(2); });
+if (process.argv[1] === fileURLToPath(import.meta.url)) main().catch((e) => { console.error('proof harness failed: ' + (e && e.stack ? e.stack.split('\n')[0] : e)); process.exit(2); });
+
+export { newCtx, bringUp, mech, storeOf, post, claim, seedStore, storeItems, remoteItems, item1, item2, stopAllWatchers };

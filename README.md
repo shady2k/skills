@@ -881,6 +881,12 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.110.0** keeps unrelated local tracker writes when conditional claims or
+  transitions race with publishing. Pending conditions use isolated snapshots;
+  lost push acknowledgements are reconciled or reported as unknown. Store locks
+  publish complete ownership and never evict a live process by timestamp alone.
+  Tracker sync also handles macOS physical-path aliases consistently.
+
 - **0.109.0** gives shared reviewer policy, model/engine locations and worked
   decision material one authoring owner, linked from the steps that use them.
   Checkout requirements and approval boundaries stay the same. Published skills
