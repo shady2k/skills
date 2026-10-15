@@ -70,7 +70,7 @@ for (const f of manifests) {
 }
 
 if (setupNext) {
-  const protocol = join(SETUP, 'protocol.md');
+  const protocol = join(ROOT, 'authoring/skills/backlog/setup-shady2k-skills/protocol.md.in');
   const text = readFileSync(protocol, 'utf8');
   const current = (text.match(/^Setup version: (.+)$/m) || [])[1];
   if (!current || !later(setupNext, current)) {

@@ -1,0 +1,4 @@
+{
+  "reason": "Existing exact prose retained for byte-identical migration. Review semantics separately; additions require an explicit review of this inventory.",
+  "blocks": {}
+}

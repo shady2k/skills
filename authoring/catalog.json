@@ -1,0 +1,56 @@
+{
+  "entries": {
+    "skills/productivity/handoff/SKILL.md": "authoring/skills/productivity/handoff/SKILL.md.in",
+    "skills/productivity/to-research/SKILL.md": "authoring/skills/productivity/to-research/SKILL.md.in",
+    "skills/productivity/define-product/SKILL.md": "authoring/skills/productivity/define-product/SKILL.md.in",
+    "skills/productivity/brainstorming/SKILL.md": "authoring/skills/productivity/brainstorming/SKILL.md.in",
+    "skills/productivity/report-to-shady2k/SKILL.md": "authoring/skills/productivity/report-to-shady2k/SKILL.md.in",
+    "skills/engineering/handle-incident/SKILL.md": "authoring/skills/engineering/handle-incident/SKILL.md.in",
+    "skills/engineering/to-prototype/SKILL.md": "authoring/skills/engineering/to-prototype/SKILL.md.in",
+    "skills/engineering/diagnose-bug/SKILL.md": "authoring/skills/engineering/diagnose-bug/SKILL.md.in",
+    "skills/engineering/model-domain/SKILL.md": "authoring/skills/engineering/model-domain/SKILL.md.in",
+    "skills/engineering/describe-repository/SKILL.md": "authoring/skills/engineering/describe-repository/SKILL.md.in",
+    "skills/engineering/write-intended-model/SKILL.md": "authoring/skills/engineering/write-intended-model/SKILL.md.in",
+    "skills/engineering/to-spec/SKILL.md": "authoring/skills/engineering/to-spec/SKILL.md.in",
+    "skills/engineering/to-design/SKILL.md": "authoring/skills/engineering/to-design/SKILL.md.in",
+    "skills/engineering/ship-release/SKILL.md": "authoring/skills/engineering/ship-release/SKILL.md.in",
+    "skills/engineering/refine-practices/SKILL.md": "authoring/skills/engineering/refine-practices/SKILL.md.in",
+    "skills/engineering/take-task/SKILL.md": "authoring/skills/engineering/take-task/SKILL.md.in",
+    "skills/backlog/to-backlog/SKILL.md": "authoring/skills/backlog/to-backlog/SKILL.md.in",
+    "skills/backlog/ask-shady2k/SKILL.md": "authoring/skills/backlog/ask-shady2k/SKILL.md.in",
+    "skills/backlog/to-stages/SKILL.md": "authoring/skills/backlog/to-stages/SKILL.md.in",
+    "skills/backlog/to-milestone/SKILL.md": "authoring/skills/backlog/to-milestone/SKILL.md.in",
+    "skills/backlog/check-upkeep/SKILL.md": "authoring/skills/backlog/check-upkeep/SKILL.md.in",
+    "skills/backlog/close-out/SKILL.md": "authoring/skills/backlog/close-out/SKILL.md.in",
+    "skills/backlog/groom-backlog/SKILL.md": "authoring/skills/backlog/groom-backlog/SKILL.md.in",
+    "skills/backlog/setup-shady2k-skills/SKILL.md": "authoring/skills/backlog/setup-shady2k-skills/SKILL.md.in",
+    "skills/backlog/setup-shady2k-skills/references/lifecycle.md": "authoring/skills/backlog/setup-shady2k-skills/references/lifecycle.md.in",
+    "skills/backlog/setup-shady2k-skills/references/tz-gost.md": "authoring/skills/backlog/setup-shady2k-skills/references/tz-gost.md.in",
+    "skills/backlog/setup-shady2k-skills/references/product.md": "authoring/skills/backlog/setup-shady2k-skills/references/product.md.in",
+    "skills/backlog/setup-shady2k-skills/references/running.md": "authoring/skills/backlog/setup-shady2k-skills/references/running.md.in",
+    "skills/backlog/setup-shady2k-skills/references/keeping.md": "authoring/skills/backlog/setup-shady2k-skills/references/keeping.md.in",
+    "skills/backlog/setup-shady2k-skills/references/speaking.md": "authoring/skills/backlog/setup-shady2k-skills/references/speaking.md.in",
+    "skills/backlog/setup-shady2k-skills/references/deciding.md": "authoring/skills/backlog/setup-shady2k-skills/references/deciding.md.in",
+    "skills/backlog/setup-shady2k-skills/references/starting.md": "authoring/skills/backlog/setup-shady2k-skills/references/starting.md.in",
+    "skills/backlog/setup-shady2k-skills/references/design.md": "authoring/skills/backlog/setup-shady2k-skills/references/design.md.in",
+    "skills/backlog/setup-shady2k-skills/references/agents.md": "authoring/skills/backlog/setup-shady2k-skills/references/agents.md.in",
+    "skills/backlog/setup-shady2k-skills/references/judging.md": "authoring/skills/backlog/setup-shady2k-skills/references/judging.md.in",
+    "skills/backlog/setup-shady2k-skills/references/building.md": "authoring/skills/backlog/setup-shady2k-skills/references/building.md.in",
+    "skills/backlog/setup-shady2k-skills/references/checks.md": "authoring/skills/backlog/setup-shady2k-skills/references/checks.md.in",
+    "skills/backlog/setup-shady2k-skills/protocol.md": "authoring/skills/backlog/setup-shady2k-skills/protocol.md.in"
+  },
+  "fragments": {
+    "backlog-prerequisite-ec8ec1b3": {
+      "source": "authoring/fragments/backlog-prerequisite-ec8ec1b3.md.inc",
+      "owner": "skills/engineering/to-spec/SKILL.md"
+    },
+    "speaking-callout-bc8756d6": {
+      "source": "authoring/fragments/speaking-callout-bc8756d6.md.inc",
+      "owner": "skills/engineering/to-spec/SKILL.md"
+    },
+    "backlog-prerequisite-b698bf32": {
+      "source": "authoring/fragments/backlog-prerequisite-b698bf32.md.inc",
+      "owner": "skills/engineering/refine-practices/SKILL.md"
+    }
+  }
+}

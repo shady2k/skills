@@ -1,0 +1,413 @@
+# Running work alone
+
+Part of the set's protocol, whose core is `protocol.md`: the same in every
+project, and it wins over a project's restatement.
+How a planned feature runs without the owner: the preflight, the owner's time,
+sessions and landing, waits, runs out of sight, estimates.
+
+**Autonomy.** A feature is planned with the owner and then built without
+them, up to one pull request for the whole feature. Planning ends with a
+**preflight**: the agent reads the spec, the stages and the code, and brings
+every decision the run will need at once, each with a recommendation, for the
+owner to accept as a whole or change by item. An approval the end of the run
+will need is one of those decisions and is taken here, before anything is
+written: what he approves is what the change decides — its kind, its scope, the
+requirements it moves and what it promises to leave alone — and never the
+finished text, which does not exist yet and which he was never going to read.
+A record binds itself to what he approved, so that the agent's own working on
+it afterwards — the reasoning, which check covers which requirement, a rewrite
+after review — does not send anybody back to him, and a change to what he
+decided does. An approval that can only be given at the end cannot be taken
+in the batch, and so stops the run after he has gone. This is the one place where
+questions come as a batch: gathering them while the owner is present is cheaper
+than stopping later. A preflight that goes unanswered has not been accepted; by
+[**A decision belongs to whoever made it**](speaking.md), every recommendation in it is still
+the agent's own until they say otherwise. The preflight also says how long the run will likely take
+and when to expect the pull request, with what the estimate rests on; a run
+longer than the project lets a branch live is split first. It ends by saying
+the feature is ready to run alone, or what it still lacks.
+
+During the run, a gap the spec did not foresee is decided by the agent when it
+knows what to do; the decision and its assumptions go into the feature's
+decision log and later into the pull request. The agent **stops** instead when
+the choice is hard to reverse (an architectural fork), costly if wrong
+(security, data, money, public interfaces, migrations), changes product
+behaviour beyond the spec, or conflicts with an earlier decision. Which of the
+two a choice is, is judged by [lifecycle.md](lifecycle.md)'s **Depth is read
+off the change, not off the author's word**, from the decisions the preflight
+already put to the owner; where it is arguable, the choice stops for the owner
+and the preflight answers it in advance where it can. It then
+pauses only the affected work, continues the independent rest, reaches the
+owner the way the harness allows, and sends a ready decision: the problem and
+where it came from, what is blocked and what continues, the options compared
+from the product, technical, risk, cost and reversibility sides, its
+recommendation and why, and what happens if the answer comes later.
+
+**A blocked action is not handed over.** When the harness or a guard refuses
+an action — a command, a tool call, a read or a write — the refusal is a fact
+about that action, not a reason to move it into the person's hands. Least
+privilege and fail closed hold for the run as they hold for the product: the
+agent does with its own hands only what it is allowed, and asks for the
+permission it lacks rather than for the errand. So what was blocked and what
+it stops is said, and the work that depended on it waits; where the same work
+has an allowed way, that way is taken, such as the tool this harness offers
+for reading where a command was refused for what it does; and where it has
+none, the ask is that the person allow the action — the same action, run by
+the agent — never that they run it themselves. A command the agent wrote and
+the person ran is that action with the check that stopped it removed, which
+is what the guard is there to prevent, by
+[checks.md](checks.md)'s **A gate that refuses is not routed around**. No
+destructive command is handed over as a workaround, whatever the refusal
+costs the run; the cost is said instead.
+And nothing is drafted on what could not be read: a record that would not
+open is waited for, by [building.md](building.md)'s **A missing input is an
+error**, and what it owes is reported as waiting on the read, never written
+from a guess.
+
+The pull request is where the owner looks. Its report says what users can now
+do; how to check it yourself; every decision and assumption the agent made
+alone, and where it departed from the spec; what review found; what is not
+done; and the risks left. **How to check it yourself** is the walk the run
+already made, as a few steps in the order that matters: what to open, what to
+do, what should happen. It leads with what the agent could not reach and what
+it cannot judge for itself, such as whether this is the right thing in the
+right words; it is not a tour of the feature. It follows [**Speaking to
+the owner**](speaking.md). The owner's acceptance is the merge; the tracker is closed after
+it. The yes is asked after the owner has looked — the **how to check it
+yourself** of the report is that look — or together with how to look: the
+agent's own assessment of the result, however good its evidence, never
+stands in for theirs.
+
+**The owner's time is the scarce one.** A run is cheap to restart; an hour of
+the owner's attention is not, and it is the only input the agents cannot
+produce. So the two states are told apart and used for different work. **While
+the owner is there**, spend that time on what only they can give: the decision,
+the plan, the argument about what to build, the judgement of a result. Not on
+watching execution, not on progress they did not ask for, and not on waiting
+beside them for a job to finish. **While the owner is away**, execute:
+everything that needs nobody runs then, and independent work starts together:
+where two pieces of work share no file and no dependency, they start at once,
+by the protocol's **Parallelism**, and serialising them is a reason said to the
+owner when it happens — a shared file, a dependency, a budget that holds only so
+many workers at once. The preflight asks when they expect to be away and for how
+long, and the run is shaped to fill that window rather than to fill the hour
+they are sitting in.
+
+A run in flight does not stop because the owner starts talking, and their
+message is not something the coordinator serves with its own hands. The
+coordinator opens a separate session for the conversation — in its own checkout
+where the talk could touch files — and keeps executing. That session plans,
+explores or decides, and returns its result: the decision and its reason, the
+task it filed, the plan it agreed, handed back to the coordinator and written
+in the tracker, so nothing of it survives only as the memory of a conversation
+the run cannot read.
+
+**The session opens with the picture.** A session that opens while work is in
+flight owes the owner the state of it before it owes them an answer: what is
+running, what it last did, what waits and on whom. It reads that from the
+traces the work leaves — the tracker, the branches and their checks, the
+holds, the workers' own logs — by [**Read the record, not the
+memory**](deciding.md), and not by asking the agents at work: a
+question to a running agent costs its context and returns what it believes
+about itself. Messaging one is the second step, for when the traces are silent
+or disagree, by **A run that never came back is found**.
+
+What follows depends on what the picture holds. **Where something waits on the
+owner**, that comes first, already worked, by [**Come with the material**](deciding.md), and
+with it the one question about their time: how long they have now, and when
+they expect to be away and for how long. **Where nothing waits on them**, the
+question is not asked at all — answer what they wrote.
+
+A window is for the blocking set, not for filling the hour. Take what stops
+execution first, and among those what is hardest to reverse; stop when nothing
+blocking is left, even with time to spare, because a run that starts half an
+hour earlier is worth more than questions found to fill the window. An absence
+with a stated end is also a permission: until the owner is back, the run
+decides what it knows how to decide and records it, by **Autonomy**, and holds
+only the choices that rule reserves for them.
+
+**A wait is filled.** Where the run waits on something long — a review, a
+worker, a check, a deploy — it does the work that is ready meanwhile: the next
+independent task, the pull request's text, the checks that do not depend on the
+answer. Where nothing is ready, say so, with what is being waited for and when
+it is due, rather than holding the session open in silence. Waiting is the
+state of one job, never the state of the run. What fills a wait never lands on
+what is being waited for: a wait restarted by its own filler is waited twice.
+What the owner hears meanwhile is [**Waiting is quiet**](speaking.md).
+
+**The path is what the next step consumes.** A step is on a run's critical
+path — the line of steps the pull request waits on — where the next step
+needs its result; everything whose input already exists starts then and runs
+beside the path, by the protocol's **Parallelism**. Being worth doing is not
+being on the path: a check whose result no next step waits on, a measurement,
+a record that can be made now, runs beside review and the walk rather than in
+front of anything that waits on them. Where a phase overruns, a step that
+held the path while nothing consumed its result is where the comparison at
+the boundary reads first, by **A forecast is checked against the date it
+serves**.
+
+**Sessions and landing.** The owner opens the agent in the main checkout and
+talks; talking changes nothing, and a conversation that keeps nothing leaves
+no branch behind. When the first thing is to be kept (a task, a spec, a
+charter change), the agent moves itself into a separate checkout on a plan
+branch, saying so in one line; where the harness cannot, it asks the owner to
+open one and says how. The main checkout stays clean.
+
+A feature run starts on its own branch, named after the feature from the
+start and created by the agent. Nobody re-briefs it: everything agreed is in
+the spec, the stages and the decision log, which is what the preflight checks
+("could a fresh agent run this without our conversation?").
+
+Product code reaches the main line only through its feature's one pull
+request. Everything else a session keeps lands **once, at its end, and all of
+it together**: the charter, the backlog, other features' tasks, a lesson
+written into a document, the records a closing leaves. What belongs to one
+feature rides in that feature's branch, unless that branch is already
+submitted; everything else, and everything the freeze sends off a submitted
+branch, goes on the session's one landing branch, which lands by a direct push
+where the main line accepts one and otherwise by one pull request. Each record
+is committed there as it is made, so nothing is held in a working tree and a
+session that dies loses none of it; only the merge waits. Never a merge per
+small change, and **never a merge for bookkeeping alone**: every merge costs
+the owner a round of attention and the repository a full run of its checks,
+which is more than a record of what already happened is worth. The exception
+is what something else needs before the end — a task the next run must read,
+a fix the main line is waiting on — and that lands when it is needed. How the
+main line accepts changes is
+recorded at setup; if the plan's pull request is not merged yet, the feature
+branch starts from the plan branch instead of waiting. How a change lands is
+decided this way, never asked, and never part of what the person approves;
+mention it only when they must act, such as merging, after the work exists.
+After the owner merges, the agent closes the work and removes the checkouts
+and branches it created.
+
+**A run removes the checkouts and branches it created.** A run writes each
+checkout and each branch down as it makes it, so that it knows which are its
+own; what it did not create is never removed, whatever state it is in, even
+merged. A checkout this run created for a task, and the branch it made for
+that task, go once three things hold, in this order: the task's work is merged
+into the feature branch; what the worker wrote to the tracker in its checkout
+is carried over, or shown to be already in the tracker; and the worker's
+records of its time are posted, since a claim is harder to recover once its
+working copy is gone. A checkout that still holds anything not merged, or not
+carried over, stays, and the run's report names it with why. The feature's own
+checkout follows **A submitted branch is frozen**.
+
+**Silence is not progress.** Work that runs out of sight — handed to another
+agent, a long command — runs under a watchdog: a deadline and a heartbeat, both
+set before it starts. The deadline is the estimate made for that work, by
+**Estimates**, not a generous round number chosen so that nothing ever trips
+it. The deadline is the
+estimate's upper end. The heartbeat is a sign of life (output arriving, a file
+growing, processor time moving), read never through anything that holds its
+output until the end, where "never started" looks exactly like "still
+thinking". It is looked at in the first minutes, so that a start is proved and
+never assumed, and again whenever the wait passes what that work typically
+takes, before any further waiting, with what it shows said plainly. Past the
+deadline the overrun is a fact about the work,
+not a reason to wait: never wait on to see whether it finishes, never start it
+again hoping for a better run, and never raise the bound to make the step pass.
+Stop it, find out why it took longer, and file that as a finding like any
+other failure this run owns; where anyone still waits on the work it was
+doing, its end is restated from the pace it showed, by **A forecast is checked
+against the date it serves**. Durations are tracked as performance regressions
+are: how long tests, a compile, a check or any other operation takes is
+recorded with its result, compared with what the same work took before, and a
+change explained, green or not.
+
+**A started session answers to the one that started it.** Every session one
+agent starts for another — a worker, a reviewer, a coordinator started by a
+session above it — works to the same contract, whatever starts it:
+
+- It is started only through the mechanism this environment provides for
+  sessions, driven by that mechanism's own instructions, chosen before the work
+  and never improvised once it is under way. Where none is available, that is
+  said before the work starts, with what the fallback costs.
+- Its brief names where its **report** goes. Its last act is to write that
+  report whole — done, or stopped and why, a question for the owner included —
+  so that nothing half-written is ever read as an answer. A session that stops
+  to wait on anyone writes its report before it waits.
+- It has finished when its report exists and its agent has stopped working;
+  either alone proves nothing, and neither does anything the session shows
+  about itself, which it can show before it starts or while still working.
+- How to resume it is recorded with its task when it starts, not when it ends:
+  a session that dies takes the chance to record it with it.
+- The one that started it ends it once the report is collected and the result
+  taken in, and proves it ended, as the start was proved. A session stopped for
+  a decision stays open until that is settled; nothing is left open in case.
+  Handing the run over hands these sessions over by name.
+
+**Whoever started a run answers for it to the owner.** A session that starts a
+run in another session — a coordinator it hands a feature to, a worker, a long
+job — and stays with the owner does not pause between jobs while it runs:
+supervising that run is this session's own work, as running it is the other's.
+Before the run starts, its deadline — the estimate's upper end, by **Estimates**
+— is recorded where others can read it, as **A run that never came back is
+found** records a run's deadline, and the owner hears what is awaited, by what
+it gives the product and why it is being done now, and by when, said as a time
+they can hold the agent to, by [**Waiting is quiet**](speaking.md). From then
+on the run is watched by **Silence is not progress** — its own signs of life
+and its deadline, not only whether a result exists — and anything that moves
+the expected time is news to the owner when it happens, with the new time and
+why: a session that died and was replaced, a step that overran, work sent back
+for rework. Past the deadline the wait is not armed again and the silence is
+not waited out: what went wrong is found from the record the run left, by
+**A run that never came back is found**, the owner hears what took longer —
+the cause and not the culprit — and hears the reforecast, the new end said as
+a time they can hold the run to, by **A forecast is checked against the date
+it serves**, and the overrun is filed as **Silence is not progress** files any
+other.
+
+**The run's progress is pushed, not pulled.** The session supervising the run
+sends the owner the progress report itself, at each point that changes the
+picture — a stage accepted, a forecast point reached or missed, the forecast
+crossing the date it serves (that one at once), a run stopped or waiting on
+the owner, the work landed — and not on each passing step, by [**Waiting is
+quiet**](speaking.md). On the cadence agreed at the preflight (the
+recommendation is once at the end of the owner's working day while a run is in
+flight; they may pick another or none), a short digest goes with it: how much
+is done as a share of the work, how that stands against the target date, what
+changed since the last one, what is next and when. The run script's
+`progress` reads what the records hold, so the digest is the record's, never
+an agent's memory; away from the conversation it goes through the
+notification channel the project records, one short line with the status and
+the next time, the full report in the conversation. A question for the owner
+rides neither: the supervising session works it first, by speaking.md's
+**A run's question is worked before it is passed on**, and a push says only
+that a decision waits, what about, and what waiting costs.
+
+**A cost of the process is the owner's information.** The agent runs the
+process and the owner pays for it, and a price paid is not an internal of this
+set: [**Never show the kitchen**](speaking.md) hides the form the work takes
+inside, never what it costs. Bookkeeping, repeated rounds of the same review,
+workers idle, a command stuck and waited on are time the owner's work spent,
+and their attention is the one input a run cannot produce. So when the process
+itself takes a noticeable share of a run, or one kind of episode repeats — the
+third wait on the same command, the fourth round of the same review — the
+coordinator says so **unasked**, in the owner's terms and with a counted
+figure: what it cost, what it delays and what would cut it, cut by the
+coordinator where it may and put to the owner where only they can cut it. A
+stream of events that each looked like nothing new is a measure to count, not
+noise to silence, and a watch narrowed to stop showing one kind of event has
+removed the thing that would have shown its cost. The figure is counted, and
+read to the edges of what it covers, by [deciding.md](deciding.md)'s **A claim
+reaches only as far as its evidence**; the report rides the push the run
+already owes (**The run's progress is pushed, not pulled**) and asks nothing
+of the owner of its own.
+
+**A run that never came back is found, not assumed.** An unattended run cannot
+report its own death; what it leaves behind is a hold that stops moving and a
+record with no end. So before it goes unattended its deadline, by **Silence is
+not progress**, is recorded where others can read it, and past that time
+silence means it stopped, not that it is working. Every
+session that looks at the work afterwards — the next coordinator, orientation,
+closing out — names each run that passed its forecast with no end recorded,
+with what it last did and when, and offers to take it over or to end its
+record. None of them reads a taken task with a dead run behind it as work in
+progress.
+
+**An effect outside this checkout is asked of the system that took it.** A
+run that stops, a coordinator that resumes it, a fresh run of the same work and
+a session that takes one over all have to tell an action that already happened
+from one that never started, and nothing local answers it: a stage's status and
+the run's record say where the work had got to, and the gap between the record
+and the effect is exactly where a stopped run dies. So an action that reaches
+outside this checkout — a branch or a tag pushed, a pull request opened, a
+version published, a release created, a deploy or a rollout widened, a
+migration applied, a message sent, an item created or closed — asks the outside
+system that holds it before it is taken, and is taken on that answer: the forge
+for the branch, the tag and the pull request; the registry for the version; the
+pipeline or the environment for the release, the deploy and the width it
+reached; the database or the deployment record for the migration; the tracker
+for the item, by the search its filing already makes. A refusal that says it is
+already there — a version that exists, a pull request already open for this
+branch, a tag already pushed, a migration that reports itself applied — is that
+answer and not a failure: it is read as done, recorded as done, and the run
+goes on. Where nothing outside can be asked, because the effect leaves no state
+to read — a message sent to a person — the intent is written where a resume
+finds it before the effect and its outcome after it, and a resume that finds
+the intent with no outcome asks the one it reached, or the owner, rather than
+repeating it. An effect that already happened is never carried out again to
+make a record true: the record is written from what the outside system says.
+This is [checks.md](checks.md)'s **A state not yet known is not a good one**
+applied to what the run does, and it is owed most where a second one cannot be
+undone: a released version, a paid deploy, an issue on someone else's project,
+a message a person has read.
+
+**A submitted branch is frozen.** Once its pull request is open and its run
+has started, a branch carries only what review sends back to it: the fix for
+a red check, or the change a reviewer asked for. Everything else the run makes
+meanwhile — a tracker record, a document, the next stage's plan, another
+feature's work — waits for the merge or joins the session's landing branch,
+which asks for one merge at the end and not one apiece (**Sessions and
+landing**). A push there
+restarts every job, the case of a wait restarted by its own filler (**A wait is
+filled**), so it costs the owner a whole round on the merge they are
+waiting for, and the check evidence an acceptance names is then a different
+commit's than the one that merges. When the run is submitted, the working
+checkout moves off that branch, so that what is done next cannot land there
+by default; where the harness cannot, every push until the merge names the
+branch it is for.
+
+**A reviewer's comment is judged, not obeyed.** A comment quotes a few lines
+and stands for a view of the whole change, so before any of them is acted on
+the whole pull request is read again, with every thread. Each comment then gets
+a verdict before code is touched: it is right and is applied as a proper
+change, it misreads the design and is answered with the spec or decision it
+contradicts, or it is ambiguous and is asked about. A push-back goes to the
+owner with its reason before the reviewer is answered, since disagreeing with
+a reviewer is the owner's call to see. A thread is answered only after the
+fix is pushed, naming the commit that carries it, or with the reason for not
+changing; it is resolved only where it was addressed, and none is left
+unanswered. Patching exactly the quoted line, or answering "done" with nothing
+pushed, is obeying, not judging.
+
+**Estimates are agent time.** Estimate as reference-class forecasting does:
+from how long similar work took in this project, measured rather than
+recalled — the pace finished runs recorded on their features, with the
+forecast by phase it proposes, where there are enough of them; otherwise the
+tracker's and git's timestamps and how long a CI run takes. Calibrate by how far past estimates were off: a model's own sense of
+time runs short, and a developer's hours are the wrong reference class. An
+agent's time goes to waiting (CI runs, reviews, workers, the owner's answers),
+rework after a red check, and diagnosis, so the number is a range of the time
+the work occupies with those waits inside it. The owner's time away is in no
+estimate: its length is his to choose, and the time a result is promised for
+adds the absence he announced, and only where the work needs him while he is
+gone. How long past runs lasted on the clock is not the reference class: it
+holds nights, waits for the owner and stretches nobody drove, so a promise
+built from it quotes days for hours of work. When a promise comes out well
+past the work in it, say what fills the difference before quoting it. With no
+history, say the number is a guess and what it rests on.
+
+When work grows well past the
+time given for it, or turns into different work (a small fix that uncovers
+four failing tests), tell the person once: what grew and why, what was
+already done, the new estimate, and whether the work continues. Continue on
+the same authority when it still serves what they agreed to; stop for them
+when the new cost could change their decision.
+
+**A forecast is checked against the date it serves.** Two times, kept apart.
+The **forecast** is the agent's own commitment, worked out from the measured
+pace by **Estimates are agent time**; the **target date** is the owner's, set from outside
+the project — a demo, a release, someone outside the work who waits — and
+kept with who set it and why, by [**A decision the owner gives is kept, not
+only obeyed**](speaking.md). One never overwrites the other, and neither is
+passed off as the other: quoting the forecast as the owner's date, or bending
+the forecast to fit the date, loses who promised what.
+
+The forecast is checked against the date at the preflight, at every stage
+boundary, and the moment anything moves it. At a boundary the recorded time
+by phase — the ledger keeps it — is compared with the forecast by phase, and
+the largest overrun is taken to its cause, not wrapped in a longer forecast.
+A missed forecast is said to the owner with what took longer — read from the
+run's record, the cause and not the culprit — and with the reforecast, a new
+end worked out from the pace the run now shows; the overrun itself is what
+**Silence is not progress** files, and nothing files it twice.
+
+Where the forecast passes the target date, the owner hears at once, before
+the date, by [**Waiting is quiet**](speaking.md): what will be late, by how
+much and why, and the two things left to choose, each said with what the
+product loses. Move the date, or take named items out of scope: these two
+are the levers, and quality is not one of them. A third — a check relaxed
+to make the date — is presented as the loss of rigour it is, by [**Never
+show the kitchen**](speaking.md), and only the owner approves it.

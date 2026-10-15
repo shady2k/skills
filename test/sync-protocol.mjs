@@ -29,7 +29,7 @@ export const SHARED = {
 export function needs(skill) {
   const found = new Set();
   const follow = (from, text) => {
-    for (const [, target] of text.matchAll(/\]\(([^)#\s]+)\)/g)) {
+    for (const [, target] of text.matchAll(/\]\(([^)#\s]+)(?:#[^)\s]*)?\)/g)) {
       const path = relative(skill, join(skill, dirname(from), target));
       if (!(path in SHARED) || found.has(path)) continue;
       found.add(path);

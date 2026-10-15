@@ -1,0 +1,68 @@
+---
+name: check-upkeep
+description: "Run the project's upkeep pass: outdated dependencies and their known breaking changes, known vulnerabilities in what the product ships and builds with, expiring certificates and keys, deprecated platform features, failing or lately slow checks. It reads and files only — every finding goes through to-backlog — and it is model-invoked when the work calls for it; a project with nothing outdated hears that in one line. Where the harness can schedule it, it may be scheduled; never assume a scheduler."
+---
+
+# Check upkeep
+
+The set's skills take a finding when something is met, but nothing looked on
+a schedule, and the debt that grows while nothing is looking — dependencies
+aging, a certificate rolling past its date, a check slowing down by
+millions of small steps — is the kind that meets the milestone at its
+deadline instead of at its planning. This skill is that look. It reads and
+it files; it upgrades nothing and fixes nothing in the pass, because that
+work is tracked like any other.
+
+{{include:backlog-prerequisite-ec8ec1b3}}
+
+{{include:speaking-callout-bc8756d6}}
+
+## 1. The pass
+
+One reading of the project, proportionate by the life cycle's
+[**Tailoring is the rule**](references/lifecycle.md): a prototype carries no
+certificates, a library with no users has no incident picture to keep, and
+a family the project has none of is read past with one line saying so. The
+families, from the project's own evidence — manifests, lockfiles,
+deployment records, the product's own pages — and not from a generic list
+of what could exist:
+
+- the dependencies the product ships and builds with, and the known
+  breaking changes between what is pinned and the newest the project could
+  move to: a version number alone says nothing without its change list;
+- known vulnerabilities in what the product ships, read from the common
+  vulnerability databases and the advisory tools that track them;
+- expiring certificates and keys, including those that renew themselves
+  and would fail the day their roll goes wrong;
+- the platform features and versions the product runs on that their
+  providers have deprecated;
+- the checks: the ones failing, and the ones lately slower than their own
+  history — durations are measured and compared, by
+  [running.md](references/running.md)'s **Silence is not progress**, never
+  remembered.
+
+## 2. File what it found
+
+Through `to-backlog`, one finding each, in the lane that skill picks. The
+pass promotes nothing, defers nothing and widens nothing on its own. What
+can hurt people or their data leads what the pass reports, with the cost
+of the fault while it waits: a vulnerability in shipped code is filed as a
+decision the owner holds, by the protocol's [**A finding that does not fit
+is decided, not parked**](protocol.md) — it is not parked behind the
+milestone without that decision, and it is not fixed in the pass.
+
+## 3. Nothing to do
+
+Where the reading finds nothing past its families, that is the report, in
+one line in the words of what was read: dependencies where the project
+pins them, nothing expiring in this period, checks at their usual pace.
+No item is invented to show for the pass.
+
+## 4. On a schedule
+
+The cadence is what the product's exposure to its users asks for; the
+owner agrees it once, and it is kept where the project keeps its working
+settings, not made for this pass alone. Where the harness runs tasks on a schedule, the pass may be
+one of them; where it does not, the pass runs when the work calls for it,
+and each finding it filed carries the review date that brings its
+question back.

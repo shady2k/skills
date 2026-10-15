@@ -1332,3 +1332,5 @@ scripts/link-skills.sh    # link into local skill directories
 Role-aware dialogue evaluation cases are in
 [test/dialogue-scenarios.md](test/dialogue-scenarios.md); automated package
 checks do not establish conversational quality.
+
+Authoring templates and the development build: [guide](docs/skill-authoring.md).

@@ -1,0 +1,387 @@
+# The backlog protocol
+
+Setup version: 0.45.0
+
+These rules are the same in every project and ship with every skill that uses
+them, so they update with the set. If a project's own document restates them,
+this file wins. What differs per project (tracker, labels, gate command,
+documents) is the project's **backlog integration**; its agent doc points to it.
+
+The rest of the protocol lives in [`references/`](references/), one topic per
+file, read when a step needs it:
+
+- [speaking.md](references/speaking.md): how anything the person reads is
+  written — names, plain words, summaries, asks, whose decision it was, the
+  language, and how a step ends;
+- [deciding.md](references/deciding.md): how a question reaches the person —
+  worked material, design decisions, evidence, given decisions, corrections;
+- [running.md](references/running.md): a feature run without the owner —
+  preflight, the owner's time, sessions and landing, waits, estimates;
+- [checks.md](references/checks.md): red checks, refusing gates, diagnostics,
+  the cheapest check, reaching the outcome, CI;
+- [building.md](references/building.md): how the product's code is shaped —
+  one surface per capability, replaceable boundaries, screens from components
+  and tokens, tests that survive a refactoring;
+- [keeping.md](references/keeping.md): what is tracked, what a session must
+  not keep only to itself, exploration versus commitment, the lessons that
+  outlive the work, and the practice records that answer a class of error;
+- [starting.md](references/starting.md): a project from an empty folder, with
+  not even an idea, to its first planned feature;
+- [lifecycle.md](references/lifecycle.md): the life cycle of a piece of work —
+  the stages, what must hold before the next, tailoring by scale,
+  uncertainty, risk and project, and which skill carries each stage;
+- [design.md](references/design.md): how a design is made and reviewed before
+  building — drivers, the existing shape, options from named patterns, the
+  recorded decision, the review and the scenarios that become checks;
+- [product.md](references/product.md): the product's own documents — sources,
+  hypotheses, user stories, use cases, product requirements, open questions,
+  prototypes and results — their forms, their links and their check;
+- [judging.md](references/judging.md): handing a batch of judgements to Jev,
+  where the project consented — where it helps, which answers are taken, what
+  is masked, and how its accuracy is measured on request;
+- [tz-gost.md](references/tz-gost.md): drafting a ТЗ or a ПМИ by Russian
+  standards from the living documents, when a customer requires one.
+
+**Compatibility before writes.** Before changing the tracker or the repository,
+compare this setup version with the repository's installation: the `--version`
+of its four installed checks, which must agree with each other.
+
+- **Equal:** go on, once this clone is connected (its hooks active, its runtime
+  present). If it is not, ask the user to run `/setup-shady2k-skills`, which in
+  an installed repository only connects the clone.
+- **This one newer:** the repository's installation is out of date. Ask the
+  user to run setup, which updates it for everyone through the project's normal
+  review and merge; where others work in the repository, say it is a team change.
+- **This one older:** someone already updated the installation. Ask the person
+  to update their plugin; never run setup, which would roll it back for all.
+- **No installed checks, or they disagree:** not installed or broken; setup.
+
+Reading and investigating may continue meanwhile. Setup itself, and the
+bootstrap context it hands over, are exempt while installing. Not landed means
+not installed: an attempt that has not reached the main line leaves the
+repository at its previous installation, whatever its branch holds. Nothing
+about one person's machine or plugin is committed.
+The setup version changes only when a project's installation must be redone:
+new rules in the checks, a new config setting, a new adapter duty or proof. An
+update that changes only how skills talk, reason or plan needs no setup; never
+ask for one merely because the plugin was updated.
+
+**Levels.** Each has one size and one author.
+
+| level     | what it is                                                        | size              |
+| --------- | ----------------------------------------------------------------- | ----------------- |
+| Vision    | where the product is going; a document, never an issue           | rarely rewritten  |
+| Milestone | the next slice, with a charter: what is in, what is out, a finding budget | what ships next   |
+| Feature   | a root issue holding one **outcome**                              | one run, one branch, one PR |
+| Stage     | an issue under a feature, with its own DONE WHEN                  | a checkpoint accepted inside the run |
+| Task, bug | a leaf: an issue with no children, inside one stage               | one worker's session |
+
+An **outcome** is what becomes possible or true, and who observes it: "a person
+creates a connection group", "a rollback takes one command and one minute". Its
+DONE WHEN names the observable behaviour and the check that watches it; a
+regression can make it false again. A feature merges into the main line on its
+own and soon: when its run would keep a branch open longer than the project
+allows, it is split into features that each merge separately and leave the main
+line working (a parallel change: expand, migrate, contract; behind a switch
+where the project allows one). A task that will not fit one worker's session is
+split before it starts. A stage has no session limit: it groups
+tasks toward a checkpoint that is accepted by checks and review before the
+next stage builds on it.
+
+**The horizon.** Only the current milestone is broken down below features. The
+next milestone exists as feature titles; anything further lives in the vision.
+**Everything live belongs to the current milestone**, whose label its root
+wears; everything else is deferred. The current milestone is read from the
+gate's config each time.
+
+**What would make the work obsolete is read before it is paid for.** This is
+change impact analysis. Before a feature, a stage or a
+leaf is planned or started, and again before a stage is accepted, read the
+decisions taken since it was filed and the open work of this milestone and the
+next that would retire or replace what it stands on: the component it extends,
+the representation it adds to, the decision record it rests on. That is found
+by reading the neighbouring work, never by building. Where a decision already
+retired it, it is settled as below. Where open work would, the two are an edge
+with its reason, and one of them is reshaped before either is built. Ready
+says only that nothing blocks it; whether its result is still wanted is this
+question, and an answer about order ("nothing depends on it") is not an answer
+to it.
+
+**A decision that retires something also decides what is filed against it.**
+The same analysis, at the moment of the decision: when a decision replaces a component, a
+representation or a form, every open leaf and finding against the old one is
+settled in the same session: closed as moot, naming the decision that retired
+it, or rewritten against the requirement that survives, which is different
+work at a different cost. Filing a finding is not a promise to fix it; it buys
+only that the fault is known and counted. Work whose result is replaced is paid
+for twice: once to build it, once to take it out.
+
+**Ready** means an open leaf that nobody holds and whose required results are
+available. A closed prerequisite counts. An `implemented` prerequisite counts
+only inside the same stage, once its revision is merged into the consumer's
+checkout and its related checks pass. Across stages of the same feature, a
+prerequisite counts once its stage is accepted and the revision that acceptance
+names is in the consumer's checkout; between features it must be closed. So the
+adapter's ready operation takes the stage and checkout revision, not just "are
+the blockers closed".
+
+**Execution and acceptance.** A worker claims a leaf (takes a hold on it),
+checks its change and records it as `submitted`, with where the result lives
+and its local evidence. Submitted work is neither taken again nor used by
+dependants yet. The stage's single coordinator merges it and marks it
+`implemented`, with the merge revision and check evidence; it is not taken again
+and not yet closed.
+**The holder is whoever does the work.** A task an agent works on is held by
+that agent, never by the person by default, even when the tracker would fill
+in the person's name. The person holds only work they do themselves: a
+decision, a manual check, an approval. An agent's name says who can find it:
+its harness and role, the person it works for, the machine, the branch and its
+session, as `<harness>-<role>:<person>@<machine>:<branch>#<session>`, for
+example `claude-worker-2:alex@laptop:fix/login#528e03ed`. The claim is also a
+record on the item, which carries that name, the session and when it started
+(**How the work went is kept on the item**). A role alone ("coordinator")
+names nobody: several run at once on different machines and branches. Where
+the tracker assigns only people's accounts, the person's account holds the task
+and the claim's record carries the agent's full name.
+
+**How the work went is kept on the item.** Every claim, and everything later
+known about the work under it, is a record on the item in the tracker, as the
+run script prints it (`runs.mjs`, in the records' format of
+`time-format.mjs`); nothing about it is kept on a machine, so every machine and
+session reads the same history. A session holds one item at a time: its claim
+starts a span, and claiming the next item ends it. When the session stops
+working on the item (the work is handed in, the session ends, the work stops or
+is handed over) the script writes the span's receipt: what the session spent,
+by phase of the work and by who spent it, measured from its transcript. The
+numbers are the script's; an agent never types, rounds or edits one, and
+never writes a record by hand: one it typed is damaged. Where the script
+cannot print a record, the agent says so and stops, and types none. A tracker may only
+append, so a record is never edited or deleted either: one that is damaged,
+wrong or not to count is voided by the script's `void`, naming its comment,
+and a correction then writes the right record with the script. Stops,
+decisions taken alone and CI runs are records inside the span; a feature's
+close is its summary. A span that ended with
+no receipt is found by the gate and written from the transcript where it is;
+where no machine has it, its time is unknown, said so, and never zero.
+The records a task needs are proportionate to it: a small task is one
+acceptance record naming its CI run and its review, written where the task's own
+acceptance is kept — its item's recorded result with that evidence, the same
+place a stage's acceptance evidence goes — and what CI and the review already
+hold is read from them, never retyped as records. What the owner's time
+figures count — the claim and the span receipt — stays at every size, and so
+does what a stage's or a feature's acceptance is judged from. Records ride with
+the work's own landing, never as a commit of their own. A figure
+of time counts the receipts; what is still open is said beside it, as
+incomplete.
+
+**A run's time is its coordinator's clock.** While a worker works, the
+coordinator is waiting on it, so its claim on the feature or stage covers
+every leaf its workers hand in. A worker's own span, where it records one,
+adds only its effort by phase; one missing or unknown leaves that effort short,
+never the run incomplete. A worker records a span of its own only where it runs
+in a session of its own: where a harness runs it inside its coordinator's
+session the two share one session, the worker's claim is refused, and its
+effort stays inside the coordinator's span.
+Workers have distinct owners and an atomic claim or a serialized assignment:
+reading back a field that anyone can overwrite is not a lock. If a merge
+changes or fails, reopen the affected work and recheck what depends on it. The
+assembled stage gets full tests, a final review, and mutation testing of the
+changed logic started once as the revision is assembled and running beside the
+review: it measures how strong the tests are, and holds no step up. Acceptance on that revision is what allows its tasks and the stage to
+close, not the moment they close: they stay open and accepted until the work
+lands on the main line and its current specs are synced. A parent has its own
+criterion too.
+
+**Parallelism.** Independent leaves, stages and features may run at once;
+serialize only for a real prerequisite, a conflicting write or an exclusive
+resource, and never for hierarchy, list order or a shared milestone: the order
+work was listed in is not a dependency. Each stage
+has its own merge and acceptance and does not wait for unrelated features.
+Inside a stage, merge results as they arrive so dependants can start. Use
+separate checkouts where changes can collide; generated files and dependency
+locks count as collisions.
+
+**An agent commits only what it wrote.** Where agents share a checkout, each
+stages the paths it changed by name and commits only those; a broad add sweeps
+another agent's work into the wrong task.
+
+**State every branch shares is not versioned inside one.** A branch carries
+what it delivers. The tracker is one state for every branch, checkout and
+worktree, so a snapshot of it committed on a branch carries every other run's
+states with its own, and landing it claims work the main line does not hold.
+The store therefore lives outside the branches: one copy per machine, in the
+repository but on a ref no branch contains, or behind a server, with every
+checkout of that machine pointed at it, and no code branch carrying a tracker
+record at all. A project may keep the store in the branches instead, by what a
+branch commits of it being narrowed to its own writes by a hook and never by a
+rule someone has to remember; that is the owner's choice, and setup says its
+cost before it is taken, which is that records on an item two branches work on
+collide by construction and the merge that follows is not the code's. The
+integration says which layout this project has, and every check that reads the
+tracker reads it that way.
+
+**The tracker stays in step across machines.** One state for every person and
+agent, and its own mechanism keeps it so: a change is published to the shared
+remote within seconds of it — not when a branch lands, and not when an agent
+remembers — and each machine takes the others' snapshots on a timer short
+enough that what it reads is never older than that. While the remote cannot be
+reached the change is kept locally and published within seconds of its return,
+and a read that needs another machine's state says the remote is unreachable
+rather than presenting this machine's store as the whole state. The merge is per item and
+never by text: records that only append keep both sides, the same field changed
+twice takes the newer value with the overwritten one recorded on the item, and
+a refused push fetches, merges and pushes again. A claim and a status
+transition count only once they are on the remote — fetch, merge, write, push —
+and the remote accepts a push only on top of its own latest state, so of two
+simultaneous claims one lands and the other session re-reads and takes other
+work rather than holding an item twice. A check that needs the tracker at a
+code revision reads the store as it stood when that revision was cut, recorded
+under the revision's own name at that moment and never moved afterwards; where
+no such recording exists, the read is refused rather than guessed, because a
+later snapshot that happens to name the same revision is not that state. A
+project whose tracker is reached as a service keeps the same duties over that
+service.
+
+**Two lanes outside the flow.**
+
+- **Ideas**: deferred, no parent, no dependencies, a review date. Never ready,
+  closed without regret.
+- **Findings**: bugs and debt found during a milestone. Each wears the finding
+  label **and the label of the milestone it was filed in**, so a feature
+  carried forward does not bring old findings into the new budget. The charter
+  sets that budget, which counts what the milestone took in, not how many
+  findings are still open: closing or deferring items does not return any of
+  it. A finding over budget is decided by **A finding that does not fit is
+  decided, not parked**; it never jumps to the front silently.
+
+**Only what the milestone chose is intake.** The budget prices the scope the
+milestone chose to absorb; work nobody chose, which is done whatever it is
+called, is charged to the work it serves and not to that budget. Two kinds
+are always of that sort:
+
+- **A repair the merge waits on:** a defect a required check catches on the
+  way to a merge. The branch cannot land while it is red, and no version of
+  the milestone skips it. It is filed with the work whose merge it blocked, a
+  feature or the setup alike, and closed by the change that lands with it,
+  whose record lists it; the report names it as a repair that merge waited on.
+  The test is the check itself, red on this branch and green after this
+  change, not how large the repair felt.
+- **Upkeep of the installation:** a fault in what the set installs to run this
+  way of working — its checks, hooks, connect command, and the CI wiring that
+  decides which checks a change owes. It is filed with the setup task and
+  fixed as part of landing it, or of the next setup run.
+
+**Filed with** means under that work where it is a container, and beside it
+where it is a leaf: under the same parent, with its milestone label, linked
+back to it as where it was found. A child turns a leaf into a container, and
+the leaf's own records (its claim, the change record that lists it) stop
+describing it: filing a fault must never change whether the work it was found
+in can be accepted. Either is filed with no finding label and against no budget. The finding is
+what such work leaves behind: the wider fault it exposed, the part deliberately
+not fixed, the fix that needs a decision the owner keeps. Counting work the
+rules ordered anyway buys nothing, and makes doing it dearer than hiding it.
+
+**A finding that does not fit is decided, not parked.** The budget is spent, or
+the milestone it would join is already closed and the next one does not exist
+yet: then there is no lane the run may pick on its own. Deferring it with a
+review date is one of the answers to that question, not the way around asking
+it, and the owner gives it. Put the answers that exist with what each costs:
+displace named planned work and approve the new count, open the next slice now,
+or hold it knowingly until one opens. The answer is triaged by
+impact, as risk management does: what the finding costs while it waits comes
+before any counting, and where people or their data live with the fault now,
+that is the first sentence; a counter that measures only intake never decides
+urgency. A run that parks such a finding and reports the parking
+afterwards has taken the owner's decision.
+
+**Labels.** Every live issue, features and stages included, wears exactly one
+area label: the area that owns the behaviour.
+
+**Edges.** A blocking edge records a required result or a conflict, with its
+reason and what releases it, on the leaf that needs it. A cross-stage edge
+points at the concrete leaf that produces the result; that stage must be
+accepted before outside consumers are released. Features and stages are
+chained only as **Parallelism** allows. An outcome that waits on another
+outcome is recorded as an edge rather than left in prose: the edge sits on the leaf that needs it and points at the leaf whose
+result releases it, the one that puts the awaited thing in the person's hands.
+Where no such leaf exists yet, it is written first — the acceptance of the
+producing outcome — and the edge points at that. Importance is priority; "later"
+is a milestone; where an issue came from is never a blocker. Cycles, in the
+hierarchy or in live dependencies, are invalid.
+
+**Status is true.** Active means somebody is working on it now. Stopping
+releases unfinished holds and keeps `submitted` and `implemented` work with its
+evidence; submitted results resume at merging, not implementation. Pending
+acceptance is not abandonment. A handoff names who owns the next action.
+
+What is tracked, what a session may not keep to itself, where exploration ends
+and a commitment starts, and the lessons that outlive the work are
+[keeping.md](references/keeping.md)'s: **Tracked work**, **Nothing of value
+stays only in this session**, **Exploration is not admission** and **A lesson
+that outlives the work is kept where every agent reads**.
+
+**Living documents.** The vision gives direction. The roadmap explains intended
+outcomes and order, without copying tracker status or creating dependencies.
+The charter bounds the current slice. What it puts **out** is an outcome
+this slice will not deliver, never a ban on the code or the area it lives in:
+work an outcome of the slice needs there is done, what the charter neither
+names nor excludes is open, not forbidden, and an exclusion binds only its own
+milestone. Where an outcome cannot be reached without delivering one that is
+out, that conflict goes to the owner with what each answer costs; it is not
+settled by quietly narrowing the outcome or quietly building the excluded one.
+Where the product keeps its own documents, they are the level above the
+specs, by [product.md](references/product.md)'s **Product documents are the
+level above the specs**. Current capability specs describe
+accepted behaviour on the main line; change records describe proposals as
+pinned requirement deltas. Design and decision records explain how and why,
+only where useful. Every project has a **glossary**: the words for its domain,
+and the words it uses for its own parts, one line each. It is where a name is
+taken from and not coined per message, by [**One thing, one name, and it is the
+project's**](references/speaking.md); `model-domain` keeps it. Use the project's paths and templates and
+adopt existing documents where they are. Documents are Markdown, and a diagram
+in them is a Mermaid block, never one drawn with characters. A specification
+required by a standard, such as a ТЗ, is drafted from these documents on
+request by [tz-gost.md](references/tz-gost.md), never kept beside them.
+
+**What describes the present is kept true.** The agent doc, the glossary, the
+current capability specs and the architecture describe the main line as it is
+now, and every agent acts on them without checking. So a change that makes one
+of them false updates it in the same pull request, never in a later one: a
+command renamed, a component moved, a behaviour changed, a lesson whose cause
+was fixed. Review reads the diff against them as it reads it against the
+tests, and a stage is not accepted while one of them is known to be wrong. A
+statement found stale outside such a change is corrected by the work that found
+it, as a repair, and named in its report. Keeping them short is part of keeping
+them true: an entry nobody would miss is removed, not archived.
+
+The part a machine can see is checked where a pull request is opened and in
+CI, by the present-documents check over the documents the config lists: a
+path one of them already named that this change removed, or a link in them
+that does not resolve, refuses the pull request until the document is fixed
+in it. Older drift the check
+lists (paths dead before the change, code no document mentions, a document
+left behind while files came and went under it) is filed as one debt item, not
+fixed inside unrelated work; a document it names to read is read against the
+code before the pull request is opened.
+
+The document gate runs separately from the backlog's strength. It checks
+product intent before the first implementation, feature readiness before work
+starts, evidence tied to the revision at acceptance, and updated current specs
+before closure. An accepted stage updates its own requirements without waiting
+for unrelated features. A bug fix keeps correct requirements and changes the
+regression check instead. Independent requirements may move at once; a changed
+prerequisite needs a refresh. The integration supplies deterministic exports
+and evidence at the level setup chose: honest records, or verified receipts
+where protected CI can enforce them. A structural check cannot prove a requirement is right
+or that a receipt is genuine; CI protection and real tests are separate jobs.
+
+The document gate is installed as its own stage and never holds up setup or
+work. Until it is installed, the integration says so and names its task. A
+skill that would run it checks the same readiness by reading the documents,
+records that the automatic check did not run, and never reports it as passed.
+
+**The gate is clean** when its report says `new errors: 0`. That line means the
+same under every strength, unlike red and green: under `report` nothing is ever
+red, and under `block` old debt is always red. Every skill that writes to the
+backlog runs the gate **before** publishing, and fixes a new error by its own
+`fix` line before anything leaves this machine.

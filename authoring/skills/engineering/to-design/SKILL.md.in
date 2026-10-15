@@ -1,0 +1,82 @@
+---
+name: to-design
+description: "Decide how the system will meet an outcome before it is built: drivers, the shape that exists, options from named patterns, a recorded decision, review by another model, and the scenarios that become checks. Use when a change introduces or changes a building block, an interface, ownership of state, a runtime interaction, an external dependency or an interface surface, when take-task composes a feature's planning, or when the user asks for a design; never for a small bug or a trivial change."
+---
+
+# To design
+
+The spec says what is being built and where its behaviour will be checked;
+this skill says how the system will do it, before code is written. The
+method and the standards are [`references/design.md`](references/design.md),
+beside this file; the stage the step belongs to, and when it is skipped, is
+the protocol's [life cycle](references/lifecycle.md). This file holds the
+step, its timing and its trigger only.
+
+{{include:backlog-prerequisite-ec8ec1b3}}
+
+{{include:speaking-callout-bc8756d6}}
+
+## 1. Decide whether design is owed
+
+By [`references/design.md`](references/design.md)'s **Design runs when the
+shape changes**, skipped by the life cycle's **Tailoring is the rule**, the
+reason said where the work is planned. Read the change against the code before deciding: a change
+described as small may change the shape anyway, and one described as large
+may not, by the life cycle's [**Depth is read off the change, not off the
+author's word**](references/lifecycle.md). Where the owner asks for a design
+the step runs; what they asked for does not widen the scope it decides on.
+
+## 2. Gather the drivers and the inventory
+
+Read the spec's scenarios and seams, the product requirements the outcome
+serves, the project's standing quality scenarios and constraints, and the
+code and documents of the area the change lands in. The drivers come before
+any option, by design.md's **Drivers before options**, each traced to the
+outcome frame the protocol's [**The outcome frame comes before the work is
+specified**](references/lifecycle.md) establishes; the inventory of
+what exists comes before any option too, by **Inventory before options**.
+Constraints are gathered by **Drivers before options**. What is material and
+unknown goes to `brainstorming`, `to-research` or `to-prototype`, never into a
+guess. This step ends only on the owner's confirmation of the frame and its
+drivers — the frame found where it is already stated, and one recommendation
+per missing part — by the life cycle's [**The outcome frame comes before the
+work is specified**](references/lifecycle.md): a frame inferred or unanswered
+is not confirmed, and no option is drawn and no record written before that
+answer.
+
+## 3. Draw the options, choose, record
+
+Options and choice by **Options from named patterns** and **The choice is
+recorded where it will be read again**: through `model-domain` where the
+project keeps decision records, with the views the decision turns on drawn
+or updated beside it. The options offered stand on the state of the practice,
+by the protocol's
+[**A proposal starts from the state of the practice**](references/deciding.md),
+whose architectural case design.md's **Options from named patterns** is. What the
+owner must decide — only a quality attribute traded for another, by **The
+owner hears only the trade** — is asked here, one question at a time, with
+its mechanism; the rest is decided and recorded alone. The chosen direction is
+confirmed with the owner here, before the record is written at length and
+before the review, not after. Where their answer replaces the frame, this step
+is taken again from the new one, and the record is written by **The choice is
+recorded where it will be read again**.
+
+## 4. Review before building
+
+By **Review before building**. This step runs no fix round on a design that
+does not serve the frame, nor on a frame the owner has never confirmed: that
+frame goes back to them first, and the step waits. Where no other model can be
+reached from this harness, the review is self-review against the scenarios:
+the record says so, and the run's report to the owner names it among what it
+cannot judge for itself.
+
+## 5. Hand the design to the stages
+
+Every automatable scenario becomes an executable check, by **Scenarios
+become checks**. Where the step was called on a written spec, its Decisions
+section is updated first, to record what the design decided; then return to
+the caller the decision records, the views that changed, and the checks the
+stages must carry. When the request includes
+execution or decomposition, continue with `to-stages`, naming each check
+beside the task that will run it; otherwise name `to-stages` as the next
+step, with what the design has already settled.

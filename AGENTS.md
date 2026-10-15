@@ -49,13 +49,21 @@ updates by version, so a change pushed under the old number reaches nobody.
 Bump with `npm run bump -- <plugin-version> [--setup <setup-version>]`, never by
 hand or a text replacement: it fails when a number would not rise, which a
 silent replacement does not (0.21.0 to 0.22.5 all shipped as 0.20.2 that way).
-The **setup version** (the source protocol's `Setup version` line and all five
+The **setup version** (the authoring protocol template's `Setup version` line and all five
 checks' `RULES_VERSION`, then `npm run protocol` and `npm run setup-lock`) goes
 up only when projects must redo their installation: changed check rules, a new
 config setting, a new adapter duty or proof. Every setup version bump makes
 every project stop and rerun setup, so a change to wording, reasoning or
 dialogue never bumps it. `npm test` fails when a file setup installs changed
 under the same setup version; decide the rest by that question.
+
+## Authoring sources
+
+Skill entries and the setup owner's reference Markdown are generated from
+`authoring/`; edit their `.md.in` sources. Short shared fragments use stable IDs
+and one owner in `authoring/catalog.json`. Run `npm run build` before checks;
+`npm run build:check` rejects stale output without changing files. Keep large
+rules as references. See [docs/skill-authoring.md](docs/skill-authoring.md).
 
 ## Names
 
@@ -193,13 +201,14 @@ is how a gate certifies instead of checking.
 
 Three kinds of knowledge, three owners:
 
-- **The protocol** is the set's. Its single source is
+- **The protocol** is the set's. Its Markdown authoring source is
+  `authoring/skills/backlog/setup-shady2k-skills/`; the build renders it into
   `skills/backlog/setup-shady2k-skills/`: `protocol.md` is the core (setup
   version, compatibility, levels, lanes, the horizon, what a clean gate is),
   and `references/` holds the rest by topic (speaking to the owner, deciding,
   running alone, checks, building, what is kept and where). A skill links what it uses, and every linked file,
   with whatever it links in turn, is copied **into the skill's own folder**,
-  because a harness may install one folder at a time. `npm run protocol`
+  because a harness may install one folder at a time. `npm run protocol` first renders the authoring templates, then
   writes and prunes the copies; `npm test` fails on one that drifted, and on a
   rule a skill cites that no file it carries holds. A skill cites a rule by its
   name and does not restate it: what stays in `SKILL.md` is only what is the
