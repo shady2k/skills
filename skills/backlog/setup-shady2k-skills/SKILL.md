@@ -565,9 +565,12 @@ only policy violations (exit 1), not a broken command. Where the project keeps
 time records, the local hook recovers before it judges: every span that has
 ended and whose receipt this machine can recover is posted exactly as the run
 script's recovery prints it, so a receipt one session left unwritten stops
-nobody else's commit, and the time is still recorded. It ends no span whose
-session is still live and invents no end, and a recovery that fails leaves the
-verdict as the gate gave it.
+nobody else's commit, and the time is still recorded. A quiet transcript is not
+an ended session: whether a session is still running is asked of the harness's
+own list of live sessions, by the protocol's [**Read the record, not the
+memory**](references/deciding.md), and a span whose session is still there is
+left to it. It invents no end, and a recovery that fails leaves the verdict as
+the gate gave it.
 
 **Wiring the commit check:** it runs in commit-msg and CI. The project adapter
 turns the chosen message convention into the input of `check-commits.mjs`.
