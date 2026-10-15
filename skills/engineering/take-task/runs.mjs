@@ -867,7 +867,21 @@ function descendantsOf(root) {
       const m = /^ (\S) (-?\d+)/.exec(rest.slice(0, 40));
       if (m) parents.set(Number(dir), Number(m[2]));
     }
-  } catch { return []; }
+  } catch {
+    // macOS has no /proc. A bounded native snapshot keeps detached descendants
+    // visible before TERM reparents them; reuse the same ancestry walk below.
+    // If process enumeration is denied, stopping the command's group remains
+    // possible, but discovering separate groups requires process-list access.
+    try {
+      const rows = execFileSync('/bin/ps', ['-axo', 'pid=,ppid='], {
+        encoding: 'utf8', timeout: 1000, stdio: ['ignore', 'pipe', 'ignore'],
+      });
+      for (const row of rows.split('\n')) {
+        const m = /^\s*(\d+)\s+(\d+)\s*$/.exec(row);
+        if (m) parents.set(Number(m[1]), Number(m[2]));
+      }
+    } catch { return []; }
+  }
   const out = [];
   for (const [pid, ppid] of parents) {
     let cur = ppid;

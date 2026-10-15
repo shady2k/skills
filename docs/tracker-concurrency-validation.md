@@ -76,9 +76,38 @@ change, as do the deferred review/identity workflow findings.
 ## Validation results
 
 Independent review found no remaining blocker for the supported br recipe and
-verified inherited live BEADS_DB rebinding. macOS: 17/17 deterministic regression
-tests pass on macOS and in the existing isolated Linux image. The Linux fixture
-uses its own commit identity and makes no global configuration changes. Six original deterministic lock/HEAD/conditional regressions fail against
-the prior implementation and pass after the fixes. Additional scenarios cover
+verified inherited live BEADS_DB rebinding. All 17 deterministic regressions pass
+on macOS and in the existing isolated Linux image. The Linux fixture uses its
+own commit identity and makes no global configuration changes. Six original
+lock/HEAD/conditional regressions fail against the prior implementation and pass
+after the fixes. Additional scenarios cover
 successful and rejected push, lost acknowledgement, concurrent live writes,
 fatal cleanup, crash preservation, shell routing and fail-closed isolation.
+
+Final full run on the Mac mini, after both affected suites passed:
+
+```
+RUST_LOG=error TMPDIR=/private/tmp npm test
+```
+
+Exit 0. Build/freshness/duplicate/ownership checks covered 302 generated files;
+build/ownership tests 10/10; deterministic races 17/17; tracker clean/proof
+assertions 83/83 across 43 cases; Node contract/product/model/run tests 163/163;
+Pi contract/stdio tests 5/5. The 44 separately reported mutant observations
+include 24 expected failures and 20 passes; mutation-proof verdicts still require
+each intended break to be caught. Production assertions and thresholds were not
+weakened. The final run had native macOS process-list access for stopping tests.
+
+Additional evidence: 17/17 deterministic races in the existing no-network Linux
+container; unchanged runs-exec suite 5/5 on both Mac and Linux; both Claude strict
+manifest validations passed in disposable HOME/config directories. Full log:
+`/tmp/final-full-suite.log`; affected Linux logs `/tmp/tracker-races-linux-final.log`
+and `/tmp/runs-linux-after.log`. Independent reviews were read-only.
+
+Before publication, Linux Codex/omp installation/update smoke still needs the
+respective Linux CLIs and bubblewrap; Pi CLI and Prime runtime smoke need their
+supported runtimes. These were absent in the inspected environments; no tools,
+images or personal configuration were installed/changed to manufacture a pass.
+The prior official skills@1.7.2 installer smoke remains recorded in
+`template-migration-validation.md`: complete discovery and standalone take-task
+installation in disposable configuration. No push, PR or release was performed.

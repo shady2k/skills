@@ -881,6 +881,10 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.111.0** stops detached descendants of bounded commands on macOS as well
+  as Linux. The native process snapshot is limited to one second; discovering
+  descendants in their own groups requires permission to list processes.
+
 - **0.110.0** keeps unrelated local tracker writes when conditional claims or
   transitions race with publishing. Pending conditions use isolated snapshots;
   lost push acknowledgements are reconciled or reported as unknown. Store locks
