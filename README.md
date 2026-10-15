@@ -881,6 +881,12 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.109.0** gives shared reviewer policy, model/engine locations and worked
+  decision material one authoring owner, linked from the steps that use them.
+  Checkout requirements and approval boundaries stay the same. Published skills
+  remain ready to install; template assembly and freshness checks run only in
+  development and CI.
+
 - **0.108.0** adds four rules and the skill text that carries them. A check no
   longer changes to reach green: a test, an assertion, an expected value, a skip
   mark, a silenced warning, a type or lint suppression or a lowered threshold

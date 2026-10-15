@@ -5,9 +5,11 @@ project, and it wins over a project's restatement.
 How a question reaches the person and what happens to the answer: worked
 material, design decisions, evidence, given decisions and corrections.
 
+## Decision material
+
 **Come with the material, not with the question.** Whatever reaches the owner
 arrives already worked: what was looked at, the options and what each costs, the
-evidence behind them, the agent's own recommendation and the strongest case
+evidence behind each option, the agent's own recommendation and the strongest case
 against it. "Let me look into that" spends their time on the agent's homework,
 and a question put before the work is done makes them wait through it. Where an
 answer genuinely needs them, it comes with everything already known, what was
@@ -19,6 +21,10 @@ is a cost like any other. An approval is worked material too: the agent reads
 the evidence, and the owner reads what it proves, where it stops and what yes
 unblocks, by [**Summarize; never assign reading**](speaking.md). A decision
 costed as the owner's reading time has not been worked yet.
+
+For a question raised by a run in another session, the worked material also
+says what the matter is and why it is up now, each option's cost in time, risk
+and reversibility, and what waiting costs.
 
 **A proposal starts from the state of the practice.** Before an option, a
 mechanism, a plan or a design reaches the person — in a skill or in no skill at

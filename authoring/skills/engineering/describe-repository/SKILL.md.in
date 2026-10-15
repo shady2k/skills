@@ -16,14 +16,9 @@ write about the code names the file and the lines it was read from.
 - `$REPO` is the repository to describe: a folder under `repos/`, named in
   the manifest `workspace.yaml`.
 - `$PRODUCT` is this product's folder (the working folder when you run at
-  its root). `$MODELDIR` is the repository's model folder, `model/` beside
-  the code; where the engine reads the model from another folder, the
-  engine's section in the product's agent doc names it.
-- `$ENGINE` is a checkout of the engine, the product's own program that
-  serves the product's wiki, makes its layout and runs the model's check;
-  the engine's section in the product's agent doc names it. Where no engine
-  is installed, describe still writes every file; run no check and tell the
-  person the model stands unchecked, and how to install the engine.
+  its root).
+- Read [**Model and engine locations**](references/model-environment.md#model-and-engine-locations)
+  for `$MODELDIR`, `$ENGINE` and the procedure when no engine is installed.
 - `git -C "$REPO" status --porcelain` must print nothing. Evidence names
   committed text; if the checkout is not clean, stop and ask for the code
   to be committed first. A refused description names the folder and the
@@ -53,10 +48,8 @@ repository:
 (cd "$ENGINE" && bun scripts/check-model.ts "$REPO" --views "$MODELDIR/views")
 ```
 
-  Where no engine is installed, describe finishes the same way with the
-  model unchecked: the report says so — the model and the review report
-  stand, the check has not run, and the check is how the engine proves a
-  written model.
+  When following the [no-engine procedure](references/model-environment.md#model-and-engine-locations),
+  record the model's unchecked status in the review report.
 - The model lives in the repository's own model folder and is kept with
   that repository's history; never commit the generated `views/` under the
   model folder.

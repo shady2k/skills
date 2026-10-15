@@ -408,15 +408,9 @@ questionnaire**.
   that a replay on this project's history gives the numbers to move it on.
   A config without them keeps those values, so a rerun asks only where the
   owner wants to change them.
-- **Review:** a reviewer on a different model that can be reached from this
-  harness, not one product, and whether independent review is required for
-  acceptance. The ways to reach one, the proof and the repair rule are in
-  [agents.md](references/agents.md): a subagent with a model override, where
-  the harness can start one; an external agent CLI; an API. Setup proves the
-  chosen way with one real call and records the way and the model on the
-  integration's Reviewer line. A recorded way that stops working is repaired,
-  never silently replaced: the owner is told, and the recorded fallback is
-  used only as agreed. Two agents on the same model are not another model.
+- **Review:** decide whether independent review is required for acceptance.
+  Apply [**A reviewer on another model**](references/agents.md#a-reviewer-on-another-model)
+  for reviewer selection, the setup proof and recording, and repair/fallback.
 - **Documents and commit links:** read [documents.md](documents.md) for the
   lifecycle, templates, document gate and its trust limits. Map vision,
   roadmap, charters, current capabilities, changes, optional design and

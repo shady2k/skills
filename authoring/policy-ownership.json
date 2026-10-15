@@ -1,0 +1,89 @@
+{
+  "groups": [
+    {
+      "id": "reviewer-policy",
+      "owner": "authoring/skills/backlog/setup-shady2k-skills/references/agents.md.in",
+      "required": [
+        "reviewer on a different model that can be reached from this harness, not one product",
+        "subagent with a model override, where the harness can start one; an external agent CLI; an API",
+        "Setup proves the chosen way with one real call and records the way and the model on the integration's Reviewer line",
+        "A recorded way that stops working is repaired, never silently replaced: the owner is told",
+        "fallback is used only as agreed",
+        "Two agents on the same model are not another model"
+      ],
+      "exclusive": [
+        "reviewer on a different model that can be reached from this harness",
+        "Setup proves the chosen way with one real call",
+        "Two agents on the same model are not another model"
+      ],
+      "consumers": {
+        "authoring/skills/backlog/setup-shady2k-skills/SKILL.md.in": [
+          "references/agents.md#a-reviewer-on-another-model",
+          "whether independent review is required for acceptance"
+        ]
+      }
+    },
+    {
+      "id": "model-environment",
+      "owner": "authoring/skills/backlog/setup-shady2k-skills/references/model-environment.md.in",
+      "required": [
+        "`$MODELDIR` is the repository's model folder, `model/` beside the code",
+        "where the engine reads the model from another folder, the engine's section in the product's agent doc names it",
+        "`$ENGINE` is a checkout of the engine, the product's own program that serves the product's wiki, makes its layout and runs the model's check; the engine's section in the product's agent doc names it. The check is how the engine proves a written model",
+        "Where no engine is installed, still write every file required by the current skill, including its model and review report",
+        "Run no check and tell the person the model stands unchecked, and how to install the engine"
+      ],
+      "exclusive": [
+        "`\\$MODELDIR` is the repository's model folder, `model/` beside the code",
+        "`\\$ENGINE` is a checkout of the engine, the product's own program",
+        "[Ww]here no engine is installed, (?:describe still writes every file|write the model and the report all the same|still write every file required)"
+      ],
+      "consumers": {
+        "authoring/skills/engineering/describe-repository/SKILL.md.in": [
+          "references/model-environment.md#model-and-engine-locations",
+          "status --porcelain` must print nothing.",
+          "a folder under `repos/`, named in the manifest `workspace.yaml`",
+          "record the model's unchecked status in the review report",
+          "if the checkout is not clean, stop and ask for the code to be committed first",
+          "A refused description names the folder and the command that showed the changes",
+          "where the engine is installed, run the model check from `$ENGINE` and finish only on a run that exits 0, its views read"
+        ],
+        "authoring/skills/engineering/write-intended-model/SKILL.md.in": [
+          "references/model-environment.md#model-and-engine-locations",
+          "Where the engine is installed, both checkouts must exist; `$REPO` must be a git checkout",
+          "status --porcelain` must print nothing for the files you will describe",
+          "take `-C`, so they run from anywhere",
+          "runs from `$ENGINE` \u2014 `bun` loads the current directory's `bunfig.toml` and its `preload` runs",
+          "do not run the repository's code, start its services or probe it with stubs",
+          "if the code is uncommitted, the pin misses what you read. If it is not clean, stop and ask for the code to be committed first"
+        ]
+      }
+    },
+    {
+      "id": "decision-material",
+      "owner": "authoring/skills/backlog/setup-shady2k-skills/references/deciding.md.in",
+      "required": [
+        "Whatever reaches the owner arrives already worked: what was looked at, the options and what each costs, the evidence behind each option, the agent's own recommendation and the strongest case against it",
+        "everything already known, what was tried, what each way would cost and which one the agent would take",
+        "the option nobody raised, the example and the counterexample, the view from a different kind of user, the consequence two steps out",
+        "An approval is worked material too",
+        "For a question raised by a run in another session, the worked material also says what the matter is and why it is up now, each option's cost in time, risk and reversibility, and what waiting costs",
+        "the agent reads the evidence, and the owner reads what it proves, where it stops and what yes unblocks"
+      ],
+      "exclusive": [
+        "the agent's (?:own )?recommendation and the strongest case against it"
+      ],
+      "consumers": {
+        "authoring/skills/backlog/setup-shady2k-skills/references/speaking.md.in": [
+          "deciding.md#decision-material",
+          "only through the session that supervises it",
+          "reads the run's record and the code the question concerns, checks the claims in it",
+          "An ask carries its own substance",
+          "A pushed notification never carries the question in one line",
+          "it says that a decision is waiting, what it is about in a few words, and what waiting costs; the worked ask waits in the conversation",
+          "A run's question that arrives without that material is the supervising session's homework, not the owner's"
+        ]
+      }
+    }
+  ]
+}

@@ -48,35 +48,18 @@ folder. Existing Claude/Codex/Pi/omp contracts and smoke tests remain in place.
 
 ## Coverage of reviewed duplication
 
-38 templates do not mean 38 shared policies. Only these exact text groups have
-been extracted so far:
+The byte-identical first stage centralized the two prerequisite variants and the
+nine-entry speaking callout. The second stage factors their shared prerequisite
+prefix once, while preserving each variant's distinct ending. It also gives
+reviewer policy one owner in agents, model/engine definitions and no-engine
+behavior one owner in model-environment, and worked-question material one owner
+in deciding. Consumers link those policies; unique step duties remain local.
 
-| Group | Current authoring owner and uses | Status |
-| --- | --- | --- |
-| Backlog prerequisite, setup-version-check wording | `backlog-prerequisite-b698bf32`, owned by refine-practices; take-task, close-out, refine-practices | One source for this exact variant |
-| Backlog prerequisite, protocol-description wording | `backlog-prerequisite-ec8ec1b3`, owned by to-spec; check-upkeep, groom-backlog, to-backlog, to-design, to-stages, to-milestone, to-spec | One source for this exact variant |
-| Speaking callout | `speaking-callout-bc8756d6`, owned by to-spec; nine entries | One source for this exact text |
-| Reviewer policy | setup entry and agents reference templates | Still independently authored |
-| MODELDIR / ENGINE | describe-repository and write-intended-model templates | Still independently authored |
-| Preparing an owner question | deciding and speaking reference templates | Still independently authored |
-
-Even the two prerequisite variants repeat some assertions. Thus the stronger
-requirement, one authoring owner for every assertion, is **not yet achieved**.
-The empty exact-paragraph baseline is not evidence of semantic deduplication.
-
-The next safe stage is a separately reviewed semantic change. Inventory each
-assertion and its owner first; preserve invocation-specific duties at their
-call site. Make agents own the reviewer definition, route/proof/repair/fallback
-policy; setup should state only its step and any acceptance-setting choice and
-link that policy. Put shared model-folder and engine-location rules in one
-model-environment reference; retain each command's distinct missing-engine and
-clean-checkout requirements in its entry. Let deciding own the worked-question
-checklist; speaking should own routing through the supervising session and
-notification wording, then reference deciding for the checklist. Reconcile the
-two prerequisite variants under one prerequisite policy as part of that stage.
-Review intentional wording/loading changes and tests separately; retain this
-commit as the byte-identical baseline. Do not silently choose one existing
-variant as the semantic winner or automatically delete near-duplicates.
+See [policy-consolidation.md](policy-consolidation.md) for the individual
+assertions, before/after comparison, consciously distinct conditions and
+regression checks. This satisfies ownership for the reviewed groups, not a claim
+of a complete semantic-duplication audit of the whole repository. An empty
+exact-paragraph inventory alone never proves semantic deduplication.
 
 ## Project configuration at runtime: proposal only
 

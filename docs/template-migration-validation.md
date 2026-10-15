@@ -1,4 +1,7 @@
-# Template migration validation
+# Template migration validation — first stage
+
+Historical first-stage report at `3061023` / `cb0885d`. The subsequent
+policy consolidation and current validation are in [policy-consolidation.md](policy-consolidation.md).
 
 Base: GitHub main `1881a94fee5aedcfd3212a93b1df0540772b6eca`, plugin
 0.108.0, setup 0.45.0. Local branch: `build/skill-templates`.
@@ -21,7 +24,7 @@ It does not modify files. `npm test` runs these checks before existing tests,
 so the existing CI workflow enforces freshness without installer changes.
 
 Evidence: after repeated builds,
-`git diff --exit-code 1881a94 -- skills` exits 0. All 462 existing installed
+`git diff --exit-code 1881a94 3061023 -- skills` exits 0. All 462 existing installed
 files, including all entry text and packaged resources, remain byte-identical.
 Plugin/setup versions and all manifests are unchanged. This commit changes the
 authoring pipeline, not installed skill behavior, so it does not bump versions.
@@ -103,13 +106,14 @@ network, with read-only root/source mounts and disposable tmpfs. This does not
 replace Codex/omp install/update smoke, whose executables and sandbox dependency
 are missing from the checked Linux environments.
 
-## Remaining policy ownership
+## Remaining policy ownership at the first-stage checkpoint
 
 Only prerequisite variants and the nine-entry speaking callout are centralized.
 Reviewer policy, model environment rules and deciding/speaking question content
 still have independent authoring sites. The one-owner-per-assertion requirement
-is not yet met. The proposed semantic follow-up and concrete runtime-context
-candidates are documented in skill-authoring.md; neither is implemented here.
+was not yet met at that checkpoint. The next stage implements ownership for
+these reviewed groups; see policy-consolidation.md. Runtime-context candidates
+remain proposals only.
 
 ## Next step
 

@@ -112,8 +112,7 @@ its title (look the title up; a decision record's number is an id too; a title
 in this set's words is said by its consequence), a design decision without a
 worked sample of what it decides, an option of a question that says where work
 goes in the plan instead of what it changes for the product (by **An ask
-carries its own substance**), an ask that brings no options, no recommendation
-or no strongest case against them (by [**Come with the material**](deciding.md)),
+carries its own substance**), an ask that fails [**Come with the material**](deciding.md#decision-material),
 an internal word from this protocol, the config or the tools (use the
 table above), a thing of the project's renamed into a word of your own (put its
 own word back), a back-reference — "as I reported", "you already know" — whose
@@ -154,11 +153,9 @@ another session reaches the owner only through the session that supervises
 it, by the protocol's **Whoever started a run answers for it to the owner** —
 and that session does not pass the question on as it came. It works the
 question first: reads the run's record and the code the question concerns,
-checks the claims in it, then asks by [**Come with the material**](deciding.md)
-and **An ask carries its own substance** — what the matter is and why it is
-up now, the options with what each costs in time, risk and reversibility, the
-evidence for each, the agent's recommendation and the strongest case against
-it, and what waiting costs. A run's question that arrives without that
+checks the claims in it, then prepares the worked material by
+[**Come with the material**](deciding.md#decision-material) and presents it by
+**An ask carries its own substance**. A run's question that arrives without that
 material is the supervising session's homework, not the owner's. A pushed
 notification never carries the question in one line: it says that a decision
 is waiting, what it is about in a few words, and what waiting costs; the

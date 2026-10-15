@@ -17,15 +17,9 @@ names where it came from, so a person can check it without asking you.
 ## Before you start
 
 - `$REPO` is the repository to model.
-  `$MODELDIR` is the repository's model folder, `model/` beside the code;
-  where the engine reads the model from another folder, the engine's section
-  in the product's agent doc names it.
-- `$ENGINE` is a checkout of the engine, the product's own program that
-  serves the product's wiki, makes its layout and runs the model's check;
-  the engine's section in the product's agent doc names it. Where no engine
-  is installed, write the model and the report all the same; run no check,
-  and tell the person the model stands unchecked, and how to install the
-  engine. Where the engine is installed, both checkouts
+- Read [**Model and engine locations**](references/model-environment.md#model-and-engine-locations)
+  for `$MODELDIR`, `$ENGINE` and the procedure when no engine is installed.
+- Where the engine is installed, both checkouts
   must exist; `$REPO` must be a git checkout. The git commands below
   take `-C`, so they run from anywhere; every command that runs the check
   runs from `$ENGINE` — `bun` loads the current directory's `bunfig.toml`
