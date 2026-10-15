@@ -13,9 +13,9 @@ period, and what it costs, is a proposal to retire or loosen. Its practices
 live in `docs/practices/`, one file per practice, plus one line in the agent
 doc.
 
-{{include:backlog-prerequisite-b698bf32}}
+{{include:backlog-prerequisite-setup-version-check}}
 
-{{include:speaking-callout-bc8756d6}}
+{{include:speaking-to-the-owner-callout}}
 
 ## 1. When it runs
 

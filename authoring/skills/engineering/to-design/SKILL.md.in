@@ -12,9 +12,9 @@ beside this file; the stage the step belongs to, and when it is skipped, is
 the protocol's [life cycle](references/lifecycle.md). This file holds the
 step, its timing and its trigger only.
 
-{{include:backlog-prerequisite-ec8ec1b3}}
+{{include:backlog-prerequisite-protocol-contents}}
 
-{{include:speaking-callout-bc8756d6}}
+{{include:speaking-to-the-owner-callout}}
 
 ## 1. Decide whether design is owed
 

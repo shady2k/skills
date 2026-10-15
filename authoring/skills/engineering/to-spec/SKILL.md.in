@@ -9,9 +9,9 @@ A charter says what for and what not; stages say in what order. The spec says
 **what exactly is being built, as its user sees it, and which decisions are
 already taken**. It is written with the owner; after it, work is done without them.
 
-{{include:backlog-prerequisite-ec8ec1b3}}
+{{include:backlog-prerequisite-protocol-contents}}
 
-{{include:speaking-callout-bc8756d6}}
+{{include:speaking-to-the-owner-callout}}
 
 ## 1. Check the request and the horizon
 

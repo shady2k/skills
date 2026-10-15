@@ -59,58 +59,47 @@
       "cases": [
         {
           "id": "matching-version",
-          "situation": "Registry version has intended digest and is published",
-          "expected": "Record done; do not republish"
+          "phrase": "A version already published with the intended digest is done; it is not published again."
         },
         {
           "id": "wrong-tag-commit",
-          "situation": "Same tag name points to another commit",
-          "expected": "Conflict; do not record done or overwrite"
+          "phrase": "A tag of the intended name that points at another commit, a pull request whose head or base is not the intended one, a migration whose name matches with a different checksum, and a successful deploy of the intended digest in another environment are conflicts: none is recorded as done, and none is overwritten."
         },
         {
           "id": "wrong-pr-base",
-          "situation": "Same branch PR has a different head or base",
-          "expected": "Conflict; do not record done"
+          "phrase": "A tag of the intended name that points at another commit, a pull request whose head or base is not the intended one, a migration whose name matches with a different checksum, and a successful deploy of the intended digest in another environment are conflicts: none is recorded as done, and none is overwritten."
         },
         {
           "id": "open-pr-merge",
-          "situation": "Intended head/base match but requested merge is still open",
-          "expected": "Pending; follow existing PR"
+          "phrase": "A pull request whose head and base are the intended ones but whose merge is still open, and a rollout of the intended digest and environment still queued, are pending: what is there is followed to its result, and no duplicate is created."
         },
         {
           "id": "open-pr-create",
-          "situation": "Intended head/base match and requested PR creation is open",
-          "expected": "Record done; do not create duplicate"
+          "phrase": "A pull request whose head and base are the intended ones, already open, for which creation was requested, is done: no duplicate is created."
         },
         {
           "id": "wrong-migration",
-          "situation": "Applied migration name matches but checksum differs",
-          "expected": "Conflict; do not record done"
+          "phrase": "A tag of the intended name that points at another commit, a pull request whose head or base is not the intended one, a migration whose name matches with a different checksum, and a successful deploy of the intended digest in another environment are conflicts: none is recorded as done, and none is overwritten."
         },
         {
           "id": "wrong-environment",
-          "situation": "Successful deploy has intended digest in another environment",
-          "expected": "Conflict; do not record done"
+          "phrase": "A tag of the intended name that points at another commit, a pull request whose head or base is not the intended one, a migration whose name matches with a different checksum, and a successful deploy of the intended digest in another environment are conflicts: none is recorded as done, and none is overwritten."
         },
         {
           "id": "queued-deploy",
-          "situation": "Intended digest/environment match but rollout is queued",
-          "expected": "Pending; follow existing rollout"
+          "phrase": "A pull request whose head and base are the intended ones but whose merge is still open, and a rollout of the intended digest and environment still queued, are pending: what is there is followed to its result, and no duplicate is created."
         },
         {
           "id": "unreadable-result",
-          "situation": "Object identity or requested result cannot be read",
-          "expected": "Unknown; reconcile before retrying"
+          "phrase": "An identity or a requested result that cannot be read leaves the outcome unknown: it is reconciled before any retry."
         },
         {
           "id": "failed-deploy",
-          "situation": "Intended digest/environment match but rollout terminally failed",
-          "expected": "Report failure; do not record done or blindly duplicate"
+          "phrase": "A rollout of the intended digest and environment that terminally failed or was cancelled is a failure to handle: not done, and not blindly repeated."
         },
         {
           "id": "cancelled-deploy",
-          "situation": "Intended digest/environment match but rollout was cancelled",
-          "expected": "Report failure; do not record done or blindly duplicate"
+          "phrase": "A rollout of the intended digest and environment that terminally failed or was cancelled is a failure to handle: not done, and not blindly repeated."
         }
       ]
     }

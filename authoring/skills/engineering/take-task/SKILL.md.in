@@ -14,7 +14,7 @@ the run to a coordinator in another session and stays with the owner, it keeps
 the owner's side by the protocol's **Whoever started a run answers for it to
 the owner**, and the rest of this skill is that coordinator's.
 
-{{include:backlog-prerequisite-b698bf32}}
+{{include:backlog-prerequisite-setup-version-check}}
 
 ## 1. Find the work and choose its route
 
@@ -31,7 +31,7 @@ stopped a session on purpose to test recovery, ask them afterwards for a grade
 and record it with `recovery`: R3 continued correctly, R2 recovered but redid
 work, R1 needed explanations, R0 did not understand where the work stood.
 
-{{include:speaking-callout-bc8756d6}}
+{{include:speaking-to-the-owner-callout}}
 
 - **Trivial, reversible and understood** — a colour, a text, a constant: the
   change plus its check, and the life cycle's [**The shortest path is the

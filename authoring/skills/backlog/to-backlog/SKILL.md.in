@@ -9,7 +9,7 @@ Everything that arrives goes into exactly one **lane**, and the lane decides
 whether it may touch the current queue. Filing straight to the front is how a
 feature slips by weeks without anyone deciding it should.
 
-{{include:backlog-prerequisite-ec8ec1b3}}
+{{include:backlog-prerequisite-protocol-contents}}
 
 ## 1. Look for it first
 

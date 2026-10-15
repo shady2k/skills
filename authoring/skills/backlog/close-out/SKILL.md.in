@@ -5,7 +5,7 @@ description: Record accepted work and preserve pending work. Use after a feature
 
 # Close out
 
-{{include:backlog-prerequisite-b698bf32}}
+{{include:backlog-prerequisite-setup-version-check}}
 
 ## 1. Tell done from accepted
 

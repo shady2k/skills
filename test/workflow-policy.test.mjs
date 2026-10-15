@@ -9,8 +9,12 @@ function contractErrors(group,text) {
   const errors=[];
   for(const clause of group.clauses) if(!normalize(text).includes(normalize(clause))) errors.push('lost rule: '+clause);
   for(const example of group.cases) {
-    const row=`| ${example.id} | ${example.situation} | ${example.expected} |`;
-    if(!text.includes(row)) errors.push('lost behavioral case or expected disposition: '+example.id);
+    // A case is pinned either as a Markdown table row or as the plain-word
+    // worked case a rule states in prose; both must appear as written.
+    const found=example.phrase
+      ? normalize(text).includes(normalize(example.phrase))
+      : text.includes(`| ${example.id} | ${example.situation} | ${example.expected} |`);
+    if(!found) errors.push('lost behavioral case or expected disposition: '+example.id);
   }
   return errors;
 }
@@ -26,7 +30,9 @@ for(const group of fixture.groups) {
       assert.ok(contractErrors(group,changed).some(e=>e.startsWith('lost rule:')),clause);
     }
     for(const example of group.cases) {
-      const changed=source.replace(`| ${example.id} | ${example.situation} | ${example.expected} |`,`| ${example.id} | ${example.situation} | Arbitrary success |`);
+      const changed=example.phrase
+        ? normalize(source).replace(normalize(example.phrase),'Arbitrary success')
+        : source.replace(`| ${example.id} | ${example.situation} | ${example.expected} |`,`| ${example.id} | ${example.situation} | Arbitrary success |`);
       assert.ok(contractErrors(group,changed).some(e=>e.endsWith(example.id)),example.id);
     }
   });

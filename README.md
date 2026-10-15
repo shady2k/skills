@@ -881,6 +881,12 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.114.0** stops two concurrent tracker commands from stopping with a false
+  "inspect the lock" error when the other command is only between its lock steps,
+  and stops the tracker leaving a diagnostic file behind for every write it
+  settles. A diagnostic stays only where a person must reconcile an unknown
+  outcome.
+
 - **0.113.0** lets targeted fix verification block newly introduced or exposed
   regressions without restarting full review for unrelated nits. Resumed external
   effects count as done only after identity and the requested result match.

@@ -55,11 +55,23 @@ reviewer policy one owner in agents, model/engine definitions and no-engine
 behavior one owner in model-environment, and worked-question material one owner
 in deciding. Consumers link those policies; unique step duties remain local.
 
-See [policy-consolidation.md](policy-consolidation.md) for the individual
-assertions, before/after comparison, consciously distinct conditions and
-regression checks. This satisfies ownership for the reviewed groups, not a claim
-of a complete semantic-duplication audit of the whole repository. An empty
-exact-paragraph inventory alone never proves semantic deduplication.
+`authoring/policy-ownership.json` is why the layout has this shape. Each group
+names the one source that owns a policy, the assertions that owner must still
+state, the recognizable definitions that must not reappear outside it, and each
+consumer with the exact link it must keep. `npm run build:check` enforces the
+manifest over catalogued authoring sources only: a missing condition, a returned
+definition outside its owner, or a duplicate definition inside the owner fails
+the gate. The gate is lexical, so it cannot prove equivalence for an arbitrary
+future paraphrase; semantic review is still required.
+
+Conditions were deliberately not merged. describe-repository requires the whole
+repository clean and names the folder and command on refusal, while
+write-intended-model requires cleanliness for the files it describes; speaking's
+summary fields and its product-facing presentation keep their own reporting
+purpose; the worked-question material is linked rather than copied. This
+satisfies ownership for the reviewed groups, not a claim of a complete
+semantic-duplication audit of the whole repository. An empty exact-paragraph
+inventory alone never proves semantic deduplication.
 
 ## Project configuration at runtime: proposal only
 

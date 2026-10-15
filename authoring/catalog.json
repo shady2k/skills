@@ -42,16 +42,16 @@
     "skills/engineering/take-task/review.md": "authoring/skills/engineering/take-task/review.md.in"
   },
   "fragments": {
-    "backlog-prerequisite-ec8ec1b3": {
-      "source": "authoring/fragments/backlog-prerequisite-ec8ec1b3.md.inc",
+    "backlog-prerequisite-protocol-contents": {
+      "source": "authoring/fragments/backlog-prerequisite-protocol-contents.md.inc",
       "owner": "skills/engineering/to-spec/SKILL.md"
     },
-    "speaking-callout-bc8756d6": {
-      "source": "authoring/fragments/speaking-callout-bc8756d6.md.inc",
+    "speaking-to-the-owner-callout": {
+      "source": "authoring/fragments/speaking-to-the-owner-callout.md.inc",
       "owner": "skills/engineering/to-spec/SKILL.md"
     },
-    "backlog-prerequisite-b698bf32": {
-      "source": "authoring/fragments/backlog-prerequisite-b698bf32.md.inc",
+    "backlog-prerequisite-setup-version-check": {
+      "source": "authoring/fragments/backlog-prerequisite-setup-version-check.md.inc",
       "owner": "skills/engineering/refine-practices/SKILL.md"
     },
     "backlog-integration-prerequisite": {

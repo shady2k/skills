@@ -9,9 +9,9 @@ A spec says how. A **charter** says what the milestone is for, what is out,
 and how many unplanned findings it can take. It is short and written once per
 milestone. The gate measures the horizon and the finding budget against it.
 
-{{include:backlog-prerequisite-ec8ec1b3}}
+{{include:backlog-prerequisite-protocol-contents}}
 
-{{include:speaking-callout-bc8756d6}}
+{{include:speaking-to-the-owner-callout}}
 
 ## 0. Which milestone is this?
 

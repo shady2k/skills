@@ -330,19 +330,40 @@ finish at open, while merging it requires merged; a deploy needs the intended
 successful rollout, not merely a queued job. Only matching identity and expected
 terminal result are recorded as done. A mismatch is a conflict to resolve, not
 success or permission to overwrite it; a matching but incomplete operation is
-pending and is followed to its result without creating a duplicate. A known failed or cancelled terminal result is a failure to handle under the
-applicable retry and authorization policy, not pending, unknown or done. Unavailable
-identity or result is unknown: reconcile it before retrying, never assume done.
-Where nothing outside can be asked, because the effect leaves no state
-to read — a message sent to a person — the intent is written where a resume
-finds it before the effect and its outcome after it, and a resume that finds
-the intent with no outcome asks the one it reached, or the owner, rather than
-repeating it. An effect that already happened is never carried out again to
-make a record true: the record is written from what the outside system says.
+pending and is followed to its result without creating a duplicate. A known
+failed or cancelled terminal result is a failure to handle under the
+applicable retry and authorization policy, not pending, unknown or done.
+Unavailable identity or result is unknown: reconcile it before retrying, never
+assume done. Where nothing outside can be asked, because the effect leaves no
+state to read — a message sent to a person — the intent is written where a
+resume finds it before the effect and its outcome after it, and a resume that
+finds the intent with no outcome asks the one it reached, or the owner, rather
+than repeating it. An effect that already happened is never carried out again
+to make a record true: the record is written from what the outside system says.
 This is [checks.md](checks.md)'s **A state not yet known is not a good one**
 applied to what the run does, and it is owed most where a second one cannot be
 undone: a released version, a paid deploy, an issue on someone else's project,
 a message a person has read.
+
+Worked cases, each read against the object the outside system holds:
+
+- A version already published with the intended digest is done; it is not
+  published again.
+- A tag of the intended name that points at another commit, a pull request
+  whose head or base is not the intended one, a migration whose name matches
+  with a different checksum, and a successful deploy of the intended digest in
+  another environment are conflicts: none is recorded as done, and none is
+  overwritten.
+- A pull request whose head and base are the intended ones but whose merge is
+  still open, and a rollout of the intended digest and environment still
+  queued, are pending: what is there is followed to its result, and no
+  duplicate is created.
+- A pull request whose head and base are the intended ones, already open, for
+  which creation was requested, is done: no duplicate is created.
+- A rollout of the intended digest and environment that terminally failed or
+  was cancelled is a failure to handle: not done, and not blindly repeated.
+- An identity or a requested result that cannot be read leaves the outcome
+  unknown: it is reconciled before any retry.
 
 **A submitted branch is frozen.** Once its pull request is open and its run
 has started, a branch carries only what review sends back to it: the fix for
@@ -421,20 +442,3 @@ product loses. Move the date, or take named items out of scope: these two
 are the levers, and quality is not one of them. A third — a check relaxed
 to make the date — is presented as the loss of rigour it is, by [**Never
 show the kitchen**](speaking.md), and only the owner approves it.
-
-
-External-effect verification examples (identity and result are both required):
-
-| Case | Situation | Expected decision |
-| --- | --- | --- |
-| matching-version | Registry version has intended digest and is published | Record done; do not republish |
-| wrong-tag-commit | Same tag name points to another commit | Conflict; do not record done or overwrite |
-| wrong-pr-base | Same branch PR has a different head or base | Conflict; do not record done |
-| open-pr-merge | Intended head/base match but requested merge is still open | Pending; follow existing PR |
-| open-pr-create | Intended head/base match and requested PR creation is open | Record done; do not create duplicate |
-| wrong-migration | Applied migration name matches but checksum differs | Conflict; do not record done |
-| wrong-environment | Successful deploy has intended digest in another environment | Conflict; do not record done |
-| queued-deploy | Intended digest/environment match but rollout is queued | Pending; follow existing rollout |
-| failed-deploy | Intended digest/environment match but rollout terminally failed | Report failure; do not record done or blindly duplicate |
-| cancelled-deploy | Intended digest/environment match but rollout was cancelled | Report failure; do not record done or blindly duplicate |
-| unreadable-result | Object identity or requested result cannot be read | Unknown; reconcile before retrying |

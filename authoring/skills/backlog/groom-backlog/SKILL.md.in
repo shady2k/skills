@@ -10,7 +10,7 @@ is being built now, keep that, and defer everything else in one pass. Deferring
 is not a verdict, so it needs no review: what matters comes back through a bug,
 a spec or a question.
 
-{{include:backlog-prerequisite-ec8ec1b3}}
+{{include:backlog-prerequisite-protocol-contents}}
 
 **When setup calls this** before the gate exists or while reinstalling it, use
 the tracker operations, snapshot location and proposed config that setup has
@@ -19,7 +19,7 @@ the inventory and the agreed cleanup, then return to setup, which installs and
 proves the gate. If the queue is already usable, say so and change nothing in
 bulk. Work waiting for acceptance is live: keep it.
 
-{{include:speaking-callout-bc8756d6}}
+{{include:speaking-to-the-owner-callout}}
 
 ## 1. Take the snapshot
 
