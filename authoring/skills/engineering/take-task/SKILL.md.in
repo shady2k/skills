@@ -472,8 +472,7 @@ present is kept true**; what this stage made false is updated in it. Get a
 review following [`review.md`](review.md), preferably from a reviewer on another
 model the set can reach from here ([`agents.md`](references/agents.md)); the
 rounds converge by **One review, then approval with comments** — one full
-review, blocking findings verified on their fixes' own diffs, the rest held by
-the checks. Fix valid findings within scope and repeat the affected checks. If
+review, then targeted verification under that rule, the rest held by the checks. Fix valid findings within scope and repeat the affected checks. If
 a fix changes code after the full run, rerun the full checks on the final
 revision. Review is repeated where a fix invalidated it. A later fix reuses
 the mutation result by **A passing result holds while what it covers is

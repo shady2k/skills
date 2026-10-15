@@ -1,0 +1,118 @@
+{
+  "description": "Behavioral reference cases and deterministic source contract guards; no model execution or model eval claims.",
+  "groups": [
+    {
+      "id": "review",
+      "source": "authoring/skills/engineering/take-task/review.md.in",
+      "clauses": [
+        "A new blocking regression introduced by the fix, or a related blocker exposed by the correction, blocks acceptance",
+        "Unrelated findings are filed separately; unrelated nits never restart full review.",
+        "A blocker whose fix fails verification twice gets no third round",
+        "Never close on a review of an older revision."
+      ],
+      "cases": [
+        {
+          "id": "fixed-blocker",
+          "situation": "Original blocker fixed, affected checks pass",
+          "expected": "Approve targeted verification"
+        },
+        {
+          "id": "introduced-regression",
+          "situation": "Repair introduces data loss in its caller",
+          "expected": "Block affected verification"
+        },
+        {
+          "id": "exposed-regression",
+          "situation": "Repair exposes an acceptance blocker in its affected dependency",
+          "expected": "Block affected verification"
+        },
+        {
+          "id": "unrelated-nit",
+          "situation": "Verification notices unrelated naming style",
+          "expected": "File separately; no full review restart"
+        },
+        {
+          "id": "twice-failed",
+          "situation": "Same blocker fix fails verification twice",
+          "expected": "Return to design or owner"
+        },
+        {
+          "id": "older-revision",
+          "situation": "Approval describes a revision older than the submitted fix",
+          "expected": "Verify current revision before closing"
+        }
+      ]
+    },
+    {
+      "id": "external-effects",
+      "source": "authoring/skills/backlog/setup-shady2k-skills/references/running.md.in",
+      "clauses": [
+        "An already-exists response is a lookup hint, not proof of success.",
+        "Only matching identity and expected terminal result are recorded as done.",
+        "A mismatch is a conflict to resolve",
+        "a matching but incomplete operation is pending",
+        "Unavailable identity or result is unknown",
+        "the migration's checksum and target database",
+        "the deployment's artifact digest and environment",
+        "A known failed or cancelled terminal result is a failure to handle"
+      ],
+      "cases": [
+        {
+          "id": "matching-version",
+          "situation": "Registry version has intended digest and is published",
+          "expected": "Record done; do not republish"
+        },
+        {
+          "id": "wrong-tag-commit",
+          "situation": "Same tag name points to another commit",
+          "expected": "Conflict; do not record done or overwrite"
+        },
+        {
+          "id": "wrong-pr-base",
+          "situation": "Same branch PR has a different head or base",
+          "expected": "Conflict; do not record done"
+        },
+        {
+          "id": "open-pr-merge",
+          "situation": "Intended head/base match but requested merge is still open",
+          "expected": "Pending; follow existing PR"
+        },
+        {
+          "id": "open-pr-create",
+          "situation": "Intended head/base match and requested PR creation is open",
+          "expected": "Record done; do not create duplicate"
+        },
+        {
+          "id": "wrong-migration",
+          "situation": "Applied migration name matches but checksum differs",
+          "expected": "Conflict; do not record done"
+        },
+        {
+          "id": "wrong-environment",
+          "situation": "Successful deploy has intended digest in another environment",
+          "expected": "Conflict; do not record done"
+        },
+        {
+          "id": "queued-deploy",
+          "situation": "Intended digest/environment match but rollout is queued",
+          "expected": "Pending; follow existing rollout"
+        },
+        {
+          "id": "unreadable-result",
+          "situation": "Object identity or requested result cannot be read",
+          "expected": "Unknown; reconcile before retrying"
+        },
+        {
+          "id": "failed-deploy",
+          "situation": "Intended digest/environment match but rollout terminally failed",
+          "expected": "Report failure; do not record done or blindly duplicate"
+        },
+        {
+          "id": "cancelled-deploy",
+          "situation": "Intended digest/environment match but rollout was cancelled",
+          "expected": "Report failure; do not record done or blindly duplicate"
+        }
+      ]
+    }
+  ]
+}

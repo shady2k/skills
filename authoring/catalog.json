@@ -38,7 +38,8 @@
     "skills/backlog/setup-shady2k-skills/references/building.md": "authoring/skills/backlog/setup-shady2k-skills/references/building.md.in",
     "skills/backlog/setup-shady2k-skills/references/checks.md": "authoring/skills/backlog/setup-shady2k-skills/references/checks.md.in",
     "skills/backlog/setup-shady2k-skills/protocol.md": "authoring/skills/backlog/setup-shady2k-skills/protocol.md.in",
-    "skills/backlog/setup-shady2k-skills/references/model-environment.md": "authoring/skills/backlog/setup-shady2k-skills/references/model-environment.md.in"
+    "skills/backlog/setup-shady2k-skills/references/model-environment.md": "authoring/skills/backlog/setup-shady2k-skills/references/model-environment.md.in",
+    "skills/engineering/take-task/review.md": "authoring/skills/engineering/take-task/review.md.in"
   },
   "fragments": {
     "backlog-prerequisite-ec8ec1b3": {

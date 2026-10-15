@@ -881,6 +881,10 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.113.0** lets targeted fix verification block newly introduced or exposed
+  regressions without restarting full review for unrelated nits. Resumed external
+  effects count as done only after identity and the requested result match.
+
 - **0.112.0** keeps unrelated tracker writes when recording a code revision
   races with publishing or a lost push acknowledgement. Recordings are isolated
   until accepted and preserve the captured revision state across retries.

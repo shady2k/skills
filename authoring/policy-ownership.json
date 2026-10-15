@@ -20,6 +20,10 @@
         "authoring/skills/backlog/setup-shady2k-skills/SKILL.md.in": [
           "references/agents.md#a-reviewer-on-another-model",
           "whether independent review is required for acceptance"
+        ],
+        "authoring/skills/engineering/take-task/review.md.in": [
+          "references/agents.md#a-reviewer-on-another-model",
+          "Without an independent reviewer, do separate self-review passes"
         ]
       }
     },

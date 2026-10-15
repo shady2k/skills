@@ -319,11 +319,21 @@ system that holds it before it is taken, and is taken on that answer: the forge
 for the branch, the tag and the pull request; the registry for the version; the
 pipeline or the environment for the release, the deploy and the width it
 reached; the database or the deployment record for the migration; the tracker
-for the item, by the search its filing already makes. A refusal that says it is
-already there — a version that exists, a pull request already open for this
-branch, a tag already pushed, a migration that reports itself applied — is that
-answer and not a failure: it is read as done, recorded as done, and the run
-goes on. Where nothing outside can be asked, because the effect leaves no state
+for the item, by the search its filing already makes. An already-exists response
+is a lookup hint, not proof of success. Read the authoritative object and compare
+its identity with the intended action: the tag's commit; the package version's
+content digest; the pull request's repository, head and base; the migration's
+checksum and target database; the deployment's artifact digest and environment.
+Use the immutable identifiers the system provides, not a name alone. Verify the
+expected terminal result for this action as well: creating a pull request may
+finish at open, while merging it requires merged; a deploy needs the intended
+successful rollout, not merely a queued job. Only matching identity and expected
+terminal result are recorded as done. A mismatch is a conflict to resolve, not
+success or permission to overwrite it; a matching but incomplete operation is
+pending and is followed to its result without creating a duplicate. A known failed or cancelled terminal result is a failure to handle under the
+applicable retry and authorization policy, not pending, unknown or done. Unavailable
+identity or result is unknown: reconcile it before retrying, never assume done.
+Where nothing outside can be asked, because the effect leaves no state
 to read — a message sent to a person — the intent is written where a resume
 finds it before the effect and its outcome after it, and a resume that finds
 the intent with no outcome asks the one it reached, or the owner, rather than
@@ -411,3 +421,20 @@ product loses. Move the date, or take named items out of scope: these two
 are the levers, and quality is not one of them. A third — a check relaxed
 to make the date — is presented as the loss of rigour it is, by [**Never
 show the kitchen**](speaking.md), and only the owner approves it.
+
+
+External-effect verification examples (identity and result are both required):
+
+| Case | Situation | Expected decision |
+| --- | --- | --- |
+| matching-version | Registry version has intended digest and is published | Record done; do not republish |
+| wrong-tag-commit | Same tag name points to another commit | Conflict; do not record done or overwrite |
+| wrong-pr-base | Same branch PR has a different head or base | Conflict; do not record done |
+| open-pr-merge | Intended head/base match but requested merge is still open | Pending; follow existing PR |
+| open-pr-create | Intended head/base match and requested PR creation is open | Record done; do not create duplicate |
+| wrong-migration | Applied migration name matches but checksum differs | Conflict; do not record done |
+| wrong-environment | Successful deploy has intended digest in another environment | Conflict; do not record done |
+| queued-deploy | Intended digest/environment match but rollout is queued | Pending; follow existing rollout |
+| failed-deploy | Intended digest/environment match but rollout terminally failed | Report failure; do not record done or blindly duplicate |
+| cancelled-deploy | Intended digest/environment match but rollout was cancelled | Report failure; do not record done or blindly duplicate |
+| unreadable-result | Object identity or requested result cannot be read | Unknown; reconcile before retrying |
