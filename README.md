@@ -881,6 +881,10 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.116.1** refuses an empty or missing revision after `--at` as a command
+  error. An unset shell variable can no longer silently disable the explicitly
+  requested check that a backlog snapshot belongs to the code being checked.
+
 - **0.115.0** stops three refusals that were about the machine or the branch
   rather than the work. A push is no longer refused because the remote holds
   refs your clone never fetched: a ref whose commit is not in your clone bounds
