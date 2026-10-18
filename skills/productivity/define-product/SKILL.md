@@ -97,6 +97,9 @@ runs in it as the product's code repository.
   belongs to the specs, later.
 - Write only what was said or agreed. An idea of yours the person did not take
   stays out; one they took is quoted from the line where they took it.
+- The key journeys and the principles the owner states each get a stable id
+  in the vision record, and each milestone outcome names the journeys and
+  principles it serves in its `Serves:` line.
 
 Run the product-documents check before keeping them and correct what it
 refuses.

@@ -90,7 +90,9 @@ conflicting write or exclusive resource, on the affected task.
 The gate binds this: `unobservable-first-stage` refuses the breakdown whose first
 stage does not take the person's path, and `orphaned-outcome` refuses a
 milestone outcome no stage serves. Both read the feature's `Seen at:` line, a
-stage's `Serves:` line and a `Preparatory:` line with its reason.
+stage's `Serves:` line and a `Preparatory:` line with its reason. A stage or
+task names the outcomes it serves, because the forecast is computed over the
+exact task set covering them.
 
 **A wide refactor is the exception.** A mechanical change across the whole
 codebase (a renamed column, a retyped shared symbol) breaks every caller at

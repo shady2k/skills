@@ -29,6 +29,10 @@ Tell from the conversation what the user wants; do not offer a menu of modes.
   or unclear result is still useful and obliges no implementation.
 - **Decide** (the user wants to commit, or approved work hits an important
   unknown): settle only what the next step needs, not every future question.
+  A principle the owner states for how the product must work is written into
+  the vision or the decision record it points to during the conversation, in
+  the owner's words, with a stable id, so a design can name it as a
+  constraint.
 
 Discussion commits to nothing, by the protocol's [**Exploration is not
 admission**](references/keeping.md): "let's build it" changes the workflow;

@@ -112,7 +112,11 @@ Before the owner leaves, prepare the run so it needs nobody:
   protocol's **A decision the owner gives is kept, not only obeyed** — not
   into the ledger's `--due`, which keeps the promised time of the run itself
   (below) — and the forecast is checked
-  against it here, before the owner leaves: where the forecast passes it,
+  against it here, before the owner leaves. A target date stands beside the
+  forecast record the run script computes over the exact task set covering
+  the outcomes it serves (`unforecast-target`); with too little history the
+  record says so and the date stands with that warning
+  (`unmeasured-forecast`). Where the forecast passes it,
   this batch leads with what will be late, why, and the two levers, by the
   protocol's **A forecast is checked against the date it serves**;
 - how long the run will likely take and when the pull request can be expected,
@@ -274,7 +278,9 @@ Give each worker its task and criterion, the relevant spec, the glossary's
 entries for the parts it touches, dependencies, base revision, owned scope,
 local check commands, the TDD setting, the commands for its claim and its
 receipt (this script's path and the adapter's export), and where its report
-goes and what it holds, by **A started session answers to the one that started
+goes and what it holds. Every brief carries the output of the purpose
+command for its task, so the vision items it serves, whom it serves and
+where it is seen travel with the work, by **A started session answers to the one that started
 it**; record in
 the task, as it starts, how to resume it and where its log is. A worker's task fits one session; split one that will not. Use
 isolated checkouts where concurrent writes could collide, and coordinate
@@ -475,7 +481,8 @@ still describe the assembled revision, by the protocol's **What describes the
 present is kept true**; what this stage made false is updated in it. Get a
 review following [`review.md`](review.md), preferably from a reviewer on another
 model the set can reach from here ([`agents.md`](references/agents.md)); the
-rounds converge by **One review, then approval with comments** — one full
+review answers "matches the design: yes/no, divergences"
+(`design-divergence`). The rounds converge by **One review, then approval with comments** — one full
 review, then targeted verification under that rule, the rest held by the checks. Fix valid findings within scope and repeat the affected checks. If
 a fix changes code after the full run, rerun the full checks on the final
 revision. Review is repeated where a fix invalidated it. A later fix reuses
