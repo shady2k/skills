@@ -1,0 +1,81 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture good/vertical-first-stage",
+  "outcomes": [
+    {
+      "id": "O1",
+      "title": "a person reaches a first result in the first-run wizard"
+    }
+  ],
+  "issues": [
+    {
+      "id": "F1",
+      "title": "Issue F1",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person gets a first result by answering the questions once.\nSeen at: wizard",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "S1",
+      "title": "Issue S1",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "## DONE WHEN\nThe first-run wizard shows a first result from the answers given.\nServes: O1",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "L1",
+      "title": "finished",
+      "type": "task",
+      "status": "closed",
+      "labels": [],
+      "parent": "S1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "S2",
+      "title": "Issue S2",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "## DONE WHEN\nThe progress panel keeps the result.\nFalsified if it is lost.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-30T00:00:01Z"
+    },
+    {
+      "id": "S3",
+      "title": "Issue S3",
+      "type": "task",
+      "status": "closed",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "## DONE WHEN\nA person re-answers the questions and the wizard keeps up.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-30T00:00:02Z"
+    }
+  ],
+  "expect": []
+}

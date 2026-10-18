@@ -1,0 +1,247 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture bad/orphaned-outcome",
+  "outcomes": [
+    {
+      "id": "O1",
+      "title": "a person reaches a first result in the first-run wizard"
+    }
+  ],
+  "issues": [
+    {
+      "id": "R",
+      "title": "Issue R",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN every outcome in the charter is reached.\nFalsified if a person still cannot.",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "F1",
+      "title": "Issue F1",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "R",
+      "blockedBy": [],
+      "body": "DONE WHEN a person gets a first result by answering the questions once.\nSeen at: wizard",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "S1",
+      "title": "Issue S1",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "DONE WHEN the repository layer loads from the store.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": "S2",
+      "title": "Issue S2",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "DONE WHEN the service layer answers the load.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-02T00:00:00Z"
+    },
+    {
+      "id": "S3",
+      "title": "Issue S3",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "DONE WHEN the cache layer sits before the store.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-03T00:00:00Z"
+    },
+    {
+      "id": "S4",
+      "title": "Issue S4",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "DONE WHEN the event bus fans out the load.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-04T00:00:00Z"
+    },
+    {
+      "id": "S5",
+      "title": "Issue S5",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "DONE WHEN the scheduler times the load.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-05T00:00:00Z"
+    },
+    {
+      "id": "S6",
+      "title": "Issue S6",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "DONE WHEN the adapter maps the load.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-06T00:00:00Z"
+    },
+    {
+      "id": "S7",
+      "title": "Issue S7",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "DONE WHEN the worker executes the load.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-07T00:00:00Z"
+    },
+    {
+      "id": "S8",
+      "title": "Issue S8",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "DONE WHEN the gateway routes the load.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-08T00:00:00Z"
+    },
+    {
+      "id": "L1",
+      "title": "finished",
+      "type": "task",
+      "status": "closed",
+      "labels": [],
+      "parent": "S1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "L2",
+      "title": "finished",
+      "type": "task",
+      "status": "closed",
+      "labels": [],
+      "parent": "S2",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "L3",
+      "title": "finished",
+      "type": "task",
+      "status": "closed",
+      "labels": [],
+      "parent": "S3",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "L4",
+      "title": "finished",
+      "type": "task",
+      "status": "closed",
+      "labels": [],
+      "parent": "S4",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "L5",
+      "title": "finished",
+      "type": "task",
+      "status": "closed",
+      "labels": [],
+      "parent": "S5",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "L6",
+      "title": "finished",
+      "type": "task",
+      "status": "closed",
+      "labels": [],
+      "parent": "S6",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "L7",
+      "title": "finished",
+      "type": "task",
+      "status": "closed",
+      "labels": [],
+      "parent": "S7",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "L8",
+      "title": "finished",
+      "type": "task",
+      "status": "closed",
+      "labels": [],
+      "parent": "S8",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    }
+  ],
+  "expect": [
+    "orphaned-outcome",
+    "unobservable-first-stage"
+  ],
+  "expectViolations": [
+    "orphaned-outcome|O1|",
+    "unobservable-first-stage|S1|F1"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture good/serves-line-is-one-line",
+  "issues": [
+    {
+      "id": "F1",
+      "title": "Issue F1",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person gets a first result by answering the questions once.\nSeen at: wizard",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "S1",
+      "title": "Issue S1",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "Serves: O1\nDONE WHEN a person runs the wizard and sees a first result.\n",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-30T00:00:00Z"
+    }
+  ],
+  "outcomes": [
+    {
+      "id": "O1",
+      "title": "a person reaches a first result"
+    }
+  ]
+}

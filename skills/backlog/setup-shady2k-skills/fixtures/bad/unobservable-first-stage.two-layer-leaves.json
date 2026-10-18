@@ -1,0 +1,60 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture bad/unobservable-first-stage.two-layer-leaves",
+  "outcomes": [
+    {
+      "id": "O1",
+      "title": "a person reaches a first result"
+    }
+  ],
+  "expect": [
+    "unobservable-first-stage"
+  ],
+  "expectViolations": [
+    "unobservable-first-stage|S1|F1"
+  ],
+  "issues": [
+    {
+      "id": "F1",
+      "type": "epic",
+      "parent": null,
+      "status": "open",
+      "title": "Issue F1",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "blockedBy": [],
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "body": "DONE WHEN a person gets a first result.\nSeen at: wizard"
+    },
+    {
+      "id": "S1",
+      "type": "task",
+      "parent": "F1",
+      "status": "open",
+      "title": "Issue S1",
+      "labels": [
+        "transport"
+      ],
+      "blockedBy": [],
+      "createdAt": "2026-01-30T00:00:00Z",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "body": "## DONE WHEN\nThe store opens its file.\nServes: O1"
+    },
+    {
+      "id": "S2",
+      "type": "task",
+      "parent": "F1",
+      "status": "open",
+      "title": "Issue S2",
+      "labels": [
+        "transport"
+      ],
+      "blockedBy": [],
+      "createdAt": "2026-01-30T01:00:00Z",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "body": "## DONE WHEN\nThe renderer draws a frame."
+    }
+  ]
+}

@@ -114,6 +114,9 @@ Write only after the owner's explicit yes to the summary, by the protocol's
 [**A decision belongs to whoever made it**](references/speaking.md). Without
 it the charter is kept as a draft and the vision and charter are not accepted.
 
+- Give each outcome a stable id in the charter, one line each (`O1: <the
+  outcome>`), which a stage names in its `Serves:` line: `orphaned-outcome`
+  refuses an outcome no stage serves.
 - The charter at `<charters directory>/<milestone label>.md`: name, date,
   outcomes with their checks, out, carried over, the finding-budget decision
   with a pointer to its value in config, the target date with who set it and

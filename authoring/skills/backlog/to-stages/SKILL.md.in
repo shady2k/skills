@@ -87,6 +87,11 @@ conflicting write or exclusive resource, on the affected task.
 - Parallel tasks have separate write scopes or isolated checkouts, and a named
   coordinator collects and verifies their results.
 
+The gate binds this: `unobservable-first-stage` refuses the breakdown whose first
+stage does not take the person's path, and `orphaned-outcome` refuses a
+milestone outcome no stage serves. Both read the feature's `Seen at:` line, a
+stage's `Serves:` line and a `Preparatory:` line with its reason.
+
 **A wide refactor is the exception.** A mechanical change across the whole
 codebase (a renamed column, a retyped shared symbol) breaks every caller at
 once, so no vertical slice of it lands green. Use **expand, migrate,
