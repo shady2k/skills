@@ -2,7 +2,7 @@
   "setupVersion": "0.47.0",
   "files": {
     "check.mjs": "0914eb55206465081d0a7643267e289baa680274ae16b2e3e723aa65add3279d",
-    "check-commits.mjs": "b3cc563a37092f561719dbb4712642a471df8689ce1bb17ca02cc2a55dca324b",
+    "check-commits.mjs": "d753b8e3d6170f0ed17131b101cd1b2b6f1afaacac9868c986bb13db7c4e6013",
     "check-docs.mjs": "ab6c114a87ffbf6b86ecd314452c259e9aeea9d0e9bb7eb87f6d1c4af51ec748",
     "check-present.mjs": "895e68ae9423f0d64633c658c57fcb1c6269bc64fb8ce95e22dfdba68fb01bad",
     "check-product.mjs": "e0e4954874121fc051ceb7ad94ac6d8d042235d1d59464e9316c67da570755b2",
