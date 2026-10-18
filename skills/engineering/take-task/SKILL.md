@@ -315,6 +315,10 @@ is taken only where it is sure** and **Nothing hard to reverse rests on Jev's
 word alone**. Where Jev is unavailable, the worker reads for itself and does not
 report it.
 
+The commit check binds this (`code-before-understanding`): a hand-written brief
+is no substitute for an admitted record, because the record's own fields are
+what the gate reads at the commit.
+
 Workers commit by the protocol's **An agent commits only what it wrote**. A
 coordinator that dispatches a worker
 into its own checkout commits its own changes first, and each later write there
