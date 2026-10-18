@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const RULES_VERSION = '0.47.0';
+export const RULES_VERSION = '0.48.0';
 const here = dirname(fileURLToPath(import.meta.url));
 const object = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
 const canonical = (x) => Array.isArray(x) ? x.map(canonical) : object(x)
@@ -25,6 +25,13 @@ export const decided = (change) => ({
   kind: change.kind, intent: change.intent, outOfScope: change.outOfScope,
   deltas: change.deltas, preserves: change.preserves,
 });
+// What a judgement stands for: the design as a whole — what the change decides,
+// and the constraints and kept principles the design answers with. An approval
+// and a judgement answer different questions, so they bind different digests:
+// editing a constraint voids the judgement and leaves the approval standing.
+export const judged = (change) => digest({
+  decided: decided(change), constraints: change.constraints ?? [], principles: change.principles ?? [],
+});
 const present = (s) => s.trim().length > 0 && !/\b(TODO|TBD|TKTK)\b|\[NEEDS CLARIFICATION|<[^>]+>/i.test(s);
 
 // Closed schemas catch misspelled fields and wrong types before evaluating rules.
@@ -36,6 +43,17 @@ const scenario = { id: 'id', given: 'string', when: 'string', then: 'string' };
 const requirement = { id: 'id', title: 'string', statement: 'string', scenarios: array(scenario) };
 const capability = { id: 'id', title: 'string', requirements: array(requirement) };
 const reference = { capability: 'id', requirement: 'id' };
+// A constraint the design states: a limit, an invariant, a "never". It is one
+// closed section of the design record, each entry with an id, and each binds a
+// requirement the change carries, so the coverage rules already judge whether a
+// check proves it. A constraint about scale names its size, and the check that
+// proves it declares the size of the fixture it runs on — the gate compares the
+// two numbers itself, in their own unit.
+const constraint = {
+  id: 'id', statement: 'string', requirement: reference,
+  scale: optional({ size: 'number', unit: 'string' }),
+  principle: optional('id'),
+};
 const changeSchema = {
   id: 'id', title: 'string', taskIds: array('id'), kind: enumeration('behavior', 'no-behavior', 'supporting'),
   intent: 'string', outOfScope: 'string', rationale: 'string', openQuestions: array('string'),
@@ -48,6 +66,10 @@ const changeSchema = {
     kind: enumeration('screen', 'command', 'request', 'log', 'internal'),
     place: 'string', steps: array('string'), mockup: optional('string'), internalReason: optional('string'),
   }),
+  // The design's constraints, and the kept principles it answers to (see the
+  // constraint shape above and documents.md).
+  constraints: optional(array(constraint)),
+  principles: optional(array('id')),
 };
 const modelSchema = {
   schemaVersion: enumeration(1), phase: enumeration('product', 'feature', 'acceptance', 'close'),
@@ -61,7 +83,15 @@ const modelSchema = {
   mockups: optional(array('string')),
   project: {
     mode: enumeration('new', 'existing'),
-    vision: { audience: 'string', problem: 'string', outcome: 'string', exclusions: 'string' },
+    vision: {
+      audience: 'string', problem: 'string', outcome: 'string', exclusions: 'string',
+      // The owner's kept principles, each with a stable id, as the vision record
+      // holds them. Present means the project keeps them: a design then answers
+      // to at least one, and each it names is one of its constraints.
+      // A journey and a principle are both a title: the owner's own wording,
+      // which every document below names by id and never copies.
+      principles: optional(array({ id: 'id', title: 'string' })),
+    },
     milestone: { id: 'string', outcomes: array('string'), exclusions: 'string' },
   },
   tasks: array({ id: 'id', kind: enumeration('leaf', 'container') }),
@@ -69,16 +99,34 @@ const modelSchema = {
 };
 const policySchema = {
   schemaVersion: enumeration(1), requireApproval: 'boolean',
+  // The review's answer about the design is part of what this project requires
+  // of a review. The switch is the project's, so an installation that already
+  // has review receipts is not stopped the day the rule ships.
+  requireDesignMatch: optional('boolean'),
   requiredChecks: array({
     id: 'id', kind: enumeration('static', 'test', 'mutation', 'review', 'manual'),
     appliesTo: optional(array(enumeration('behavior', 'no-behavior', 'supporting'))),
     ignores: optional(array('string')),
+    // The fixture this check runs on. A constraint that states a scale is proved
+    // only by a check whose fixture is at least that size, in the same unit.
+    fixture: optional({ size: 'number', unit: 'string' }),
   }),
 };
 const evidenceSchema = {
   schemaVersion: enumeration(1), revision: optional('string'), policyDigest: 'string',
   approvals: array({ changeDigest: 'string', reference: 'string' }),
-  checks: array({ id: 'id', status: enumeration('passed', 'failed', 'skipped', 'unsupported'), reference: 'string', revision: optional('string') }),
+  checks: array({
+    id: 'id', status: enumeration('passed', 'failed', 'skipped', 'unsupported'), reference: 'string', revision: optional('string'),
+    // What the review answered about the build against the design.
+    designMatch: optional({ matches: enumeration('yes', 'no'), divergences: array('string') }),
+  }),
+  // The boundary judgement: a different model's answer, on the revision it
+  // answered about, to which journeys and principles this document serves and
+  // which it breaks. One record per boundary, never per commit.
+  judgement: optional({
+    charterDigest: optional('string'), designDigest: optional('string'),
+    answeredBy: 'string', serves: array('string'), breaks: array('string'),
+  }),
 };
 
 function schema(x, rule, path) {
@@ -131,6 +179,14 @@ const WHY = {
   'stale-evidence': 'a receipt stands for the revision of what its check reads, under this policy: run that check again on the current revision',
   'unpinned-check': 'the policy says what this check does not read, so the export carries a revision of its own inputs for it (checkRevisions): the wrapper computes it with checkRevision',
   'unproved-check': 'this check needs a receipt with status passed and a reference',
+  'unknown-constraint': 'the design states a constraint on a requirement this change neither moves nor promises to leave alone: a constraint binds a requirement the change carries',
+  'small-fixture': 'the design states a limit of scale and the check that proves it declares no fixture size, a different unit, or a smaller one. Green looks like this: that check declares a fixture at least the size the constraint names, in the same unit',
+  'unknown-principle': 'the design names a principle the vision record does not declare, so what it answers to is nobody\'s kept principle: name an id the vision keeps',
+  'principle-without-constraint': 'a kept principle this design names carries no constraint, so nothing in the build is held to it: give the principle a constraint, and the constraint a check',
+  'missing-principle': 'a change to what the product does answers to none of the principles the vision keeps: name the ones this area serves',
+  'missing-design-match': 'the review that admitted this change did not answer whether the build matches the design: the review record carries "matches the design: yes/no, divergences"',
+  'design-divergence': 'the review answered that the build does not match the design. Green looks like this: the divergence is decided — the build changed to the design, or the design changed and was approved again — and no divergence is left named',
+  'missing-judgement': 'no different model\'s judgement stands on this document\'s current revision: which journeys and principles of the vision it serves and which it breaks, with quotes. An edit needs a new record; one is asked for at a boundary, never per commit',
 };
 // A mutation run measures how strong the tests are; it never decides whether
 // the change is correct. What its run gave to this revision is reported and
@@ -185,11 +241,31 @@ export function checkDocuments(model, policy, evidence = null) {
   check('empty-policy', policy.requiredChecks.length === 0, 'policy/requiredChecks');
   required(model.revision, 'revision');
   if ((model.project.mode === 'new' && model.change?.kind !== 'supporting') || model.phase === 'product') {
-    for (const [k, value] of Object.entries(model.project.vision)) required(value, `vision/${k}`);
+    // The vision's own text; its principles are objects and are judged below.
+    for (const k of ['audience', 'problem', 'outcome', 'exclusions']) required(model.project.vision[k], `vision/${k}`);
     required(model.project.milestone.id, 'milestone/id');
     required(model.project.milestone.exclusions, 'milestone/exclusions');
     check('missing-outcome', model.project.milestone.outcomes.length === 0, 'milestone/outcomes');
     model.project.milestone.outcomes.forEach((o, i) => required(o, `milestone/outcomes/${i}`));
+  }
+  // The kept principles of the vision record, each with a stable id, and the
+  // judgement the charter answers to at its own acceptance. The principles list
+  // is the switch: a project that keeps none is judged by none of this.
+  const principles = model.project.vision.principles ?? [];
+  unique(principles.map((x) => x.id), 'vision/principles');
+  for (const x of principles) required(x.title, `vision/principles/${x.id}`);
+  const inspectJudgement = (record, at) => {
+    required(record.answeredBy, `${at}/answeredBy`);
+    // A record that serves nothing is not an answer to the question it was asked.
+    check('missing-judgement', record.serves.length === 0, `${at}/serves`);
+    record.serves.forEach((q, i) => required(q, `${at}/serves/${i}`));
+    record.breaks.forEach((q, i) => required(q, `${at}/breaks/${i}`));
+  };
+  if (model.phase === 'product' && principles.length) {
+    const record = evidence?.judgement;
+    const bound = record && record.charterDigest === digest(model.project.milestone);
+    check('missing-judgement', !bound, 'milestone');
+    if (bound) inspectJudgement(record, 'evidence/judgement');
   }
   if (model.phase === 'product') return violations;
   check('missing-change', model.change === null, 'change');
@@ -252,6 +328,38 @@ export function checkDocuments(model, policy, evidence = null) {
     check('unsynced-current', !same(wanted.get(key) ?? null, current.get(key) ?? null), key);
   }
 
+  // The design's constraints, one closed section, each with an id and each
+  // binding a requirement the change carries. The coverage rules below stay the
+  // one owner of "every changed requirement names a check that proves it": a
+  // constraint joins the affected set instead of repeating that loop. A
+  // constraint about scale names its size, and the check that proves it declares
+  // the size of its fixture; the gate compares the two numbers itself.
+  const constraints = change.constraints ?? [];
+  unique(constraints.map((c) => c.id), 'change/constraints');
+  for (const c of constraints) {
+    const at = `change/constraints/${c.id}`;
+    required(c.statement, at);
+    const key = ref(c.requirement.capability, c.requirement.requirement);
+    check('unknown-constraint', !affected.has(key), key);
+    if (c.scale) {
+      required(c.scale.unit, `${at}/scale/unit`);
+      const proved = change.coverage.find((x) => ref(x.capability, x.requirement) === key)?.checks ?? [];
+      for (const id of proved) {
+        const fixture = policy.requiredChecks.find((x) => x.id === id)?.fixture;
+        check('small-fixture', !fixture || fixture.unit !== c.scale.unit || fixture.size < c.scale.size, `${key}/${id}`);
+      }
+    }
+  }
+  // What the design answers to: the kept principles of its area, each of them a
+  // constraint. A change to what the product does, in a project that keeps
+  // principles, answers to at least one of them.
+  const named = change.principles ?? [];
+  for (const id of named) {
+    check('unknown-principle', principles.length > 0 && !principles.some((x) => x.id === id), `change/principles/${id}`);
+    check('principle-without-constraint', !constraints.some((c) => c.principle === id), `change/principles/${id}`);
+  }
+  check('missing-principle', principles.length > 0 && change.kind === 'behavior' && named.length === 0, 'change/principles');
+
   unique(change.coverage.map((r) => ref(r.capability, r.requirement)), 'change/coverage');
   for (const c of change.coverage) {
     const key = ref(c.capability, c.requirement);
@@ -293,6 +401,31 @@ export function checkDocuments(model, policy, evidence = null) {
       check('unproved-check', !receipt || receipt.status !== 'passed' || !present(receipt.reference), id);
       if (evidence && receipt) check('stale-evidence', (receipt.revision ?? evidence.revision) !== (pinOf(id) ?? model.revision), id);
     }
+    // A review receipt is evidence only if it answered the design question too.
+    // A receipt that never passed is refused by unproved-check above and is not
+    // asked this: one refusal, not two, for one missing thing.
+    if (policy.requireDesignMatch) {
+      for (const id of needed) {
+        if (kindOf.get(id) !== 'review') continue;
+        const receipt = evidence?.checks.find((c) => c.id === id);
+        if (!receipt || receipt.status !== 'passed' || !present(receipt.reference)) continue;
+        check('missing-design-match', !receipt.designMatch, id);
+        if (receipt.designMatch) {
+          receipt.designMatch.divergences.forEach((d, i) => required(d, `evidence/${id}/divergences/${i}`));
+          check('design-divergence', receipt.designMatch.matches === 'no' || receipt.designMatch.divergences.length > 0, id);
+        }
+      }
+    }
+    // The design's judgement: the same question as the charter's, asked at the
+    // design's own acceptance, about the change to what the product does that
+    // the project's vision keeps principles for. A bug with no design is not
+    // asked it, and the cheap path stays cheap.
+    if (principles.length && change.kind === 'behavior') {
+      const record = evidence?.judgement;
+      const bound = record && record.designDigest === judged(change);
+      check('missing-judgement', !bound, 'change');
+      if (bound) inspectJudgement(record, 'evidence/judgement');
+    }
     if (notes.length) violations.notes = notes;
   }
   return violations;
@@ -307,15 +440,38 @@ export function fixtureCases() {
   const fixtures = JSON.parse(readFileSync(join(here, 'fixtures/documents.json'), 'utf8'));
   return fixtures.cases.map((c) => {
     const input = structuredClone(fixtures.valid);
-    // 'pristine' records the approval as it would have been given BEFORE the
-    // patches: the only way to ask whether an edit voids it.
-    const approved = c.receipts === 'pristine' ? structuredClone(fixtures.valid) : input;
-    for (const patch of c.patches) {
+    const apply = (target, patch) => {
       const parts = patch.path.split('/');
-      let owner = input;
+      let owner = target;
       for (const part of parts.slice(0, -1)) owner = owner[part];
       const key = parts.at(-1);
-      if (patch.delete) delete owner[key]; else owner[key] = patch.value;
+      // The value is cloned, never shared: two copies of the fixture built from
+      // the same case must not be edited through one object.
+      if (patch.delete) delete owner[key]; else owner[key] = structuredClone(patch.value);
+    };
+    // 'pristine' records a receipt as it would have been given BEFORE the
+    // patches: the only way to ask whether an edit voids it. A judgement's
+    // 'pristine' is the state before the case's LAST patch, which is the edit
+    // itself — so a rule that stopped hashing constraints is still caught here.
+    const approved = c.receipts === 'pristine' ? structuredClone(fixtures.valid) : input;
+    const judgedAt = c.judgement === 'pristine' ? (() => {
+      const before = structuredClone(fixtures.valid);
+      for (const patch of c.patches.slice(0, -1)) apply(before, patch);
+      return before;
+    })() : input;
+    for (const patch of c.patches) apply(input, patch);
+    // A fixture may ask for a judgement on its own revision: the digests are
+    // computed from the model as it stood at that boundary, so a case can edit
+    // the document and ask whether the judgement it carried still stands.
+    if (c.judgement) {
+      const source = judgedAt;
+      input.evidence.judgement = {
+        charterDigest: digest(source.model.project.milestone),
+        designDigest: source.model.change ? judged(source.model.change) : null,
+        answeredBy: 'fixture:another-model',
+        serves: ['"a person reaches their first result" (O1)'],
+        breaks: [],
+      };
     }
     // Fixtures may request fresh receipts, never production inputs.
     if (c.receipts) {

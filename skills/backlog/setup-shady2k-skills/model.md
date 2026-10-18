@@ -42,7 +42,7 @@ revision — so the state being judged says which revision it stands for:
 | `blockedBy` | ids of concrete prerequisite leaves        | Required results or conflicts, never hierarchy or list order. |
 | `body`      | free text, may be empty                    | Read by `epic-without-criterion` and by the outcome lines below. |
 | `createdAt` | a timestamp, optional                      | Orders findings, so the ones over budget are the latest.      |
-| `outcomes`  | `[{ "id": "O1", "title": "…" }]`, optional | The charter's gains with their stable ids. Absent means the project has not put ids on its charter yet, and no outcome check reports on it. |
+| `outcomes`  | `[{ "id": "O1", "title": "…", "serves": ["J1", "P1"] }]`, optional | The charter's gains with their stable ids, and the vision journeys and principles each serves. Absent means the project has not put ids on its charter yet, and no outcome check reports on it. |
 | `holder`    | who holds it, `null` for nobody; optional  | Omit the key if the tracker cannot say. `null` on an active issue is a violation. |
 | `integration` | `{ "revision": "...", "evidence": "..." } | Required on implemented leaves under a stage; coordinator records the integrated revision and related-check evidence. |
 | `delivery` | `{ "revision": "...", "evidence": "..." } | Required on submitted leaves; durable result revision/location and local-check evidence, before integration. |
@@ -60,6 +60,8 @@ declared only when its value is real text: a value that is only a placeholder
 | a stage (an issue that carries work: it has children, or it is the only child of its feature): `Serves: O1, O2` | the outcome ids this stage serves |
 | a feature: `Seen at: signup-page, receipt-email` | the handles of the places a person reaches this feature's outcome |
 | a stage: `Preparatory: <reason>` | this stage is prefactoring, and why |
+| a charter or a feature: `Target: <date>` | the date this document promises |
+| a charter or a feature: `Forecast: <duration>` | the duration it reports, in the same shape |
 
 An outcome is reached when a live or closed stage serves it; deferred work
 serves nothing (`orphaned-outcome`). A stage whose `Serves:` names an id the
@@ -70,6 +72,31 @@ still required to reach the person (`unobservable-first-stage`). Lines of this
 syntax are stripped from the DONE WHEN text before anything is counted against
 it. A feature that names no place is not judged: that is the rule's stated
 limit, and declaring the place is the fix.
+
+## The vision record, and the chain up to it
+
+The owner's journeys and principles, each with a stable id and his own wording,
+are read once into `vision: {journeys: [{id, title}], principles: [{id, title}]}`.
+The list is the switch: a project that keeps no such record is judged by none of
+the rules below, and its ids are added at setup with the owner's agreement,
+without changing the document's text. Every outcome declares in its `serves`
+list the vision ids it serves — the adapter reads them from a `Serves:` line
+under the outcome line of the charter. An outcome that serves nothing the vision
+declares, or names an id the vision does not declare, is refused
+(`unserved-outcome`).
+
+## Forecast records
+
+A date or a duration a document promises stands beside a record the run script
+computed: `forecasts: [{scope, stated, tasks: [id], digest, enough, runs, low,
+high}]` — the issue it stands beside, the date or duration as the document says
+it, the exact task set covering the outcomes that promise serves, and that set's
+digest, sha256 over the sorted ids, one per line, the same definition the run
+script uses. A promise with no record, or with a record for another date or a
+set that has changed since, is refused (`unforecast-target`); a record computed
+from fewer than three finished runs is accepted and its warning printed
+(`unmeasured-forecast`), because a new project has no pace to measure and a date
+computed from nothing would be a guess wearing a number.
 
 ## Execution mapping
 

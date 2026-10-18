@@ -1,0 +1,119 @@
+{
+  "backlog": {
+    "generatedAt": "2026-01-31T00:00:00Z",
+    "source": "fixture purpose",
+    "issues": [
+      {
+        "id": "E1",
+        "title": "Issue E1",
+        "type": "epic",
+        "status": "open",
+        "labels": [
+          "transport",
+          "v0-5"
+        ],
+        "parent": null,
+        "blockedBy": [],
+        "body": "DONE WHEN a person gets a first result by answering the questions once.\nSeen at: wizard",
+        "updatedAt": "2026-01-30T00:00:00.000Z"
+      },
+      {
+        "id": "T1",
+        "title": "Issue T1",
+        "type": "task",
+        "status": "open",
+        "labels": [
+          "transport"
+        ],
+        "parent": "E1",
+        "blockedBy": [],
+        "body": "DONE WHEN a person can do the thing.\nServes: O1",
+        "updatedAt": "2026-01-30T00:00:00.000Z"
+      },
+      {
+        "id": "T2",
+        "title": "Issue T2",
+        "type": "task",
+        "status": "closed",
+        "labels": [
+          "transport",
+          "v0-5"
+        ],
+        "parent": null,
+        "blockedBy": [],
+        "body": "",
+        "updatedAt": "2026-01-30T00:00:00.000Z"
+      },
+      {
+        "id": "T3",
+        "title": "Issue T3",
+        "type": "task",
+        "status": "open",
+        "labels": [
+          "transport"
+        ],
+        "parent": "T1",
+        "blockedBy": [],
+        "body": "DONE WHEN the first pass reads the index.",
+        "updatedAt": "2026-01-30T00:00:00.000Z"
+      }
+    ],
+    "vision": {
+      "journeys": [
+        {
+          "id": "J1",
+          "title": "A person gathers the general picture first, each pass building on the last."
+        }
+      ],
+      "principles": [
+        {
+          "id": "P1",
+          "title": "Knowledge is gathered from the general to the specific."
+        }
+      ]
+    },
+    "outcomes": [
+      {
+        "id": "O1",
+        "title": "a person reaches a first result by answering the questions once",
+        "serves": [
+          "J1",
+          "P1"
+        ]
+      }
+    ]
+  },
+  "cases": [
+    {
+      "task": "T3",
+      "expect": [
+        "T3: Issue T3",
+        "serves O1: a person reaches a first result by answering the questions once",
+        "serves J1: A person gathers the general picture first, each pass building on the last.",
+        "principle P1: Knowledge is gathered from the general to the specific.",
+        "stage T1: Issue T1",
+        "under E1: Issue E1",
+        "seen at wizard"
+      ]
+    },
+    {
+      "task": "T2",
+      "expect": [
+        "T2: Issue T2",
+        "serves nothing: no stage or feature above T2 names what it is for",
+        "seen at: nowhere declared, so no person reaches it yet"
+      ]
+    },
+    {
+      "task": "T1",
+      "expect": [
+        "T1: Issue T1",
+        "serves O1: a person reaches a first result by answering the questions once",
+        "serves J1: A person gathers the general picture first, each pass building on the last.",
+        "principle P1: Knowledge is gathered from the general to the specific.",
+        "under E1: Issue E1",
+        "seen at wizard"
+      ]
+    }
+  ]
+}

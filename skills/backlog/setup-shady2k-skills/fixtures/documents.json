@@ -142,7 +142,11 @@
       "requiredChecks": [
         {
           "id": "full",
-          "kind": "test"
+          "kind": "test",
+          "fixture": {
+            "size": 20000,
+            "unit": "files"
+          }
         },
         {
           "id": "mutation",
@@ -152,7 +156,8 @@
           "id": "review",
           "kind": "review"
         }
-      ]
+      ],
+      "requireDesignMatch": true
     },
     "evidence": {
       "schemaVersion": 1,
@@ -173,7 +178,11 @@
         {
           "id": "review",
           "status": "passed",
-          "reference": "fixture:review"
+          "reference": "fixture:review",
+          "designMatch": {
+            "matches": "yes",
+            "divergences": []
+          }
         },
         {
           "id": "export-test",
@@ -700,7 +709,11 @@
             {
               "id": "review",
               "status": "passed",
-              "reference": "fixture:review"
+              "reference": "fixture:review",
+              "designMatch": {
+                "matches": "yes",
+                "divergences": []
+              }
             },
             {
               "id": "export-test",
@@ -778,7 +791,11 @@
             {
               "id": "review",
               "status": "passed",
-              "reference": "fixture:review"
+              "reference": "fixture:review",
+              "designMatch": {
+                "matches": "yes",
+                "divergences": []
+              }
             },
             {
               "id": "export-test",
@@ -1375,7 +1392,7 @@
         }
       ]
     },
-{
+    {
       "name": "missing-observation",
       "expected": [
         "missing-observation"
@@ -1452,6 +1469,576 @@
           }
         }
       ]
+    },
+    {
+      "name": "constraint-without-a-check",
+      "patches": [
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "C1",
+              "statement": "File text never enters the prompt.",
+              "requirement": {
+                "capability": "export",
+                "requirement": "export-file"
+              }
+            }
+          ]
+        },
+        {
+          "path": "model/change/coverage",
+          "value": []
+        }
+      ],
+      "expected": [
+        "uncovered-requirement"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "constraint-unknown-requirement",
+      "patches": [
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "C1",
+              "statement": "File text never enters the prompt.",
+              "requirement": {
+                "capability": "export",
+                "requirement": "not-moved"
+              }
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "unknown-constraint"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "placeholder-constraint",
+      "patches": [
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "C1",
+              "statement": "TBD",
+              "requirement": {
+                "capability": "export",
+                "requirement": "export-file"
+              }
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "unfinished-content"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "scale-check-on-a-small-fixture",
+      "patches": [
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "C1",
+              "statement": "The prompt holds no more than the named limit of files.",
+              "requirement": {
+                "capability": "export",
+                "requirement": "export-file"
+              },
+              "scale": {
+                "size": 100000,
+                "unit": "files"
+              }
+            }
+          ]
+        },
+        {
+          "path": "model/change/coverage/0/checks",
+          "value": [
+            "full"
+          ]
+        }
+      ],
+      "expected": [
+        "small-fixture"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "scale-check-with-no-declared-fixture",
+      "patches": [
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "C1",
+              "statement": "The prompt holds no more than the named limit of files.",
+              "requirement": {
+                "capability": "export",
+                "requirement": "export-file"
+              },
+              "scale": {
+                "size": 100,
+                "unit": "files"
+              }
+            }
+          ]
+        },
+        {
+          "path": "model/change/coverage/0/checks",
+          "value": [
+            "review"
+          ]
+        }
+      ],
+      "expected": [
+        "small-fixture"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "scale-constraint-in-another-unit",
+      "patches": [
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "C1",
+              "statement": "The prompt holds no more than the named limit of files.",
+              "requirement": {
+                "capability": "export",
+                "requirement": "export-file"
+              },
+              "scale": {
+                "size": 1,
+                "unit": "gigabytes"
+              }
+            }
+          ]
+        },
+        {
+          "path": "model/change/coverage/0/checks",
+          "value": [
+            "full"
+          ]
+        }
+      ],
+      "expected": [
+        "small-fixture"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "scale-check-at-the-named-size",
+      "patches": [
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "C1",
+              "statement": "The prompt holds no more than the named limit of files.",
+              "requirement": {
+                "capability": "export",
+                "requirement": "export-file"
+              },
+              "scale": {
+                "size": 20000,
+                "unit": "files"
+              }
+            }
+          ]
+        },
+        {
+          "path": "model/change/coverage/0/checks",
+          "value": [
+            "full"
+          ]
+        }
+      ],
+      "expected": [],
+      "receipts": true
+    },
+    {
+      "name": "a-design-that-states-no-constraint",
+      "patches": [],
+      "expected": [],
+      "receipts": true
+    },
+    {
+      "name": "missing-principle",
+      "patches": [
+        {
+          "path": "model/project/vision/principles",
+          "value": [
+            {
+              "id": "P1",
+              "title": "Knowledge is gathered from the general to the specific."
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "missing-principle"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "design-names-a-principle-the-vision-does-not-declare",
+      "patches": [
+        {
+          "path": "model/project/vision/principles",
+          "value": [
+            {
+              "id": "P1",
+              "title": "Knowledge is gathered from the general to the specific."
+            }
+          ]
+        },
+        {
+          "path": "model/change/principles",
+          "value": [
+            "P2"
+          ]
+        }
+      ],
+      "expected": [
+        "unknown-principle",
+        "principle-without-constraint"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "principle-named-without-a-constraint",
+      "patches": [
+        {
+          "path": "model/project/vision/principles",
+          "value": [
+            {
+              "id": "P1",
+              "title": "Knowledge is gathered from the general to the specific."
+            }
+          ]
+        },
+        {
+          "path": "model/change/principles",
+          "value": [
+            "P1"
+          ]
+        }
+      ],
+      "expected": [
+        "principle-without-constraint"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "a-kept-principle-becomes-a-constraint",
+      "patches": [
+        {
+          "path": "model/project/vision/principles",
+          "value": [
+            {
+              "id": "P1",
+              "title": "Knowledge is gathered from the general to the specific."
+            }
+          ]
+        },
+        {
+          "path": "model/change/principles",
+          "value": [
+            "P1"
+          ]
+        },
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "C1",
+              "statement": "File text never enters the prompt.",
+              "requirement": {
+                "capability": "export",
+                "requirement": "export-file"
+              },
+              "principle": "P1"
+            }
+          ]
+        }
+      ],
+      "expected": [],
+      "receipts": true
+    },
+    {
+      "name": "review-without-a-design-match",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "evidence/checks/2/designMatch",
+          "delete": true
+        }
+      ],
+      "expected": [
+        "missing-design-match"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "review-that-found-a-divergence",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "evidence/checks/2/designMatch",
+          "value": {
+            "matches": "no",
+            "divergences": [
+              "the build opens every file where the design reads the index"
+            ]
+          }
+        }
+      ],
+      "expected": [
+        "design-divergence"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "a-review-that-names-a-divergence-and-says-yes",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "evidence/checks/2/designMatch",
+          "value": {
+            "matches": "yes",
+            "divergences": [
+              "the index is read twice"
+            ]
+          }
+        }
+      ],
+      "expected": [
+        "design-divergence"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "no-judgement-record",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "model/project/vision/principles",
+          "value": [
+            {
+              "id": "P1",
+              "title": "Knowledge is gathered from the general to the specific."
+            }
+          ]
+        },
+        {
+          "path": "model/change/principles",
+          "value": [
+            "P1"
+          ]
+        },
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "C1",
+              "statement": "File text never enters the prompt.",
+              "requirement": {
+                "capability": "export",
+                "requirement": "export-file"
+              },
+              "principle": "P1"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "missing-judgement"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "a-charter-without-a-judgement",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "product"
+        },
+        {
+          "path": "model/baseline",
+          "value": []
+        },
+        {
+          "path": "model/current",
+          "value": []
+        },
+        {
+          "path": "model/change",
+          "value": null
+        },
+        {
+          "path": "model/project/vision/principles",
+          "value": [
+            {
+              "id": "P1",
+              "title": "Knowledge is gathered from the general to the specific."
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "missing-judgement"
+      ],
+      "receipts": true
+    },
+    {
+      "name": "a-judgement-record-bound-to-the-design",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "model/project/vision/principles",
+          "value": [
+            {
+              "id": "P1",
+              "title": "Knowledge is gathered from the general to the specific."
+            }
+          ]
+        },
+        {
+          "path": "model/change/principles",
+          "value": [
+            "P1"
+          ]
+        },
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "C1",
+              "statement": "File text never enters the prompt.",
+              "requirement": {
+                "capability": "export",
+                "requirement": "export-file"
+              },
+              "principle": "P1"
+            }
+          ]
+        }
+      ],
+      "expected": [],
+      "receipts": true,
+      "judgement": true
+    },
+    {
+      "name": "a-judgement-dies-when-a-constraint-changes",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "model/project/vision/principles",
+          "value": [
+            {
+              "id": "P1",
+              "title": "Knowledge is gathered from the general to the specific."
+            }
+          ]
+        },
+        {
+          "path": "model/change/principles",
+          "value": [
+            "P1"
+          ]
+        },
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "C1",
+              "statement": "File text never enters the prompt.",
+              "requirement": {
+                "capability": "export",
+                "requirement": "export-file"
+              },
+              "principle": "P1"
+            }
+          ]
+        },
+        {
+          "path": "model/change/constraints/0/statement",
+          "value": "File text never enters the prompt, except the index."
+        }
+      ],
+      "expected": [
+        "missing-judgement"
+      ],
+      "receipts": true,
+      "judgement": "pristine"
+    },
+    {
+      "name": "a-bug-with-no-design-is-not-judged",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "model/project/vision/principles",
+          "value": [
+            {
+              "id": "P1",
+              "title": "Knowledge is gathered from the general to the specific."
+            }
+          ]
+        },
+        {
+          "path": "model/change/kind",
+          "value": "supporting"
+        },
+        {
+          "path": "model/change/deltas",
+          "value": []
+        },
+        {
+          "path": "model/change/preserves",
+          "value": []
+        },
+        {
+          "path": "model/change/coverage",
+          "value": []
+        },
+        {
+          "path": "model/change/rationale",
+          "value": "One field was read from a stale row."
+        }
+      ],
+      "expected": [],
+      "receipts": true
     }
   ]
 }

@@ -35,9 +35,21 @@ function sections(text, names) {
 }
 
 export function parseVision(text) {
-  const s = sections(text, ['Audience', 'Non-users', 'Problem', 'Alternatives and difference', 'Key journeys', 'Outcome',
+  const s = sections(text, ['Audience', 'Non-users', 'Problem', 'Alternatives and difference', 'Key journeys', 'Principles', 'Outcome',
     'Success signal', 'Exclusions', 'Constraints and assumptions', 'Direction']);
-  return { audience: s.Audience ?? '', problem: s.Problem ?? '', outcome: s.Outcome ?? '', exclusions: s.Exclusions ?? '' };
+  // Principles are the owner's own words, one per line with a stable id in front
+  // of it (P1, P2, …): the ids everything below the vision names, and the wording
+  // it is read from. Journeys carry ids the same way inside their section.
+  return {
+    audience: s.Audience ?? '', problem: s.Problem ?? '', outcome: s.Outcome ?? '', exclusions: s.Exclusions ?? '',
+    // Absent when the record has no such section, so a vision without principles
+    // carries no empty list for every reader to tell apart from "none kept".
+    ...(s.Principles == null ? {} : {
+      principles: s.Principles.split('\n')
+        .map((line) => /^\s*[-*>]?\s*([a-zA-Z0-9][a-zA-Z0-9_.:-]*)\s*[:.)—-]\s*(\S.*)$/.exec(line))
+        .filter(Boolean).map((m) => ({ id: m[1], title: m[2].trim() })),
+    }),
+  };
 }
 
 export function parseMilestone(text, id) {

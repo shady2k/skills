@@ -311,7 +311,7 @@ digits, dot, underscore, colon or dash, starting with a letter/digit.
 | `revision` | checked source revision or reproducible content digest; changing checked inputs changes it |
 | `checkRevisions` | optional; `{id, revision}` for each check whose policy entry names what it does not read: the digest of what it does read, by `checkRevision` in `document-format.mjs` |
 | `project.mode` | `new` or `existing`, from established project setup, not inferred from an empty export |
-| `project.vision` | strings `audience`, `problem`, `outcome`, `exclusions` |
+| `project.vision` | strings `audience`, `problem`, `outcome`, `exclusions`, and optional `principles`: `{id, title}` for each principle the owner keeps, in his words. The list is the switch: a project that keeps principles answers to them, a project that keeps none is judged by none of this |
 | `project.milestone` | `id`, `outcomes` (strings), `exclusions`; export from charter/config, not another owner of current values |
 | `tasks` | array of `{id, kind: "leaf" or "container"}`, resolved from the real tracker |
 | `baseline`, `current` | arrays of capabilities `{id, title, requirements}` |
@@ -373,6 +373,21 @@ Change:
 - `preserves`: `{capability, requirement}` references for unchanged contracts
   exercised by a bug fix/refactor. `no-behavior` requires these, a rationale and
   no deltas. Add regression coverage without rewriting a correct requirement.
+- `constraints`: the design's constraints — its limits, invariants and "never"s —
+  in one closed section, each `{id, statement, requirement: {capability,
+  requirement}, scale?: {size, unit}, principle?}`. Each constraint binds a
+  requirement the change moves or preserves (rule `unknown-constraint`), and the
+  coverage rules judge whether a check proves it: a constraint with no check is
+  an `uncovered-requirement`, because the constraint joins the changed set rather
+  than repeating that rule. A constraint that names a size is proved only by a
+  check whose policy entry declares a `fixture` of at least that size in the same
+  unit (rule `small-fixture`): the gate compares the numbers, and refuses a
+  fixture that is smaller or counted another way.
+- `principles`: the ids of the kept principles this design answers to. A change
+  to what the product does, in a project whose vision keeps principles, names at
+  least one (rule `missing-principle`); every id it names is declared in the
+  vision (rule `unknown-principle`) and is carried by a constraint (rule
+  `principle-without-constraint`).
 - `coverage`: `{capability, requirement, checks: [check IDs]}` for every changed
   or preserved requirement, including removed behaviour. Tests may be planned
   at admission, but must resolve to successful receipts at acceptance, in the
@@ -401,6 +416,24 @@ map it to owned changes, and reject omissions. Do not manufacture an empty scope
 or silently skip unreadable sources. Unrelated legacy capabilities need not be
 exported. At feature/acceptance phases, current equals baseline; at close it must
 equal the replayed deltas, preserving every untouched requirement in that scope.
+
+The review receipt also carries `designMatch: {matches: "yes"|"no",
+divergences: [text]}` — what the review answered about the build against the
+design. Where the policy sets `requireDesignMatch`, a review receipt without that
+answer is refused (`missing-design-match`) and one that answered `no`, or named a
+divergence beside a `yes`, is a `design-divergence`. The switch is the policy's,
+so an installation that already has review receipts is not stopped by the day the
+rule arrives.
+
+`evidence.judgement` is the boundary judgement: one record per boundary, never
+per commit. `{charterDigest, designDigest, answeredBy, serves: [quotes], breaks:
+[quotes]}`. The charter's acceptance carries one on the milestone's digest, the
+design's acceptance on the design's own digest (`judged(change)`: what the change
+decides plus its constraints and principles), and an edit to any of those needs a
+new one — rule `missing-judgement`. The gate checks that the record is there, is
+bound to the current revision, names who answered and carries non-placeholder
+quotes; whether the quotes are true, and whether the one who answered is really
+another model, are the owner's to read.
 
 ### Two levels of evidence
 
