@@ -1,0 +1,45 @@
+{
+  "input": {
+    "codePaths": [
+      "src/"
+    ],
+    "issues": [
+      {
+        "id": "S",
+        "type": "epic",
+        "parent": null
+      },
+      {
+        "id": "T",
+        "type": "task",
+        "parent": "S",
+        "body": ""
+      },
+      {
+        "id": "B",
+        "type": "bug",
+        "parent": null,
+        "body": ""
+      }
+    ],
+    "commits": [
+      {
+        "id": "commit-1",
+        "taskIds": [
+          "B"
+        ],
+        "paths": [
+          "src/a.ts"
+        ]
+      }
+    ]
+  },
+  "exit": 1,
+  "violations": [
+    {
+      "id": "commit-1",
+      "task": "B",
+      "reason": "changes code before the task's understanding is written: the standalone task carries no criterion a person can read to see what it changes"
+    }
+  ]
+}

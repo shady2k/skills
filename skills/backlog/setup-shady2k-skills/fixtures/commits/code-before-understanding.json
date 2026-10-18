@@ -1,0 +1,62 @@
+{
+  "input": {
+    "codePaths": [
+      "src/",
+      "app/"
+    ],
+    "issues": [
+      {
+        "id": "S",
+        "type": "epic",
+        "parent": null
+      },
+      {
+        "id": "T",
+        "type": "task",
+        "parent": "S",
+        "body": ""
+      },
+      {
+        "id": "B",
+        "type": "bug",
+        "parent": null,
+        "body": ""
+      },
+      {
+        "id": "T2",
+        "type": "task",
+        "parent": "S"
+      }
+    ],
+    "commits": [
+      {
+        "id": "commit-1",
+        "taskIds": [
+          "T2"
+        ],
+        "paths": [
+          "src/a.ts"
+        ],
+        "changes": [
+          {
+            "id": "C1",
+            "taskIds": [
+              "T2"
+            ],
+            "violations": [
+              "missing-observation"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "exit": 1,
+  "violations": [
+    {
+      "id": "commit-1",
+      "task": "T2",
+      "reason": "changes code before the task's understanding is admitted: its change records were refused for missing-observation"
+    }
+  ]
+}

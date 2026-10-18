@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const RULES_VERSION = '0.46.0';
+export const RULES_VERSION = '0.47.0';
 const here = dirname(fileURLToPath(import.meta.url));
 const object = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
 const canonical = (x) => Array.isArray(x) ? x.map(canonical) : object(x)
@@ -42,6 +42,12 @@ const changeSchema = {
   deltas: array({ capability: 'id', requirement: 'id', before: nullable(requirement), after: nullable(requirement) }),
   preserves: array(reference),
   coverage: array({ ...reference, checks: array('id') }),
+  // Where the change was seen at: the walking evidence that it is real where a
+  // person reaches it. See documents.md, the change record's whereSeen section.
+  whereSeen: optional({
+    kind: enumeration('screen', 'command', 'request', 'log', 'internal'),
+    place: 'string', steps: array('string'), mockup: optional('string'), internalReason: optional('string'),
+  }),
 };
 const modelSchema = {
   schemaVersion: enumeration(1), phase: enumeration('product', 'feature', 'acceptance', 'close'),
@@ -49,6 +55,10 @@ const modelSchema = {
   // A check that says what it does not read is pinned to a revision of its
   // own inputs; the wrapper computes each (document-format.mjs, checkRevision).
   checkRevisions: optional(array({ id: 'id', revision: 'string' })),
+  // The mockup files the adapter found in the tree at this revision (an image,
+  // an HTML file, or a prototype document), so a screen's mockup is judged
+  // without the check touching the filesystem itself.
+  mockups: optional(array('string')),
   project: {
     mode: enumeration('new', 'existing'),
     vision: { audience: 'string', problem: 'string', outcome: 'string', exclusions: 'string' },
@@ -101,6 +111,8 @@ function schema(x, rule, path) {
 // the author has to reach, so a refusal is not a research task of its own.
 const WHY = {
   'duplicate-id': 'two items share an identifier in one scope: give each its own',
+  'missing-observation': 'a change is seen where a person reaches it: give whereSeen a kind (screen, command, request, log or internal), the place, at least one step a person follows — and an internal change, the reason nothing a person reaches changes',
+  'missing-mockup': 'a screen change is judged beside its drawing: name a mockup the tree has (figure it in, or point at a file the adapter already listed in mockups)',
   'unfinished-content': 'the text is empty or still a placeholder (TODO, TBD, angle brackets)',
   'missing-scenario': 'every requirement carries at least one scenario, with given, when and then',
   'empty-capability': 'a capability names at least one requirement',
@@ -191,6 +203,27 @@ export function checkDocuments(model, policy, evidence = null) {
   check('change-kind', change.kind === 'behavior' ? change.deltas.length === 0
     : change.kind === 'no-behavior' ? change.deltas.length !== 0 || !present(change.rationale) || change.preserves.length === 0
       : change.deltas.length !== 0 || change.preserves.length !== 0 || change.coverage.length !== 0 || !present(change.rationale), 'change/kind');
+
+  // The observation section: the change is admitted only when someone can see
+  // where it was seen. An internal change says why nothing a person reaches
+  // changes; a screen change is judged beside a mockup the tree has. The approval
+  // digest (decided) does not cover this section: it binds what the change
+  // commits to, and the observation is admitted by these rules, not approved.
+  const whereSeen = change.whereSeen;
+  check('missing-observation', !whereSeen
+    || (whereSeen.kind === 'internal' && !present(whereSeen.internalReason ?? ''))
+    || !present(whereSeen.place)
+    || whereSeen.steps.length === 0, 'change/whereSeen');
+  if (whereSeen) {
+    required(whereSeen.place, 'change/whereSeen/place');
+    // An absent internalReason is enough to refuse (missing-observation, which
+    // already fired); unfinished-content is for what is there but empty/placeholder.
+    if (whereSeen.kind === 'internal' && whereSeen.internalReason !== undefined)
+      required(whereSeen.internalReason, 'change/whereSeen/internalReason');
+    whereSeen.steps.forEach((s, i) => required(s, `change/whereSeen/steps/${i}`));
+  }
+  check('missing-mockup', Boolean(whereSeen) && whereSeen.kind === 'screen'
+    && (!Boolean(whereSeen.mockup) || !model.mockups?.includes(whereSeen.mockup)), 'change/whereSeen/mockup');
 
   const affected = new Set();
   const expected = new Map(baseline);

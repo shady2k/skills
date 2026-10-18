@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture bad/unobservable-first-stage",
+  "issues": [
+    {
+      "id": "F1",
+      "title": "Issue F1",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person gets a first result by answering the questions once.\nSeen at: wizard",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "S1",
+      "title": "Issue S1",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "The storage layer uses a flat file.\n## DONE WHEN\nThe store opens the file. Falsified if it does not.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-30T00:00:00Z"
+    }
+  ],
+  "expect": [
+    "unobservable-first-stage"
+  ],
+  "expectViolations": [
+    "unobservable-first-stage|S1|F1"
+  ]
+}

@@ -62,7 +62,7 @@
 import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spansOf } from './time-format.mjs';
 
@@ -87,6 +87,23 @@ const LIVE = (s) => ['open', 'active', 'submitted', 'implemented'].includes(s);
 const isContainer = (m, i) =>
   !!i && (i.type === 'epic' || (m.children.get(i.id) || []).some((c) => LIVE(m.by.get(c)?.status)));
 
+// A stage is a container of work: it either carries leaves under it, or it is
+// the one and only child of its feature. A leaf that is one of several
+// children of a feature is one step of the feature's work, not the place its
+// outcome is reachable; letting one serve an outcome is how a stray task
+// quietly replaces the person's path.
+const carries = (m, i) => (m.children.get(i?.id) || []).length > 0;
+const isStage = (m, i) => {
+  if (!i || !i.parent) return false;
+  const feature = m.by.get(i.parent);
+  if (feature?.type !== 'epic') return false;
+  // Under a feature, the stages are the children that carry work. Where no
+  // child carries any, the children themselves are the breakdown, so a feature
+  // cut into two layer leaves is still judged.
+  const siblings = (m.children.get(i.parent) || []).map((id) => m.by.get(id)).filter(Boolean);
+  return carries(m, i) || !siblings.some((s) => carries(m, s));
+};
+
 // ---------------------------------------------------------------- model
 
 function index(backlog) {
@@ -97,7 +114,7 @@ function index(backlog) {
     if (!children.has(i.parent)) children.set(i.parent, []);
     children.get(i.parent).push(i.id);
   }
-  return { issues: backlog.issues, by, children, generatedAt: backlog.generatedAt };
+  return { issues: backlog.issues, by, children, outcomes: backlog.outcomes || [], generatedAt: backlog.generatedAt };
 }
 
 function rootOf(m, id) {
@@ -126,15 +143,55 @@ const isIdea = (cfg, i) =>
 
 // A marker alone is a heading somebody meant to fill in. It counts when words
 // follow it before the next heading.
-const hasCriterion = (i) => {
-  const b = (i.body || '').toLowerCase();
-  return CRITERION_MARKERS.some((mk) => {
-    const at = b.indexOf(mk);
-    if (at < 0) return false;
-    const after = b.slice(at + mk.length).split(/\n\s*#/)[0];
-    return (after.match(/[\p{L}\p{N}]{2,}/gu) || []).length >= 3;
-  });
+// Body syntax the gate itself reads, one line per fact, no adapter parsing:
+//
+//   Serves: O1, O2          (a stage — the outcome ids it serves)
+//   Seen at: signup, receipt  (a feature — the places a person reaches its outcome)
+//   Preparatory: <reason>   (a stage — prefactoring, and why)
+//
+// Each is matched case-insensitively, at the start of a line, with an optional
+// leading `-`, `*` or `>`, exactly like the DONE WHEN recognition above: a
+// marker at the top of a file that somebody meant and never filled counts as a
+// declaration, and an empty one does not.
+const afterMarker = (i, marker) => {
+  const re = new RegExp(`^\\s*[-*>]?\\s*${marker}\\s*:(.*)$`, 'im');
+  const at = re.exec(i.body || '');
+  // One fact, one line: the value is the rest of that line and nothing after
+  // it. Prose on the next line is not a value, so a `Serves: O1` above a
+  // sentence does not turn that sentence into outcome ids.
+  return at ? at[1].trim() : '';
 };
+
+// A value that is only a placeholder declares nothing: TODO, TBD, TKTK and
+// anything between angle brackets is somebody's intent to fill it in later,
+// not the fact itself.
+const isPlaceholder = (t) =>
+  !t || /(?:\W|^)(?:todo|tbd|tktk)(?:\W|$)|<[^>]*>/.test(t.toLowerCase());
+
+const wordIds = (t) => t.match(/[\p{L}\p{N}][\p{L}\p{N}-]*/gu) || [];
+const servesOf = (i) => (isPlaceholder(afterMarker(i, 'serves')) ? [] : wordIds(afterMarker(i, 'serves')));
+const seenAtOf = (i) =>
+  isPlaceholder(afterMarker(i, 'seen at')) ? [] : wordIds(afterMarker(i, 'seen at')).map((h) => h.toLowerCase());
+// Three word characters is the least a reason can carry and still be one;
+// an empty or bracketed placeholder declares nothing.
+const preparatoryOf = (i) =>
+  !isPlaceholder(afterMarker(i, 'preparatory')) &&
+  (afterMarker(i, 'preparatory').match(/[\p{L}\p{N}]/gu) || []).length >= 3;
+
+// The DONE WHEN text of one issue, lowercased, from the first marker to the
+// next heading, with this syntax's own lines stripped first. The same slice
+// hasCriterion has always read, kept honest by one owner.
+const criterionTextOf = (i) => {
+  const b = (i.body || '').toLowerCase();
+  for (const mk of CRITERION_MARKERS) {
+    const at = b.indexOf(mk);
+    if (at >= 0) return b.slice(at + mk.length).split(/\n\s*#/)[0]
+      .split('\n').filter((l) => !/^\s*[-*>]?\s*(?:serves|seen at|preparatory)\s*:/i.test(l)).join('\n');
+  }
+  return '';
+};
+
+export const hasCriterion = (i) => (criterionTextOf(i).match(/[\p{L}\p{N}]{2,}/gu) || []).length >= 3;
 
 // A span that has ended with no receipt: its session claimed something else,
 // its item was claimed again, or its item is no longer being worked on. One
@@ -283,6 +340,28 @@ const CHECKS = [
       }),
   },
   {
+    id: 'orphaned-outcome',
+    severity: 'error',
+    why: 'A milestone outcome no stage serves is a promise made on paper. Deferred stages serve nothing, so a milestone whose gains sit beyond every live and closed stage is headed nowhere while looking planned.',
+    fix: 'Green looks like this: every outcome id the charter declares is named in the Serves line of at least one stage that is live or closed, and stages name only ids the charter declares. A milestone that has not got there yet is best honest about it: defer the milestone\'s work knowingly rather than stage layers underneath a person who never reaches anything.',
+    run: (m) => {
+      if (!m.outcomes.length) return [];
+      const declared = new Set(m.outcomes.map((o) => o.id.toLowerCase()));
+      const stageServes = m.issues
+        .filter((i) => (LIVE(i.status) || i.status === 'closed') && isStage(m, i))
+        .map((i) => servesOf(i).map((x) => ({ id: x, key: x.toLowerCase() })));
+      const low = (t) => t.toLowerCase();
+      return [
+        ...m.outcomes.flatMap((o) =>
+          stageServes.some((ids) => ids.some((x) => x.key === low(o.id)))
+            ? []
+            : [{ id: o.id, note: `the outcome ${o.id} (${o.title}) is what the charter says a person gains, and no live or closed stage serves it; deferred work serves nothing` }]),
+        ...[...new Set(stageServes.flat().filter((x) => !declared.has(x.key)).map((x) => x.id))]
+          .map((id) => ({ id, note: `the stage serves the outcome ${id}, but the charter declares no such outcome id, so what it names is nobody's planned gain` })),
+      ];
+    },
+  },
+  {
     id: 'epic-without-criterion',
     severity: 'error',
     why: 'An epic with no criterion that stops being false exactly once becomes an area of code wearing an epic\'s clothes, and absorbs every new bug in its area until it can never finish.',
@@ -291,6 +370,42 @@ const CHECKS = [
       m.issues
         .filter((i) => LIVE(i.status) && i.type === 'epic' && !hasCriterion(i))
         .map((i) => ({ id: i.id, note: 'no DONE WHEN / Success Criteria / Falsified if' })),
+  },
+  {
+    id: 'unobservable-first-stage',
+    severity: 'error',
+    why: 'A feature whose first work is architecture shows a person nothing at any step until the last one. One such step is real prefactoring and is allowed with its reason; after it, a stage that still hides the feature from the person means the milestone said where they would see something and the breakdown does not pass through it. A feature that names no place in its body is not judged here — a known limit: without the place, the rule has nothing to bind to.',
+    fix: 'Green looks like this: the feature names in its Seen at line the place a person reaches its outcome, and the stage first in line has a DONE WHEN that names that place too — a person does the thing there — or that first stage says Preparatory with its reason, and the stage after it reaches the person. More than one preparatory stage before anything observable, or none at all, is the breakdown to re-cut.',
+    run: (m) =>
+      m.issues.flatMap((f) => {
+        if (f.type !== 'epic' || !(m.children.get(f.id) || []).length) return [];
+        const handles = seenAtOf(f);
+        if (!handles.length) return [];
+        const stages = (m.children.get(f.id) || []).map((id) => m.by.get(id)).filter((i) => isStage(m, i))
+          .sort((a, b) => ((Date.parse(a.createdAt) || Infinity) - (Date.parse(b.createdAt) || Infinity) || (a.id < b.id ? -1 : 1)));
+        // A criterion that is only a placeholder names nothing a person sees,
+        // even when the declared handle appears in it.
+        const observable = (i) => {
+          const t = criterionTextOf(i);
+          return !isPlaceholder(t) && handles.some((h) => t.includes(h));
+        };
+        const note = (i) => `the stage ${i.id} shows a person nothing: DONE WHEN names none of ${handles.join(', ')}, which the feature ${f.id} declares as the places a person reaches the outcome of ${f.id}`;
+        let allowed = true;
+        for (let k = 0; k < stages.length; k++) {
+          const s = stages[k];
+          if (preparatoryOf(s)) {
+            if (allowed && k === stages.length - 1)
+              return [{ id: s.id, ref: f.id, note: `${note(s)}; the stage is declared Preparatory, but the feature has no later stage, so the person would reach those places nowhere` }];
+            if (!allowed)
+              return [{ id: s.id, ref: f.id, note: `${note(s)}; and it is the second preparatory stage, and the first was already allowed once and must be followed by the observable one` }];
+            allowed = false;
+            continue;
+          }
+          if (observable(s)) return [];
+          return [{ id: s.id, ref: f.id, note: note(s) }];
+        }
+        return [];
+      }),
   },
   {
     id: 'label-vocabulary',
@@ -500,7 +615,7 @@ function bulkClusters(m, threshold) {
 
 // The version of the set these rules shipped with. A project holds a COPY of
 // this file, and this is how anybody tells that the copy has fallen behind.
-const RULES_VERSION = '0.46.0';
+const RULES_VERSION = '0.47.0';
 
 const STRENGTHS = ['block', 'block-new', 'report'];
 
@@ -554,6 +669,18 @@ function checkedBacklog(raw, where) {
     for (const c of i.comments || []) {
       if (comments.has(c.id)) throw new Misuse(`${where}: the comment id ${c.id} appears twice`);
       comments.add(c.id);
+    }
+  }
+  // The charter's outcomes are how the milestone's gains get ids. No list is
+  // the adoption path: a project mid-run that has not put ids on its charter
+  // is not stopped, and the rules that read them report nothing.
+  if (raw.outcomes != null) {
+    if (!Array.isArray(raw.outcomes) || raw.outcomes.some((o) => !o || typeof o.id !== 'string' || !o.id || typeof o.title !== 'string'))
+      throw new Misuse(`${where}: outcomes must be a list of { id, title }, with a non-empty string id and a string title`);
+    const ids = new Set();
+    for (const o of raw.outcomes) {
+      if (ids.has(o.id)) throw new Misuse(`${where}: the outcome id ${o.id} appears twice`);
+      ids.add(o.id);
     }
   }
   return raw;
@@ -946,11 +1073,15 @@ function main() {
   return report.failed ? 1 : 0;
 }
 
-try {
-  process.exitCode = main();
-} catch (e) {
-  // Anything unforeseen is misuse too: exit 1 means "the backlog is red", and
-  // a crash has established no such thing.
-  console.error(`check.mjs: ${e instanceof Misuse ? e.message : e.stack}`);
-  process.exitCode = 2;
+// Imported by another checker, this file runs nothing; run directly, it
+// behaves exactly as before.
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    process.exitCode = main();
+  } catch (e) {
+    // Anything unforeseen is misuse too: exit 1 means "the backlog is red", and
+    // a crash has established no such thing.
+    console.error(`check.mjs: ${e instanceof Misuse ? e.message : e.stack}`);
+    process.exitCode = 2;
+  }
 }

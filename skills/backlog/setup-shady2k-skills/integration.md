@@ -27,6 +27,10 @@ are the repository's installation, and each person's plugin and hooks are theirs
 
 ### Checks and execution
 
+- **Charter outcomes:** <the current charter's outcomes with the stable id each
+  carries in front of its text (`O1: <the outcome>`), exported in the normalized
+  backlog as `outcomes`; a project whose charter has no ids yet exports none,
+  and the two rules that read them report nothing there>
 - **Backlog adapter:** <path and export command; where the export command reads
   the store: the ref, so every read is historical by nature — the store's state
   at a code revision is what the store recorded under that revision's own name
@@ -36,7 +40,7 @@ are the repository's installation, and each person's plugin and hooks are theirs
 - **Present documents:** <the check-present.mjs command a pull request's opening and CI run, and how CI finds the merge base; the documents themselves are in the config>
 - **Product documents:** <the check-product.mjs commands the commit hook (`--staged`) and CI (`--rev <revision>`) run>
 - **Work records:** <how the adapter exports each item's `[shady2k-time` comments raw with the tracker's comment id, time and author; the command the run script reads as `--backlog`, which reads the store on the ref, so a record another machine published is present once it is fetched and merged; how a record is posted unchanged>
-- **Document adapter and gate:** <deterministic export from real docs/tasks; product/feature/acceptance/close commands; or "not installed yet" and the "Title" (id) of its task>
+- **Document adapter and gate:** <deterministic export from real docs/tasks; product/feature/acceptance/close commands; or "not installed yet" and the "Title" (id) of its task; the change record's **Where it is seen** — the place a person reaches the outcome, the steps of the happy path through it, or `internal` with the reason a person sees nothing — and the mockup files that exist in the tree at this revision as `mockups`: image, HTML or prototype document, each non-empty>
 - **Document policy:** <config source for approval and required checks; protected policy selection>
 - **Document baseline/scope:** <actual target revision, full affected capabilities and complete changed-file enumeration>
 - **Tracker layout:** <for a product repository, the default **State every branch shares is not versioned inside one** states: the store lives outside the branches — one copy per machine, on a ref no code branch contains, with every checkout and worktree of that machine pointed at it, and no code branch carrying a tracker record at all; the ref's name and where the per-machine copy lives. A store a branch commits stays possible only where the owner chooses it, after this cost is said: records on an item two branches work on collide by construction — then, where the file stays in the branches, the hook that narrows what a commit carries of it to that branch's own writes. How the tracker at a code revision and its transitions over a commit range are read: from the store's snapshots on the ref, never from a code tree. The agent doc's end-of-session step follows this layout, over the tracker's own generic advice>
@@ -51,7 +55,12 @@ are the repository's installation, and each person's plugin and hooks are theirs
   tree, and an id that is absent there fails, never supplies an empty success;
   how the parser marks a commit that carries only records of what already
   happened (`recordsOnly`), which the check refuses: the records ride with the
-  landing they describe and are never a commit of their own;
+  landing they describe and are never a commit of their own; the changed paths
+  of each commit, the `codePaths` the config marks as code, and, per commit,
+  the verdict the document gate returned for the change record naming each task
+  it links (`changes`: the rule ids that gate returned, empty when admitted),
+  read at that commit's own revision from a run whose model carries a non-null
+  change record — the product phase admits nothing;
   normalized commits input and check-commits.mjs command>
 - **Product repository:** <for a code repository under a product's `repos/`, the product repository, as the relative path `../..`; for a product repository, "this repository holds the product, and its schema version fixes the document places">
 - **Task ids of this repository's commits resolve against:** <the tracker that holds them: the product repository's for a code repository, this repository's for a product repository, and where it is read from here>

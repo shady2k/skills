@@ -817,8 +817,10 @@ work it was.
 | `implemented-without-evidence` | implemented work without recorded integration and local-check evidence |
 | `submitted-without-evidence` | submitted work without a durable result and local-check evidence |
 | `stale-edge` (warning) | absent or long-untouched prerequisites needing review |
-| `check-commits.mjs` | unlinked commits or links to absent issues/containers |
-| `check-docs.mjs` | unfinished required fields, missing scenarios/task links, conflicting or stale deltas, missing coverage, stale/missing receipts and unsynchronized current requirements |
+| `orphaned-outcome` | an outcome of the current charter that no live or closed stage serves |
+| `unobservable-first-stage` | a feature's first stage that shows a person nothing where the feature says they see it, beyond one declared prefactoring stage |
+| `check-commits.mjs` | unlinked commits or links to absent issues/containers, and code changed for a task whose understanding is not admitted |
+| `check-docs.mjs` | unfinished required fields, missing scenarios/task links, conflicting or stale deltas, missing coverage, stale/missing receipts and unsynchronized current requirements, a change record with no place of observation, and a screen whose named mockup is not in the tree |
 | `check-present.mjs` | a path the agent doc, glossary, architecture or current specs name that the change removed, or a link it broke; older dead paths, code no document mentions and documents left behind are reported |
 
 The backlog strength is chosen at setup: `block-new` blocks introduced errors
@@ -880,6 +882,25 @@ can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
+
+- **0.116.0** refuses two things the set had only asked for in words. Code for
+  planned work can no longer be committed before its understanding is written
+  down and admitted: a commit that changes a path your config marks as code, for
+  a task whose change record is not admitted, is refused — whoever dispatched
+  the work — and that record must now say where a person reaches the outcome
+  and how they walk there, with a mockup file that exists in the tree where the
+  place is a screen. And a milestone can no longer lose its person's path: an
+  outcome of the current charter that no live or closed stage serves is refused,
+  and so is a feature whose first stage shows a person nothing where the feature
+  said they would see it, with one declared prefactoring stage allowed. A
+  standalone bug or chore stays cheap: a criterion on the task itself is enough.
+  Projects rerun setup (0.47.0): it adds a stable id in front of each outcome of
+  the current charter without changing its text, and asks for the list of paths
+  that are code. The two backlog rules follow your gate's strength: under
+  `block-new` what already existed is printed as debt and only new work is
+  refused. The commit rule stays off until the config names the paths that are
+  code, and a change record already admitted for work in flight gains the new
+  section before its next gate run.
 
 - **0.115.0** stops three refusals that were about the machine or the branch
   rather than the work. A push is no longer refused because the remote holds

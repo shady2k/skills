@@ -1,0 +1,48 @@
+{
+  "input": {
+    "issues": [
+      {
+        "id": "S",
+        "type": "epic",
+        "parent": null
+      },
+      {
+        "id": "T",
+        "type": "task",
+        "parent": "S",
+        "body": ""
+      },
+      {
+        "id": "B",
+        "type": "bug",
+        "parent": null,
+        "body": ""
+      },
+      {
+        "id": "T2",
+        "type": "task",
+        "parent": "S"
+      },
+      {
+        "id": "B2",
+        "type": "bug",
+        "parent": null,
+        "body": ""
+      }
+    ],
+    "commits": [
+      {
+        "id": "commit-1",
+        "taskIds": [
+          "T2",
+          "B2"
+        ],
+        "paths": [
+          "src/a.ts"
+        ]
+      }
+    ]
+  },
+  "exit": 0,
+  "violations": []
+}

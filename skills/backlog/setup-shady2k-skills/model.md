@@ -40,12 +40,36 @@ revision — so the state being judged says which revision it stands for:
 | `status`    | `open` `active` `submitted` `implemented` `deferred` `closed` | `submitted` awaits integration; `implemented` awaits stage acceptance. |
 | `parent`    | an id, or `null`                           | One parent. A tracker with several picks one and says so.     |
 | `blockedBy` | ids of concrete prerequisite leaves        | Required results or conflicts, never hierarchy or list order. |
-| `body`      | free text, may be empty                    | Read by `epic-without-criterion` and nothing else.            |
+| `body`      | free text, may be empty                    | Read by `epic-without-criterion` and by the outcome lines below. |
 | `createdAt` | a timestamp, optional                      | Orders findings, so the ones over budget are the latest.      |
+| `outcomes`  | `[{ "id": "O1", "title": "…" }]`, optional | The charter's gains with their stable ids. Absent means the project has not put ids on its charter yet, and no outcome check reports on it. |
 | `holder`    | who holds it, `null` for nobody; optional  | Omit the key if the tracker cannot say. `null` on an active issue is a violation. |
 | `integration` | `{ "revision": "...", "evidence": "..." } | Required on implemented leaves under a stage; coordinator records the integrated revision and related-check evidence. |
 | `delivery` | `{ "revision": "...", "evidence": "..." } | Required on submitted leaves; durable result revision/location and local-check evidence, before integration. |
 | `comments` | `[{ "id", "at", "author", "body" }]` | The item's comments whose body starts with `[shady2k-time` (the set's records of claims and time, in `time-format.mjs`) or with `<!-- shady2k-exec v1 -->` (the command runner's journal of durations, in `runs.mjs`). Others may be left out. |
+
+## The outcome lines
+
+The gate reads three one-line facts out of a body itself, case-insensitive,
+each at the start of a line with an optional leading `-`, `*` or `>`, and each
+declared only when its value is real text: a value that is only a placeholder
+(TODO, TBD, TKTK, or something between angle brackets) declares nothing.
+
+| Line, in the body of | Meaning |
+| --- | --- |
+| a stage (an issue that carries work: it has children, or it is the only child of its feature): `Serves: O1, O2` | the outcome ids this stage serves |
+| a feature: `Seen at: signup-page, receipt-email` | the handles of the places a person reaches this feature's outcome |
+| a stage: `Preparatory: <reason>` | this stage is prefactoring, and why |
+
+An outcome is reached when a live or closed stage serves it; deferred work
+serves nothing (`orphaned-outcome`). A stage whose `Serves:` names an id the
+charter does not declare is the same refusal, named by the unknown id. A
+feature's first stage has a DONE WHEN that names one of its `Seen at:` handles,
+and a stage declared Preparatory is allowed once with the next stage after it
+still required to reach the person (`unobservable-first-stage`). Lines of this
+syntax are stripped from the DONE WHEN text before anything is counted against
+it. A feature that names no place is not judged: that is the rule's stated
+limit, and declaring the place is the fix.
 
 ## Execution mapping
 

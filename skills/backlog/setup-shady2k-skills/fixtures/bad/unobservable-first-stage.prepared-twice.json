@@ -1,0 +1,76 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture bad/unobservable-first-stage.prepared-twice",
+  "issues": [
+    {
+      "id": "F1",
+      "title": "Issue F1",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person gets a first result.\nSeen at: wizard",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "S1",
+      "title": "Issue S1",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "Preparatory: replace the storage layer the wizard reads from.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "L1",
+      "title": "finished",
+      "type": "task",
+      "status": "closed",
+      "labels": [],
+      "parent": "S1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "S2",
+      "title": "Issue S2",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "Preparatory: split the store into two files.\n## DONE WHEN\nThe store holds one file again.",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-30T00:00:01Z"
+    },
+    {
+      "id": "L2",
+      "title": "finished",
+      "type": "task",
+      "status": "closed",
+      "labels": [],
+      "parent": "S2",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    }
+  ],
+  "expect": [
+    "unobservable-first-stage"
+  ],
+  "expectViolations": [
+    "unobservable-first-stage|S2|F1"
+  ]
+}

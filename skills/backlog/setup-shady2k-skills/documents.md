@@ -315,6 +315,8 @@ digits, dot, underscore, colon or dash, starting with a letter/digit.
 | `project.milestone` | `id`, `outcomes` (strings), `exclusions`; export from charter/config, not another owner of current values |
 | `tasks` | array of `{id, kind: "leaf" or "container"}`, resolved from the real tracker |
 | `baseline`, `current` | arrays of capabilities `{id, title, requirements}` |
+| `mockups` | optional; the mockup files that exist in the tree at this revision (an image, an HTML file, or a prototype document), listed by the adapter; a `screen` change's `mockup` must name one of them |
+
 | `change` | the change below; may be null for `product` |
 
 **What the revision binds.** It is a receipt's pin, so it is fixed by a rule,
@@ -376,6 +378,19 @@ Change:
   at admission, but must resolve to successful receipts at acceptance, in the
   receipt's kind's way: a required `mutation` check resolves to its not-made
   note, never a refusal.
+- `whereSeen`: the section of the record that says where the change was seen.
+  Required before the record is admitted (rule `missing-observation`); the
+  approval digest does not cover it — the approval binds what the change
+  commits to, and this section is admitted by the rules, not approved. It is
+  `{ kind, place, steps, mockup?, internalReason? }`:
+  `kind` is `screen`, `command`, `request`, `log` or `internal`; `place` names
+  where a person reaches the change; `steps` lists what they do and what they
+  see, at least one step; `mockup` names a file only for `screen`; and
+  `internal` instead carries an `internalReason` saying why nothing a person
+  reaches changes. A `screen` change names a mockup that exists in the tree
+  (rule `missing-mockup`): an image, an HTML file, or a prototype document.
+  Empty or placeholder text (TODO, TBD, angle brackets) fails the record the
+  same way everywhere else: a placeholder cannot pass.
 
 Snapshots contain **all requirements in each affected capability**, including
 unchanged ones. Read the baseline from the actual target before applying the

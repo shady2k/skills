@@ -1,0 +1,39 @@
+{
+  "input": {
+    "codePaths": [
+      "src/"
+    ],
+    "issues": [
+      {
+        "id": "S",
+        "type": "epic",
+        "parent": null
+      },
+      {
+        "id": "T",
+        "type": "task",
+        "parent": "S",
+        "body": ""
+      },
+      {
+        "id": "B",
+        "type": "bug",
+        "parent": null,
+        "body": "The export fails on empty selections.\n\n## DONE WHEN\n\nAn empty selection exports an empty file and says so."
+      }
+    ],
+    "commits": [
+      {
+        "id": "commit-1",
+        "taskIds": [
+          "B"
+        ],
+        "paths": [
+          "src/a.ts"
+        ]
+      }
+    ]
+  },
+  "exit": 0,
+  "violations": []
+}

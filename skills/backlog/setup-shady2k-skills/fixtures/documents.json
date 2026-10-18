@@ -4,6 +4,9 @@
       "schemaVersion": 1,
       "phase": "feature",
       "revision": "candidate-1",
+      "mockups": [
+        "docs/mock/wizard.html"
+      ],
       "project": {
         "mode": "new",
         "vision": {
@@ -120,7 +123,17 @@
               "export-test"
             ]
           }
-        ]
+        ],
+        "whereSeen": {
+          "kind": "screen",
+          "place": "the export dialog",
+          "steps": [
+            "select records",
+            "press Export",
+            "see the file download with column names"
+          ],
+          "mockup": "docs/mock/wizard.html"
+        }
       }
     },
     "policy": {
@@ -1359,6 +1372,84 @@
           "value": [
             "*.md"
           ]
+        }
+      ]
+    },
+{
+      "name": "missing-observation",
+      "expected": [
+        "missing-observation"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/whereSeen",
+          "delete": true
+        }
+      ]
+    },
+    {
+      "name": "missing-mockup",
+      "expected": [
+        "missing-mockup"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/whereSeen/mockup",
+          "value": "docs/mock/no-such-mockup.html"
+        }
+      ]
+    },
+    {
+      "name": "placeholder-observation-step",
+      "expected": [
+        "unfinished-content"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/whereSeen/steps",
+          "value": [
+            "TODO"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "internal-observation-without-reason",
+      "expected": [
+        "missing-observation"
+      ],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/whereSeen",
+          "value": {
+            "kind": "internal",
+            "place": "inside the export service",
+            "steps": [
+              "run the export"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "observation-command-needs-no-mockup",
+      "expected": [],
+      "receipts": true,
+      "patches": [
+        {
+          "path": "model/change/whereSeen",
+          "value": {
+            "kind": "command",
+            "place": "the project's test command",
+            "steps": [
+              "run the export command in a terminal",
+              "see the column names in the output"
+            ]
+          }
         }
       ]
     }

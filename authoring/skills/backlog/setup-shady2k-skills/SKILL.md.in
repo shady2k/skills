@@ -458,6 +458,7 @@ them and propose it instead.
   "findingLabels": ["finding"], "findingBudget": null,
   "staleDays": 14, "holdDays": 2, "bulkCluster": 20,
   "timeRecordsExempt": [],
+  "codePaths": ["<the paths in this project that are code>"],
   "presentDocuments": ["<the agent doc, glossary, architecture, current specs>"],
   "presentAreas": [""], "presentIgnores": [], "presentChurnCommits": 20,
   "execution": {
@@ -494,6 +495,12 @@ The execution numbers are examples, not choices. `findingBudget` and
 `currentMilestone` stay null only while no live slice is admitted.
 `timeRecordsExempt` is written once, when time records are adopted (step 2 of
 the proofs), and only shrinks after.
+`codePaths` is what the commit check counts as code: the adapter copies it into
+that check's input, so a path outside it — a document, a tracker export, a
+change record — is never code and no commit that touches one is refused. An
+empty list counts nothing as code, which is the honest answer for a project
+that has not decided yet.
+
 `notifyPushes` is the project's only note about the owner's channel: the
 channel itself — the command and wherever it keeps its token — is the
 person's, kept in the set's per-user config folder, beside `jev.json`, and
@@ -886,6 +893,22 @@ a rerun redoes only what the new setup version needs plus the proofs.
 An update reconciles config, adapter statuses, commands, hooks and documents
 like any other run. Keep earlier answers; put new settings into the recommended
 profile instead of restarting an interview.
+
+**What an update to this setup version changes, in the owner's terms.** Four
+rules are new. The two backlog rules follow the gate's strength: under
+`block-new` the state that already existed is printed as debt, and only new
+work is refused — `orphaned-outcome`, a milestone outcome no stage serves, and
+`unobservable-first-stage`, a feature's first stage that shows a person nothing
+where the feature said they would see it. The other two are switches of their
+own, and say so rather than promising a debt path they have not got: the commit
+rule is off until the config declares `codePaths`, and a change record already
+admitted for work in flight must gain the **Where it is seen** section before
+its next gate run, so add it with the owner rather than letting the next
+acceptance find it. Three things this run does, with the owner's agreement, so
+nothing old is rewritten behind their back: give each outcome of the current
+charter a stable id in front of its text, without changing that text; add the
+`codePaths` list; and say which admitted change records of work in flight need
+the new section.
 
 An update that brings the store out of the branches tells the owner the move
 is coming and why, in their terms, and how it is done without losing a record:

@@ -171,7 +171,8 @@ of a real trade-off also gets its own record through `model-domain`.
 Run the backlog gate and the integration's feature document check; a new
 product also needs the product check for its vision and first charter, and
 where the product keeps its own documents, the product-documents check, which
-refuses a spec serving an id that does not exist. An
+refuses a spec serving an id that does not exist. The document gate refuses the
+change record without it (`missing-observation`, `missing-mockup`). An
 incomplete draft may be kept as a draft but is never presented as ready to
 implement. Seek only the approvals that are required, bound to this proposal;
 never fake an approval flag. Ask for approval with the protocol's summary, not

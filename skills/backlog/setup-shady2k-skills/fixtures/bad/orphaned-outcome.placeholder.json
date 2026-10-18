@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture bad/orphaned-outcome.placeholder",
+  "outcomes": [
+    {
+      "id": "O1",
+      "title": "a person reaches a first result in the first-run wizard"
+    }
+  ],
+  "issues": [
+    {
+      "id": "F1",
+      "title": "Issue F1",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person gets a first result.\nSeen at: wizard",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "S1",
+      "title": "Issue S1",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "## DONE WHEN\nThe wizard shows a first result.\nServes: TODO",
+      "updatedAt": "2026-01-30T00:00:00.000Z",
+      "createdAt": "2026-01-30T00:00:00Z"
+    }
+  ],
+  "expect": [
+    "orphaned-outcome"
+  ],
+  "expectViolations": [
+    "orphaned-outcome|O1|"
+  ]
+}
