@@ -146,7 +146,7 @@ const isIdea = (cfg, i) =>
 // Body syntax the gate itself reads, one line per fact, no adapter parsing:
 //
 //   Serves: O1, O2          (a stage — the outcome ids it serves)
-//   Seen at: wizard, panel  (a feature — the places a person reaches its outcome)
+//   Seen at: signup, receipt  (a feature — the places a person reaches its outcome)
 //   Preparatory: <reason>   (a stage — prefactoring, and why)
 //
 // Each is matched case-insensitively, at the start of a line, with an optional

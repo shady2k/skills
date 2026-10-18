@@ -58,7 +58,7 @@ declared only when its value is real text: a value that is only a placeholder
 | Line, in the body of | Meaning |
 | --- | --- |
 | a stage (an issue that carries work: it has children, or it is the only child of its feature): `Serves: O1, O2` | the outcome ids this stage serves |
-| a feature: `Seen at: wizard, progress-panel` | the handles of the places a person reaches this feature's outcome |
+| a feature: `Seen at: signup-page, receipt-email` | the handles of the places a person reaches this feature's outcome |
 | a stage: `Preparatory: <reason>` | this stage is prefactoring, and why |
 
 An outcome is reached when a live or closed stage serves it; deferred work

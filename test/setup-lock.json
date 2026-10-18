@@ -1,7 +1,7 @@
 {
   "setupVersion": "0.47.0",
   "files": {
-    "check.mjs": "0914eb55206465081d0a7643267e289baa680274ae16b2e3e723aa65add3279d",
+    "check.mjs": "32c9b0391be0cae58fd5c1563969e7a48de0068f9868a50e8de362adc116d34f",
     "check-commits.mjs": "d753b8e3d6170f0ed17131b101cd1b2b6f1afaacac9868c986bb13db7c4e6013",
     "check-docs.mjs": "ab6c114a87ffbf6b86ecd314452c259e9aeea9d0e9bb7eb87f6d1c4af51ec748",
     "check-present.mjs": "895e68ae9423f0d64633c658c57fcb1c6269bc64fb8ce95e22dfdba68fb01bad",
@@ -9,7 +9,7 @@
     "document-format.mjs": "f12d6ded88f8209adfd8266ee3a521fafeb8f5c73a5ad19ca0bcf657863bc827",
     "time-format.mjs": "f61f6da6fe6df73145ee7d7fd0d9af15a53e36501e9a11e184e83afdd29da858",
     "integration.md": "b7cbcb789cf20161a875c6a6d7937514b5af17a949b5fa8845146117c742ea1c",
-    "model.md": "176376eef5c96eafbd7f65022e2815347a550174a3b28c7e2638f422d9e621a3",
+    "model.md": "5aae6fca8ddcc9508c27e5dcd85b6267c16ef5bbc0ef85a860df5e9db574f24f",
     "documents.md": "2fbe7dce63b8310c85305972315bab655e323082522ecfb2ff6f86700446f9e6",
     "templates/architecture.md": "a51fadd3ce89492cc9b52451d573a449fb47677ece3234c121aff51376a7b3a6",
     "templates/capability.md": "fbe2b6c7018d9b69d9f6ee707c418e5bae3ae06643278e55dbac0f463e3d3a12",
