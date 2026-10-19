@@ -1468,7 +1468,7 @@ runs.mjs claim --claims-for <harness:session> --item <id> --role <role> [--forec
   the claim for a run this session is starting in another session, which cannot claim yet: the span is the run's (its key), this
   session's key is kept in the record, and the run claims nothing again -- its receipt ends the span
 runs.mjs receipt [--span <id>] --end paused|finished|handed-over|stopped [--reason owner|missing|other] [--note <text>] [--recovered]
-  what the span spent, measured from this machine's transcript (exit 3 when it is not here)
+  what the span spent, measured from this machine's transcript (exit 3 when it cannot be measured here)
 runs.mjs receipt --span <id> --end ... --unknown --note <why>
   closes a span whose transcript no machine has: its time unknown, the reason said
 runs.mjs event [--span <id>] --event stop|decision|ci [--reason owner|missing|other] [--note <text>]
@@ -1508,7 +1508,7 @@ transcript never names the item: only a sure yes counts, and the ones it is unsu
 The current session is found by itself where the harness names it (Claude Code, Codex, pi); else --harness
 claude-code|codex|pi|omp|prime-agent --session <id>.
 Transcripts belong to the project by its git repository: [--project <name>] [--repo <path>]. Add --json for data.
-Exit 0 done, 2 misuse, 3 the transcript is on another machine. exec exits with the command's own code, 124 when it was stopped past its bound, 127 when it did not start.`;
+Exit 0 done, 2 misuse, 3 unavailable here: absent, locally unmapped, or unreadable identity. exec exits with the command's own code, 124 when it was stopped past its bound, 127 when it did not start.`;
 
 // ---- self-test -----------------------------------------------------------------
 
