@@ -2298,7 +2298,7 @@
       ],
       "receipts": true,
       "judgement": true,
-      "quote": "The wizard asks for a folder name first."
+      "quote": "The signup page asks for an email first."
     },
     {
       "name": "a-judgement-quote-spliced-across-two-fields",
