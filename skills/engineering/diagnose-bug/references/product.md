@@ -282,9 +282,9 @@ the `Change:` field a change record does, or it stands where its kind collects
 according to the product's registry (`docs/kinds.yaml`), the vision included.
 Prose the set does not write — a decision record, an exploration, a roadmap, a
 charter, a guide — is not searched for ids: a word there that merely looks like
-one (`S-100`, `P-256`, `H-264`) is a word. In that prose a reference is written
+one (`S-100`, `R-134`, `H-264`) is a word. In that prose a reference is written
 as a Markdown link whose target is the document's own file, a path from the file
 that holds it: `[the shape](../system/capabilities/<name>.md)`. A link to a file
 that is not there is refused, wherever it stands. A token that is not a
-reference anywhere stands in a code span, `` `P-256` ``, which the check never
+reference anywhere stands in a code span, `` `H-264` ``, which the check never
 reads.

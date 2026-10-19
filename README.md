@@ -891,9 +891,9 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 - **0.120.0** stops the product-documents check from guessing. Once a project
   keeps its first practice record, the check reads every Markdown file under
   `docs/`, and it used to treat any word shaped like an id as a reference to a
-  document — so a decision record naming an elliptic curve in plain prose was
-  refused with "no document is P-256", and nothing said how to write a word that
-  is not a reference. Now the set's own documents — product documents, practice
+  document — so a decision record naming a standard that merely shares that
+  shape was refused, and nothing said how to write a word that is not a
+  reference. Now the set's own documents — product documents, practice
   records, specs and change records — keep every id they name checked, exactly as
   before, and prose the set does not write, such as decision records and guides,
   is never searched for ids: there a reference is a link to the document's own
