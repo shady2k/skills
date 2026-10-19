@@ -16,7 +16,7 @@
  * no case ran at all.
  */
 import { spawnSync, spawn } from 'node:child_process';
-import { mkdirSync, rmSync, writeFileSync, readFileSync, existsSync, readdirSync, openSync, closeSync, lstatSync, readlinkSync } from 'node:fs';
+import { cpSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync, readdirSync, openSync, closeSync, lstatSync, readlinkSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -27,6 +27,11 @@ const RECIPE_SRC = join(FIXTURES, 'recipe.mjs');
 const FAKE_SRC = join(FIXTURES, 'fake.mjs');
 const UNIT_SRC = join(WORKTREE, 'skills/backlog/setup-shady2k-skills/supervisors/systemd-user/tracker-sync.service');
 const BR_RECIPE = join(WORKTREE, 'skills/backlog/setup-shady2k-skills/trackers/br.mjs');
+// The one value reader every script here takes its options through. A copy of a
+// script is only a probe if it can still run: the mechanism and the recipe are
+// written into scratch folders of their own, so each one needs the reader beside
+// it -- and the imported one a folder above, the way the shipped tree has it.
+const ARGV_MODULE = join(WORKTREE, 'skills/backlog/setup-shady2k-skills/argv.mjs');
 
 // A CI runner, a container and a fresh machine have no git user.name or
 // user.email and no git configuration at all, so the proofs run the way such a
@@ -238,6 +243,10 @@ function newCtx(tag, overrides = {}) {
   const dir = join(SCRATCH, tag);
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
+  // A case may run a copy of the mechanism out of this folder (a barrier put in
+  // a function, a candidate that must fail), so the one value reader it imports
+  // lies beside it, as it does in the shipped tree.
+  cpSync(ARGV_MODULE, join(dir, 'argv.mjs'));
   const remote = join(dir, 'remote.git');
   sh('git', ['init', '--bare', '--initial-branch', 'main', remote]);
   const codeA = join(dir, 'codeA');
@@ -352,6 +361,8 @@ function makeBrokenEnv(breakName, apply, breakDef = {}) {
   writeFileSync(mechPath, out.mech !== undefined ? out.mech : src.mech);
   writeFileSync(recipePath, out.recipe !== undefined ? out.recipe : src.recipe);
   writeFileSync(fakePath, out.fake !== undefined ? out.fake : src.fake);
+  cpSync(ARGV_MODULE, join(dir, 'argv.mjs'));
+  cpSync(ARGV_MODULE, join(SCRATCH, 'argv.mjs'));
   checkSyntax(breakName, mechPath);
   checkSyntax(breakName, recipePath);
   checkSyntax(breakName, fakePath);
@@ -1751,6 +1762,26 @@ async function main() {
   if (BR_ON_PATH || process.argv.includes('--with-br') || (ONLY && ONLY.includes('12-br-recipe'))) { ranCases++; await brLeg(); }
   // the two-machine br scenario: its own case id, run by default with br present
   if (BR_ON_PATH || process.argv.includes('--with-br') || (ONLY && ONLY.includes('13-br-two-machines'))) { ranCases++; await brTwoMachines(); }
+  // The mechanism and the recipe read every option that takes a value the one
+  // way the set reads one (argv.mjs): a word the caller wrote and left empty is
+  // misuse that names the option, never an option missing from the command. An
+  // emptied --at once was today's state instead of a named revision, and an
+  // emptied --expect once dropped the state a transition had to hold.
+  if (!ONLY || ONLY.includes('misuse') || ONLY.includes('mutation-misuse')) {
+    const cli = (file, args) => spawnSync(process.execPath, [file, ...args], { encoding: 'utf8', timeout: 30000 });
+    const named = (r, option) => r.status === 2 && r.stderr.includes(`"${option}"`);
+    record('misuse-tracker-sync-empty-value',
+      named(cli(MECH_SRC, ['export', '--at', '']), '--at') && named(cli(MECH_SRC, ['export', '--at=']), '--at'),
+      `export --at '' and --at= must exit 2 naming --at; got ${cli(MECH_SRC, ['export', '--at', '']).status} and ${cli(MECH_SRC, ['export', '--at=']).status}`);
+    record('misuse-br-empty-expect',
+      named(cli(BR_RECIPE, ['transition', '--item', 'x', '--to', 'closed', '--expect', '--to']), '--expect'),
+      'br transition --expect with an option where its value goes must exit 2 naming --expect');
+    // The one word the recipe means as a value: an empty holder clears it.
+    const cleared = cli(BR_RECIPE, ['claim', '--item', 'x', '--holder', '']);
+    record('misuse-br-empty-holder-is-a-clearing',
+      cleared.status !== 2 && !cleared.stderr.includes('"--holder"'),
+      `br claim --holder '' clears the holder, so its refusal must not be about the value: got ${cleared.status} ${cleared.stderr.split('\n')[0]}`);
+  }
   if (!ranCases) {
     console.log('FATAL: no case ran — a proof that runs nothing must not pass');
     process.exit(2);

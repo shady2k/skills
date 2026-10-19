@@ -9,6 +9,11 @@ import { newCtx, bringUp, mech, storeOf, post, storeItems, stopAllWatchers } fro
 
 const root = resolve(import.meta.dirname, '..');
 const source = process.env.TRACKER_RACE_SOURCE || join(root, 'skills/backlog/setup-shady2k-skills/tracker-sync.mjs');
+// The one value reader the mechanism takes its options through. Every copy of
+// the mechanism written into a scratch folder gets it beside the copy: a probe
+// that cannot start proves nothing about a race.
+const ARGV_MODULE = join(root, 'skills/backlog/setup-shady2k-skills/argv.mjs');
+const withReader = (dir) => { writeFileSync(join(dir, 'argv.mjs'), readFileSync(ARGV_MODULE)); return dir; };
 
 const src = () => readFileSync(source, 'utf8');
 
@@ -56,6 +61,7 @@ function fixtureModule(dir, probe = false) {
   const file = join(dir, 'fixture.mjs');
 
   writeFileSync(file, s);
+  withReader(dir);
 
   return file;
 }
@@ -726,6 +732,7 @@ test('record preserves missing recipe dependency exit 2 and installed version pr
     const installed = join(ctx.scratch, 'tracker-sync.mjs');
 
     writeFileSync(installed, src());
+    withReader(ctx.scratch);
     writeFileSync(join(ctx.scratch, 'tracker-sync.version'), '0.112.0\n');
 
     assert.equal(spawnSync(process.execPath, [installed, 'version'], { encoding: 'utf8' }).stdout.trim(), '0.112.0');

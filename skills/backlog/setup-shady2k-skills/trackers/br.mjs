@@ -33,6 +33,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { ValueNeeded, valueOf } from '../argv.mjs';
 
 const BR_GLOBAL = ['--no-color', '--no-auto-import'];
 
@@ -204,12 +205,11 @@ function newerByOrder(a, b) {
 function cmdMerge(argv) {
   const want = {};
   for (const k of ['ours', 'theirs', 'base', 'out', 'order', 'store']) {
-    const i = argv.indexOf(`--${k}`);
-    if (i === -1 || !argv[i + 1]) fail(`merge: missing --${k}`);
-    want[k] = argv[i + 1];
+    const one = opt(argv, `--${k}`);
+    if (one === undefined) fail(`merge: missing --${k}`);
+    want[k] = one;
   }
-  const orderLocalIdx = argv.indexOf('--order-local');
-  const orderLocal = orderLocalIdx !== -1 ? argv[orderLocalIdx + 1] : undefined;
+  const orderLocal = opt(argv, '--order-local');
 
   const sides = parseSides(want.ours, 'ours');
   const theirsSides = parseSides(want.theirs, 'theirs');
@@ -495,10 +495,24 @@ function cmdPost(argv) {
   process.stdout.write(`${recordId}\n`);
 }
 
+// An option's value is read the one way the set reads one (argv.mjs): a
+// missing, empty, blank or option-shaped word is misuse that names the option,
+// never a value the recipe goes on without -- `--expect ''` once dropped the
+// precondition a transition must hold, and wrote as if it had held.
+//
+// One word is a value only because the command means it: `--holder ''` clears
+// the holder (see cmdClaim), so an empty holder is accepted there and nowhere.
 function opt(argv, flag, dflt) {
   const i = argv.indexOf(flag);
   if (i === -1) return dflt;
-  return argv[i + 1];
+  if (flag === '--holder' && argv[i + 1] === '') return '';
+  try {
+    return valueOf(argv, i, flag);
+  } catch (e) {
+    if (!(e instanceof ValueNeeded)) throw e;
+    process.stderr.write(`br recipe: ${e.message}\n`);
+    process.exit(2);
+  }
 }
 
 // ---- pointer ----------------------------------------------------------------

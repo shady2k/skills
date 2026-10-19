@@ -59,6 +59,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, posix, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ValueNeeded, valueOf } from './argv.mjs';
 
 export const RULES_VERSION = '0.52.0';
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -567,6 +568,19 @@ export function selftest() {
   }
   const practiceTemplate = templateOk(join(HERE, 'templates', 'practice.md'), PRACTICES, 'practice/template practice.md');
   show(Object.keys(KINDS).every((k) => covered.has(k)) && practiceTemplate, 'every kind has its template');
+  // The command line reads every option's value through argv.mjs: an empty,
+  // blank, missing or option-shaped word is misuse that names the option, where
+  // `--root ''` once checked the current folder and --root with no value was
+  // only "incomplete".
+  for (const [name, argv, option] of [
+    ['an empty --root', ['--root', ''], '--root'],
+    ['a missing --rev', ['--rev'], '--rev'],
+    ['an option instead of the --root value', ['--root', '--json'], '--root'],
+  ]) {
+    let said = '';
+    try { main(argv); } catch (error) { said = error.message; }
+    show(said.includes(`"${option}"`), `cli: ${name}${said.includes(`"${option}"`) ? '' : ` (said ${said.slice(0, 90)})`}`);
+  }
   return failures ? 1 : 0;
 }
 
@@ -585,10 +599,17 @@ function main(args) {
     const a = args[i];
     if (a === '--json' && !opts.jsonSeen) { opts.json = true; opts.jsonSeen = true; }
     else if (a === '--staged' && !opts.staged) opts.staged = true;
-    else if ((a === '--root' || a === '--rev') && args[i + 1] && !args[i + 1].startsWith('--')) {
+    else if (a === '--root' || a === '--rev') {
+      // One reader for every option that takes a value: a missing, empty, blank
+      // or option-shaped word is misuse, and the refusal names the option.
       const key = a.slice(2);
       if (opts[`${key}Seen`]) throw new Misuse(`${a} is given twice`);
-      opts[key] = args[++i]; opts[`${key}Seen`] = true;
+      try { opts[key] = valueOf(args, i, a, key === 'root' ? 'the repository to check' : 'the revision to check'); } catch (e) {
+        if (e instanceof ValueNeeded) throw new Misuse(e.message);
+        throw e;
+      }
+      i++;
+      opts[`${key}Seen`] = true;
     } else throw new Misuse(`unknown, repeated or incomplete option: ${a}`);
   }
   if (opts.staged && opts.rev) throw new Misuse('--staged and --rev read different trees: give one');

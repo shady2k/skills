@@ -59,6 +59,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, posix, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pathMatcher } from './document-format.mjs';
+import { ValueNeeded, valueOf } from './argv.mjs';
 
 export const RULES_VERSION = '0.52.0';
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -461,6 +462,18 @@ export function selftest() {
   }
   const unexplained = Object.keys(WHY).filter((k) => !WHY[k]);
   say(!unexplained.length, 'every verdict says what green looks like');
+  // The command line reads every option's value through argv.mjs: an empty,
+  // blank, missing or option-shaped word is misuse that names the option.
+  for (const [name, argv, option] of [
+    ['an empty --config', ['--config', '', '--base', 'b'], '--config'],
+    ['a missing --base', ['--config', 'c', '--base'], '--base'],
+    ['an option instead of the --head value', ['--config', 'c', '--base', 'b', '--head', '--json'], '--head'],
+  ]) {
+    let said = '';
+    try { main(argv); } catch (error) { said = error.message; }
+    const ok = said.includes(`"${option}"`);
+    say(ok, `cli: ${name}${ok ? '' : ` (said ${said.slice(0, 90)})`}`);
+  }
   return failures ? 1 : 0;
 }
 
@@ -480,9 +493,13 @@ function main(args) {
     if (!['--config', '--base', '--head', '--repo', '--json'].includes(key) || Object.hasOwn(options, key))
       throw new Misuse(`unknown or repeated option: ${key}; see --help`);
     if (key === '--json') { options[key] = true; continue; }
-    const value = args[++i];
-    if (!value || value.startsWith('--')) throw new Misuse(`missing value: ${key}`);
-    options[key] = value;
+    // One reader for every option that takes a value: a missing, empty, blank
+    // or option-shaped word is misuse, and the refusal names the option.
+    try { options[key] = valueOf(args, i, key); } catch (e) {
+      if (e instanceof ValueNeeded) throw new Misuse(e.message);
+      throw e;
+    }
+    i++;
   }
   if (!options['--config'] || !options['--base']) throw new Misuse('--config and --base are required; see --help');
   let raw;

@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ValueNeeded, valueOf } from './argv.mjs';
 
 export const RULES_VERSION = '0.52.0';
 const here = dirname(fileURLToPath(import.meta.url));
@@ -580,6 +581,22 @@ export function selftest() {
   console.log(`${explained ? 'PASS' : 'FAIL'}  documents/every verdict says what green looks like` +
     `${explained ? '' : `: ${[...unexplained].sort().join(', ')}`}`);
   if (!explained) failures++;
+  // The command line reads every option's value through argv.mjs: an empty,
+  // blank, missing or option-shaped word is invalid input that names the option,
+  // where `args[++i]` accepted nothing and went on with no input at all.
+  for (const [name, argv, option] of [
+    ['an empty --input', ['--input', '', '--policy', 'p'], '--input'],
+    ['a missing --policy', ['--input', 'i', '--policy'], '--policy'],
+    ['an option instead of the --evidence value', ['--input', 'i', '--policy', 'p', '--evidence', '--json'], '--evidence'],
+  ]) {
+    let said = '';
+    const write = process.stderr.write.bind(process.stderr);
+    process.stderr.write = (c) => { said += String(c); return true; };
+    try { main(argv); } catch (error) { said += error.message; } finally { process.stderr.write = write; }
+    const ok = said.includes(`"${option}"`);
+    console.log(`${ok ? 'PASS' : 'FAIL'}  documents/cli: ${name}${ok ? '' : ` (said ${said.trim().slice(0, 90)})`}`);
+    if (!ok) failures++;
+  }
   return failures ? 1 : 0;
 }
 
@@ -596,9 +613,14 @@ function main(args) {
     if (!['--input', '--policy', '--evidence', '--json'].includes(key) || Object.hasOwn(options, key)) throw new Error(`unknown or repeated option: ${key}`);
     if (key === '--json') options[key] = true;
     else {
-      const value = args[++i];
-      if (!value || value.startsWith('--')) throw new Error(`missing value: ${key}`);
-      options[key] = value;
+      // One reader for every option that takes a value: an empty, blank,
+      // missing or option-shaped word is invalid input, and the refusal names
+      // the option, so a path an unset variable emptied is never read as none.
+      try { options[key] = valueOf(args, i, key); } catch (e) {
+        if (e instanceof ValueNeeded) throw new Error(e.message);
+        throw e;
+      }
+      i++;
     }
   }
   if (!options['--input'] || !options['--policy']) throw new Error('--input and --policy are required');

@@ -81,6 +81,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, statSync, r
 import { dirname, join, resolve, basename } from 'node:path';
 import { homedir } from 'node:os';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import { ValueNeeded, inlineValue, valueOf } from './argv.mjs';
 
 const HERE = dirname(new URL(import.meta.url).pathname);
 const DEFAULT_REF = 'refs/tracker/state';
@@ -102,11 +103,27 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const eq = a.match(/^--([A-Za-z][A-Za-z-]*)=(.*)$/);
-    if (eq) { flags[eq[1]] = eq[2]; continue; }
+    if (eq) {
+      // `--at=` is an option given no value, not an option absent: read it the
+      // one way the set reads a value (argv.mjs), so an emptied variable in the
+      // caller's command cannot turn a historical export into today's state.
+      try { flags[eq[1]] = inlineValue(eq[2], `--${eq[1]}`); } catch (e) {
+        if (e instanceof ValueNeeded) die(2, e.message);
+        throw e;
+      }
+      continue;
+    }
     const bare = a.match(/^--([A-Za-z][A-Za-z-]*)$/);
     if (bare) {
-      if (i + 1 < argv.length && !argv[i + 1].startsWith('--')) flags[bare[1]] = argv[++i];
-      else flags[bare[1]] = true;
+      if (i + 1 < argv.length && !argv[i + 1].startsWith('--')) {
+        // A word the caller wrote after the option is its value, and a value
+        // that is empty, blank or shaped like another option is misuse.
+        try { flags[bare[1]] = valueOf(argv, i, a); } catch (e) {
+          if (e instanceof ValueNeeded) die(2, e.message);
+          throw e;
+        }
+        i++;
+      } else flags[bare[1]] = true;
       continue;
     }
     pos.push(a);
