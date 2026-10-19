@@ -311,7 +311,7 @@ digits, dot, underscore, colon or dash, starting with a letter/digit.
 | `revision` | checked source revision or reproducible content digest; changing checked inputs changes it |
 | `checkRevisions` | optional; `{id, revision}` for each check whose policy entry names what it does not read: the digest of what it does read, by `checkRevision` in `document-format.mjs` |
 | `project.mode` | `new` or `existing`, from established project setup, not inferred from an empty export |
-| `project.vision` | strings `audience`, `problem`, `outcome`, `exclusions`, and optional `principles`: `{id, title}` for each principle the owner keeps, in his words. The list is the switch: a project that keeps principles answers to them, a project that keeps none is judged by none of this |
+| `project.vision` | strings `audience`, `problem`, `outcome`, `exclusions`, and two optional lists, `journeys` and `principles`, each `{id, title}` in the owner's words: the ids everything below the vision names. The principles list is the switch: a project that keeps principles answers to them, a project that keeps none is judged by none of this. Both lists are what a judgement may name |
 | `project.milestone` | `id`, `outcomes` (strings), `exclusions`; export from charter/config, not another owner of current values |
 | `tasks` | array of `{id, kind: "leaf" or "container"}`, resolved from the real tracker |
 | `baseline`, `current` | arrays of capabilities `{id, title, requirements}` |
@@ -426,14 +426,38 @@ so an installation that already has review receipts is not stopped by the day th
 rule arrives.
 
 `evidence.judgement` is the boundary judgement: one record per boundary, never
-per commit. `{charterDigest, designDigest, answeredBy, serves: [quotes], breaks:
-[quotes]}`. The charter's acceptance carries one on the milestone's digest, the
-design's acceptance on the design's own digest (`judged(change)`: what the change
-decides plus its constraints and principles), and an edit to any of those needs a
-new one — rule `missing-judgement`. The gate checks that the record is there, is
-bound to the current revision, names who answered and carries non-placeholder
-quotes; whether the quotes are true, and whether the one who answered is really
-another model, are the owner's to read.
+per commit. `{charterDigest, designDigest, answeredBy, serves: [{id, quote}],
+breaks: [{id, quote}]}`. The charter's acceptance carries one on the milestone's
+digest, the design's acceptance on the design's own digest (`judged(change)`:
+what the change decides plus its constraints and principles), and an edit to any
+of those needs a new one — rule `missing-judgement`.
+
+An entry says which of the owner's own the document serves or breaks — `id` is a
+journey or a principle the vision record declares, one namespace, never the
+charter's outcome ids, and no id is declared in both lists (`duplicate-id`) — and
+the passage it is read from: `quote` is copied out of the document it judges. The gate finds it without a model, in the very text the
+record is bound to. For a charter that is the milestone object the record's
+`charterDigest` hashes, so a charter's outcomes and exclusions; for a design it is
+the projection `judged` hashes, so what the change decides, its constraints and
+the principles it names — a quote from the record's rationale or its task ids is
+refused, since the digest does not stand for it. Whitespace is collapsed on both
+sides so that a line break is not a different passage; nothing else is forgiven
+(no case folding, no near match), and one field is one passage. A quote is at
+least 20 characters and three words — a word being a space-separated token that
+carries a letter, so an identifier is one word however many fragments it joins —
+because a word, an identifier or a line of markers is in half the documents ever
+written and locates nothing.
+
+Green looks like this: `serves: [{id: "J2", quote: "the receipt reaches the
+buyer's inbox within a minute"}]`. Refused: an id the vision does not declare
+(`unknown-vision-id`); a quote that is not in the judged text, is too short, or is
+a placeholder (`unfound-quote`; a placeholder or an empty quote is
+`unfinished-content` instead, one refusal per entry, not two); and a record whose
+document was edited since it was given (`missing-judgement`).
+
+What the gate proves is presence and declared identity. It cannot prove that the
+model answering is a different one, nor that the passage supports the claim —
+whether the quote is true, and relevant to that id, is the owner's to read.
 
 ### Two levels of evidence
 

@@ -13,7 +13,7 @@ Skills that keep the queue usable and stage acceptance honest.
 - [ask-shady2k](./ask-shady2k/SKILL.md): read-only orientation: picture, progress,
   ways forward and the recommended next action; or a report for the team's
   sync over a period.
-- [to-milestone](./to-milestone/SKILL.md): agree independent outcomes and budget. Each outcome names the vision journeys and principles it serves, and the charter's acceptance carries another model's judgement of what it serves and breaks.
+- [to-milestone](./to-milestone/SKILL.md): agree independent outcomes and budget. Each outcome names the vision journeys and principles it serves, and the charter's acceptance carries another model's judgement of what it serves and breaks, each entry an id the vision declares and a passage quoted from the charter.
 
 ## Started when the work calls for it
 

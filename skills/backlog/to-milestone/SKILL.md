@@ -91,7 +91,9 @@ The draft covers:
    how we will know the slice worked for the people it serves. Each outcome
    names in a `Serves:` line the vision journeys and principles it serves
    (`unserved-outcome`); charter acceptance carries the judgement record of
-   a different model (`missing-judgement`). Where the
+   a different model (`missing-judgement`), each of its entries an id the
+   vision declares and a passage copied out of the charter (`unknown-vision-id`,
+   `unfound-quote`). Where the
    project keeps hypotheses, each signal is tied to the hypothesis whose
    measure will read it, and the release that carries the outcome records
    which hypotheses now wait on their measures.

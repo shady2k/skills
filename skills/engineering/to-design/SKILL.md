@@ -76,8 +76,9 @@ recorded where it will be read again**.
 
 By **Review before building**. At design acceptance, a different model's
 judgement record answers which journeys and principles the design serves and
-breaks, with quotes, bound to the design's revision (`missing-judgement`),
-and the review answers "matches the design: yes/no, divergences"
+breaks, with quotes — each an id the vision declares and a passage copied out of
+the change record (`unknown-vision-id`, `unfound-quote`) — bound to the design's
+revision (`missing-judgement`), and the review answers "matches the design: yes/no, divergences"
 (`design-divergence`). This step runs no fix round on a design that
 does not serve the frame, nor on a frame the owner has never confirmed: that
 frame goes back to them first, and the step waits. Where no other model can be

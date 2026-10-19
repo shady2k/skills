@@ -27,7 +27,7 @@ Also available directly to the user.
 - [to-design](./to-design/SKILL.md): how the system will meet an outcome —
   drivers and the shape that exists, options from named patterns traded
   against quality attributes, a recorded decision reviewed before building —
-  for changes that change its shape. The design lists its constraints with a check each — a limit of scale is proved only on a fixture at least that size — names the vision principles of its area, and its acceptance carries another model's judgement of what it serves and breaks.
+  for changes that change its shape. The design lists its constraints with a check each — a limit of scale is proved only on a fixture at least that size — names the vision principles of its area, and its acceptance carries another model's judgement of what it serves and breaks, each entry an id the vision declares and a passage quoted from the design record.
 - [to-prototype](./to-prototype/SKILL.md): bounded runnable evidence for one question.
 - [diagnose-bug](./diagnose-bug/SKILL.md): diagnosis with evidence; fixing requires
   an authorized tracked task.
