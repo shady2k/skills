@@ -150,12 +150,11 @@ Before the owner leaves, prepare the run so it needs nobody:
 Everything above is settled before the owner leaves: the decisions are
 gathered now and put now, so none is found waiting after they are gone. How
 the open questions among them are put is the project's setting, by the
-protocol's [**How an open question is put**](references/speaking.md) — one at a
-time, each with a recommendation and its consequence and the next after the
-answer, or one message to accept whole or change by item. What is not a
-question is said once, in the message that carries it: the frame found and
-named, the estimate and what it rests on, what the checks will demand, the
-channel and the cadence. Every item comes as the agent's own position argued,
+protocol's [**How an open question is put**](references/speaking.md); each comes
+with a recommendation and its consequence, and every one is put before the owner
+leaves. What is not a question is said once, in the message that carries it: the
+frame found and named, the estimate and what it rests on, what the checks will
+demand, the channel and the cadence. Every item comes as the agent's own position argued,
 by the protocol's
 [**A choice is met with a position and an argument**](references/deciding.md),
 and any mechanism it proposes stands on the state of the practice, by the

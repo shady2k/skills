@@ -10,11 +10,9 @@ them, up to one pull request for the whole feature. Planning ends with a
 **preflight**: the agent reads the spec, the stages and the code, and brings
 every decision the run will need before the owner leaves, each with a
 recommendation, gathered while they are present because asking later means
-stopping the run. How those questions are put — one at a time, each answered
-before the next, or together for the owner to accept as a whole or change by
-item — is the project's setting, by [speaking.md](speaking.md)'s **How an open
-question is put**. An approval the end of the run will need is one of those
-decisions and is taken here, before anything is
+stopping the run. How those questions are put is the project's setting, by
+[speaking.md](speaking.md)'s **How an open question is put**. An approval the
+end of the run will need is one of those decisions and is taken here, before anything is
 written: what he approves is what the change decides — its kind, its scope, the
 requirements it moves and what it promises to leave alone — and never the
 finished text, which does not exist yet and which he was never going to read.
