@@ -133,7 +133,7 @@ A proposal that would put the active practices over the budget that rule sets
 is made together with a named candidate to retire: the number, and how it is
 changed, belongs to the rule and to the agent doc beside it, not to this step.
 
-## 6. One batch to the owner
+## 6. Put it to the owner
 
 Take everything from sections 3, 4 and 5 to the owner in one message, by
 [**Come with the material**](references/deciding.md): each reviewed practice
@@ -145,9 +145,11 @@ one**](references/running.md). Each proposal carries its proposal's
 mechanism, by the protocol's [**A design decision comes with its
 mechanism**](references/deciding.md): the class, why the fix is the
 strongest one, and what evidence stands behind it. A proposal with a real
-conflict — which of two practices survives, or a budget raised — is asked
-on its own, and one such question at a time; everything else is accepted
-as a batch or changed by named items.
+conflict — which of two practices survives, or a budget raised — is an open
+question, put by the protocol's
+[**How an open question is put**](references/speaking.md); everything else is
+one summary, accepted as a whole or changed by named items, which that rule
+leaves in one message.
 
 ## 7. Land the accepted fixes in one change
 

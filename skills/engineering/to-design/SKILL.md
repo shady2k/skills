@@ -61,10 +61,10 @@ by the protocol's
 [**A proposal starts from the state of the practice**](references/deciding.md),
 whose architectural case design.md's **Options from named patterns** is. What the
 owner must decide — only a quality attribute traded for another, by **The
-owner hears only the trade** — is asked here, one question at a time, with
-its mechanism; the rest is decided and recorded alone. The chosen direction is
-confirmed with the owner here, before the record is written at length and
-before the review, not after. The design record lists its constraints in one
+owner hears only the trade** — is asked here, by the protocol's [**How an
+open question is put**](references/speaking.md), with its mechanism; the rest
+is decided and recorded alone. The chosen direction is confirmed with the owner
+here, before the record is written at length and before the review, not after. The design record lists its constraints in one
 closed section, each a requirement with a check (`uncovered-requirement`); a
 constraint about scale names its size, and its check declares the fixture's
 size (`small-fixture`); and it names the kept principles of its area

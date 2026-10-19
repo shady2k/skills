@@ -63,8 +63,9 @@ Alternate between opening up possibilities and focusing on the promising ones.
 Bring in user experience, domain rules, business value, operations or
 architecture when they reveal something, not as a checklist. Give concrete
 examples instead of only asking for abstractions. Not every message needs a
-question, and an open question need not be forced into options. "One question
-at a time" limits decision interviews, not conversation. Templates hold kept
+question, and an open question need not be forced into options. The project's
+setting for open questions, the protocol's **How an open question is put**,
+limits decision interviews, not conversation. Templates hold kept
 conclusions; they do not script the conversation.
 
 Take the user's role as the protocol's **Speaking to the owner** says; ask

@@ -186,7 +186,7 @@ the list.
 | accepted work awaits closure | `close-out` with the acceptance record |
 | merged work whose transition is still outstanding — a project that deploys has not released it, a library has not published it | `/ship-release`: version and notes from the accepted work, migrations with their reverse, rollout by environment with the rollback named before each step, at the scale the project is |
 | a released hypothesis whose measure has come due | `define-product` reads the measure against the threshold the hypothesis recorded and writes the result on it; a refuted one reaches the owner as news |
-| the last retrospective is far enough back — the current milestone is ending, or about five features have closed since it in a project that plans no milestones | `refine-practices`: read how the work has gone since then, and put the practices it finds to you as one batch |
+| the last retrospective is far enough back — the current milestone is ending, or about five features have closed since it in a project that plans no milestones | `refine-practices`: read how the work has gone since then, and put the practices it finds to you as the project's setting for open questions says |
 | all current outcomes accepted | `/to-milestone` |
 | new product without direction or first charter | `/to-milestone`, drafted from known decisions |
 | an open decision holds the ground the rest of the milestone stands on | that decision, worked, while the owner is here: `brainstorming`, or `to-spec` where its answer is a contract |
@@ -300,7 +300,7 @@ tracker is not this skill's.
 - `to-milestone`: agree outcomes, scope and budget.
 - `refine-practices`: a retrospective over the work since the last one — the
   classes of error that came back and the practices to add or retire, put to
-  the owner as one batch.
+  the owner by the protocol's **How an open question is put**.
 - `take-task`: preflight with the owner, then run a whole feature alone to one
   pull request, stopping only for decisions that need the owner.
 - `brainstorming`: explore, investigate or decide in conversation; no required

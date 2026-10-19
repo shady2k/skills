@@ -16,7 +16,8 @@ Tracked work, proportional design and acceptance of an assembled stage.
   as work.
 - [refine-practices](./refine-practices/SKILL.md): a retrospective over the
   work since the last one — the classes of error that came back, and the
-  practices to add or retire, put to the owner as one batch.
+  practices to add or retire, put to the owner as the project's setting for
+  open questions says.
 
 ## Started when the work calls for it
 

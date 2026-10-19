@@ -262,8 +262,9 @@ Base capacity and budgets on real resources, review capacity, observed test
 times and the project's risk policy, not invented numbers.
 
 Ask separately only about unresolved scope, a material cost or risk,
-conflicting decisions or missing authority: one question at a time, with a
-recommendation, real alternatives and their consequences. Approval of the
+conflicting decisions or missing authority, put as the protocol's [**How an
+open question is put**](references/speaking.md) gives, with a recommendation,
+real alternatives and their consequences. Approval of the
 profile does not permit undisclosed bulk cleanup, publication, weaker
 acceptance or wider scope. Reuse approval already given; leave settings unrelated to this setup for later.
 
@@ -298,6 +299,13 @@ questionnaire**.
   profile: recommend English and show which language the existing files and
   commits use. A rerun keeps the recorded answer. Conversation always follows
   the user's own language, whatever this is.
+- **How open questions are put:** whether the questions the owner must answer
+  arrive one at a time (recommended) or as one batch. Say what changes in
+  their words: how many questions one message carries, and nothing else — the
+  same questions are worked and asked either way, and a summary they accept
+  whole or correct by item stays one message. A rerun keeps the recorded
+  value, and an existing project that has none is asked once, by the
+  protocol's [**How an open question is put**](references/speaking.md).
 - **Scope and horizon:** labels, areas, the current milestone and its finding
   budget. Compare documented labels with real ones; never erase live work to
   fit a list. Establish the current slice during cleanup if needed. A missing
@@ -483,6 +491,7 @@ them and propose it instead.
   "notifyPushes": false,
   "scope": "<personal | team>",
   "artifactLanguage": "en",
+  "openQuestions": "one-at-a-time",
   "projectWords": ["<project names>"],
   "trackerWords": ["<tracker names>"]
 }

@@ -16,8 +16,8 @@ code without you and report in plain words. They work with Claude Code, Codex, P
 ## What you get
 
 - **Whole features built while you are away.** Before you leave, `take-task`
-  brings every decision the run will need as one list with recommendations and
-  a time estimate. Then it builds the feature on its own branch: parallel
+  brings every decision the run will need, with recommendations and a time
+  estimate — one question at a time, or as one list, as your project chose. Then it builds the feature on its own branch: parallel
   workers, tests first where you agreed, an independent review (by another
   model where one is available), every red check fixed. It stops only for a
   real fork — architecture, an expensive mistake, behaviour beyond the spec —
@@ -38,8 +38,10 @@ code without you and report in plain words. They work with Claude Code, Codex, P
 - **Decisions, not documents.** You are never asked to read a spec to approve
   it. A question comes already worked: what was looked at, the options with
   their cost, the agent's recommendation and the strongest case against it, in
-  your language and your project's own names. No task numbers, no internal
-  statuses, no progress chatter while a run is healthy.
+  your language and your project's own names. How questions reach you is your
+  project's setting: one at a time, or several in one message — the default is
+  one at a time. No task numbers, no internal statuses, no progress chatter
+  while a run is healthy.
 - **Specs that say what the system does now.** Documents live in `docs/` beside
   the code, kept by capability; accepted work is merged into them, so they never
   turn into a pile of old plans.
@@ -260,8 +262,8 @@ In Claude Code the plugin prefixes them: `/shady2k-skills:ask-shady2k`.
 | [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md) | Reads the project and tells you where it stands, how far it has come, what is stuck and which ways forward exist, with one recommendation; or, for the team's daily sync, what was done over a period, what got in the way, the questions for others and whether the work fits by a date. Changes nothing. | At the start of a session, after a break, in an unfamiliar project, whenever you are unsure what comes next, before a standup. |
 | [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md) | Connects the project's tracker — one copy per machine, outside the code branches and in step with every machine, with the synchronization that keeps it so installed and started — cleans its queue with you, proposes settings as one profile, proves the checks work and, in a product repository, writes the product's kinds registry, with the kinds' link declarations. Rerunning it after 0.49.0 rewrites the judgement records a live charter or an admitted change carries, in your presence, and exports the journeys of your vision so a judgement can name them. | Once per project, and again when a skill says the installation is out of date. |
 | [to-milestone](skills/backlog/to-milestone/SKILL.md) | Agrees what the next version delivers, what is left out and how many new bugs it can absorb. Each outcome names the vision journeys and principles it serves, and the charter's acceptance carries another model's judgement of what it serves and breaks, each entry naming an id the vision declares and quoting a passage of the charter. | When the current version is done, or a project has no agreed next step. |
-| [refine-practices](skills/engineering/refine-practices/SKILL.md) | Reads how the work has gone since the last retrospective and judges the active practices first: the classes of error that came back, each put to you with a recommended practice to add or retire, and the practices that caught nothing in the period with what each costs, to retire or loosen — the ones guarding an expensive failure, such as publication, permissions or data loss, kept whatever the period held. Shown as one batch. | At the end of a milestone, when about five features have closed without one, or whenever you want to look back. |
-| [take-task](skills/engineering/take-task/SKILL.md) | Before you leave, gathers every decision a planned feature will need in one list; then builds the whole feature without you up to one pull request, deciding small gaps itself, stopping only for decisions that need you and telling you what the run's own overhead is costing. It never reaches green by making a check easier to pass. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, and every worker's brief carries what its task serves, whom it serves and where you see it. | When a feature is planned and you want it built while you are away. |
+| [refine-practices](skills/engineering/refine-practices/SKILL.md) | Reads how the work has gone since the last retrospective and judges the active practices first: the classes of error that came back, each put to you with a recommended practice to add or retire, and the practices that caught nothing in the period with what each costs, to retire or loosen — the ones guarding an expensive failure, such as publication, permissions or data loss, kept whatever the period held. Put to you as your project's setting for open questions says. | At the end of a milestone, when about five features have closed without one, or whenever you want to look back. |
+| [take-task](skills/engineering/take-task/SKILL.md) | Before you leave, gathers every decision a planned feature will need, in one list or one question at a time as your project chose; then builds the whole feature without you up to one pull request, deciding small gaps itself, stopping only for decisions that need you and telling you what the run's own overhead is costing. It never reaches green by making a check easier to pass. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, and every worker's brief carries what its task serves, whom it serves and where you see it. | When a feature is planned and you want it built while you are away. |
 | [handoff](skills/productivity/handoff/SKILL.md) | Keeps the work's state in the tracker and leaves what only this conversation knows where a fresh session will look, saying which effects already reached outside rather than leaving a status to be trusted. | Before you stop, or when a session gets too long. |
 | [ship-release](skills/engineering/ship-release/SKILL.md) | Carries merged, accepted work to its users: version by the project's scheme, release notes in what users can do, migrations with their reverse, rollout by environment with a check after each step and the rollback named before any step runs; a step already taken is read from the system that holds it, never run twice after a stop. | When a feature's pull request is merged and the project's users get it later than the merge. |
 | [handle-incident](skills/engineering/handle-incident/SKILL.md) | Restores a product failing in use — each move read from the system that holds it, so a session taking over does not undo what is already undone — then finds the cause through `diagnose-bug`, then holds a blameless review whose actions are filed as work. | When a product runs for users and they report it is down or broken. |
@@ -275,7 +277,7 @@ unrelated changes, new scope or publishing anything.
 | skill | what it does | when to use it |
 | --- | --- | --- |
 | [brainstorming](skills/productivity/brainstorming/SKILL.md) | Thinks an idea through with you: offers its own ideas and counterexamples, argues its own position from several sides with the risks, brings the established practice first, and gives way only to a reason. Nothing has to come out of it. A principle you state about how the product must work is written into your vision or decision record at once, in your words. | "Let's discuss", "what if", an open product decision. |
-| [define-product](skills/productivity/define-product/SKILL.md) | Talks your idea through with you in plain words, one question at a time, and writes what an engineer needs to start: what you said, what you believe and how to test it, what a user does, what they must be able to see, and what is still unknown. Your key journeys and principles each get a stable id, and every milestone outcome names the ones it serves. | When you have an idea but no requirements, or before a product's first feature. |
+| [define-product](skills/productivity/define-product/SKILL.md) | Talks your idea through with you in plain words, one plain question at a time unless your project chose several in one message, and writes what an engineer needs to start: what you said, what you believe and how to test it, what a user does, what they must be able to see, and what is still unknown. Your key journeys and principles each get a stable id, and every milestone outcome names the ones it serves. | When you have an idea but no requirements, or before a product's first feature. |
 | [to-research](skills/productivity/to-research/SKILL.md) | Answers a question from primary sources, with citations. | When a decision depends on facts nobody has checked. |
 | [to-prototype](skills/engineering/to-prototype/SKILL.md) | Builds a small throwaway experiment that answers one design question. | When arguing takes longer than trying. |
 | [to-spec](skills/engineering/to-spec/SKILL.md) | Writes down what exactly is being built, as the user will see it, with scenarios that will be checked; short or full by what the change touches, not by the writer's own sense of its size. A constraint it states is a requirement with a check, and an uncovered one is refused. | Before building something whose behaviour is not yet agreed. |
@@ -586,8 +588,10 @@ reason:
 3. **Agree the settings**: first, whether the process is for you alone or for
    everyone in the repository; then one recommended profile to accept or adjust, and
    an explicit question about which language documents, tasks, commit messages
-   and code comments are written in (English recommended), and whether this
-   project's text may be sent to Jev, a fast decision model (below). Needs you once.
+   and code comments are written in (English recommended), whether this
+   project's text may be sent to Jev, a fast decision model (below), and how
+   the questions you must answer reach you: one at a time (recommended) or
+   several in one message. Needs you once.
 4. **Connect the checks**: hooks, CI and the tracker adapter. No input from you.
 5. **Prove it works**: makes the checks fire on planted problems. No input from you.
 6. **Finish**: lands the installation; may ask your approval to merge it.
@@ -882,6 +886,22 @@ can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
+
+- **0.119.0** lets your project choose how decisions reach you. The set was
+  inconsistent: some skills asked one question at a time, others sent
+  everything as one list, and nothing let you pick. A question whose answer the
+  work waits for now arrives the way your project's settings say — one at a
+  time, the default, or several in one message — and the skills that used to
+  state their own habit follow that one setting instead. What does not change:
+  every question still comes worked, with the recommendation, the alternatives
+  and what waits on it; before you leave on a feature run, every decision the
+  run will need is still collected — one after another or together, each with
+  its recommendation — so nothing waits for a stop; and a summary you accept
+  whole or correct by item, such as an approval or the settings profile, still
+  arrives as one message. Setup proposes the setting in its profile, saying
+  what changes in your words: only how many questions one message carries.
+  Projects rerun setup (0.50.0), which asks once for a project that has no
+  answer yet and keeps the one it finds.
 
 - **0.118.0** makes a boundary judgement's quotes checkable without a model. A
   judgement record — the different model's answer, at a charter's or a design's

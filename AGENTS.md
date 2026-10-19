@@ -124,11 +124,14 @@ decide. The bullets below are how that model shapes setup and configuration.
 - **Ask only about material unresolved decisions.** A missing requirement,
   conflicting prior choices or a consequential scope, cost, safety or irreversible
   trade-off may need the user. Explain why it needs a decision now, recommend an
-  option and give real alternatives with their consequences. Ask one such question
-  at a time; this is not a reason to turn every configuration field into an interview.
-  The one exception is a feature run's preflight: before the owner leaves, every
-  decision the run will need comes as one batch with recommendations, because
-  asking later means stopping the run.
+  option and give real alternatives with their consequences. How such questions
+  are put is the project's setting, the protocol's **How an open question is
+  put**: one at a time by default, or a batch where the project chose it; this
+  is not a reason to turn every configuration field into an interview. The one
+  exception in timing is a feature run's preflight: before the owner leaves,
+  every decision the run will need is collected, one at a time or in one batch
+  as the setting says, each with its recommendation, because asking later means
+  stopping the run.
 - **Keep consent meaningful and bounded.** Confirm consequential new choices
   together with the proposed profile where possible. Do not treat silence or a
   preselected value as approval, repeat an approval already given, or infer that

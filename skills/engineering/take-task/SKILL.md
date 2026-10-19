@@ -93,10 +93,11 @@ Before the owner leaves, prepare the run so it needs nobody:
 - **the outcome frame exists**, by the protocol's
   [**The outcome frame comes before the work is specified**](references/lifecycle.md):
   for whom and why, what matters most, the main path, the success signal.
-  A missing or inferred frame leads this batch: the frame as found or inferred,
-  and one recommendation per missing part, for the owner to confirm whole or
-  correct by item — an autonomous run otherwise optimises an outcome nobody
-  stated. A frame the spec or the issue already holds is named, not asked again;
+  A missing or inferred frame comes first, as one summary the owner accepts
+  whole or corrects by part: the frame as found or inferred, and one
+  recommendation per missing part — an autonomous run otherwise optimises an
+  outcome nobody stated. A frame the spec or the issue already holds is named,
+  not asked again;
 - read the spec, the stages and the code the work lands in, and list every
   decision the run will meet: open forks, choices the spec leaves open, the
   assumptions you would otherwise make alone, the risks. Check what you can
@@ -111,8 +112,8 @@ Before the owner leaves, prepare the run so it needs nobody:
   there is none, say so here with the fallback and its consequence;
 - which agents and models do which tasks, against each task's risk;
 - **whether the feature serves a date the owner set from outside the run**
-  — a demo, a release, someone outside the project who waits. One question in
-  this batch, and none is invented where the owner has none, by **A question
+  — a demo, a release, someone outside the project who waits. One question
+  among them, and none is invented where the owner has none, by **A question
   is searched for before it is asked**; where there is one, it is recorded on
   the feature item, not only in conversation, with who set it and why, by the
   protocol's **A decision the owner gives is kept, not only obeyed** — not
@@ -123,7 +124,7 @@ Before the owner leaves, prepare the run so it needs nobody:
   the outcomes it serves (`unforecast-target`); with too little history the
   record says so and the date stands with that warning
   (`unmeasured-forecast`). Where the forecast passes it,
-  this batch leads with what will be late, why, and the two levers, by the
+  these questions lead with what will be late, why, and the two levers, by the
   protocol's **A forecast is checked against the date it serves**;
 - how long the run will likely take and when the pull request can be expected,
   said as a time the owner can hold it to: past it without word the run has
@@ -142,7 +143,7 @@ Before the owner leaves, prepare the run so it needs nobody:
 - **what the checks will demand at the end**, by the protocol's **What a gate
   will demand is known before the work starts**: run the integration's gate
   against the work as it stands, the document side included; what it asks for
-  that the project has never had is work with a cost in this batch, and an
+  that the project has never had is work with a cost among them, and an
   approval it needs is taken here, by **Autonomy**, put as one sentence of
   what will be true afterwards that is not true now;
 - how to reach the owner when the run stops: the notification channel the
@@ -152,15 +153,23 @@ Before the owner leaves, prepare the run so it needs nobody:
   another or none. The report itself is pushed at each point that changes the
   picture, not on each passing step, by the protocol's **Waiting is quiet**;
 
-Bring all of it as **one batch**, each item with a recommendation and its
-consequence, for the owner to accept whole or change by item. Every item comes
-as the agent's own position argued, by the protocol's [**A choice is met with
-a position and an argument**](references/deciding.md), and any mechanism it
-proposes stands on the state of the practice, by the protocol's [**A proposal
-starts from the state of the practice**](references/deciding.md). It opens with
-what the feature gives users and where it stands, by the protocol's **Written
-for someone who was not there**: the owner may have agreed to the run hours
-ago and read none of what preflight found. Record the
+Everything above is settled before the owner leaves: the decisions are
+gathered now and put now, so none is found waiting after they are gone. How
+the open questions among them are put is the project's setting, by the
+protocol's [**How an open question is put**](references/speaking.md) — one at a
+time, each with a recommendation and its consequence and the next after the
+answer, or one message to accept whole or change by item. What is not a
+question is said once, in the message that carries it: the frame found and
+named, the estimate and what it rests on, what the checks will demand, the
+channel and the cadence. Every item comes as the agent's own position argued,
+by the protocol's
+[**A choice is met with a position and an argument**](references/deciding.md),
+and any mechanism it proposes stands on the state of the practice, by the
+protocol's
+[**A proposal starts from the state of the practice**](references/deciding.md).
+The first message opens with what the feature gives users and where it stands,
+by the protocol's **Written for someone who was not there**: the owner may have
+agreed to the run hours ago and read none of what preflight found. Record the
 answers in the feature's decision log. End by saying either "ready to run
 alone" or exactly what is missing. Delegated choices cover routine details,
 not new scope, spending or weaker acceptance.

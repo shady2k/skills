@@ -29,7 +29,7 @@ hypothesis's measure that has come due, start at step 5 and leave the
 rest: the opening, the consent and the readiness check belong to shaping
 an idea, and no measure needs them.
 
-## 2. Walk the idea, one plain question at a time
+## 2. Walk the idea in plain questions
 
 In this order, skipping what the person has already said:
 
@@ -52,7 +52,8 @@ look up, a way to do it — stands on the state of the practice, not on your
 habit, by the protocol's [**A proposal starts from the state of the
 practice**](references/deciding.md).
 
-- **One question per message, with an example answer** to react to: "Who
+- **A plain question, with an example answer** to react to, put by the
+  protocol's [**How an open question is put**](references/speaking.md): "Who
   opens it first in the morning? For instance, the cafe owner before opening,
   to see yesterday's orders." Reacting is easier than inventing.
 - **Situations, not abstractions.** "Tell me about the last evening you threw
