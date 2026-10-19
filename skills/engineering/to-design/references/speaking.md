@@ -211,6 +211,43 @@ ask's substance and its levers by name, and what is added here is the order
 and the length — the lateness and its why are the first sentences, the levers
 and their costs follow them, and the ask stays a few lines.
 
+**How an open question is put.** An open question is one the work waits for:
+the owner must choose, and nothing is built, spent or published until they
+have. How such questions are put is the project's own setting, kept as the
+config's `openQuestions`:
+
+- `one-at-a-time`, the default: one question in a message, worked by **An ask
+  carries its own substance**, with its recommendation and the alternatives it
+  beats; the next waits for the answer.
+- `batch`: the questions of one point go in one message, each with its
+  recommendation and its consequence, and the owner answers them together or
+  names the ones they answer. A question whose answer would change another is
+  not batched with it: it waits for that answer, then takes its turn.
+
+Where no value is recorded — a project that never answered, a skill used
+without setup — the default applies.
+
+The setting governs how many questions one message carries, and nothing else.
+It does not change what a question is or how it is worked: each still comes
+with its recommendation, its alternatives and what waits on it, by
+[**Come with the material**](deciding.md#decision-material), and a question
+the owner cannot act on is not asked at all. Nor does it change when questions
+are asked: a run brings every decision it will need before the owner leaves,
+by [running.md](running.md)'s **Autonomy**, however they are put.
+
+It does not govern what is not a question. A summary the owner accepts whole or
+corrects by item — an approval, a configuration profile, a breakdown, a frame
+confirmed part by part — is one message under either value, by **Summarize;
+never assign reading** and **An ask carries its own substance**: it offers one
+acceptance with named corrections, not a series of answers. Nor does it govern
+conversation, where a question is put because it moves thought along and no
+work waits on it.
+
+Setup asks for the value beside the artifact language, recommending one at a
+time and saying what changes with it: only how many questions one message
+carries. A rerun keeps the value it finds, and a project that has none is asked
+once.
+
 **Written for someone who was not there.** What the agent read — code, logs,
 measurements, the tracker, earlier sessions — is its own, however long it has
 been in the conversation's context. A word is known to the person only if they

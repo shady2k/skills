@@ -83,11 +83,14 @@ searched for first — the product's documents, the charter, the issue, the
 conversation — by [deciding.md](deciding.md)'s **A question is searched for
 before it is asked**; a frame already stated is not asked again. What the
 search leaves missing is proposed with a recommendation and confirmed or
-corrected as one batch, by [speaking.md](speaking.md)'s **An ask carries its
-own substance**, never question by question — for work already being specified
-or run. A raw idea's frame is not confirmed but discovered: `define-product`
-walks it out of the person one plain question at a time, and what that walk
-gathers is the frame every later piece of work searches for. A small bug or a
+corrected in one message, by [speaking.md](speaking.md)'s **An ask carries its
+own substance**: the frame is one summary the owner accepts whole or corrects
+by part, and [speaking.md](speaking.md)'s **How an open question is put** leaves
+a summary in one message whatever the project's setting — for work already
+being specified or run. A raw idea's frame is not confirmed but discovered: `define-product`
+walks it out of the person in plain questions, put as
+[speaking.md](speaking.md)'s **How an open question is put** gives, and what
+that walk gathers is the frame every later piece of work searches for. A small bug or a
 trivial change carries a one-line frame, by **Tailoring is the rule**: its
 size is one line, not zero. What a frame holds is what later stages read: an
 outcome's success signal is the frame's, measured by [product.md](product.md)'s

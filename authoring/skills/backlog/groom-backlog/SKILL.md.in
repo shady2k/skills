@@ -111,7 +111,9 @@ Run the gate with both snapshots once it exists. Fix:
 Investigate what each dependency really needs yourself and propose the repairs
 as a group, with their consequences. Routine repairs within the approved
 cleanup need no question each. Only an open scope or priority trade-off goes
-to the owner, one at a time, with a recommendation and real alternatives.
+to the owner, as the protocol's
+[**How an open question is put**](references/speaking.md) says, with a
+recommendation and real alternatives.
 
 Record the bulk edit's date and both snapshot paths under "The gate" in the
 project's backlog integration.

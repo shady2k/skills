@@ -8,9 +8,11 @@ sessions and landing, waits, runs out of sight, estimates.
 **Autonomy.** A feature is planned with the owner and then built without
 them, up to one pull request for the whole feature. Planning ends with a
 **preflight**: the agent reads the spec, the stages and the code, and brings
-every decision the run will need at once, each with a recommendation, for the
-owner to accept as a whole or change by item. An approval the end of the run
-will need is one of those decisions and is taken here, before anything is
+every decision the run will need before the owner leaves, each with a
+recommendation, gathered while they are present because asking later means
+stopping the run. How those questions are put is the project's setting, by
+[speaking.md](speaking.md)'s **How an open question is put**. An approval the
+end of the run will need is one of those decisions and is taken here, before anything is
 written: what he approves is what the change decides — its kind, its scope, the
 requirements it moves and what it promises to leave alone — and never the
 finished text, which does not exist yet and which he was never going to read.
@@ -18,10 +20,10 @@ A record binds itself to what he approved, so that the agent's own working on
 it afterwards — the reasoning, which check covers which requirement, a rewrite
 after review — does not send anybody back to him, and a change to what he
 decided does. An approval that can only be given at the end cannot be taken
-in the batch, and so stops the run after he has gone. This is the one place where
-questions come as a batch: gathering them while the owner is present is cheaper
-than stopping later. A preflight that goes unanswered has not been accepted; by
-[**A decision belongs to whoever made it**](speaking.md), every recommendation in it is still
+in the preflight, and so stops the run after he has gone. A preflight that goes
+unanswered has not been accepted; by
+[**A decision belongs to whoever made it**](speaking.md), every recommendation
+in it is still
 the agent's own until they say otherwise. The preflight also says how long the run will likely take
 and when to expect the pull request, with what the estimate rests on; a run
 longer than the project lets a branch live is split first. It ends by saying

@@ -109,8 +109,9 @@ Show a numbered list: title, what it makes true, what it waits for. Explain
 each stage's result, size, real prerequisites and what can run in parallel, in
 terms of the outcome it enables and the cost or risk of changing it. The user
 changes named entries; they do not approve every task or assignment. Ask about
-open product, cost or risk decisions one at a time; approved scope stays
-approved, by the protocol's [**A decision given is not reopened by better
+open product, cost or risk decisions as the protocol's [**How an open question
+is put**](references/speaking.md) says; approved scope stays approved, by the
+protocol's [**A decision given is not reopened by better
 analysis**](references/deciding.md).
 
 ## 5. Publish and prove

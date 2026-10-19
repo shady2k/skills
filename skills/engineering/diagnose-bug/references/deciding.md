@@ -115,11 +115,12 @@ itself**](speaking.md). Each option says what it makes possible and for which
 later outcome. Records the owner wrote themselves are no shortcut: a record's
 number carries its conclusion, not its reasoning, and a message built on numbers
 asks them to reconstruct the one thing it was meant to bring. Several decisions
-in one message — a preflight, a plan's ground decisions — do not share the
-material out among them: a short picture of the whole first, which part serves
-what, then each decision with its own sample. Such a message is long, and that
-is its cost; a short one the owner cannot act on costs a round trip and then the
-long one anyway. Then what exactly fails, with the measurement that shows it;
+in one message — where the project's setting puts a preflight, or a plan's
+ground decisions, together, by speaking.md's **How an open question is put** —
+do not share the material out among them: a short picture of the whole first,
+which part serves what, then each decision with its own sample. Such a message
+is long, and that is its cost; a short one the owner cannot act on costs a round
+trip and then the long one anyway. Then what exactly fails, with the measurement that shows it;
 and the assumption those options rest on, said out loud. Then the options, and
 among them at least one that rejects that assumption — because nobody can choose
 a frame they were not shown, and several ways to satisfy one assumption read as

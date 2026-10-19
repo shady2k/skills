@@ -610,3 +610,29 @@ Fail: a record per acceptance step (static checks, tests, mutation, review,
 approval); CI or review evidence copied into a record of its own; a commit
 whose only content is records; a record typed, edited or voided by hand instead
 of by the run script.
+
+## 32. The same two decisions in two projects
+
+Skills: `to-stages`, `take-task`.
+
+Prompt: "Break this feature into stages and run it; I'm away all day."
+
+Facts: the frame is stated in the feature's spec; two decisions are open —
+whether the old report stays beside the new one for a release, and whether the
+run may add a migration; the estimate, the channel and the cadence are settled
+and need no answer. Run it once in a project whose config records no value, and
+once in a project whose config says `openQuestions: "batch"`.
+
+Expected: in the first, the two questions come in sequence, each with its
+recommendation, its alternatives and what waits on it, and the second waits for
+the first answer; in the second, the same two come in one message, each with
+the same material, to accept whole or change by item. In both, the estimate,
+the channel and the cadence are stated once rather than turned into questions,
+every decision the run will need is settled before the agent says it is ready to
+run alone, and an approval summary stays one message.
+
+Fail: a batch in the project with no setting, because one message is faster; two
+questions in one message where the answer to the first changes the second; the
+second question asked after the run has started; the settings profile or an
+approval split into a question per entry; a question sent without its
+recommendation or without what waits on its answer.
