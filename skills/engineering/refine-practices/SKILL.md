@@ -36,7 +36,8 @@ held. A project that never runs `to-milestone` hears it from `ask-shady2k`,
 once about five features have closed since the last retrospective. And at
 any time on request. When offered, say roughly how long it takes in agent
 time, and that it is an estimate, by the protocol's
-[**Estimates**](references/running.md).
+[**Estimates**](references/running.md) and [**A time told to the owner is
+measured, and a dispute is answered with its basis**](references/running.md).
 
 ## 2. Gather the signals
 

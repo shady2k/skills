@@ -156,8 +156,9 @@ now works, what remains pending or unproven (for a feature left open, first
 what users or the owner still cannot rely on, before any stage or task), what was filed or returned, as the
 ledger of [**End with the next step**](references/speaking.md), and the
 milestone's outcomes and finding budget. If a decision is needed, recommend the
-next action with its time and risk. Where this project's users receive the
-change later than the merge — it deploys or publishes — that next action is
+next action with its time and risk, by the protocol's [**A time told to the
+owner is measured, and a dispute is answered with its basis**](references/running.md).
+Where this project's users receive the change later than the merge — it deploys or publishes — that next action is
 the life cycle's transition: name `ship-release`, with what reaching them
 takes here, and the release starts on the owner's word. Do not ask the owner to read check internals
 or approve each routine closure. "Use defaults" does not waive an open

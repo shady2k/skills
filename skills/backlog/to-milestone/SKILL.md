@@ -62,7 +62,9 @@ stay empty until something is implemented and accepted.
 
 Present one draft charter as the protocol's summary, not as a document to read:
 retained decisions and recommended new values in product terms, what ships, for
-whom, at what cost and risk, and the assumptions it rests on. For each
+whom, at what cost, risk and time, by the protocol's [**A time told to the owner
+is measured, and a dispute is answered with its basis**](references/running.md),
+and the assumptions it rests on. For each
 meaningful choice say why it is recommended and what changing it would do; the
 draft's choices — the outcomes, the finding budget, the target date — stand on
 the state of the practice for each, by the protocol's [**A proposal starts

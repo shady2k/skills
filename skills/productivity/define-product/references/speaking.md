@@ -327,7 +327,8 @@ next useful action and the skill that does it, so the person never has to ask
 what now. Offer work at the level the owner runs it: a feature to plan or to
 run, not a single task. Every option offered carries a rough duration and what
 it rests on (how many tasks, their size, the pace the history shows), in agent
-time as [**Estimates**](running.md) says; say that it is an estimate. When the
+time as [**Estimates**](running.md) says, by **A time told to the owner is
+measured, and a dispute is answered with its basis**; say that it is an estimate. When the
 session has grown long, recommend a fresh one: at a natural boundary (a stage
 accepted, a switch to unrelated work) through `/handoff`; in the middle of the
 same work, through the harness's context compaction, saying what must survive
