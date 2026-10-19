@@ -46,6 +46,29 @@ const mutations = [
     name: `documents-${id}`, file: 'check-docs.mjs', failure: `FAIL  documents/${id}:`,
     change: (code) => code.replace('if (condition) violations.push', `if (condition && id !== '${id}') violations.push`),
   })),
+  // Each of these rules is muted in its own copy, and the fixture it was written
+  // for has to catch it: a fixture that passes whether or not its rule works is
+  // how a gate certifies instead of checking.
+  ...[['unknown-constraint', 'constraint-unknown-requirement'],
+    ['small-fixture', 'scale-check-on-a-small-fixture'],
+    ['unknown-principle', 'design-names-a-principle-the-vision-does-not-declare'],
+    ['principle-without-constraint', 'principle-named-without-a-constraint'],
+    ['missing-principle', 'missing-principle'],
+    ['missing-design-match', 'review-without-a-design-match'],
+    ['design-divergence', 'review-that-found-a-divergence'],
+    ['missing-judgement', 'no-judgement-record']].map(([id, fixture]) => ({
+    name: `documents-${id}`, file: 'check-docs.mjs', failure: `FAIL  documents/${fixture}:`,
+    change: (code) => code.replace('if (condition) violations.push', `if (condition && id !== '${id}') violations.push`),
+  })),
+  ...['unserved-outcome', 'unforecast-target', 'unmeasured-forecast'].map((id) => ({
+    name: id, file: 'check.mjs', failure: `FAIL  bad/${id}.json`,
+    // The rule answers to another id, so nothing fires it and its fixture says
+    // so: this works whatever shape the rule's body has, which a body-level
+    // edit does not once the body is an expression.
+    change: (code) => code.replace(`id: '${id}',`, `id: '${id}-not-a-rule',`),
+  })),
+  { name: 'purpose-command', file: 'check.mjs', failure: 'FAIL  purpose/T3',
+    change: (code) => code.replace('const lines = [`${p.id}: ${p.title}`];', 'const lines = [];') },
   { name: 'documents-mutation-not-made', file: 'check-docs.mjs', failure: 'FAIL  documents/a-mutation-run-that-is-not-made-is-not-a-refusal:',
     change: (code) => code.replace("kindOf.get(id) === 'mutation'", 'false') },
   { name: 'documents-applies-to', file: 'check-docs.mjs', failure: 'FAIL  documents/check-for-other-kind:',

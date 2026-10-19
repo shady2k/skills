@@ -9,18 +9,18 @@ Skills that keep the queue usable and stage acceptance honest.
   step across machines, with the background synchronization that keeps it so;
   propose a role-aware settings profile, clean the queue and prove setup; adopt
   existing document layouts, install templates and document gates; fully recheck
-  on every invocation without repeating settled questions.
+  on every invocation without repeating settled questions. Rerunning it after 0.48.0 adds ids to your current vision and charter without changing their text and proposes the new switches.
 - [ask-shady2k](./ask-shady2k/SKILL.md): read-only orientation: picture, progress,
   ways forward and the recommended next action; or a report for the team's
   sync over a period.
-- [to-milestone](./to-milestone/SKILL.md): agree independent outcomes and budget.
+- [to-milestone](./to-milestone/SKILL.md): agree independent outcomes and budget. Each outcome names the vision journeys and principles it serves, and the charter's acceptance carries another model's judgement of what it serves and breaks.
 
 ## Started when the work calls for it
 
 Also available directly to the user.
 
 - [to-stages](./to-stages/SKILL.md): stages as checkpoints and tasks sized for one
-  worker, parallel except for concrete prerequisites or conflicts.
+  worker, parallel except for concrete prerequisites or conflicts. A stage or task names the outcomes it serves, since the forecast is computed over the exact tasks covering them.
 - [groom-backlog](./groom-backlog/SKILL.md): reversible cleanup, including setup bootstrap.
 - [to-backlog](./to-backlog/SKILL.md): register work and discoveries; separate filing
   from admission, with the filing shared as soon as it is made.

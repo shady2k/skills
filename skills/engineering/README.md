@@ -6,7 +6,7 @@ Tracked work, proportional design and acceptance of an assembled stage.
 
 - [take-task](./take-task/SKILL.md): preflight with the owner, then run a whole
   feature alone to one pull request, stopping only for decisions that need them
-  and telling them unasked what the run's own overhead is costing.
+  and telling them unasked what the run's own overhead is costing. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, and every worker's brief carries what its task serves, whom it serves and where you see it.
 - [ship-release](./ship-release/SKILL.md): carry merged, accepted work to its
   users — version, release notes, migrations with their reverse, rollout by
   environment with the rollback named before each step; through the project's
@@ -23,11 +23,11 @@ Tracked work, proportional design and acceptance of an assembled stage.
 Also available directly to the user.
 
 - [to-spec](./to-spec/SKILL.md): proposed deltas to living capability specs,
-  short or full according to risk, with scenarios and document readiness checks.
+  short or full according to risk, with scenarios and document readiness checks. A constraint it states is a requirement with a check, and an uncovered one is refused.
 - [to-design](./to-design/SKILL.md): how the system will meet an outcome —
   drivers and the shape that exists, options from named patterns traded
   against quality attributes, a recorded decision reviewed before building —
-  for changes that change its shape.
+  for changes that change its shape. The design lists its constraints with a check each — a limit of scale is proved only on a fixture at least that size — names the vision principles of its area, and its acceptance carries another model's judgement of what it serves and breaks.
 - [to-prototype](./to-prototype/SKILL.md): bounded runnable evidence for one question.
 - [diagnose-bug](./diagnose-bug/SKILL.md): diagnosis with evidence; fixing requires
   an authorized tracked task.

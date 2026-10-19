@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture good/forecast-record-matches",
+  "issues": [
+    {
+      "id": "E1",
+      "title": "Issue E1",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person gets a first result by answering the questions once.\nTarget: 2026-12-01",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "T1",
+      "title": "Issue T1",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "E1",
+      "blockedBy": [],
+      "body": "DONE WHEN a person can do the thing.\nServes: O1",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    },
+    {
+      "id": "T2",
+      "title": "Issue T2",
+      "type": "task",
+      "status": "closed",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00.000Z"
+    }
+  ],
+  "vision": {
+    "journeys": [
+      {
+        "id": "J1",
+        "title": "A person gathers the general picture first, each pass building on the last."
+      }
+    ],
+    "principles": [
+      {
+        "id": "P1",
+        "title": "Knowledge is gathered from the general to the specific."
+      }
+    ]
+  },
+  "outcomes": [
+    {
+      "id": "O1",
+      "title": "a person reaches a first result by answering the questions once",
+      "serves": [
+        "J1",
+        "P1"
+      ]
+    }
+  ],
+  "forecasts": [
+    {
+      "scope": "E1",
+      "stated": "2026-12-01",
+      "tasks": [
+        "T1"
+      ],
+      "digest": "1f93603db53bfad5c92390f735d0cbb8617b4ab8214ae91c5664a3d1e9b009c8",
+      "enough": true,
+      "runs": 4,
+      "low": 30,
+      "high": 60
+    }
+  ]
+}

@@ -18,6 +18,7 @@
 // this machine's transcripts through the ledger beside it.
 // take-task owns this file; close-out and ask-shady2k carry copies of it.
 import { execFileSync, spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { constants, homedir, hostname, tmpdir, userInfo } from 'node:os';
 import { dirname, isAbsolute, join } from 'node:path';
@@ -415,6 +416,32 @@ function pace(v, opts) {
   out.proposal = all ? Object.entries(work).filter(([, w]) => w > 0).map(([p, w]) => `${p}=${Math.max(1, round((mid * w) / all))}`).join(',') : null;
   return out;
 }
+
+// A task set's digest, and the forecast record that stands beside a date: the
+// measured pace over exactly the tasks covering the outcomes the date serves.
+// The backlog gate computes the same digest from the same definition and refuses
+// a record whose set has changed since, so the two must agree to the byte.
+const setDigest = (ids) => createHash('sha256').update([...ids].sort().join('\n')).digest('hex');
+
+function forecastRecord(v, opts) {
+  const ids = String(opts.set || '').split(',').map((x) => x.trim()).filter(Boolean);
+  if (!ids.length) throw new Usage('--set <task ids, comma separated> is required: the exact task set covering the outcomes this forecast serves');
+  if (!opts.scope) throw new Usage('--scope <the issue the date is promised on> is required');
+  if (!opts.stated) throw new Usage('--stated <the date or duration this record stands beside, as the document says it> is required');
+  const p = pace(v, { tasks: ids.length });
+  return {
+    scope: opts.scope, stated: opts.stated, tasks: [...ids].sort(), digest: setDigest(ids),
+    enough: Boolean(p.enough), runs: p.runs, low: p.low ?? null, high: p.high ?? null, basis: p.basis ?? null,
+    estimateRatio: p.estimateRatio ?? null, proposal: p.proposal ?? null,
+  };
+}
+
+const describeForecast = (r, p) => [
+  `Forecast record for ${r.scope}, standing beside "${r.stated}":`,
+  `  ${r.tasks.length} task(s) covering the outcomes it serves: ${r.tasks.join(' ') || '(none)'}`,
+  `  their set's digest ${r.digest}`,
+  describePace(p),
+].join('\n');
 
 function describePace(p) {
   if (!p.enough) return `Too little history for a measured estimate: ${p.runs} finished run(s) with a forecast, 3 needed. Any estimate is a guess.`;
@@ -1161,6 +1188,15 @@ export function run(argv) {
       const p = pace(v(), opts);
       return print(p, describePace(p));
     }
+    case 'forecast': {
+      // A date is the owner's; what the run script computes is the pace under it
+      // over the exact task set the date serves, and the digest that says which
+      // set it was computed over. The gate refuses a date with no record and a
+      // record whose set has moved on.
+      const b = v();
+      const r = forecastRecord(b, opts);
+      return print(r, describeForecast(r, pace(b, { tasks: r.tasks.length })));
+    }
     case 'report': {
       const r = report(v());
       return print(r, describeReport(r));
@@ -1440,6 +1476,10 @@ runs.mjs progress --period <date> [--until <date>]
 runs.mjs gaps      spans that ended with no receipt: recovered here, or named where they are not
 runs.mjs time [--since <date>] [--until <date>] [--item <id>] [--no-transcripts]
 runs.mjs stalled | pace [--tasks N] | report | list
+runs.mjs forecast --scope <issue> --stated "<the date or duration it stands beside>" --set <task ids, comma separated>
+  the forecast record a date promised in a document stands beside: the measured pace over exactly the
+  tasks covering the outcomes that date serves, and that set's digest. The backlog gate refuses a date
+  with no record, a record for another date, and a record whose task set has changed since
 Where the project agreed to Jev, --config <gate config> lets it place a session whose working copy is gone and whose
 transcript never names the item: only a sure yes counts, and the ones it is unsure of are named on stderr.
 The current session is found by itself where the harness names it (Claude Code, Codex, pi); else --harness
@@ -1581,6 +1621,18 @@ async function selftest() {
       && r.stops.owner === 1 && r.recoveries.R3 === 1 && r.spend.medianOccupiedMinutes === 100
       && !('judged' in r) && !('acceptedAsIs' in r) && !('corrections' in r) && !('avoidableQuestions' in r));
     expect('pace: too little history says so', !JSON.parse(cli('pace', '--json')).enough);
+    // A forecast record: the pace over the exact task set a date serves, and the
+    // digest that says which set it was computed over. The backlog gate computes
+    // the same digest from the same definition and refuses a record whose set has
+    // changed, so this is the one thing the two must agree on to the byte.
+    const rec = JSON.parse(cli('forecast', '--scope', 'F', '--stated', '2026-12-01', '--set', 'B, A', '--json'));
+    expect('forecast: the record names the set it was computed over, sorted, and that set\'s digest',
+      rec.scope === 'F' && rec.stated === '2026-12-01' && rec.tasks.join(',') === 'A,B'
+      && rec.digest === createHash('sha256').update('A\nB').digest('hex') && rec.enough === false);
+    expect('forecast: too little history is in the record, and said beside it',
+      cli('forecast', '--scope', 'F', '--stated', '2026-12-01', '--set', 'A,B').includes('Too little history'));
+    expect('forecast: a record with no task set is refused, not guessed',
+      misuse(['forecast', '--scope', 'F', '--stated', '2026-12-01', '--backlog', file, '--project', 'demo'], Usage));
 
     // Time over a period: every receipt ended in it, once; the open span on X
     // is named apart, and it makes the figure incomplete.

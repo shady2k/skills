@@ -910,6 +910,31 @@ charter a stable id in front of its text, without changing that text; add the
 `codePaths` list; and say which admitted change records of work in flight need
 the new section.
 
+**What an update to this setup version changes, in the owner's terms.** Nine
+refusals are new, in three groups, and each is turned on by the value it reads
+rather than by the upgrade itself, so a project that has not adopted one is not
+stopped the day it arrives. *The build answers to its design*: a design record
+lists its constraints in one closed section, each a requirement with a check, a
+constraint that names a size is proved only by a check whose fixture declares at
+least that size, and the review that admits a change answers whether the build
+matched the design. *What the owner says reaches whoever does the work*: the
+vision keeps his journeys and principles with stable ids, every milestone outcome
+names in a `Serves:` line the ones it serves, a design names the principles of
+its area and carries each as a constraint, and a different model's judgement
+record answers at charter acceptance and design acceptance which of them the
+document serves and which it breaks, with quotes, on the document's current
+revision. *A forecast is computed, not written*: a date a charter or a feature
+promises stands beside the record the run script computes over the exact task set
+covering the outcomes it serves, and a record whose task set has changed is
+refused. With the owner's agreement this run adds the ids to an existing vision
+and charter without changing their text, records the principles he has already
+stated in his own words, and puts the new switches into the recommended profile:
+`requireDesignMatch` for the review's answer, and the constraints, principles,
+fixture sizes and forecast records the adapter must carry. The run script's new
+`forecast` command computes a record, and the gate's `--purpose <task>` prints
+what a task serves, whom it serves and where a person sees it, for the brief
+handed to whoever does the work.
+
 An update that brings the store out of the branches tells the owner the move
 is coming and why, in their terms, and how it is done without losing a record:
 snapshot the old state first; start the store; take what is written during the

@@ -37,7 +37,9 @@ accepting.
 
 - **Short delta**, for small, understood work: current and intended behaviour,
   relevant constraints, the frame as one line — what it is for and what
-  matters most — acceptance scenarios and what is out. It may live in
+  matters most — acceptance scenarios and what is out. A constraint the spec
+  states is a requirement with a check; the document gate refuses an
+  uncovered one (`uncovered-requirement`). It may live in
   the task body, linked to the feature's spec. A small feature still records
   its own behaviour.
 - **Bug:** keep the correct requirement and add a regression scenario. Change
