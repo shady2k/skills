@@ -91,7 +91,8 @@ proposal is still yours, and what the owner sees is the same.
 
 For each kind, say what it means, why, how it affects current work, roughly how
 long it will take and how to undo it, by the protocol's [**A time told to the
-owner is measured, and a dispute is answered with its basis**](references/running.md). The owner accepts the whole proposal or pulls items back by name.
+owner is measured, and a dispute is answered with its basis**](references/running.md).
+The owner accepts the whole proposal or pulls items back by name.
 **Nothing is closed or deleted.** Do not take work away from someone active,
 and do not defer an independent feature because another one is running. Get
 approval for the bulk scope unless the user already authorized exactly this

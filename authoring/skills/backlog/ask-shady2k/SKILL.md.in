@@ -263,7 +263,9 @@ whose transcripts nobody has written up, makes the figure "at least", said so.
   recommendation. A decision that is the owner's own is not a question for the
   sync: list it apart, as something to settle before it.
 - **Forecast:** when the open work will be done, in calendar time, by the
-  protocol's **Estimates** and **A time told to the owner is measured, and a dispute is answered with its basis**, adding the owner's acceptances and decisions still
+  protocol's **Estimates** and **A time told to the owner is measured, and a
+  dispute is answered with its basis**, adding the owner's acceptances and
+  decisions still
   ahead and the outside waits, and saying which of them the date depends on
   ("ready Tuesday if stage 2 is accepted today, Wednesday otherwise"). Where
   they name a date, such as the sprint's end, say whether the work fits it,
