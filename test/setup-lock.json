@@ -1,11 +1,11 @@
 {
-  "setupVersion": "0.51.0",
+  "setupVersion": "0.52.0",
   "files": {
-    "check.mjs": "dd15e06729795db117966cb1f6c634bb4e627b3f374ac94550de46fe9336929d",
-    "check-commits.mjs": "d5f01a95cc82c376cec9cec057abc921e0e52a9c14ee0ddf85fee2df8c9b985b",
-    "check-docs.mjs": "6658e728aa32e81615c418d19835ad72cfd97e71bcc23773300184e669db1656",
-    "check-present.mjs": "4a68c5778d9cd561b5820a506e97d2ec7d04d155d93ab6e727a2b1b9790c7603",
-    "check-product.mjs": "e7cb610b705315b4371ec77c835f1b098fe8cc0e8311b03b9d993ee208bab7db",
+    "check.mjs": "b761f6e0290b347b6f5eeac6ef1eb6c268623af7cba968c47ebe397a736865c0",
+    "check-commits.mjs": "bdac75c901b095a067e32a27ea8613c47eb88eef819cad774c6db2c6fbf19126",
+    "check-docs.mjs": "fc5ed3224e5eaabc4d29538569b78533f3c2ad00e9cbc3dffe35865d975f4088",
+    "check-present.mjs": "59cf87a17a8a18f3ab87c58db0331bb51d472ff1cfbf1a8a456ed0d900208b36",
+    "check-product.mjs": "8aea720ba46dc17d5d339b539426c4d471302fff5edd4fff796ad538896db6ec",
     "document-format.mjs": "6947124f3ffe34b745e52bf0065d12257942d9d705a0b9c7300d403a0f9606e0",
     "time-format.mjs": "f61f6da6fe6df73145ee7d7fd0d9af15a53e36501e9a11e184e83afdd29da858",
     "integration.md": "b7cbcb789cf20161a875c6a6d7937514b5af17a949b5fa8845146117c742ea1c",
