@@ -22,6 +22,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { constants, homedir, hostname, tmpdir, userInfo } from 'node:os';
 import { dirname, isAbsolute, join } from 'node:path';
+import { ValueNeeded, valueOf } from './argv.mjs';
 import {
   Usage, adapter, adapterNames, collect, conversationOf, current, hasAdapter, localStamp, measure, parseWhen,
   projectName, recordedShapes, sessionEnvVars, span, transcriptOf, union, unnamedTranscripts,
@@ -1021,6 +1022,16 @@ async function execOnce(args, { err = (s) => console.error(s) } = {}) {
 
 const FLAGS = ['json', 'no-transcripts', 'recovered', 'unknown'];
 
+// argv.mjs refuses a value that cannot be one; the run script says so its own way.
+const value = (argv, i, option, what) => {
+  try {
+    return valueOf(argv, i, option, what);
+  } catch (e) {
+    if (e instanceof ValueNeeded) throw new Usage(e.message);
+    throw e;
+  }
+};
+
 function parseArgs(rest) {
   const opts = {};
   for (let i = 0; i < rest.length; i++) {
@@ -1028,8 +1039,11 @@ function parseArgs(rest) {
     if (!a.startsWith('--')) throw new Usage(`unexpected ${a}`);
     const key = a.slice(2);
     if (FLAGS.includes(key)) { opts[key] = true; continue; }
-    if (i + 1 >= rest.length) throw new Usage(`${a} needs a value`);
-    opts[key] = rest[++i];
+    // Every option that takes a value reads it through argv.mjs: an empty or
+    // blank one is misuse here, where `argv[++i]` handed the run a value that
+    // then vanished -- `--backlog ''` read no backlog at all.
+    opts[key] = value(rest, i, a);
+    i++;
   }
   return opts;
 }
@@ -2032,6 +2046,18 @@ async function selftest() {
     expect('misuse: a stop without its reason', misuse(['event', '--span', claim.fields.span, '--event', 'stop', '--backlog', file]));
     expect('misuse: an unknown command', misuse(['frobnicate', '--backlog', file]));
     expect('misuse: no session given or found', misuse(['claim', '--item', 'A', '--role', 'worker', '--backlog', file]));
+    // Every option that takes a value reads it through argv.mjs: an empty,
+    // blank or option-shaped word is misuse that names the option, where
+    // `argv[++i]` handed the run a value that then vanished.
+    const named = (a, option) => {
+      try { rawCache = null; run(a); return `no refusal for ${option}`; } catch (e) { return e instanceof Usage && e.message.includes(`"${option}"`) ? null : e.message; }
+    };
+    expect('misuse: an empty --backlog names the option', named(['receipt', '--span', 'x', '--end', 'finished', '--backlog', ''], '--backlog') === null);
+    expect('misuse: a blank --item names the option', named(['claim', '--item', '   ', '--role', 'worker', '--backlog', file], '--item') === null);
+    expect('misuse: an option instead of the --item value names the option', named(['claim', '--item', '--role', 'worker', '--backlog', file], '--item') === null);
+    expect('a bare - is still a value, where the backlog is read from stdin', (() => {
+      try { rawCache = null; run(['frobnicate', '--backlog', '-']); return false; } catch (e) { return e instanceof Usage && !e.message.includes('"--backlog"'); }
+    })());
 
     // A span of a harness this copy cannot read, inside a feature that is then
     // summarised: the summary says so, and counts it neither as unknown time

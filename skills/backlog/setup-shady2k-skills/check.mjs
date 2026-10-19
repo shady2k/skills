@@ -66,6 +66,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spansOf } from './time-format.mjs';
+import { ValueNeeded, valueOf } from './argv.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -1165,7 +1166,7 @@ function runSelftest(cfg, projectConfigPath) {
   const fixtureCfg = join(dir, 'config.json');
   const overBudget = join(dir, 'bad', 'finding-budget.json');
   const stale = join(dir, 'bad', 'stale-hold.json');
-  for (const [what, want, argv] of [
+  for (const [what, want, argv, speaks] of [
     ['an unknown --only', 2, ['--config', fixtureCfg, '--strength', 'block', '--only', 'no-such-check', stale]],
     ['an empty backlog file', 2, ['--config', fixtureCfg, '--strength', 'block', put('empty.json', '')]],
     ['a config that is not an object', 2, ['--config', put('cfg.json', '[]'), '--strength', 'block', stale]],
@@ -1181,13 +1182,31 @@ function runSelftest(cfg, projectConfigPath) {
     ['a read at a revision with no revision in the source', 2, ['--config', fixtureCfg, '--strength', 'block', '--at', 'rev-a', stale]],
     ['a read at a revision that read another one', 2, ['--config', fixtureCfg, '--strength', 'block', '--at', 'rev-a', put('at-other.json', { ...load('bad', 'stale-hold.json'), source: 'fixture bad/stale-hold @ rev-b' })]],
     ['a read at the revision it stands for', 1, ['--config', fixtureCfg, '--strength', 'block', '--at', 'rev-a', put('at-same.json', { ...load('bad', 'stale-hold.json'), source: 'fixture bad/stale-hold @ rev-a' })]],
-    ['an empty requested revision', 2, ['--config', fixtureCfg, '--strength', 'report', '--at', '', stale]],
-    ['a whitespace-only requested revision', 2, ['--config', fixtureCfg, '--strength', 'report', '--at', '   ', stale]],
-    ['a missing requested revision', 2, ['--config', fixtureCfg, '--strength', 'report', stale, '--at']],
-    ['an option instead of the requested revision', 2, ['--config', fixtureCfg, '--strength', 'report', stale, '--at', '--json']],
+    ['an empty requested revision', 2, ['--config', fixtureCfg, '--strength', 'report', '--at', '', stale], '--at'],
+    ['a whitespace-only requested revision', 2, ['--config', fixtureCfg, '--strength', 'report', '--at', '   ', stale], '--at'],
+    ['a missing requested revision', 2, ['--config', fixtureCfg, '--strength', 'report', stale, '--at'], '--at'],
+    ['an option instead of the requested revision', 2, ['--config', fixtureCfg, '--strength', 'report', stale, '--at', '--json'], '--at'],
+    // Every other option that takes a value, one case each: what a bare
+    // `argv[++i]` did with it is in the case's name.
+    ['an empty --only, which today names no check at all', 2, ['--config', fixtureCfg, '--strength', 'block', '--only', '', stale], '--only'],
+    ['a missing --only, which today is a trailing option that crashes', 2, ['--config', fixtureCfg, '--strength', 'block', stale, '--only'], '--only'],
+    ['an empty --config, which today is a config that was not given', 2, ['--config', '', '--strength', 'block', stale], '--config'],
+    ['an empty --baseline, which today is no baseline at all', 2, ['--config', fixtureCfg, '--strength', 'block-new', '--baseline', '', stale], '--baseline'],
+    ['an empty --baseline-config, which today judges the baseline by today\'s rules', 2, ['--config', fixtureCfg, '--strength', 'block-new', '--baseline', stale, '--baseline-config', '', stale], '--baseline-config'],
+    ['an empty --strength, which today is a strength that was not given', 2, ['--config', fixtureCfg, '--strength', '', stale], '--strength'],
+    ['an empty --ages-from, which today skips the ages check and answers green or red without it', 2, ['--config', fixtureCfg, '--strength', 'block', '--ages-from', '', stale], '--ages-from'],
+    ['an empty --ages-through, which today skips the ages check and answers green or red without it', 2, ['--config', fixtureCfg, '--strength', 'block', '--ages-through', '', stale], '--ages-through'],
+    ['an empty --purpose, which today falls back to a normal run', 2, ['--config', fixtureCfg, '--strength', 'block', '--purpose', '', stale], '--purpose'],
+    ['an option instead of the task --purpose asks for', 2, ['--purpose', '--json', stale], '--purpose'],
+    ['an option instead of the --config value', 2, ['--config', '--strength', 'block', stale], '--config'],
   ]) {
-    const got = run(...argv).status;
-    say(got === want, `cli: ${what} → exit ${got}${got === want ? '' : `, expected ${want}`}`);
+    const done = run(...argv);
+    const got = done.status;
+    // A row may name the option its refusal has to speak of: misuse exits 2, and
+    // it must name the option, or the exit could have come from anywhere else.
+    const says = `${done.stdout}${done.stderr}`;
+    const names = speaks === undefined || says.includes(`"${speaks}"`);
+    say(got === want && names, `cli: ${what} → exit ${got}${got === want ? '' : `, expected ${want}`}${names ? '' : `, and its refusal does not name ${speaks}`}`);
   }
   // Lowering the budget creates violations. Judged by today's config the
   // baseline has them too and block-new is green; judged by its own it is not.
@@ -1214,25 +1233,35 @@ function runSelftest(cfg, projectConfigPath) {
   return failures ? 1 : 0;
 }
 
+// argv.mjs refuses a value that cannot be one; this gate says so its own way,
+// which is the misuse exit 2 with the usage.
+const value = (argv, i, option, what) => {
+  try {
+    return valueOf(argv, i, option, what);
+  } catch (e) {
+    if (e instanceof ValueNeeded) throw new Misuse(e.message);
+    throw e;
+  }
+};
+
 function main() {
   const argv = process.argv.slice(2);
   const args = { json: false, only: null, input: null, selftest: false, config: null, baseline: null, baselineConfig: null, strength: null, agesFrom: null, agesThrough: null, at: null, purpose: null };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--json') args.json = true;
-    else if (argv[i] === '--only') args.only = argv[++i].split(',');
-    else if (argv[i] === '--config') args.config = argv[++i];
-    else if (argv[i] === '--baseline') args.baseline = argv[++i];
-    else if (argv[i] === '--baseline-config') args.baselineConfig = argv[++i];
-    else if (argv[i] === '--strength') args.strength = argv[++i];
-    else if (argv[i] === '--ages-from') args.agesFrom = argv[++i];
-    else if (argv[i] === '--ages-through') args.agesThrough = argv[++i];
-    else if (argv[i] === '--at') {
-      const revision = argv[++i];
-      if (!revision?.trim() || revision.startsWith('-'))
-        throw new Misuse('--at needs a nonempty code revision');
-      args.at = revision;
-    }
-    else if (argv[i] === '--purpose') args.purpose = argv[++i];
+    // Every option that takes a value reads it through argv.mjs: an empty,
+    // blank, missing or option-shaped word is misuse and exits 2, where a bare
+    // `argv[++i]` would have handed the run a value it could only ignore --
+    // `--only ''` a filter no rule matches, `--at ''` no revision at all.
+    else if (argv[i] === '--only') { args.only = value(argv, i, '--only', 'a comma-separated list of check ids').split(','); i++; }
+    else if (argv[i] === '--config') { args.config = value(argv, i, '--config', 'a project config'); i++; }
+    else if (argv[i] === '--baseline') { args.baseline = value(argv, i, '--baseline', 'a baseline backlog'); i++; }
+    else if (argv[i] === '--baseline-config') { args.baselineConfig = value(argv, i, '--baseline-config', 'a baseline config'); i++; }
+    else if (argv[i] === '--strength') { args.strength = value(argv, i, '--strength', 'block, block-new or report'); i++; }
+    else if (argv[i] === '--ages-from') { args.agesFrom = value(argv, i, '--ages-from', 'the snapshot before the bulk edit'); i++; }
+    else if (argv[i] === '--ages-through') { args.agesThrough = value(argv, i, '--ages-through', 'the snapshot after the bulk edit'); i++; }
+    else if (argv[i] === '--at') { args.at = value(argv, i, '--at', 'a code revision'); i++; }
+    else if (argv[i] === '--purpose') { args.purpose = value(argv, i, '--purpose', 'a task id'); i++; }
     else if (argv[i] === '--selftest') args.selftest = true;
     else if (argv[i] === '--help' || argv[i] === '-h') args.help = true;
     else if (argv[i] === '--version') args.version = true;

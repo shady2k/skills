@@ -98,6 +98,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameS
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ValueNeeded, inlineValue, valueOf } from './argv.mjs';
 
 /** The schema version this program writes and reads; the folder layout is fixed by it alone. */
 export const PRODUCT_SCHEMA_VERSION = 1;
@@ -1343,6 +1344,28 @@ export function selftest() {
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+  // The command line reads every option's value through argv.mjs, whether the
+  // value follows the option or rides in it: an empty, blank, missing or
+  // option-shaped word is misuse (2) that names the option, where an empty one
+  // once stood for a value and the command carried on without it.
+  const refused = (argv, option) => {
+    const said = [];
+    const write = process.stderr.write.bind(process.stderr);
+    process.stderr.write = (c) => { said.push(String(c)); return true; };
+    let code;
+    try { code = main(argv); } finally { process.stderr.write = write; }
+    return code === 2 && said.join('').includes(`"${option}"`) ? null : `exit ${code}: ${said.join('').trim().split('\n')[0]}`;
+  };
+  for (const [name, argv, option] of [
+    ['an empty --date', ['new', '--date', ''], '--date'],
+    ['a missing --home', ['new', '--home'], '--home'],
+    ['an empty --home=', ['new', '--home='], '--home'],
+    ['a missing --branch', ['repo', 'add', 'f', 'n', 'u', '--branch'], '--branch'],
+    ['an option instead of the --branch value', ['repo', 'add', 'f', 'n', 'u', '--branch', '--home'], '--branch'],
+  ]) {
+    const why = refused(argv, option);
+    show(why === null, `cli: ${name} is misuse naming ${option}${why === null ? '' : ` (${why})`}`);
+  }
   return failures ? 1 : 0;
 }
 
@@ -1397,13 +1420,17 @@ function parseCommand(command, args) {
       values[name] = true;
       continue;
     }
+    // One reader for every option that takes a value, whether the value follows
+    // the option or rides in it: an empty, blank, missing or option-shaped one
+    // is misuse, and the refusal names the option.
     const inline = equals === -1 ? undefined : arg.slice(equals + 1);
-    let value = inline;
-    if (inline === undefined) value = args[++i];
-    const trimmed = typeof value === 'string' ? value.trim() : undefined;
-    if (trimmed === undefined || trimmed === '' || trimmed.startsWith('--'))
-      throw new Misuse(`the option "${name}" needs ${spec.options[name]}${value === undefined || trimmed === '' ? '' : `, not "${trimmed}"`}`);
-    values[name] = value;
+    try {
+      if (inline === undefined) { values[name] = valueOf(args, i, name, spec.options[name]); i++; }
+      else values[name] = inlineValue(inline, name, spec.options[name]);
+    } catch (error) {
+      if (error instanceof ValueNeeded) throw new Misuse(error.message);
+      throw error;
+    }
   }
   const [least, most] = spec.words;
   if (words.length < least || words.length > most)

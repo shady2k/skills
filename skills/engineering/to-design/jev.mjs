@@ -61,6 +61,7 @@ import { homedir, hostname, tmpdir, userInfo } from 'node:os';
 import { isAbsolute, join, resolve, sep } from 'node:path';
 import { runInNewContext } from 'node:vm';
 import { fileURLToPath } from 'node:url';
+import { ValueNeeded, valueOf } from './argv.mjs';
 
 // How sure an answer must be to be used, and the Jev it was measured on, where
 // the project has not set its own: this set's replay on jev-1.13. A project
@@ -844,6 +845,16 @@ async function selftest() {
   const s = summary(answers, cost);
   check('the summary counts settled, unsettled and not sent', /5 items: Jev settled 3, 1 are yours to read, 1 not sent/.test(s), s);
   check('a replay scores against the known answers', /all 1 of 2 right; settled 1 of 1; unsettled 0 of 1/.test(s), s);
+  // The command line reads every option's value through argv.mjs: an empty,
+  // blank, missing or option-shaped word is misuse that names the option,
+  // where `args[i + 1]` carried on with a value that said nothing.
+  const named = (args, option) => {
+    try { parse(args); return `no refusal for ${option}`; } catch (e) { return e instanceof Misuse && e.message.includes(`"${option}"`) ? null : e.message; }
+  };
+  check('an empty --question names the option', named(['--question', ''], '--question') === null, named(['--question', ''], '--question'));
+  check('a blank --context names the option', named(['--context', '   '], '--context') === null, named(['--context', '   '], '--context'));
+  check('a missing --options names the option', named(['--options'], '--options') === null, named(['--options'], '--options'));
+  check('an option instead of the --config value names the option', named(['--config', '--kind', 'choice'], '--config') === null, named(['--config', '--kind', 'choice'], '--config'));
   return failed ? 1 : 0;
 }
 
@@ -853,8 +864,16 @@ function parse(args) {
   const opts = { config: null, question: null, options: null, kind: 'choice', context: '' };
   for (let i = 0; i < args.length; i += 2) {
     const k = args[i]?.replace(/^--/, '');
-    if (!(k in opts) || args[i + 1] === undefined) throw new Misuse(`unknown or incomplete option ${args[i]}`);
-    opts[k] = args[i + 1];
+    if (!(k in opts)) throw new Misuse(`unknown option ${args[i]}`);
+    // One reader for every option that takes a value: `--question ''` asks
+    // nothing, `--options ''` is not JSON, and both are refused as misuse here
+    // rather than carried on as a value that says nothing.
+    try {
+      opts[k] = valueOf(args, i, args[i], k === 'kind' ? 'choice, check or score' : `the ${k}`);
+    } catch (e) {
+      if (e instanceof ValueNeeded) throw new Misuse(e.message);
+      throw e;
+    }
   }
   return opts;
 }

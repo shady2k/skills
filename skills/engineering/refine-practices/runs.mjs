@@ -22,6 +22,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { constants, homedir, hostname, tmpdir, userInfo } from 'node:os';
 import { dirname, isAbsolute, join } from 'node:path';
+import { ValueNeeded, valueOf } from './argv.mjs';
 import {
   Usage, adapter, adapterNames, collect, conversationOf, current, hasAdapter, localStamp, measure, parseWhen,
   projectName, recordedShapes, sessionEnvVars, span, transcriptOf, union, unnamedTranscripts,
@@ -33,6 +34,13 @@ import {
 
 // Where a record cannot be written here: the transcript is on another machine.
 export class NotHere extends Error {}
+
+class Unmapped extends NotHere {
+  constructor(session) {
+    super(`the transcript of ${session} exists locally but is unmapped to this repository or item; establish its repository ownership before measuring it; --unknown is not permitted`);
+    this.code = 'TRANSCRIPT_UNMAPPED';
+  }
+}
 
 const nowMs = () => Date.now();
 const iso = (ms) => new Date(ms).toISOString().replace(/\.\d{3}Z$/, 'Z');
@@ -109,6 +117,19 @@ function raws(opts) {
 // sure worked on it.
 const judged = new Set();
 const rawOf = (opts, key, item) => raws(opts).find((r) => `${r.harness}:${r.id}` === key) || (item ? transcriptOf(key, item, { judged }) : null);
+
+function localTranscriptExists(key) {
+  const harness = harnessOf(key);
+  if (!hasAdapter(harness)) return false;
+  const a = adapter(harness);
+  const sid = key.slice(harness.length + 1);
+  return a.transcripts(sid).some((ref) => {
+    try {
+      const raw = a.read(ref);
+      return !raw || raw.id === sid;
+    } catch { return true; }
+  });
+}
 
 // ---- asking Jev where the text does not say ----------------------------------
 
@@ -239,6 +260,7 @@ function measureSpan(raw, from, to) {
 function receiptFor(v, s, opts, { end, reason, note, recovered = false, at = nowMs() }) {
   adapter(harnessOf(s.session));
   const raw = rawOf(opts, s.session, s.item);
+  if (!raw && localTranscriptExists(s.session)) throw new Unmapped(s.session);
   if (!raw) throw new NotHere(`the transcript of ${s.session} (${s.claim.fields.agent}) is not on this machine: its receipt is written where it is, or closed with --unknown where no machine has it; never typed by hand, which the gate refuses as damaged`);
   const from = s.start;
   const to = Math.max(from, endOf(s, raw, at));
@@ -738,6 +760,7 @@ function recoveredClaim(v, it, me, role, opts) {
   const at = parseWhen(opts.at ?? '');
   if (!Number.isFinite(at)) throw new Usage('--at <time> is required: the start the transcript shows');
   const raw = rawOf(opts, me.key, it.id);
+  if (!raw && localTranscriptExists(me.key)) throw new Unmapped(me.key);
   if (!raw && !opts.basis) throw new NotHere(`the transcript of ${me.key} is not on this machine: its claim is recovered where it is, or, where no machine has it, from another record that dates it (--basis); never typed by hand, which the gate refuses as damaged`);
   if (raw && opts.basis) throw new Usage('the transcript is here: the claim is dated by it, not by another record');
   if (raw && (at < raw.first - 60e3 || at > raw.last)) throw new Usage(`--at ${localStamp(at)} is outside the session's transcript, ${localStamp(raw.first)} to ${localStamp(raw.last)}`);
@@ -753,6 +776,7 @@ function recoveredClaim(v, it, me, role, opts) {
  */
 function unknownReceipt(v, s, opts, { end, reason, note }) {
   if (rawOf(opts, s.session, s.item)) throw new Usage(`the transcript of ${s.session} is here: its receipt is measured, not unknown`);
+  if (localTranscriptExists(s.session)) throw new Unmapped(s.session);
   if (!note) throw new Usage('--note says why the time is unknown: where the session ran, and why its transcript is on no machine');
   // A harness this copy cannot read is said in the record itself, so the note
   // never claims that a machine looked for the transcript and found none. The
@@ -998,6 +1022,16 @@ async function execOnce(args, { err = (s) => console.error(s) } = {}) {
 
 const FLAGS = ['json', 'no-transcripts', 'recovered', 'unknown'];
 
+// argv.mjs refuses a value that cannot be one; the run script says so its own way.
+const value = (argv, i, option, what) => {
+  try {
+    return valueOf(argv, i, option, what);
+  } catch (e) {
+    if (e instanceof ValueNeeded) throw new Usage(e.message);
+    throw e;
+  }
+};
+
 function parseArgs(rest) {
   const opts = {};
   for (let i = 0; i < rest.length; i++) {
@@ -1005,8 +1039,11 @@ function parseArgs(rest) {
     if (!a.startsWith('--')) throw new Usage(`unexpected ${a}`);
     const key = a.slice(2);
     if (FLAGS.includes(key)) { opts[key] = true; continue; }
-    if (i + 1 >= rest.length) throw new Usage(`${a} needs a value`);
-    opts[key] = rest[++i];
+    // Every option that takes a value reads it through argv.mjs: an empty or
+    // blank one is misuse here, where `argv[++i]` handed the run a value that
+    // then vanished -- `--backlog ''` read no backlog at all.
+    opts[key] = value(rest, i, a);
+    i++;
   }
   return opts;
 }
@@ -1445,7 +1482,7 @@ runs.mjs claim --claims-for <harness:session> --item <id> --role <role> [--forec
   the claim for a run this session is starting in another session, which cannot claim yet: the span is the run's (its key), this
   session's key is kept in the record, and the run claims nothing again -- its receipt ends the span
 runs.mjs receipt [--span <id>] --end paused|finished|handed-over|stopped [--reason owner|missing|other] [--note <text>] [--recovered]
-  what the span spent, measured from this machine's transcript (exit 3 when it is not here)
+  what the span spent, measured from this machine's transcript (exit 3 when it cannot be measured here)
 runs.mjs receipt --span <id> --end ... --unknown --note <why>
   closes a span whose transcript no machine has: its time unknown, the reason said
 runs.mjs event [--span <id>] --event stop|decision|ci [--reason owner|missing|other] [--note <text>]
@@ -1485,7 +1522,7 @@ transcript never names the item: only a sure yes counts, and the ones it is unsu
 The current session is found by itself where the harness names it (Claude Code, Codex, pi); else --harness
 claude-code|codex|pi|omp|prime-agent --session <id>.
 Transcripts belong to the project by its git repository: [--project <name>] [--repo <path>]. Add --json for data.
-Exit 0 done, 2 misuse, 3 the transcript is on another machine. exec exits with the command's own code, 124 when it was stopped past its bound, 127 when it did not start.`;
+Exit 0 done, 2 misuse, 3 unavailable here: absent, locally unmapped, or unreadable identity. exec exits with the command's own code, 124 when it was stopped past its bound, 127 when it did not start.`;
 
 // ---- self-test -----------------------------------------------------------------
 
@@ -2009,6 +2046,18 @@ async function selftest() {
     expect('misuse: a stop without its reason', misuse(['event', '--span', claim.fields.span, '--event', 'stop', '--backlog', file]));
     expect('misuse: an unknown command', misuse(['frobnicate', '--backlog', file]));
     expect('misuse: no session given or found', misuse(['claim', '--item', 'A', '--role', 'worker', '--backlog', file]));
+    // Every option that takes a value reads it through argv.mjs: an empty,
+    // blank or option-shaped word is misuse that names the option, where
+    // `argv[++i]` handed the run a value that then vanished.
+    const named = (a, option) => {
+      try { rawCache = null; run(a); return `no refusal for ${option}`; } catch (e) { return e instanceof Usage && e.message.includes(`"${option}"`) ? null : e.message; }
+    };
+    expect('misuse: an empty --backlog names the option', named(['receipt', '--span', 'x', '--end', 'finished', '--backlog', ''], '--backlog') === null);
+    expect('misuse: a blank --item names the option', named(['claim', '--item', '   ', '--role', 'worker', '--backlog', file], '--item') === null);
+    expect('misuse: an option instead of the --item value names the option', named(['claim', '--item', '--role', 'worker', '--backlog', file], '--item') === null);
+    expect('a bare - is still a value, where the backlog is read from stdin', (() => {
+      try { rawCache = null; run(['frobnicate', '--backlog', '-']); return false; } catch (e) { return e instanceof Usage && !e.message.includes('"--backlog"'); }
+    })());
 
     // A span of a harness this copy cannot read, inside a feature that is then
     // summarised: the summary says so, and counts it neither as unknown time
@@ -2118,7 +2167,8 @@ async function main() {
     if (text !== undefined) console.log(text);
     return process.exitCode ?? 0;
   } catch (e) {
-    if (e instanceof NotHere) { console.error(e.message); return 3; }
+    if (e.code === 'TRANSCRIPT_UNREADABLE') { console.error(`${e.code}: ${e.message}`); return 3; }
+    if (e instanceof NotHere) { console.error(e.code ? `${e.code}: ${e.message}` : e.message); return 3; }
     if (!(e instanceof Usage)) throw e;
     console.error(`${e.message}\n\n${HELP}`);
     return 2;
