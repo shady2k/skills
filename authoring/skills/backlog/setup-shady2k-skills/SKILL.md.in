@@ -935,6 +935,20 @@ fixture sizes and forecast records the adapter must carry. The run script's new
 what a task serves, whom it serves and where a person sees it, for the brief
 handed to whoever does the work.
 
+**What an update to this setup version changes, in the owner's terms.** A
+judgement record is now read from the document it judges. Each of its entries
+names one of your journeys or principles by id and quotes a passage copied out of
+the document — a clause, not a word, and not a description of one — and the gate
+finds that passage in the same text the record is bound to, so a quote it cannot
+find stops the record (`unknown-vision-id`, `unfound-quote`) and a document
+edited since it was given stops it as before (`missing-judgement`). With your
+agreement this run rewrites the judgement records a live charter or an admitted
+change already carries; a record already in the new shape is left alone. The
+vision's journeys now travel in the export beside its principles, since a
+judgement may name either: an adapter reading the vision with the shipped reader
+gets them, and one that builds the vision itself adds the list. A project with no
+judgement record is not stopped.
+
 An update that brings the store out of the branches tells the owner the move
 is coming and why, in their terms, and how it is done without losing a record:
 snapshot the old state first; start the store; take what is written during the

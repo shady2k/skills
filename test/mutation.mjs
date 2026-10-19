@@ -56,7 +56,9 @@ const mutations = [
     ['missing-principle', 'missing-principle'],
     ['missing-design-match', 'review-without-a-design-match'],
     ['design-divergence', 'review-that-found-a-divergence'],
-    ['missing-judgement', 'no-judgement-record']].map(([id, fixture]) => ({
+    ['missing-judgement', 'no-judgement-record'],
+    ['unknown-vision-id', 'a-judgement-names-an-undeclared-id'],
+    ['unfound-quote', 'a-judgement-quote-is-not-in-the-document']].map(([id, fixture]) => ({
     name: `documents-${id}`, file: 'check-docs.mjs', failure: `FAIL  documents/${fixture}:`,
     change: (code) => code.replace('if (condition) violations.push', `if (condition && id !== '${id}') violations.push`),
   })),

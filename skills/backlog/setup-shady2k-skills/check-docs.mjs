@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const RULES_VERSION = '0.48.0';
+export const RULES_VERSION = '0.49.0';
 const here = dirname(fileURLToPath(import.meta.url));
 const object = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
 const canonical = (x) => Array.isArray(x) ? x.map(canonical) : object(x)
@@ -29,10 +29,42 @@ export const decided = (change) => ({
 // and the constraints and kept principles the design answers with. An approval
 // and a judgement answer different questions, so they bind different digests:
 // editing a constraint voids the judgement and leaves the approval standing.
-export const judged = (change) => digest({
+// The design as the gate stands behind it, and the text a design judgement's
+// quotes are searched in: one projection, so the digest and the search cannot
+// drift apart.
+export const judgedText = (change) => ({
   decided: decided(change), constraints: change.constraints ?? [], principles: change.principles ?? [],
 });
+export const judged = (change) => digest(judgedText(change));
 const present = (s) => s.trim().length > 0 && !/\b(TODO|TBD|TKTK)\b|\[NEEDS CLARIFICATION|<[^>]+>/i.test(s);
+
+// A judgement's quote is a passage of the document it judged, not a description
+// of one, and the gate finds it without a model. What it searches is the text
+// the record is bound to — the same object whose digest the record has to carry:
+// the charter for a charter judgement, and for a design the projection `judged`
+// hashes. So a passage that is found is a passage at the bound revision by
+// construction, and a quote from anything the digest does not stand for (a
+// rationale, a task id) is refused instead of taken on somebody's word. The
+// document is never read a second time, in the tree or from a copy: a second
+// copy would be a second owner. Whitespace is collapsed on both sides, because
+// where a line breaks is not part of a passage; nothing else is forgiven,
+// because a quote that is nearly there is not in the document.
+export const QUOTE_MIN_CHARS = 20;
+export const QUOTE_MIN_WORDS = 3;
+const normalize = (s) => s.replace(/\s+/g, ' ').trim();
+const wordsIn = (s) => (s.match(/\p{L}{2,}/gu) ?? []).length;
+const passages = (x) => typeof x === 'string' ? [x] : Array.isArray(x) ? x.flatMap(passages)
+  : object(x) ? Object.values(x).flatMap(passages) : [];
+// Two minimums, because length alone does not measure whether a passage can be
+// located: punctuation, a marker line or a run of dots reaches any length, and a
+// bare id is one word however long it is. One word, one identifier, a
+// placeholder or a dotted line locates nothing; an ordinary clause passes both.
+const quoteFound = (quote, judged) => {
+  const wanted = normalize(quote);
+  return wanted.length >= QUOTE_MIN_CHARS && wordsIn(wanted) >= QUOTE_MIN_WORDS
+    // One field is one passage: a quote spliced across two fields is in neither.
+    && passages(judged).some((t) => normalize(t).includes(wanted));
+};
 
 // Closed schemas catch misspelled fields and wrong types before evaluating rules.
 const array = (of) => ({ array: of });
@@ -89,7 +121,9 @@ const modelSchema = {
       // holds them. Present means the project keeps them: a design then answers
       // to at least one, and each it names is one of its constraints.
       // A journey and a principle are both a title: the owner's own wording,
-      // which every document below names by id and never copies.
+      // which every document below names by id and never copies. A judgement
+      // names either, so the export carries both.
+      journeys: optional(array({ id: 'id', title: 'string' })),
       principles: optional(array({ id: 'id', title: 'string' })),
     },
     milestone: { id: 'string', outcomes: array('string'), exclusions: 'string' },
@@ -123,9 +157,13 @@ const evidenceSchema = {
   // The boundary judgement: a different model's answer, on the revision it
   // answered about, to which journeys and principles this document serves and
   // which it breaks. One record per boundary, never per commit.
+  // Each entry is a claim about one of the owner's journeys or principles that
+  // the record answers with, and the passage it was read from; both are checked
+  // (inspectJudgement): the ids against the vision, the passages against the
+  // judged document itself.
   judgement: optional({
     charterDigest: optional('string'), designDigest: optional('string'),
-    answeredBy: 'string', serves: array('string'), breaks: array('string'),
+    answeredBy: 'string', serves: array({ id: 'id', quote: 'string' }), breaks: array({ id: 'id', quote: 'string' }),
   }),
 };
 
@@ -186,7 +224,9 @@ const WHY = {
   'missing-principle': 'a change to what the product does answers to none of the principles the vision keeps: name the ones this area serves',
   'missing-design-match': 'the review that admitted this change did not answer whether the build matches the design: the review record carries "matches the design: yes/no, divergences"',
   'design-divergence': 'the review answered that the build does not match the design. Green looks like this: the divergence is decided — the build changed to the design, or the design changed and was approved again — and no divergence is left named',
-  'missing-judgement': 'no different model\'s judgement stands on this document\'s current revision: which journeys and principles of the vision it serves and which it breaks, with quotes. An edit needs a new record; one is asked for at a boundary, never per commit',
+  'missing-judgement': 'no different model\'s judgement stands on this document\'s current revision: which journeys and principles of the vision it serves and which it breaks, each with the passage it was read from. An edit needs a new record; one is asked for at a boundary, never per commit',
+  'unknown-vision-id': 'a judgement\'s entry names one of the owner\'s journeys or principles, because what this document serves or breaks is one of his own: an id the vision record does not declare names nothing, so no one can read the claim. Green looks like this: name an id the vision record carries, and say which passage of the document the claim rests on',
+  'unfound-quote': 'a judgement\'s quote is a passage of the document it judged, found verbatim in the text the export carries for that document — a charter\'s outcomes and exclusions, a design record\'s own fields — with only whitespace forgiven, and at least 20 characters long so that a word, a bare id or a placeholder is not passed off as one. Green looks like this: copy the sentence out of the document instead of describing it, or have the adapter carry that part of the document',
 };
 // A mutation run measures how strong the tests are; it never decides whether
 // the change is correct. What its run gave to this revision is reported and
@@ -254,18 +294,35 @@ export function checkDocuments(model, policy, evidence = null) {
   const principles = model.project.vision.principles ?? [];
   unique(principles.map((x) => x.id), 'vision/principles');
   for (const x of principles) required(x.title, `vision/principles/${x.id}`);
-  const inspectJudgement = (record, at) => {
+  const journeys = model.project.vision.journeys ?? [];
+  unique(journeys.map((x) => x.id), 'vision/journeys');
+  for (const x of journeys) required(x.title, `vision/journeys/${x.id}`);
+  // What a judgement may name: the vision's journeys and principles, one
+  // namespace, because a claim of what a document serves or breaks is a claim
+  // about one of the owner's own. The judged document is searched for the quote
+  // and nothing else is: the object the record is bound to is the object a
+  // passage has to be in.
+  const declared = new Set([...journeys, ...principles].map((x) => x.id));
+  const inspectJudgement = (record, at, judged) => {
     required(record.answeredBy, `${at}/answeredBy`);
     // A record that serves nothing is not an answer to the question it was asked.
     check('missing-judgement', record.serves.length === 0, `${at}/serves`);
-    record.serves.forEach((q, i) => required(q, `${at}/serves/${i}`));
-    record.breaks.forEach((q, i) => required(q, `${at}/breaks/${i}`));
+    for (const [kind, list] of [['serves', record.serves], ['breaks', record.breaks]])
+      list.forEach((entry, i) => {
+        const entryAt = `${at}/${kind}/${i}`;
+        // Each entry gets one refusal, not two for one thing: a placeholder
+        // quote is unfinished content and is not asked the harder question.
+        const placeholder = !present(entry.quote);
+        check('unfinished-content', placeholder, `${entryAt}/quote`);
+        check('unknown-vision-id', declared.size > 0 && !declared.has(entry.id), `${entryAt}/${entry.id}`);
+        check('unfound-quote', !placeholder && !quoteFound(entry.quote, judged), entryAt);
+      });
   };
   if (model.phase === 'product' && principles.length) {
     const record = evidence?.judgement;
     const bound = record && record.charterDigest === digest(model.project.milestone);
     check('missing-judgement', !bound, 'milestone');
-    if (bound) inspectJudgement(record, 'evidence/judgement');
+    if (bound) inspectJudgement(record, 'evidence/judgement', model.project.milestone);
   }
   if (model.phase === 'product') return violations;
   check('missing-change', model.change === null, 'change');
@@ -424,7 +481,7 @@ export function checkDocuments(model, policy, evidence = null) {
       const record = evidence?.judgement;
       const bound = record && record.designDigest === judged(change);
       check('missing-judgement', !bound, 'change');
-      if (bound) inspectJudgement(record, 'evidence/judgement');
+      if (bound) inspectJudgement(record, 'evidence/judgement', judgedText(change));
     }
     if (notes.length) violations.notes = notes;
   }
@@ -462,14 +519,26 @@ export function fixtureCases() {
     for (const patch of c.patches) apply(input, patch);
     // A fixture may ask for a judgement on its own revision: the digests are
     // computed from the model as it stood at that boundary, so a case can edit
-    // the document and ask whether the judgement it carried still stands.
+    // the document and ask whether the judgement it carried still stands. The
+    // record answers with the first id the vision declares and a passage of the
+    // document it judges; a case names its own id ('id') or its own quote
+    // ('quote') when the rule is what it is asking about.
     if (c.judgement) {
       const source = judgedAt;
+      // What the gate searches, and what the record is bound to: the charter for
+      // a charter judgement, and for a design the projection `judged` hashes.
+      const charter = source.model.phase === 'product';
+      const documentText = charter ? source.model.project.milestone
+        : source.model.change ? judgedText(source.model.change) : {};
+      const vision = source.model.project.vision;
+      const ids = [...(vision.journeys ?? []), ...(vision.principles ?? [])].map((x) => x.id);
+      const quoted = c.quote ?? (charter ? documentText.outcomes?.[0] : documentText.decided?.intent) ?? '';
       input.evidence.judgement = {
         charterDigest: digest(source.model.project.milestone),
-        designDigest: source.model.change ? judged(source.model.change) : null,
+        // Absent, never null: a product-phase record answers about the charter.
+        ...(source.model.change ? { designDigest: judged(source.model.change) } : {}),
         answeredBy: 'fixture:another-model',
-        serves: ['"a person reaches their first result" (O1)'],
+        serves: [{ id: c.id ?? ids[0], quote: quoted }],
         breaks: [],
       };
     }

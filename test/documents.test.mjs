@@ -241,6 +241,14 @@ test('the shipped templates parse once their identifiers are filled in, and thei
   assert.ok(vision.audience && vision.problem && vision.outcome && vision.exclusions);
   const small = parseVision('## Audience\nA\n## Problem\nP\n## Outcome\nO\n## Exclusions\nE');
   assert.deepEqual(small, { audience: 'A', problem: 'P', outcome: 'O', exclusions: 'E' });
+  // A journey and a principle are read the same way, because a judgement names
+  // either and the gate has to know which ids the vision declares.
+  const kept = parseVision('## Key journeys\nJ1: Maria, who runs a bakery, orders flour.\n## Principles\nP1: The receipt is never re-sent.\n');
+  assert.deepEqual(kept.journeys, [{ id: 'J1', title: 'Maria, who runs a bakery, orders flour.' }]);
+  assert.deepEqual(kept.principles, [{ id: 'P1', title: 'The receipt is never re-sent.' }]);
+  // The shipped vision template carries no journey until its placeholder is
+  // replaced, so it parses to an empty list rather than to invented ids.
+  assert.deepEqual(vision.journeys, []);
   assert.throws(() => parseVision('## Audience\nA\n## Personas\nX'), /unrecognized section: Personas/);
   assert.equal(parseMilestone(read('milestone.md'), 'm1').outcomes.length, 1);
   // A template is placeholders; with each identifier filled in, it parses.
