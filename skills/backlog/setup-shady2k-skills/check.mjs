@@ -1181,6 +1181,10 @@ function runSelftest(cfg, projectConfigPath) {
     ['a read at a revision with no revision in the source', 2, ['--config', fixtureCfg, '--strength', 'block', '--at', 'rev-a', stale]],
     ['a read at a revision that read another one', 2, ['--config', fixtureCfg, '--strength', 'block', '--at', 'rev-a', put('at-other.json', { ...load('bad', 'stale-hold.json'), source: 'fixture bad/stale-hold @ rev-b' })]],
     ['a read at the revision it stands for', 1, ['--config', fixtureCfg, '--strength', 'block', '--at', 'rev-a', put('at-same.json', { ...load('bad', 'stale-hold.json'), source: 'fixture bad/stale-hold @ rev-a' })]],
+    ['an empty requested revision', 2, ['--config', fixtureCfg, '--strength', 'report', '--at', '', stale]],
+    ['a whitespace-only requested revision', 2, ['--config', fixtureCfg, '--strength', 'report', '--at', '   ', stale]],
+    ['a missing requested revision', 2, ['--config', fixtureCfg, '--strength', 'report', stale, '--at']],
+    ['an option instead of the requested revision', 2, ['--config', fixtureCfg, '--strength', 'report', stale, '--at', '--json']],
   ]) {
     const got = run(...argv).status;
     say(got === want, `cli: ${what} → exit ${got}${got === want ? '' : `, expected ${want}`}`);
@@ -1222,7 +1226,12 @@ function main() {
     else if (argv[i] === '--strength') args.strength = argv[++i];
     else if (argv[i] === '--ages-from') args.agesFrom = argv[++i];
     else if (argv[i] === '--ages-through') args.agesThrough = argv[++i];
-    else if (argv[i] === '--at') args.at = argv[++i];
+    else if (argv[i] === '--at') {
+      const revision = argv[++i];
+      if (!revision?.trim() || revision.startsWith('-'))
+        throw new Misuse('--at needs a nonempty code revision');
+      args.at = revision;
+    }
     else if (argv[i] === '--purpose') args.purpose = argv[++i];
     else if (argv[i] === '--selftest') args.selftest = true;
     else if (argv[i] === '--help' || argv[i] === '-h') args.help = true;
