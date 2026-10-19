@@ -2055,7 +2055,9 @@ async function selftest() {
     expect('misuse: an empty --backlog names the option', named(['receipt', '--span', 'x', '--end', 'finished', '--backlog', ''], '--backlog') === null);
     expect('misuse: a blank --item names the option', named(['claim', '--item', '   ', '--role', 'worker', '--backlog', file], '--item') === null);
     expect('misuse: an option instead of the --item value names the option', named(['claim', '--item', '--role', 'worker', '--backlog', file], '--item') === null);
-    expect('a bare - is still a value, where the backlog is read from stdin', (() => {
+    // The parser accepts it; reading the backlog from it is readBacklog's, which
+    // the receipts and receipts-workspace cases exercise through `--backlog -`.
+    expect('a bare - is a value, not an option, so the parser takes it', (() => {
       try { rawCache = null; run(['frobnicate', '--backlog', '-']); return false; } catch (e) { return e instanceof Usage && !e.message.includes('"--backlog"'); }
     })());
 
