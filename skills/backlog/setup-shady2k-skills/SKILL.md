@@ -36,7 +36,9 @@ reading the project, before changing anything, size the announcement to the run:
   rough duration with its basis ("about 900 open issues: the cleanup is the
   long part, likely more than one session").
 
-Durations are estimates; say so once, and revise them when they turn out wrong.
+Durations are estimates; say so once, revise them when they turn out wrong, and
+answer a doubt by the protocol's **A time told to the owner is measured, and a
+dispute is answered with its basis**.
 
 1. **Look around**: read the project, tracker and existing installation. Agent only.
 2. **Tidy the queue**: agree with the user what is current, what waits and what

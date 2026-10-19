@@ -127,8 +127,9 @@ Before the owner leaves, prepare the run so it needs nobody:
   **Whoever started a run answers for it to the owner**. Give it
   in agent time, by the protocol's **Estimates**, starting from the measured
   pace: `pace --tasks <n>`, which also proposes the forecast by phase, with
-  the absence named below. The clock past runs lasted, which it prints
-  apart, is no forecast. If that is longer than the project lets a branch
+  the absence named below, and by the protocol's **A time told to the owner is
+  measured, and a dispute is answered with its basis**. The clock past runs
+  lasted, which it prints apart, is no forecast. If that is longer than the project lets a branch
   live, the feature is too big for one run: split it
   with the owner through `to-stages` (and `/to-milestone` if the outcome
   changes) first;

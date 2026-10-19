@@ -46,7 +46,9 @@ code without you and report in plain words. They work with Claude Code, Codex, P
   the code, kept by capability; accepted work is merged into them, so they never
   turn into a pile of old plans.
 - **Estimates from your own history**, in agent time, measured on this project,
-  with what they rest on and a word when work outgrows them.
+  with what they rest on and a word when work outgrows them. A time an agent
+  tells you is the same measurement: doubt it and you are shown the basis, not
+  handed a smaller guess.
 - **Any session picks the work up.** Everything agreed is in the repository, not
   in the chat, and `handoff` keeps what only the conversation knew.
 - **A thinking partner, not a questionnaire.** In any conversation that weighs
@@ -259,11 +261,11 @@ In Claude Code the plugin prefixes them: `/shady2k-skills:ask-shady2k`.
 
 | skill | what it does | when to use it |
 | --- | --- | --- |
-| [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md) | Reads the project and tells you where it stands, how far it has come, what is stuck and which ways forward exist, with one recommendation; or, for the team's daily sync, what was done over a period, what got in the way, the questions for others and whether the work fits by a date. Changes nothing. | At the start of a session, after a break, in an unfamiliar project, whenever you are unsure what comes next, before a standup. |
+| [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md) | Reads the project and tells you where it stands, how far it has come, what is stuck and which ways forward exist, with one recommendation and each way's time measured with its basis; or, for the team's daily sync, what was done over a period, what got in the way, the questions for others and whether the work fits by a date. Changes nothing. | At the start of a session, after a break, in an unfamiliar project, whenever you are unsure what comes next, before a standup. |
 | [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md) | Connects the project's tracker — one copy per machine, outside the code branches and in step with every machine, with the synchronization that keeps it so installed and started — cleans its queue with you, proposes settings as one profile, proves the checks work and, in a product repository, writes the product's kinds registry, with the kinds' link declarations. Rerunning it after 0.49.0 rewrites the judgement records a live charter or an admitted change carries, in your presence, and exports the journeys of your vision so a judgement can name them. | Once per project, and again when a skill says the installation is out of date. |
 | [to-milestone](skills/backlog/to-milestone/SKILL.md) | Agrees what the next version delivers, what is left out and how many new bugs it can absorb. Each outcome names the vision journeys and principles it serves, and the charter's acceptance carries another model's judgement of what it serves and breaks, each entry naming an id the vision declares and quoting a passage of the charter. | When the current version is done, or a project has no agreed next step. |
 | [refine-practices](skills/engineering/refine-practices/SKILL.md) | Reads how the work has gone since the last retrospective and judges the active practices first: the classes of error that came back, each put to you with a recommended practice to add or retire, and the practices that caught nothing in the period with what each costs, to retire or loosen — the ones guarding an expensive failure, such as publication, permissions or data loss, kept whatever the period held. Put to you as your project's setting for open questions says. | At the end of a milestone, when about five features have closed without one, or whenever you want to look back. |
-| [take-task](skills/engineering/take-task/SKILL.md) | Before you leave, gathers every decision a planned feature will need, in one list or one question at a time as your project chose; then builds the whole feature without you up to one pull request, deciding small gaps itself, stopping only for decisions that need you and telling you what the run's own overhead is costing. It never reaches green by making a check easier to pass. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, and every worker's brief carries what its task serves, whom it serves and where you see it. | When a feature is planned and you want it built while you are away. |
+| [take-task](skills/engineering/take-task/SKILL.md) | Before you leave, gathers every decision a planned feature will need, in one list or one question at a time as your project chose; then builds the whole feature without you up to one pull request, deciding small gaps itself, stopping only for decisions that need you and telling you what the run's own overhead is costing. It never reaches green by making a check easier to pass. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, a duration it tells you is that same measurement with its basis, and every worker's brief carries what its task serves, whom it serves and where you see it. | When a feature is planned and you want it built while you are away. |
 | [handoff](skills/productivity/handoff/SKILL.md) | Keeps the work's state in the tracker and leaves what only this conversation knows where a fresh session will look, saying which effects already reached outside rather than leaving a status to be trusted. | Before you stop, or when a session gets too long. |
 | [ship-release](skills/engineering/ship-release/SKILL.md) | Carries merged, accepted work to its users: version by the project's scheme, release notes in what users can do, migrations with their reverse, rollout by environment with a check after each step and the rollback named before any step runs; a step already taken is read from the system that holds it, never run twice after a stop. | When a feature's pull request is merged and the project's users get it later than the merge. |
 | [handle-incident](skills/engineering/handle-incident/SKILL.md) | Restores a product failing in use — each move read from the system that holds it, so a session taking over does not undo what is already undone — then finds the cause through `diagnose-bug`, then holds a blameless review whose actions are filed as work. | When a product runs for users and they report it is down or broken. |
@@ -887,6 +889,22 @@ can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
+
+- **0.121.0** answers a time you question with its basis. A duration or a date an
+  agent says to you now comes from the same measurement a document's forecast
+  uses: the pace of finished work in your project, with how many comparable
+  pieces of work it rests on and the range between them. The old habit was a
+  padded round figure, and, when you objected, a smaller figure with no more
+  basis than the first. Now a figure you doubt is shown with what it rests on, or
+  recomputed from it, and it changes only on new evidence — a narrower scope, a
+  measurement the agent had missed — with that evidence named. Too little history
+  is said plainly, with the nearest comparable work it measured and its time, or
+  with no number at all. The same holds wherever a time reaches you: before a run
+  starts, while a milestone is agreed, in a breakdown, in the queue cleanup, in a
+  standup report and in the next step a skill offers. A dispute about a figure is
+  not an order to change what is done next, and a reorder is put as its own
+  decision. Nothing a project installs changed, so no project needs to rerun
+  setup.
 
 - **0.120.0** stops the product-documents check from guessing. Once a project
   keeps its first practice record, the check reads every Markdown file under

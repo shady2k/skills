@@ -106,7 +106,9 @@ the integration names for them; that is the type the gate checks for a DONE WHEN
 ## 4. Present the breakdown
 
 Show a numbered list: title, what it makes true, what it waits for. Explain
-each stage's result, size, real prerequisites and what can run in parallel, in
+each stage's result, size, real prerequisites, what can run in parallel and
+roughly how long it will take, by the protocol's [**A time told to the owner is
+measured, and a dispute is answered with its basis**](references/running.md), in
 terms of the outcome it enables and the cost or risk of changing it. The user
 changes named entries; they do not approve every task or assignment. Ask about
 open product, cost or risk decisions as the protocol's [**How an open question

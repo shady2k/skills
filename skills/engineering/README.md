@@ -6,7 +6,7 @@ Tracked work, proportional design and acceptance of an assembled stage.
 
 - [take-task](./take-task/SKILL.md): preflight with the owner, then run a whole
   feature alone to one pull request, stopping only for decisions that need them
-  and telling them unasked what the run's own overhead is costing. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, and every worker's brief carries what its task serves, whom it serves and where you see it.
+  and telling them unasked what the run's own overhead is costing. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, a duration it speaks is that measurement with its basis and is not renumbered because the owner doubted it, and every worker's brief carries what its task serves, whom it serves and where you see it.
 - [ship-release](./ship-release/SKILL.md): carry merged, accepted work to its
   users — version, release notes, migrations with their reverse, rollout by
   environment with the rollback named before each step; through the project's
