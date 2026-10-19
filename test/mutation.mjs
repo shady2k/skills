@@ -93,6 +93,21 @@ const mutations = [
     name: `present-${id}`, file: 'check-present.mjs', failure: `FAIL  present/${fixture}`,
     change: (code) => code.replace(from, to),
   })),
+  // The product-documents check: prose the set does not write is not searched
+  // for references, and a document the set writes still has every id checked.
+  ...[
+    ['all-prose-is-owned', 'return { identity, written: path === VISION || Boolean(identity) || field || inFolders(path, folders) };',
+      'return { identity, written: true };', 'product/decision-record-prose-that-looks-like-an-id'],
+    ['no-prose-is-owned', 'return { identity, written: path === VISION || Boolean(identity) || field || inFolders(path, folders) };',
+      'return { identity, written: false };', 'product/bare-missing-id-in-a-product-document'],
+    ['a-link-is-a-reference', 'for (const target of linkTargets(l.raw, path))', 'for (const target of [])',
+      'product/decision-record-link-to-a-missing-document'],
+    ['a-comment-is-an-example', ").replace(/<!--[\\s\\S]*?-->/g, '')", ')',
+      'product/link-inside-an-html-comment-is-an-example'],
+  ].map(([id, from, to, fixture]) => ({
+    name: `product-${id}`, file: 'check-product.mjs', failure: `FAIL  ${fixture}`,
+    change: (code) => code.replace(from, to),
+  })),
   { name: 'documents-schema', file: 'check-docs.mjs', failure: 'FAIL  documents/unknown-field:',
     change: (code) => code.replace("schema(model, modelSchema, 'model');", '// model schema deliberately disabled') },
 ];

@@ -18,7 +18,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hasCriterion } from './check.mjs';
 
-const RULES_VERSION = '0.50.0';
+const RULES_VERSION = '0.51.0';
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 // Text that shapes nothing is not an understanding: a criterion made only of
