@@ -5,7 +5,7 @@
       "phase": "feature",
       "revision": "candidate-1",
       "mockups": [
-        "docs/mock/wizard.html"
+        "docs/mock/signup-page.html"
       ],
       "project": {
         "mode": "new",
@@ -132,7 +132,7 @@
             "press Export",
             "see the file download with column names"
           ],
-          "mockup": "docs/mock/wizard.html"
+          "mockup": "docs/mock/signup-page.html"
         }
       }
     },

@@ -13,7 +13,7 @@
       ],
       "parent": null,
       "blockedBy": [],
-      "body": "DONE WHEN a person gets a first result by answering the questions once.\nSeen at: wizard",
+      "body": "DONE WHEN a person gets a first result by answering the questions once.\nSeen at: signup-page",
       "updatedAt": "2026-01-30T00:00:00.000Z"
     },
     {
@@ -26,7 +26,7 @@
       ],
       "parent": "F1",
       "blockedBy": [],
-      "body": "## DONE WHEN\nTODO wizard\n",
+      "body": "## DONE WHEN\nTODO signup-page\n",
       "updatedAt": "2026-01-30T00:00:00.000Z",
       "createdAt": "2026-01-30T00:00:00Z"
     }

@@ -4,7 +4,7 @@
   "outcomes": [
     {
       "id": "O1",
-      "title": "a person reaches a first result in the first-run wizard"
+      "title": "a person reaches a first result in the signup-page"
     }
   ],
   "issues": [
@@ -32,7 +32,7 @@
       ],
       "parent": "R",
       "blockedBy": [],
-      "body": "DONE WHEN a person gets a first result by answering the questions once.\nSeen at: wizard",
+      "body": "DONE WHEN a person gets a first result by answering the questions once.\nSeen at: signup-page",
       "updatedAt": "2026-01-30T00:00:00.000Z"
     },
     {

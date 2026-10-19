@@ -4,7 +4,7 @@
   "outcomes": [
     {
       "id": "O1",
-      "title": "a person reaches a first result in the first-run wizard"
+      "title": "a person reaches a first result in the signup-page"
     }
   ],
   "issues": [
@@ -19,7 +19,7 @@
       ],
       "parent": null,
       "blockedBy": [],
-      "body": "DONE WHEN a person gets a first result.\nSeen at: wizard",
+      "body": "DONE WHEN a person gets a first result.\nSeen at: signup-page",
       "updatedAt": "2026-01-30T00:00:00.000Z"
     },
     {
@@ -43,7 +43,7 @@
       ],
       "parent": "F1",
       "blockedBy": [],
-      "body": "Preparatory: replace the flat store the wizard reads from.\n## DONE WHEN\nThe store first reads rows in date order.",
+      "body": "Preparatory: replace the flat store the signup-page reads from.\n## DONE WHEN\nThe store first reads rows in date order.",
       "updatedAt": "2026-01-30T00:00:00.000Z",
       "createdAt": "2026-01-30T00:00:00Z"
     },
@@ -68,7 +68,7 @@
       ],
       "parent": "F1",
       "blockedBy": [],
-      "body": "## DONE WHEN\nThe first-run wizard shows a first result. Falsified if it shows nothing.\nServes: O1",
+      "body": "## DONE WHEN\nThe signup-page shows a first result. Falsified if it shows nothing.\nServes: O1",
       "updatedAt": "2026-01-30T00:00:00.000Z",
       "createdAt": "2026-01-30T00:00:01Z"
     }

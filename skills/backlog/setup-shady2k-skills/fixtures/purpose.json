@@ -14,7 +14,7 @@
         ],
         "parent": null,
         "blockedBy": [],
-        "body": "DONE WHEN a person gets a first result by answering the questions once.\nSeen at: wizard",
+        "body": "DONE WHEN a person gets a first result by answering the questions once.\nSeen at: signup-page",
         "updatedAt": "2026-01-30T00:00:00.000Z"
       },
       {
@@ -93,7 +93,7 @@
         "principle P1: Knowledge is gathered from the general to the specific.",
         "stage T1: Issue T1",
         "under E1: Issue E1",
-        "seen at wizard"
+        "seen at signup-page"
       ]
     },
     {
@@ -112,7 +112,7 @@
         "serves J1: A person gathers the general picture first, each pass building on the last.",
         "principle P1: Knowledge is gathered from the general to the specific.",
         "under E1: Issue E1",
-        "seen at wizard"
+        "seen at signup-page"
       ]
     }
   ]
