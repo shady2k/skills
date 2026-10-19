@@ -826,6 +826,7 @@ work it was.
 | `check-commits.mjs` | unlinked commits or links to absent issues/containers, and code changed for a task whose understanding is not admitted |
 | `check-docs.mjs` | unfinished required fields, missing scenarios/task links, conflicting or stale deltas, missing coverage, stale/missing receipts and unsynchronized current requirements, a change record with no place of observation, and a screen whose named mockup is not in the tree |
 | `check-present.mjs` | a path the agent doc, glossary, architecture or current specs name that the change removed, or a link it broke; older dead paths, code no document mentions and documents left behind are reported |
+| `check-product.mjs` | a product document, practice record, spec or change record out of form, a placeholder where an open question belongs, an id the set's own documents name that does not exist, a link to a document that is not there, a requirement that names code and a quote that is not where it says it is; prose the set does not write is not searched for ids |
 
 The backlog strength is chosen at setup: `block-new` blocks introduced errors
 and reports old debt, `block` blocks every error, `report` only reports policy
@@ -886,6 +887,21 @@ can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
+
+- **0.120.0** stops the product-documents check from guessing. Once a project
+  keeps its first practice record, the check reads every Markdown file under
+  `docs/`, and it used to treat any word shaped like an id as a reference to a
+  document — so a decision record naming an elliptic curve in plain prose was
+  refused with "no document is P-256", and nothing said how to write a word that
+  is not a reference. Now the set's own documents — product documents, practice
+  records, specs and change records — keep every id they name checked, exactly as
+  before, and prose the set does not write, such as decision records and guides,
+  is never searched for ids: there a reference is a link to the document's own
+  file, and a link to a file that is not there is still refused. A refusal now
+  says what to do: a word that only looks like an id goes in a code span, and in
+  prose outside the set's own documents a reference is written as a link. No list
+  of exempt names was added, so a new standard name is never a special case.
+  Projects rerun setup (0.51.0) to take the check.
 
 - **0.119.0** lets your project choose how decisions reach you. The set was
   inconsistent: some skills asked one question at a time, others sent

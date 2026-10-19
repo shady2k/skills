@@ -268,9 +268,23 @@ repository only through it.
 
 `check-product.mjs` reads the product documents of a repository (its working
 tree, its staged files or a revision) and refuses one out of form, naming the
-file, the line and what is wrong. It also resolves every id any document under
-`docs/` names, the specs and change records included, so a capability
-requirement that serves `FR-012` is refused when no `FR-012` exists. A
-repository with no product document passes it untouched. It is a commit gate
-wherever the set is installed, and a product wiki runs the same check on a
-change it accepts.
+file, the line and what is wrong. A repository with no product document passes
+it untouched. It is a commit gate wherever the set is installed, and a product
+wiki runs the same check on a change it accepts.
+
+**It resolves an id only where the set's own documents name one.** A document
+the set writes — a product document, a practice record, a spec, a change
+record — names ids in its fields and its text, and every id it names resolves:
+a capability requirement that serves `FR-012` is refused when no `FR-012`
+exists. A document is one the set writes by its form, not by its folder: it
+opens with its identity line, or with the `Capability:` field a spec carries or
+the `Change:` field a change record does, or it stands where its kind collects
+according to the product's registry (`docs/kinds.yaml`), the vision included.
+Prose the set does not write — a decision record, an exploration, a roadmap, a
+charter, a guide — is not searched for ids: a word there that merely looks like
+one (`S-100`, `P-256`, `H-264`) is a word. In that prose a reference is written
+as a Markdown link whose target is the document's own file, a path from the file
+that holds it: `[the shape](../system/capabilities/<name>.md)`. A link to a file
+that is not there is refused, wherever it stands. A token that is not a
+reference anywhere stands in a code span, `` `P-256` ``, which the check never
+reads.
