@@ -52,7 +52,10 @@ const present = (s) => s.trim().length > 0 && !/\b(TODO|TBD|TKTK)\b|\[NEEDS CLAR
 export const QUOTE_MIN_CHARS = 20;
 export const QUOTE_MIN_WORDS = 3;
 const normalize = (s) => s.replace(/\s+/g, ' ').trim();
-const wordsIn = (s) => (s.match(/\p{L}{2,}/gu) ?? []).length;
+// A word is what a person would count as one: a space-separated token that
+// carries a letter. An identifier is one word however many fragments it joins,
+// and a run of dots or markers is none.
+const wordsIn = (s) => s.split(' ').filter((w) => /\p{L}/u.test(w)).length;
 const passages = (x) => typeof x === 'string' ? [x] : Array.isArray(x) ? x.flatMap(passages)
   : object(x) ? Object.values(x).flatMap(passages) : [];
 // Two minimums, because length alone does not measure whether a passage can be
@@ -226,7 +229,7 @@ const WHY = {
   'design-divergence': 'the review answered that the build does not match the design. Green looks like this: the divergence is decided — the build changed to the design, or the design changed and was approved again — and no divergence is left named',
   'missing-judgement': 'no different model\'s judgement stands on this document\'s current revision: which journeys and principles of the vision it serves and which it breaks, each with the passage it was read from. An edit needs a new record; one is asked for at a boundary, never per commit',
   'unknown-vision-id': 'a judgement\'s entry names one of the owner\'s journeys or principles, because what this document serves or breaks is one of his own: an id the vision record does not declare names nothing, so no one can read the claim. Green looks like this: name an id the vision record carries, and say which passage of the document the claim rests on',
-  'unfound-quote': 'a judgement\'s quote is a passage of the document it judged, found verbatim in the text the export carries for that document — a charter\'s outcomes and exclusions, a design record\'s own fields — with only whitespace forgiven, and at least 20 characters long so that a word, a bare id or a placeholder is not passed off as one. Green looks like this: copy the sentence out of the document instead of describing it, or have the adapter carry that part of the document',
+  'unfound-quote': 'a judgement\'s quote is a passage of the document it judged — found verbatim in the text the record is bound to: a charter\'s outcomes and exclusions, or what a design decides, its constraints and the principles it names — with only whitespace forgiven, and at least 20 characters and three words long, so that a word, a bare id, a line of markers or a description of a passage is not passed off as one. Green looks like this: copy the sentence out of the document instead of describing it',
 };
 // A mutation run measures how strong the tests are; it never decides whether
 // the change is correct. What its run gave to this revision is reported and
@@ -292,10 +295,11 @@ export function checkDocuments(model, policy, evidence = null) {
   // judgement the charter answers to at its own acceptance. The principles list
   // is the switch: a project that keeps none is judged by none of this.
   const principles = model.project.vision.principles ?? [];
-  unique(principles.map((x) => x.id), 'vision/principles');
-  for (const x of principles) required(x.title, `vision/principles/${x.id}`);
   const journeys = model.project.vision.journeys ?? [];
-  unique(journeys.map((x) => x.id), 'vision/journeys');
+  // One namespace, so one uniqueness check over both lists: an id that stood for
+  // a journey and a principle at once would make a judgement's claim ambiguous.
+  unique([...journeys, ...principles].map((x) => x.id), 'vision');
+  for (const x of principles) required(x.title, `vision/principles/${x.id}`);
   for (const x of journeys) required(x.title, `vision/journeys/${x.id}`);
   // What a judgement may name: the vision's journeys and principles, one
   // namespace, because a claim of what a document serves or breaks is a claim

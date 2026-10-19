@@ -434,8 +434,8 @@ of those needs a new one — rule `missing-judgement`.
 
 An entry says which of the owner's own the document serves or breaks — `id` is a
 journey or a principle the vision record declares, one namespace, never the
-charter's outcome ids — and the passage it is read from: `quote` is copied out of
-the document it judges. The gate finds it without a model, in the very text the
+charter's outcome ids, and no id is declared in both lists (`duplicate-id`) — and
+the passage it is read from: `quote` is copied out of the document it judges. The gate finds it without a model, in the very text the
 record is bound to. For a charter that is the milestone object the record's
 `charterDigest` hashes, so a charter's outcomes and exclusions; for a design it is
 the projection `judged` hashes, so what the change decides, its constraints and
@@ -443,8 +443,10 @@ the principles it names — a quote from the record's rationale or its task ids 
 refused, since the digest does not stand for it. Whitespace is collapsed on both
 sides so that a line break is not a different passage; nothing else is forgiven
 (no case folding, no near match), and one field is one passage. A quote is at
-least 20 characters and three words, because a word, a bare id or a line of
-markers is in half the documents ever written and locates nothing.
+least 20 characters and three words — a word being a space-separated token that
+carries a letter, so an identifier is one word however many fragments it joins —
+because a word, an identifier or a line of markers is in half the documents ever
+written and locates nothing.
 
 Green looks like this: `serves: [{id: "J2", quote: "the receipt reaches the
 buyer's inbox within a minute"}]`. Refused: an id the vision does not declare

@@ -2205,6 +2205,58 @@
       "id": "J1"
     },
     {
+      "name": "a-journey-and-a-principle-share-an-id",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "model/project/vision/principles",
+          "value": [
+            {
+              "id": "P1",
+              "title": "Knowledge is gathered from the general to the specific."
+            }
+          ]
+        },
+        {
+          "path": "model/project/vision/journeys",
+          "value": [
+            {
+              "id": "P1",
+              "title": "A person exports the records they selected."
+            }
+          ]
+        },
+        {
+          "path": "model/change/principles",
+          "value": [
+            "P1"
+          ]
+        },
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "C1",
+              "statement": "File text never enters the prompt.",
+              "requirement": {
+                "capability": "export",
+                "requirement": "export-file"
+              },
+              "principle": "P1"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "duplicate-id"
+      ],
+      "receipts": true,
+      "judgement": true
+    },
+    {
       "name": "a-judgement-quote-is-not-in-the-document",
       "patches": [
         {
@@ -2291,6 +2343,50 @@
       "receipts": true,
       "judgement": true,
       "quote": "understandable. Import and"
+    },
+    {
+      "name": "a-judgement-quote-is-an-identifier",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "model/project/vision/principles",
+          "value": [
+            {
+              "id": "P1",
+              "title": "Knowledge is gathered from the general to the specific."
+            }
+          ]
+        },
+        {
+          "path": "model/change/principles",
+          "value": [
+            "P1"
+          ]
+        },
+        {
+          "path": "model/change/constraints",
+          "value": [
+            {
+              "id": "not-a-real-judgement",
+              "statement": "File text never enters the prompt.",
+              "requirement": {
+                "capability": "export",
+                "requirement": "export-file"
+              },
+              "principle": "P1"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "unfound-quote"
+      ],
+      "receipts": true,
+      "judgement": true,
+      "quote": "not-a-real-judgement"
     },
     {
       "name": "a-judgement-quote-is-one-word",
