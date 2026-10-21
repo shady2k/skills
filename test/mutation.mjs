@@ -109,7 +109,7 @@ const mutations = [
     change: (code) => code.replace(from, to),
   })),
   { name: 'product-irregular-registry', file: 'check-product.mjs', failure: 'FAIL  product/registry-that-is-not-a-regular-file',
-    change: (code) => code.replace('if (source.irregular?.includes(registry)) {', 'if (false) {') },
+    change: (code) => code.replace('if (source.irregular?.includes(registry) || (st && !st.isFile())) {', 'if (false) {') },
   { name: 'documents-schema', file: 'check-docs.mjs', failure: 'FAIL  documents/unknown-field:',
     change: (code) => code.replace("schema(model, modelSchema, 'model');", '// model schema deliberately disabled') },
 ];
