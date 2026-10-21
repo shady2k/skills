@@ -548,7 +548,10 @@ retrieved; otherwise agree an honest supported strength.
 **Checks:** run all five shipped checks in place where they are in the
 project, or copy them unchanged (the backlog rules with
 [`time-format.mjs`](time-format.mjs) beside them, which they read records by,
-and the present-documents check with [`document-format.mjs`](document-format.mjs)), and record where they came from in the
+the present-documents check with [`document-format.mjs`](document-format.mjs),
+and every check with [`regular-file.mjs`](regular-file.mjs) beside it, which
+they ask before opening a path the command line or a folder walk named), and
+record where they came from in the
 integration, not inside the copies. Without Node, port all five and prove the
 same fixtures. A matching version does not replace a byte comparison or port
 proof.

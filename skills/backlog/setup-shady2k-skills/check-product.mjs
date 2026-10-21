@@ -56,12 +56,14 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join, posix, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ValueNeeded, valueOf } from './argv.mjs';
+import { notRegularFileSaid } from './regular-file.mjs';
 
-export const RULES_VERSION = '0.52.0';
+export const RULES_VERSION = '0.53.0';
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 class Misuse extends Error {}
@@ -78,6 +80,7 @@ const WHY = {
   'unverified-quote': 'the quote must stand, as written, at the lines or times the citation names in that source: correct the place or the quote',
   'wrong-folder': 'a practice record stands under docs/practices/, one file per practice: that folder is what the agent doc and the retrospective look in',
   'outside-quote': 'the source is kept outside the repository, so this quote cannot be verified here',
+  'irregular-registry': 'the registry at docs/kinds.yaml must be a regular file: a named pipe, a socket or a directory there cannot be read, and reading it could wait for ever',
 };
 const NOTES = new Set(['outside-quote']);
 
@@ -160,18 +163,28 @@ const kindFor = (prefix) => KINDS[prefix] ?? (prefix === PRACTICE ? PRACTICES : 
 function tree(root, { staged = false, rev = null } = {}) {
   if (!staged && !rev) {
     const all = [];
+    const irregular = [];
     const walk = (dir) => {
       for (const entry of readdirSync(dir)) {
         if (entry === '.git' || entry === 'node_modules') continue;
         const path = join(dir, entry);
         let st;
         try { st = statSync(path); } catch { continue; }
-        if (st.isDirectory()) walk(path); else all.push(relative(root, path).split(sep).join('/'));
+        // Only a regular file is ever listed, and only a regular file is ever
+        // read: open() on a named pipe with no writer blocks for ever, so the
+        // walk names what else stands there and nothing opens it.
+        if (st.isDirectory()) walk(path);
+        else if (st.isFile()) all.push(relative(root, path).split(sep).join('/'));
+        else irregular.push(relative(root, path).split(sep).join('/'));
       }
     };
     if (!existsSync(root)) throw new Misuse(`no such folder: ${root}`);
     walk(root);
-    return { files: all, read: (p) => readFileSync(join(root, p), 'utf8') };
+    // The walk lists regular files, so a path the check treats as a file can be
+    // missing from it while something else stands there: the registry is asked
+    // about directly rather than inferred from the listing.
+    const stat = (p) => { try { return statSync(join(root, p)); } catch { return null; } };
+    return { files: all, irregular, abs: (p) => join(root, p), stat, read: (p) => readFileSync(join(root, p), 'utf8') };
   }
   const git = (...args) => {
     const r = spawnSync('git', ['-C', root, ...args], { encoding: 'utf8', maxBuffer: 1 << 28 });
@@ -238,8 +251,18 @@ const DEFAULT_FOLDERS = ['docs/vision.md', 'docs/sources', 'docs/hypotheses', 'd
 // here: the registry at `docs/kinds.yaml` says it, in the words the wiki reads.
 // A document that lost its identity line still stands where its kind collects,
 // so losing the line cannot turn an id into prose.
-function kindFolders(source) {
+function kindFolders(source, finding) {
   const registry = 'docs/kinds.yaml';
+  // Ask before anything opens the registry: open() on a named pipe with no
+  // writer never returns, so the check refuses it the way it refuses a
+  // registry it cannot read, and reads nothing.
+  const st = source.stat ? source.stat(registry) : null;
+  if (source.irregular?.includes(registry) || (st && !st.isFile())) {
+    const said = (source.abs && notRegularFileSaid(source.abs(registry)))
+      || `${registry} is not a regular file, so nothing is read from it`;
+    finding('irregular-registry', registry, 1, said);
+    return [];
+  }
   if (!source.files.includes(registry)) return DEFAULT_FOLDERS;
   let text;
   try { text = source.read(registry); } catch { return []; }
@@ -455,7 +478,7 @@ export function checkProduct(source) {
   const docs = [];
   const bodies = new Map();
   const broken = new Map();
-  const folders = kindFolders(source);
+  const folders = kindFolders(source, finding);
   for (const path of markdown) {
     const body = source.read(path);
     bodies.set(path, body);
@@ -516,14 +539,16 @@ export function fixtureCases() {
     const base = fixtureRepository();
     const files = new Map(base.files.map((p) => [p, null]));
     const read = (p) => (files.get(p) ?? base.read(p));
+    const irregular = [];
     for (const e of c.edits) {
+      if (e.irregular) { irregular.push(...e.irregular); continue; }
       if (e.remove) { files.delete(e.remove); continue; }
       if (e.add) { files.set(e.add, e.text); continue; }
       const now = read(e.file);
       if (!now.includes(e.replace)) throw new Error(`fixture ${c.name}: ${e.file} has no "${e.replace}"`);
       files.set(e.file, now.replace(e.replace, e.with));
     }
-    return { ...c, source: { files: [...files.keys()], read } };
+    return { ...c, source: { files: [...files.keys()], irregular, read } };
   });
 }
 
@@ -541,6 +566,25 @@ export function selftest() {
   }
   const silent = Object.keys(WHY).filter((r) => !fired.has(r));
   show(!silent.length, `product/every rule has a case that fires it${silent.length ? `: ${silent.join(', ')}` : ''}`);
+  // The registry is asked, never opened, when it is not a regular file:
+  // open() on a named pipe with no writer blocks for ever. The check runs as
+  // a child process under a hard timeout, so this selftest cannot hang on it.
+  const fifoRoot = mkdtempSync(join(tmpdir(), 'check-product-fifo-'));
+  mkdirSync(join(fifoRoot, 'docs'), { recursive: true });
+  const fifoPath = join(fifoRoot, 'docs', 'kinds.yaml');
+  const made = spawnSync('mkfifo', [fifoPath]);
+  if (made.error || made.status !== 0) {
+    console.log(`SKIP  product/a registry that is a named pipe is refused, not opened: mkfifo is not available here (${`${made.error?.message ?? ''}${made.stderr ?? ''}`.trim()})`);
+  } else {
+    const run = spawnSync(process.execPath, [join(HERE, 'check-product.mjs'), '--root', fifoRoot, '--json'], { encoding: 'utf8', timeout: 5000 });
+    let findings = [];
+    if (!run.error) { try { findings = JSON.parse(run.stdout).findings; } catch { /* the child said nothing JSON */ } }
+    const hit = findings.find((f) => f.rule === 'irregular-registry' && f.file === 'docs/kinds.yaml');
+    const ok = Boolean(hit) && run.status === 1
+      && hit.what.includes('is not a regular file (it is a named pipe)') && hit.what.includes(fifoPath);
+    show(ok, `product/a registry that is a named pipe is refused, not opened${ok ? '' : run.error ? ': the child never exited within its timeout' : `: got ${JSON.stringify(findings)}`}`);
+  }
+  rmSync(fifoRoot, { recursive: true, force: true });
   show(checkProduct({ files: ['docs/notes.md'], read: () => '# Notes\n\nUS-East is a region, FR-12 a form.\n' }).length === 0,
     'product/a repository with no product document passes, whatever its text says');
   // Each template names exactly its kind's fields and sections, so a document

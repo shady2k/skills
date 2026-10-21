@@ -14,11 +14,12 @@
 //   in the feature, acceptance or close phase: the product phase returns no
 //   violations and admits nothing, so its output is not an admission.
 import { readFileSync, readdirSync } from 'node:fs';
+import { requireRegularFile } from './regular-file.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hasCriterion } from './check.mjs';
 
-const RULES_VERSION = '0.52.0';
+const RULES_VERSION = '0.53.0';
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 // Text that shapes nothing is not an understanding: a criterion made only of
@@ -160,6 +161,10 @@ function main() {
     return failures ? 1 : 0;
   }
   if (args.length > 1 || (args[0]?.startsWith('-') && args[0] !== '-')) throw new Error('unknown arguments; use --help');
+  // The commits this check reads are named on the command line: a path that is
+  // not a regular file is refused by name rather than opened, because open() on
+  // a named pipe with no writer waits for ever.
+  if (args[0] && args[0] !== '-') requireRegularFile(args[0], 'the commits file');
   const input = JSON.parse(readFileSync(!args[0] || args[0] === '-' ? 0 : args[0], 'utf8'));
   const output = result(input);
   console.log(JSON.stringify(output.report, null, 2));

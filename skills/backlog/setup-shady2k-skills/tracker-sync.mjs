@@ -78,10 +78,12 @@
 import { execFile } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, statSync, readdirSync, openSync, closeSync, unlinkSync, readSync, renameSync, rmdirSync, realpathSync, cpSync, lstatSync } from 'node:fs';
-import { dirname, join, resolve, basename } from 'node:path';
+import { dirname, join, resolve, basename, sep } from 'node:path';
 import { homedir } from 'node:os';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { ValueNeeded, inlineValue, valueOf } from './argv.mjs';
+import { notRegularFile, requireRegularFile } from './regular-file.mjs';
 
 const HERE = dirname(new URL(import.meta.url).pathname);
 const DEFAULT_REF = 'refs/tracker/state';
@@ -89,7 +91,11 @@ const FETCH_REF = 'refs/tracker-sync/remote';
 const VERSION = readVersion();
 
 function readVersion() {
-  try { return readFileSync(join(HERE, 'tracker-sync.version'), 'utf8').trim(); } catch { return 'unknown'; }
+  try {
+    const f = join(HERE, 'tracker-sync.version');
+    requireRegularFile(f, 'the version file');
+    return readFileSync(f, 'utf8').trim();
+  } catch { return 'unknown'; }
 }
 let THROW_ERRORS = false;
 const die = (code, msg) => { if (THROW_ERRORS) throw Object.assign(new Error(msg), {exitCode:code}); process.stderr.write(`tracker-sync: ${msg}\n`); process.exit(code); };
@@ -194,7 +200,11 @@ const pidPath = (flags, repoRoot) => join(machineDir(flags, repoRoot), 'watch.pi
 const noHooksPath = (flags, repoRoot) => join(machineDir(flags, repoRoot), 'nohooks');
 
 const readConfig = (flags, repoRoot) => {
-  try { return JSON.parse(readFileSync(configPath(flags, repoRoot), 'utf8')); } catch { return {}; }
+  try {
+    const f = configPath(flags, repoRoot);
+    requireRegularFile(f, 'the machine config');
+    return JSON.parse(readFileSync(f, 'utf8'));
+  } catch { return {}; }
 };
 const writeConfig = (flags, repoRoot, patch) => {
   const merged = { ...readConfig(flags, repoRoot), ...patch };
@@ -263,6 +273,7 @@ export function takeLock(flags, repoRoot) {
           if (directory && names.length === 0) continue;
           if (directory && names.length !== 1) throw new Error('unknown owner');
           ownerFile = directory ? join(p, names[0]) : p;
+          requireRegularFile(ownerFile, "the store lock's owner file");
           held = JSON.parse(readFileSync(ownerFile, 'utf8'));
           if (!Number.isInteger(held.pid) || held.pid <= 0 || (directory && basename(ownerFile) !== held.token)) throw new Error('invalid owner');
         } catch { throw new Error(`the store lock ${p} has no verifiable owner; nothing was written; inspect it before manual recovery`); }
@@ -351,7 +362,10 @@ async function loadRecipes() {
   const out = [];
   for (const n of names) {
     const p = join(dir, n);
-    try { out.push({ path: p, ...((await import(pathToFileURL(p).href)).default || {}) }); }
+    try {
+      requireRegularFile(p, 'a shipped recipe');
+      out.push({ path: p, ...((await import(pathToFileURL(p).href)).default || {}) });
+    }
     catch (e) { out.push({ path: p, name: n.replace(/\.mjs$/, ''), broken: e.message }); }
   }
   return out;
@@ -363,6 +377,7 @@ async function resolveRecipe() {
   if (named) {
     const p = resolve(String(named));
     if (!existsSync(p)) die(1, `the recipe ${p} does not exist`);
+    requireRegularFile(p, 'the recipe');
     try {
       const mod = (await import(pathToFileURL(p).href)).default;
       if (!mod || !mod.stateFiles) die(1, `the recipe ${p} declares no stateFiles`);
@@ -396,6 +411,110 @@ async function recipeOk(decl, map, opts) {
   if (r.code !== 0) die(r.code === 127 || r.missing ? 2 : 1,
     `the recipe's ${decl} command failed (${r.code}): ${text(r) || 'no output'}`);
   return r.stdout;
+}
+
+// ---- a flush the tracker refuses -------------------------------------------
+/**
+ * The tracker's own state, put into the state files before anything else reads
+ * them. A write the tracker accepted lives in its database until the tracker
+ * flushes it, and a fast-forward, a merge or a rebuild from the state files
+ * would drop it: so the flush is either done here or understood, never assumed
+ * harmless.
+ *
+ * The mechanism knows no tracker, so it knows no refusal either. The recipe
+ * declares them, each with the meaning it has:
+ *
+ *   refusals: [{ code, match, meaning: 'nothing-unexported' | 'merge-database' }]
+ *   exportSide: 'node <recipeFile> export-side --out <out>'
+ *
+ * 'nothing-unexported' is a refusal that proves no write sits only in the
+ * database (a store that has not imported the ref yet: an empty database over a
+ * filled file). 'merge-database' is everything else: the database and the state
+ * files may disagree, so the database is exported to a side file and merged per
+ * item with the state files before anything is fast-forwarded or merged. A
+ * refusal the recipe does not classify is treated as 'merge-database', and one
+ * that cannot be merged stops this command with exit 1: never continue.
+ */
+function refusalMeaning(r) {
+  const said = text(r);
+  for (const d of CURRENT.recipe.refusals || []) {
+    if (!d || !d.meaning) continue;
+    if (d.code !== undefined && Number(d.code) !== r.code) continue;
+    if (d.match !== undefined && !said.includes(d.match)) continue;
+    if (d.meaning === 'nothing-unexported' || d.meaning === 'merge-database') return d.meaning;
+  }
+  return 'merge-database';
+}
+
+/** The state files the recipe's forced export wrote into the side folder, in
+ * the store's own paths. Only a regular file is read: a named pipe in there is
+ * named, never opened. */
+function sideParts(side) {
+  const found = [];
+  const walk = (dir) => {
+    let names = [];
+    try { names = readdirSync(dir); } catch { return; }
+    for (const n of names.sort()) {
+      const p = join(dir, n);
+      const st = lstatSync(p, { throwIfNoEntry: false });
+      if (!st) continue;
+      if (st.isDirectory()) { walk(p); continue; }
+      if (!st.isFile()) { say(`tracker-sync: the forced export left ${p}, which is not a regular file; it is not read`); continue; }
+      const rel = p.slice(side.length + 1).split(sep).join('/');
+      if (!stateFiles().includes(rel)) continue;
+      found.push([rel, readFileSync(p, 'utf8')]);
+    }
+  };
+  walk(side);
+  return found;
+}
+
+/** Put what the tracker's database holds into the state files, and say so.
+ * Caller holds the lock. */
+async function mergeDatabaseIntoState({ code, said }) {
+  const recipeFile = CURRENT.recipe.path;
+  const atRisk = () => `the state files (${stateFiles().join(', ')}) may lack writes the tracker's database holds`;
+  if (!CURRENT.recipe.exportSide)
+    die(1, `the tracker refused to flush its database (${code}): ${said}. ${atRisk()}, and the recipe ${recipeFile} declares no forced export to a side file (exportSide), so nothing is merged and nothing is written: this store stops rather than take the state files as they are`);
+  const side = join(machineDir(CURRENT.flags, CURRENT.repoRoot), 'database-export');
+  rmSync(side, { recursive: true, force: true });
+  mkdirSync(side, { recursive: true });
+  const forced = await recipe('exportSide', { out: quote(side) }, { timeoutMs: 120000 });
+  if (forced.code !== 0 || forced.missing)
+    die(2, `the tracker refused to flush its database (${code}): ${said}. Its forced export to a side file failed (${forced.code}): ${text(forced).split('\n')[0] || 'no output'}. ${atRisk()}, so nothing is merged and nothing is written`);
+  const fromDatabase = sideParts(side);
+  if (!fromDatabase.length)
+    die(1, `the tracker refused to flush its database (${code}): ${said}. Its forced export to ${side} wrote no state file (${stateFiles().join(', ')}), so ${atRisk()} and nothing was merged`);
+  // Per item, with no ancestor: an item or a record that only one side holds is
+  // kept whole from that side, so neither the database's write nor an item the
+  // database has not imported yet can be dropped by this merge. The tracker's
+  // own order decides a field both sides moved (updated_at, or the recipe's
+  // equivalent), exactly as the sync's merge does.
+  const ours = stateFiles().map((p) => {
+    const fromSide = fromDatabase.find(([q]) => q === p);
+    return fromSide || [p, null];
+  });
+  const theirs = await storeParts();
+  const withoutAncestor = stateFiles().map((p) => [p, '']);
+  const merged = await mergeParts({ ours, theirs, base: withoutAncestor });
+  await writeState(merged);
+  rmSync(side, { recursive: true, force: true });
+  say(`tracker-sync: the tracker refused to flush its database (${code}): ${said}; its state was exported to a side file and merged per item with the state files, so no write the tracker accepted is left in the database alone`);
+  return { merged: true };
+}
+
+/** The tracker's state in the state files, or the write saved and merged. */
+async function flushDatabase() {
+  const flushed = await recipe('export', {});
+  if (flushed.code === 0) return { ok: true };
+  if (flushed.missing || flushed.code === 127)
+    die(2, `the recipe's export command could not run (${flushed.code}): ${text(flushed) || 'no output'}`);
+  const said = text(flushed).split('\n')[0] || 'no output';
+  if (refusalMeaning(flushed) === 'nothing-unexported') {
+    say(`tracker-sync: the tracker refused to flush its database (${flushed.code}): ${said}; it holds no unexported write, and the state files are taken as they are`);
+    return { ok: true, nothing: true };
+  }
+  return mergeDatabaseIntoState({ code: flushed.code, said });
 }
 
 // ---- the store: a worktree detached at the ref ------------------------------
@@ -532,36 +651,55 @@ function keepIdentity() {
   const f = join(CURRENT.store, '.tracker-sync', 'machines.json');
   if (!existsSync(f)) return;
   try {
+    requireRegularFile(f, 'the machine ordinals');
     const d = JSON.parse(readFileSync(f, 'utf8'));
     if (d.thisMachine !== me) writeFileSync(f, `${JSON.stringify({ ...d, thisMachine: me }, null, 2)}\n`);
   } catch {}
 }
 
-/** Merge the remote's tip into ours, per item, through the recipe, per F3. */
+/** The state files as they stand in the store's working tree. A state file that
+ * is not a regular file is named instead of opened: a named pipe with no writer
+ * would block the read for ever. */
+async function storeParts() {
+  return stateFiles().map((p) => {
+    const f = join(CURRENT.store, p);
+    requireRegularFile(f, 'a state file');
+    return [p, existsSync(f) ? readFileSync(f, 'utf8') : null];
+  });
+}
+
+/** One per-item merge through the recipe, whoever the three sides are: the
+ * sync's merge of the remote's tip, and the merge that saves a refused flush.
+ * The recipe compares the sides; nothing here text-merges a state file. */
+async function mergeParts({ ours, theirs, base, order = [], orderLocal = [] }) {
+  const work = join(machineDir(CURRENT.flags, CURRENT.repoRoot), 'merge');
+  rmSync(work, { recursive: true, force: true });
+  mkdirSync(work, { recursive: true });
+  const paths = {
+    ours: join(work, 'ours.txt'), theirs: join(work, 'theirs.txt'), base: join(work, 'base.txt'),
+    out: join(work, 'merged.txt'), order: join(work, 'order.txt'), orderLocal: join(work, 'order-local.txt'),
+  };
+  writeFileSync(paths.ours, sideText(ours));
+  writeFileSync(paths.theirs, sideText(theirs));
+  writeFileSync(paths.base, sideText(base));
+  writeFileSync(paths.order, `${order.join('\n')}\n`);
+  writeFileSync(paths.orderLocal, `${orderLocal.join('\n')}\n`);
+  await recipeOk('merge', { ours: quote(paths.ours), theirs: quote(paths.theirs), base: quote(paths.base), out: quote(paths.out), order: quote(paths.order), orderLocal: quote(paths.orderLocal) });
+  return parseSide(readFileSync(paths.out, 'utf8'));
+}
+
 /** Merge the remote's tip into ours, per item, through the recipe, per F3.
  * Caller holds the lock: this is local work only. */
 async function mergeAndCommit(tip) {
   const head = await headOid();
   const base = (await git(['merge-base', head, tip], { cwd: CURRENT.store })).stdout.trim();
-  const work = join(machineDir(CURRENT.flags, CURRENT.repoRoot), 'merge');
-  rmSync(work, { recursive: true, force: true });
-  mkdirSync(work, { recursive: true });
-  const oursParts = await Promise.all(stateFiles().map(async (p) => [p, existsSync(join(CURRENT.store, p)) ? readFileSync(join(CURRENT.store, p), 'utf8') : null]));
+  const oursParts = await storeParts();
   const theirsParts = await stateFrom(tip);
   const baseParts = base ? await stateFrom(base) : stateFiles().map((p) => [p, null]);
   const order = (await git(['log', '--first-parent', '--format=%H', base ? `${base}..${tip}` : tip], { cwd: CURRENT.store })).stdout.split('\n').filter(Boolean).reverse();
   const orderLocal = (await git(['log', '--first-parent', '--format=%H', head], { cwd: CURRENT.store })).stdout.split('\n').filter(Boolean);
-  const paths = {
-    ours: join(work, 'ours.txt'), theirs: join(work, 'theirs.txt'), base: join(work, 'base.txt'),
-    out: join(work, 'merged.txt'), order: join(work, 'order.txt'), orderLocal: join(work, 'order-local.txt'),
-  };
-  writeFileSync(paths.ours, sideText(oursParts));
-  writeFileSync(paths.theirs, sideText(theirsParts));
-  writeFileSync(paths.base, sideText(baseParts));
-  writeFileSync(paths.order, `${order.join('\n')}\n`);
-  writeFileSync(paths.orderLocal, `${orderLocal.join('\n')}\n`);
-  await recipeOk('merge', { ours: quote(paths.ours), theirs: quote(paths.theirs), base: quote(paths.base), out: quote(paths.out), order: quote(paths.order), orderLocal: quote(paths.orderLocal) });
-  await writeState(parseSide(readFileSync(paths.out, 'utf8')));
+  const merged = await mergeParts({ ours: oursParts, theirs: theirsParts, base: baseParts, order, orderLocal });
+  await writeState(merged);
   // recordings travel beside the tracker items and are immutable: two different
   // states for one revision are a refusal, never a newer-wins choice.
   const listIn = async (rev) => (await git(['ls-tree', '-r', '--name-only', rev, '--', '.tracker-sync/recordings'], { cwd: CURRENT.store })).stdout.split('\n').filter(Boolean);
@@ -584,6 +722,7 @@ async function recipeIsland(head, tip) {
     .stdout.split('\n').filter((n) => n && !n.startsWith('.tracker-sync/recordings/'));
   for (const n of names) {
     const theirs = (await git(['show', `${tip}:${n}`], { cwd: CURRENT.store })).stdout;
+    requireRegularFile(join(CURRENT.store, n), 'a file the mechanism carries beside the state');
     const mine = existsSync(join(CURRENT.store, n)) ? readFileSync(join(CURRENT.store, n), 'utf8') : null;
     if (mine === null) { mkdirSync(dirname(join(CURRENT.store, n)), { recursive: true }); writeFileSync(join(CURRENT.store, n), theirs); continue; }
     if (mine === theirs) continue;
@@ -611,12 +750,15 @@ async function recipeIsland(head, tip) {
  * second fetch happen outside it, and only the store's own mutations (export,
  * merge, import, commit) are inside. A write that reached the tracker's database
  * is exported first, so neither a fast-forward nor a merge can lose it. */
-async function syncOnce({ needsRemote, push, quiet } = {}) {
+async function syncOnce({ needsRemote, push, quiet, skipOnTimeout = false } = {}) {
   const remote = await fetchRemote();
   if (!remote.ok) { if (needsRemote) die(4, `the remote is unreachable (${remote.said}); this store is this machine's only`); return { unreachable: true }; }
   if (remote.noRef) return { noRef: true };
   let fast=false;
-  const oid = await locked(async () => {
+  // The store's own work, in one critical section. A watcher round that cannot
+  // take the lock skips this tick instead of exiting: the supervisor would only
+  // restart it into the same wait.
+  const section = async () => {
     // HEAD and ancestry belong to the same critical section as reset/merge.
     // A local publisher may have advanced HEAD while the fetch was in flight.
     const head=await headOid();
@@ -626,11 +768,10 @@ async function syncOnce({ needsRemote, push, quiet } = {}) {
     fast=(await git(['merge-base','--is-ancestor',head,remote.tip],{cwd:CURRENT.store})).code===0;
     // The live database becomes state files first, so a write that only reached
     // it is not lost to a fast-forward or a merge. A tracker that refuses the
-    // flush (br refuses to export an empty database over a filled one, which is
-    // what a store that has not imported the ref yet looks like) is not holding
-    // an unexported write: it is said, and the state files are taken as they are.
-    const flushed = await recipe('export', {});
-    if (flushed.code !== 0) say(`tracker-sync: the tracker refused to flush its database (${flushed.code}): ${text(flushed).split('\n')[0]}; the state files are taken as they are`);
+    // flush is understood through the recipe: a refusal that proves nothing is
+    // unexported is said and the state files stand, and every other refusal is
+    // merged in per item, or stops here - never read as "nothing unexported".
+    await flushDatabase();
     if (fast) {
       // Our own unpublished writes are a commit of their own; the push that
       // follows merges the remote in rather than dropping them.
@@ -646,16 +787,25 @@ async function syncOnce({ needsRemote, push, quiet } = {}) {
       return remote.tip;
     }
     return mergeAndCommit(remote.tip);
-  });
+  };
+  let oid;
+  try {
+    oid = await locked(section, 120000, { skipOnTimeout });
+  } catch (e) {
+    // The watcher's round is not its to take: it is skipped and tried again on
+    // the next tick. A one-shot command's locked() refused with exit 1 already.
+    if (e.lockTimeout) return { skipped: e.message };
+    throw e;
+  }
   if (!quiet) say(fast ? `tracker-sync: took the remote's state ${remote.tip.slice(0, 12)}` : `tracker-sync: merged the remote's ${remote.tip.slice(0, 12)} into ${oid.slice(0, 12)} per item`);
-  const pushed = push === false ? null : await pushOid(oid, { quiet });
+  const pushed = push === false ? null : await pushOid(oid, { quiet, skipOnTimeout });
   return { oid, pushed };
 }
 /** Push an immutable oid; a refused push fetches, merges and pushes again. */
 /** Push an immutable oid; a refused push fetches, merges and pushes again.
  * The push itself is a network call and runs outside the lock; the merge is local
  * work and takes it. */
-async function pushOid(oid, { quiet, attempts = 3 } = {}) {
+async function pushOid(oid, { quiet, attempts = 3, skipOnTimeout = false } = {}) {
   for (let i = 0; i < attempts; i++) {
     const r = await git(['push', 'origin', `${oid}:${CURRENT.ref}`], { cwd: CURRENT.store, timeoutMs: 10000 });
     if (r.code === 0) return { ok: true, oid };
@@ -667,9 +817,17 @@ async function pushOid(oid, { quiet, attempts = 3 } = {}) {
       const remote = await fetchRemote();
       if (!remote.ok) { if (!quiet) say('tracker-sync: the push was refused and the remote is unreachable; the write is kept here'); return { ok: false, unreachable: true }; }
       if (remote.noRef) { if (!quiet) say('tracker-sync: the push was refused and the remote has no store ref yet'); return { ok: false, refused: true }; }
-      // A caller that already holds the store's lock (connect) merges directly:
-      // taking it twice in one process would wait for itself.
-      oid = LOCK_HELD ? await mergeAndCommit(remote.tip) : await locked(() => mergeAndCommit(remote.tip));
+      // A caller whose own call already holds the store's lock (connect, or a
+      // section that reached here) merges directly: taking it twice in one call
+      // would wait for itself. The question is asked of THIS call's context, not
+      // of the process: another loop of a watcher may hold the lock, and a merge
+      // outside it would write the store beside that loop's work.
+      try {
+        oid = LOCK_CONTEXT.getStore() ? await mergeAndCommit(remote.tip) : await locked(() => mergeAndCommit(remote.tip), 120000, { skipOnTimeout });
+      } catch (e) {
+        if (e.lockTimeout) return { ok: false, skipped: e.message };
+        throw e;
+      }
       if (!quiet) say(`tracker-sync: the push was refused; merged the remote's ${remote.tip.slice(0, 12)} and pushing again`);
       continue;
     }
@@ -685,6 +843,7 @@ const stateDigest = () => {
   for (const p of stateFiles()) {
     const f = join(CURRENT.store, p);
     h.update(p);
+    requireRegularFile(f, 'a state file');
     h.update(existsSync(f) ? readFileSync(f) : Buffer.from(''));
   }
   return h.digest('hex');
@@ -694,12 +853,16 @@ async function hasUncommittedState() {
   return r.stdout.trim().length > 0;
 }
 
+/** The store's file lock, waited for. Past the deadline this throws a tagged
+ * error rather than exiting: a one-shot command's locked() refuses with exit 1,
+ * and a loop of the watcher skips the round. */
 async function takeLockWait(ms) {
   const deadline = Date.now() + (ms || 0);
   let said = false;
   for (;;) {
     try { return takeLock(CURRENT.flags, CURRENT.repoRoot); } catch (e) {
-      if (Date.now() > deadline) die(1, `${e.message}; nothing was written, and the command that held it is named above`);
+      if (Date.now() > deadline)
+        throw Object.assign(new Error(`${e.message}; nothing was written, and the command that held it is named above`), { lockTimeout: true });
       if (!said) {
         said = true;
         say(`tracker-sync: waiting for the store lock (${e.message.split(';')[0]})`);
@@ -709,19 +872,66 @@ async function takeLockWait(ms) {
   }
 }
 
-/** Local store work only: never a network call inside it. */
-async function locked(fn, waitMs = 120000) {
-  const release = await takeLockWait(waitMs);
-  try { return await fn(); } finally { release(); }
+/** One process's own critical sections queue HERE, never on the file lock.
+ *
+ * The file lock is not re-entrant in-process: while one section of this process
+ * holds it, another section of the same process that calls takeLockWait waits
+ * for a lock its own process holds, reaches the deadline and dies. The watcher
+ * runs two loops - publish and sync - and that is exactly what made it restart
+ * for ever. A nested call (pushOid's merge inside a section that already holds
+ * the lock) runs in the section that holds it, as it did before.
+ */
+let LOCK_QUEUE = Promise.resolve();
+// Whether THIS call is already inside a critical section. The two loops of one
+// process are both "this process" but never nested, so the answer has to travel
+// with the call that asked, not with the process: an async context says exactly
+// that, and the watcher's second loop queues instead of running unlocked.
+const LOCK_CONTEXT = new AsyncLocalStorage();
+async function inProcessLock(fn) {
+  if (LOCK_CONTEXT.getStore()) return fn();
+  const previous = LOCK_QUEUE;
+  let handOn;
+  LOCK_QUEUE = new Promise((r) => { handOn = r; });
+  await previous;
+  try { return await LOCK_CONTEXT.run(true, fn); } finally { handOn(); }
 }
-async function publishOnce({ quiet } = {}) {
-  const oid = await locked(async () => {
-    await recipeOk('export', {});
-    if (!(await hasUncommittedState())) return null;
-    return commitState(`tracker store: ${nowIso()}`, [await headOid()]);
+
+/** Local store work only: never a network call inside it.
+ *
+ * A one-shot command (record, a sync run by hand) waits for the lock and then
+ * refuses with exit 1 naming the holder: a person must know why nothing was
+ * written. A loop inside the watcher passes skipOnTimeout: the round is not its
+ * to take, so it is skipped, said once in the log, and tried again on the next
+ * tick - never an exit, which the supervisor would answer with a restart. */
+async function locked(fn, waitMs = 120000, { skipOnTimeout = false } = {}) {
+  return inProcessLock(async () => {
+    let release;
+    try {
+      release = await takeLockWait(waitMs);
+    } catch (e) {
+      if (skipOnTimeout && e.lockTimeout) throw e;
+      die(1, e.message);
+    }
+    try { return await fn(); } finally { release(); }
   });
+}
+/** One publish. `publish` with `--watch` starts the watcher with this first round
+ * and then keeps looping, so that round skips a lock it cannot take instead of
+ * ending the command before the watcher it was asked to start. */
+async function publishOnce({ quiet, skipOnTimeout = false } = {}) {
+  let oid;
+  try {
+    oid = await locked(async () => {
+      await flushDatabase();
+      if (!(await hasUncommittedState())) return null;
+      return commitState(`tracker store: ${nowIso()}`, [await headOid()]);
+    }, 120000, { skipOnTimeout });
+  } catch (e) {
+    if (e.lockTimeout) return { ok: false, skipped: e.message };
+    throw e;
+  }
   if (oid === null) return { ok: true, nothing: true };
-  const res = await pushOid(oid, { quiet });
+  const res = await pushOid(oid, { quiet, skipOnTimeout });
   writeConfig(CURRENT.flags, CURRENT.repoRoot, { lastPublish: nowIso(), lastPublishOk: !!res.ok });
   if (res.ok && !quiet) say(`tracker-sync: published ${oid.slice(0, 12)} to ${CURRENT.ref}`);
   return res;
@@ -894,7 +1104,10 @@ async function reconcileCandidate(step) {
   if ((await git(['merge-base', '--is-ancestor', step.oid, observed.tip], { cwd: CURRENT.store })).code !== 0) return;
   step.pushed = { ok: true, reconciled: true };
   let diagnostic = null;
-  try { diagnostic = JSON.parse(readFileSync(step.diagnostic, 'utf8')); } catch {}
+  try {
+    requireRegularFile(step.diagnostic, 'a retained candidate diagnostic');
+    diagnostic = JSON.parse(readFileSync(step.diagnostic, 'utf8'));
+  } catch {}
   const retained = diagnostic?.retainedRef || `refs/tracker-sync/candidates/${basename(step.diagnostic).replace(/\.result\.json$/, '')}`;
   if (diagnostic) {
     diagnostic.phase = 'accepted-reconciled';
@@ -907,7 +1120,7 @@ async function reconcileCandidate(step) {
 
 async function integrateCandidate(step) {
   await locked(async () => {
-    await recipeOk('export', {});
+    await flushDatabase();
     await mergeAndCommit(step.oid);
   });
 }
@@ -969,7 +1182,7 @@ async function recordRun({ revision, checkout, fromTree }) {
           rev = rev || head;
           if (rev !== head)
             die(1, `revision ${String(rev).slice(0, 12)} is not ${ck2}'s HEAD (${head.slice(0, 12)}): only a revision cut or landed now is recorded, because a later state is not that revision's`);
-          parts = stateFiles().map((p) => [p, existsSync(join(CURRENT.store, p)) ? readFileSync(join(CURRENT.store, p), 'utf8') : null]);
+          parts = await storeParts();
         }
         captured = { rev, parts };
       }
@@ -989,6 +1202,7 @@ async function recordRun({ revision, checkout, fromTree }) {
       // recorded, and made a hook fail on a revision it had recorded itself.
       // Nothing is written and nothing is pushed.
       if (existsSync(file)) {
+        requireRegularFile(file, 'the recording');
         const mine = readFileSync(file, 'utf8');
         if (there && there !== mine)
           die(1, `${String(rev).slice(0, 12)} is recorded here with a state the remote does not carry, and the remote holds one this machine does not: two different recordings of one revision, so neither is moved. A person must decide which state that revision had`);
@@ -1066,7 +1280,9 @@ async function hookPlan(checkout) {
   };
   const wanted = Object.keys(HOOK_MARKS).map((name) => {
     const file = join(dir, name);
-    const text = existsSync(file) ? readFileSync(file, 'utf8') : null;
+    // A hook that is not a regular file is refused like one without the marker:
+    // opening a named pipe there would block the connect for ever.
+    const text = existsSync(file) && notRegularFile(file) === null ? readFileSync(file, 'utf8') : null;
     return { name, file, line: files[name], mark: `${HOOK_MARKS[name]}\n`, text, present: text !== null && text.includes(HOOK_MARKS[name]) };
   });
   return { dir, inRepo, wanted, missing: wanted.filter((h) => !h.present) };
@@ -1203,93 +1419,100 @@ async function connectRun(flags) {
   // transaction can interleave with a watcher's publish or another session's claim.
   const release = await takeLockWait(5000);
   try {
-  const { fresh } = await ensureStore({ create: true });
-  // A store that came from the ref carries the other machines' state files. The
-  // tracker's database here is this machine's own and must be rebuilt from them
-  // BEFORE anything writes, or the first write is made against an empty database
-  // and the export that follows is refused (br refuses to flush an empty database
-  // over a filled one) or the two sides' prefixes disagree.
-  if (!fresh && CURRENT.recipe.import) {
-    await recipeOk('import', {});
-    say('tracker-sync: this machine\'s database was rebuilt from the state the ref carries');
-  }
-  // A store the mechanism has just created carries no tracker state. The
-  // tracker's own "make me a store" command is the recipe's, and it runs here
-  // and only here: never in a checkout, so a checkout can never conjure up a
-  // second, empty tracker beside the machine's store.
-  if (fresh && CURRENT.recipe.init) {
-    await recipeOk('init', { prefix: quote(String(flags.prefix || '')) });
-    say('tracker-sync: initialized the tracker inside the new store');
-  } else if (fresh && !CURRENT.recipe.init) {
-    say(`tracker-sync: the store is new; the recipe declares no init, so the tracker's state must be put there by the project (see the integration's Tracker layout field)`);
-  }
-  // The in-branch store's state is taken in BEFORE this machine claims its
-  // ordinal and before anything of ours is pushed: the copy is allowed only
-  // while the ref holds no store, and our own first commit would make it look
-  // as if it already did.
-  const from = flags['from-checkout'] ? resolve(String(flags['from-checkout'])) : null;
-  if (from) {
-    const remote = await fetchRemote();
-    const hasRemoteStore = remote.ok && !remote.noRef;
-    if (hasRemoteStore)
-      die(1, `the ref ${CURRENT.ref} already holds a store (${remote.tip.slice(0, 12)}): a byte copy would overwrite records. Import and merge the checkout's remaining writes per item instead`);
-    for (const p of stateFiles()) {
-      const src = join(from, p);
-      if (!existsSync(src)) continue;
-      const dest = join(CURRENT.store, p);
-      mkdirSync(dirname(dest), { recursive: true });
-      writeFileSync(dest, readFileSync(src));
-      say(`tracker-sync: copied ${p} from ${from} into the store`);
+  // This call owns the store's lock for its whole transaction, and the async
+  // context says so: a push that is refused inside it merges in this section
+  // instead of waiting for a lock the same call already holds.
+  await LOCK_CONTEXT.run(true, async () => {
+    const { fresh } = await ensureStore({ create: true });
+    // A store that came from the ref carries the other machines' state files. The
+    // tracker's database here is this machine's own and must be rebuilt from them
+    // BEFORE anything writes, or the first write is made against an empty database
+    // and the export that follows is refused (a tracker refuses to flush an empty
+    // database over a filled one) or the two sides' prefixes disagree.
+    if (!fresh && CURRENT.recipe.import) {
+      await recipeOk('import', {});
+      say('tracker-sync: this machine\'s database was rebuilt from the state the ref carries');
     }
-    await recipeOk('import', {});
-  }
-  const machineName = String(flags.machine || (await run('hostname', [], {})).stdout.trim() || 'machine');
-  writeConfig(flags, repoRoot, { machine: machineName });
-  if (CURRENT.recipe.ordinal) {
-    const name = machineName;
-    await recipeOk('ordinal', { machine: quote(name) });
-    const oid = await commitState(`tracker store: this machine takes its ordinal`, [await headOid()]);
-    const res = await pushOid(oid, { quiet: true });
-    say(`tracker-sync: this machine is named in the store's machine ordinals${res.ok ? '' : ' (kept here, published when the remote answers)'}`);
-  }
-  const envLine = (await recipe('pointer.env', {}, { cwd: CURRENT.store })).stdout.trim();
-  // NOT `--env-file`: node itself consumes that option (`--env-file=<path>`), so
-  // the mechanism would never see it and node would fail on a missing file.
-  const envFile = flags['launcher-file'] ? resolve(String(flags['launcher-file'])) : readConfig(flags, repoRoot).envFile;
-  const says = [];
-  for (const c of unique) {
-    const install = await recipe('pointer.install', { checkout: quote(c) }, { cwd: CURRENT.store });
-    if (install.code !== 0) {
-      const done = says.map((s) => s.checkout).join(', ') || 'none';
-      if (install.code === 127 || install.missing) die(2, `the pointer command is missing for ${c}; checkouts already pointed: ${done}. connect is safe to rerun`);
-      die(1, `${c} could not be pointed at the store: ${text(install)}. Checkouts already pointed: ${done}. connect is safe to rerun`);
+    // A store the mechanism has just created carries no tracker state. The
+    // tracker's own "make me a store" command is the recipe's, and it runs here
+    // and only here: never in a checkout, so a checkout can never conjure up a
+    // second, empty tracker beside the machine's store.
+    if (fresh && CURRENT.recipe.init) {
+      await recipeOk('init', { prefix: quote(String(flags.prefix || '')) });
+      say('tracker-sync: initialized the tracker inside the new store');
+    } else if (fresh && !CURRENT.recipe.init) {
+      say(`tracker-sync: the store is new; the recipe declares no init, so the tracker's state must be put there by the project (see the integration's Tracker layout field)`);
     }
-    const check = await recipe('pointer.check', { checkout: quote(c) }, { cwd: CURRENT.store });
-    const said = text(check);
-    // The check must name the store this mechanism created: a tracker that
-    // answers with some other store is not pointing at the machine's one.
-    if (check.code !== 0 || !said.includes(CURRENT.store))
-      die(1, `${c} does not reach the store at ${CURRENT.store}: the pointer check said "${said || 'nothing'}" (exit ${check.code})`);
-    const variableOnly = /variable-only/.test(said);
-    if (variableOnly && !envFile)
-      die(1, `${c} reaches ${CURRENT.store} only through a variable and no launcher file was named: pass --launcher-file <file> (or put the checkout's pointer in place) so the checkout is pointed where its agents start, not in an agent's memory`);
-    says.push({ checkout: c, variableOnly });
-    say(`tracker-sync: ${c} reaches ${CURRENT.store}${variableOnly ? ' (through the variable the launcher carries)' : ' through its own pointer'}`);
-    await installHooks(c);
-  }
-  if (envFile && envLine) {
-    const lines = existsSync(envFile) ? readFileSync(envFile, 'utf8') : '';
-    if (!lines.includes(envLine)) writeFileSync(envFile, `${lines.replace(/\n*$/, '\n')}${envLine}\n`);
-    say(`tracker-sync: the launcher file ${envFile} carries ${envLine.split('=')[0]}=... for checkouts outside the product's folder`);
-  } else if (envLine) {
-    say(`tracker-sync: checkouts outside the product's folder need this line in the agents' launcher: ${envLine}`);
-  }
-  writeConfig(flags, repoRoot, {
-    recipe: CURRENT.recipe.path, tracker: CURRENT.recipe.tracker, ref: CURRENT.ref, repo: repoRoot,
-    store: CURRENT.store, checkouts: unique, envFile: envFile || null, connectedAt: nowIso(),
-    points: says, mechanismVersion: VERSION, mechanism: join(HERE, 'tracker-sync.mjs'),
+    // The in-branch store's state is taken in BEFORE this machine claims its
+    // ordinal and before anything of ours is pushed: the copy is allowed only
+    // while the ref holds no store, and our own first commit would make it look
+    // as if it already did.
+    const from = flags['from-checkout'] ? resolve(String(flags['from-checkout'])) : null;
+    if (from) {
+      const remote = await fetchRemote();
+      const hasRemoteStore = remote.ok && !remote.noRef;
+      if (hasRemoteStore)
+        die(1, `the ref ${CURRENT.ref} already holds a store (${remote.tip.slice(0, 12)}): a byte copy would overwrite records. Import and merge the checkout's remaining writes per item instead`);
+      for (const p of stateFiles()) {
+        const src = join(from, p);
+        requireRegularFile(src, 'a state file in the checkout');
+        if (!existsSync(src)) continue;
+        const dest = join(CURRENT.store, p);
+        mkdirSync(dirname(dest), { recursive: true });
+        writeFileSync(dest, readFileSync(src));
+        say(`tracker-sync: copied ${p} from ${from} into the store`);
+      }
+      await recipeOk('import', {});
+    }
+    const machineName = String(flags.machine || (await run('hostname', [], {})).stdout.trim() || 'machine');
+    writeConfig(flags, repoRoot, { machine: machineName });
+    if (CURRENT.recipe.ordinal) {
+      const name = machineName;
+      await recipeOk('ordinal', { machine: quote(name) });
+      const oid = await commitState(`tracker store: this machine takes its ordinal`, [await headOid()]);
+      const res = await pushOid(oid, { quiet: true });
+      say(`tracker-sync: this machine is named in the store's machine ordinals${res.ok ? '' : ' (kept here, published when the remote answers)'}`);
+    }
+    const envLine = (await recipe('pointer.env', {}, { cwd: CURRENT.store })).stdout.trim();
+    // NOT `--env-file`: node itself consumes that option (`--env-file=<path>`), so
+    // the mechanism would never see it and node would fail on a missing file.
+    const envFile = flags['launcher-file'] ? resolve(String(flags['launcher-file'])) : readConfig(flags, repoRoot).envFile;
+    const says = [];
+    for (const c of unique) {
+      const install = await recipe('pointer.install', { checkout: quote(c) }, { cwd: CURRENT.store });
+      if (install.code !== 0) {
+        const done = says.map((s) => s.checkout).join(', ') || 'none';
+        if (install.code === 127 || install.missing) die(2, `the pointer command is missing for ${c}; checkouts already pointed: ${done}. connect is safe to rerun`);
+        die(1, `${c} could not be pointed at the store: ${text(install)}. Checkouts already pointed: ${done}. connect is safe to rerun`);
+      }
+      const check = await recipe('pointer.check', { checkout: quote(c) }, { cwd: CURRENT.store });
+      const said = text(check);
+      // The check must name the store this mechanism created: a tracker that
+      // answers with some other store is not pointing at the machine's one.
+      if (check.code !== 0 || !said.includes(CURRENT.store))
+        die(1, `${c} does not reach the store at ${CURRENT.store}: the pointer check said "${said || 'nothing'}" (exit ${check.code})`);
+      const variableOnly = /variable-only/.test(said);
+      if (variableOnly && !envFile)
+        die(1, `${c} reaches ${CURRENT.store} only through a variable and no launcher file was named: pass --launcher-file <file> (or put the checkout's pointer in place) so the checkout is pointed where its agents start, not in an agent's memory`);
+      says.push({ checkout: c, variableOnly });
+      say(`tracker-sync: ${c} reaches ${CURRENT.store}${variableOnly ? ' (through the variable the launcher carries)' : ' through its own pointer'}`);
+      await installHooks(c);
+    }
+    if (envFile && envLine) {
+      requireRegularFile(envFile, 'the launcher file');
+      const lines = existsSync(envFile) ? readFileSync(envFile, 'utf8') : '';
+      if (!lines.includes(envLine)) writeFileSync(envFile, `${lines.replace(/\n*$/, '\n')}${envLine}\n`);
+      say(`tracker-sync: the launcher file ${envFile} carries ${envLine.split('=')[0]}=... for checkouts outside the product's folder`);
+    } else if (envLine) {
+      say(`tracker-sync: checkouts outside the product's folder need this line in the agents' launcher: ${envLine}`);
+    }
+    writeConfig(flags, repoRoot, {
+      recipe: CURRENT.recipe.path, tracker: CURRENT.recipe.tracker, ref: CURRENT.ref, repo: repoRoot,
+      store: CURRENT.store, checkouts: unique, envFile: envFile || null, connectedAt: nowIso(),
+      points: says, mechanismVersion: VERSION, mechanism: join(HERE, 'tracker-sync.mjs'),
+    });
+    say(`tracker-sync: connected ${unique.length} checkout(s) to ${CURRENT.store} on ${CURRENT.ref} (mechanism ${VERSION})`);
   });
-  say(`tracker-sync: connected ${unique.length} checkout(s) to ${CURRENT.store} on ${CURRENT.ref} (mechanism ${VERSION})`);
   } finally { release(); }
 }
 
@@ -1321,7 +1544,13 @@ async function statusRun(flags) {
       out.checks.push({ checkout: c, pointsAt: text(r).split('\n')[0] || null, ok: r.code === 0,
         variableOnly: /variable-only/.test(text(r)), said: text(r) });
     }
-    const pid = (() => { try { return Number(readFileSync(pidPath(flags, repoRoot), 'utf8').trim()); } catch { return null; } })();
+    const pid = (() => {
+      try {
+        const f = pidPath(flags, repoRoot);
+        requireRegularFile(f, 'the watch pid file');
+        return Number(readFileSync(f, 'utf8').trim());
+      } catch { return null; }
+    })();
     const alive = pid ? (() => { try { process.kill(pid, 0); return true; } catch { return false; } })() : false;
     out.supervisor = { configured: !!cfg.supervisor || !!pid, alive, pid, lastTick: pid ? new Date(statSync(pidPath(flags, repoRoot)).mtimeMs).toISOString() : null };
     out.lastPublish = cfg.lastPublish || null; out.lastPublishOk = cfg.lastPublishOk ?? null;
@@ -1357,6 +1586,7 @@ async function exportRun(flags, pos) {
   const at = flags.at ? String(flags.at) : pos[0];
   if (at) {
     const f = join(CURRENT.store, '.tracker-sync', 'recordings', `${at}.jsonl`);
+    requireRegularFile(f, 'the recording');
     if (!existsSync(f))
       die(1, `no recording for ${at}: the store never recorded that revision, so its state is unknown and is not guessed from a later state`);
     process.stdout.write(readFileSync(f, 'utf8'));
@@ -1371,7 +1601,11 @@ async function exportRun(flags, pos) {
   }
   for (const p of stateFiles()) {
     const f = join(CURRENT.store, p);
-    if (existsSync(f)) process.stdout.write(`=== ${p}\n${readFileSync(f, 'utf8')}${readFileSync(f, 'utf8').endsWith('\n') ? '' : '\n'}`);
+    requireRegularFile(f, 'a state file');
+    if (existsSync(f)) {
+      const body = readFileSync(f, 'utf8');
+      process.stdout.write(`=== ${p}\n${body}${body.endsWith('\n') ? '' : '\n'}`);
+    }
   }
 }
 
@@ -1390,6 +1624,16 @@ async function watchRun(flags) {
   // watcher from a stale one.
   const heartbeat = setInterval(() => { try { const p = pidPath(flags, CURRENT.repoRoot); writeFileSync(p, String(process.pid)); } catch {} }, 5000);
   heartbeat.unref();
+  // A round the watcher cannot take the lock for is skipped, not fatal: the two
+  // loops of one process queue on each other in-process now, so a timeout means
+  // another command (a record from a worktree, a sync by hand) holds the store,
+  // and it is said once here rather than once per tick.
+  let lockTimeoutSaid = false;
+  const onLockTimeout = (e) => {
+    if (lockTimeoutSaid) return;
+    lockTimeoutSaid = true;
+    say(`tracker-sync: another command holds the store lock (${e.message.split(';')[0]}); this round is skipped and tried again, the watcher stays up`);
+  };
   const publishLoop = async () => {
     while (!stop) {
       // The lock covers the store's own work only; the push is a network call
@@ -1398,18 +1642,28 @@ async function watchRun(flags) {
       let digest = null;
       try {
         digest = await locked(async () => {
-          await recipeOk('export', {});
+          await flushDatabase();
           if (!(await hasUncommittedState())) return null;
           return stateDigest();
-        }, 20000);
-      } catch (e) { say(`tracker-sync: the export failed: ${e.message}`); }
+        }, 20000, { skipOnTimeout: true });
+      } catch (e) {
+        if (e.lockTimeout) { onLockTimeout(e); await sleep(1000); continue; }
+        say(`tracker-sync: the export failed: ${e.message}`);
+      }
       if (digest === null) { firstChange = null; lastChange = null; lastDigest = ''; await sleep(1000); continue; }
       const t = Date.now();
       if (digest !== lastDigest) { lastDigest = digest; lastChange = t; if (firstChange === null) firstChange = t; }
       const ready = (t - lastChange) / 1000 >= debounce || (t - firstChange) / 1000 >= maxAge;
       if (ready) {
-        const oid = await locked(async () => commitState(`tracker store: ${nowIso()}`, [await headOid()]), 20000);
-        const res = await pushOid(oid, { quiet: true });
+        let oid;
+        try {
+          oid = await locked(async () => commitState(`tracker store: ${nowIso()}`, [await headOid()]), 20000, { skipOnTimeout: true });
+        } catch (e) {
+          if (e.lockTimeout) { onLockTimeout(e); await sleep(1000); continue; }
+          throw e;
+        }
+        const res = await pushOid(oid, { quiet: true, skipOnTimeout: true });
+        if (res.skipped) onLockTimeout(Object.assign(new Error(res.skipped), { lockTimeout: true }));
         writeConfig(flags, CURRENT.repoRoot, { lastPublish: nowIso(), lastPublishOk: !!res.ok });
         if (res.ok) {
           say(`tracker-sync: published ${oid.slice(0, 12)} (${((Date.now() - firstChange) / 1000).toFixed(1)}s after the first unpublished change)`);
@@ -1421,7 +1675,11 @@ async function watchRun(flags) {
   };
   const syncLoop = async () => {
     while (!stop) {
-      try { await syncOnce({ quiet: true }); } catch (e) { say(`tracker-sync: the sync failed: ${e.message}`); }
+      try {
+        const r = await syncOnce({ quiet: true, skipOnTimeout: true });
+        const skipped = (r && r.skipped) || (r && r.pushed && r.pushed.skipped);
+        if (skipped) onLockTimeout(Object.assign(new Error(skipped), { lockTimeout: true }));
+      } catch (e) { say(`tracker-sync: the sync failed: ${e.message}`); }
       await sleep(interval * 1000);
     }
   };
@@ -1491,9 +1749,15 @@ async function main() {
       await relinkRun(flags);
       break;
     case 'publish': {
-      // publishOnce takes the store lock itself, for its local work only.
-      const r = await publishOnce({ quiet: false });
-      if (flags.watch) { await watchRun(flags); break; }
+      // publishOnce takes the store lock itself, for its local work only. Under
+      // --watch this first round is the watcher's first tick, so a lock it cannot
+      // take is skipped and said once, exactly as the loop says it.
+      const r = await publishOnce({ quiet: false, skipOnTimeout: !!flags.watch });
+      if (flags.watch) {
+        if (r.skipped) say(`tracker-sync: another command holds the store lock (${r.skipped.split(';')[0]}); this round is skipped and tried again, the watcher stays up`);
+        await watchRun(flags);
+        break;
+      }
       if (r.nothing) say('tracker-sync: nothing to publish');
       else if (r.ok) say(`tracker-sync: published ${String(r.oid).slice(0, 12)}`);
       else say('tracker-sync: the write is kept here and is published when the remote answers');

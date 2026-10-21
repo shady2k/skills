@@ -57,6 +57,7 @@
 import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { requireRegularFile } from './regular-file.mjs';
 import { homedir, hostname, tmpdir, userInfo } from 'node:os';
 import { isAbsolute, join, resolve, sep } from 'node:path';
 import { runInNewContext } from 'node:vm';
@@ -253,7 +254,16 @@ export function settings(config) {
 // The project's gate config, when the caller does not name it: the one JSON
 // file the working copy tracks that carries a "jev" section. Setup writes that
 // section into the gate config only, so two of them is a question, not a guess.
-export function findConfig({ list = () => gitOut(['ls-files', '-z', '--', '*.json']), read = (f) => readFileSync(f, 'utf8'),
+// A config path read without asking is a path that may be a named pipe: open()
+// on one with no writer never returns, so a project whose tracked config was
+// replaced by one would hang every command that discovers it. Every default
+// reader here asks first, and a reader a caller passes in is left alone.
+function readRegular(path, ...rest) {
+  requireRegularFile(String(path), 'the config');
+  return readFileSync(path, ...rest);
+}
+
+export function findConfig({ list = () => gitOut(['ls-files', '-z', '--', '*.json']), read = (f) => readRegular(f, 'utf8'),
   top = gitOut(['rev-parse', '--show-toplevel']).trim() } = {}) {
   if (!top) throw new Unavailable('not inside a git working copy, so there is no project config to read');
   const found = [];
@@ -293,7 +303,7 @@ const placeOf = (where) => (typeof where?.env === 'string' && where.env ? 'env'
 // which may hold what the key is guarded by. A file the machine holds but
 // cannot give — unreadable, not JSON, or holding no usable place — is an error
 // naming the file, never silently skipped for the fallback below.
-export function keyPlace({ env = process.env, read = readFileSync, top } = {}) {
+export function keyPlace({ env = process.env, read = readRegular, top } = {}) {
   let where;
   const file = keyPlaceFile(env, top);
   let text, got;
@@ -315,7 +325,7 @@ const described = (where) => (where.env ? `the environment variable ${where.env}
   : Array.isArray(where.command) ? `the command ${where.command[0]}` : 'an unknown source');
 
 // The file first, then JEV_API_KEY in the process's environment; nothing else.
-export function keySource({ env = process.env, read = readFileSync, top } = {}) {
+export function keySource({ env = process.env, read = readRegular, top } = {}) {
   const place = keyPlace({ env, read, top });
   if (place !== null) return place;
   const v = env[KEY_ENV];
@@ -330,7 +340,7 @@ export function keyMissing(env = process.env, top) {
 }
 
 // The key from where this machine says it is, without a project config.
-export function readKeyHere({ env = process.env, read = readFileSync, top, run = execFileSync } = {}) {
+export function readKeyHere({ env = process.env, read = readRegular, top, run = execFileSync } = {}) {
   const where = keySource({ env, read, top });
   if (where === null) throw new Unavailable(keyMissing(env, top));
   return readKey(where, { env, read, run });
@@ -339,7 +349,7 @@ export function readKeyHere({ env = process.env, read = readFileSync, top, run =
 // Which source the key came from, never what the key is. The file is named
 // even when it holds an environment variable of its own, so the status line
 // says whether this machine's file was used or the fallback.
-export function keyNote({ env = process.env, read = readFileSync, top } = {}) {
+export function keyNote({ env = process.env, read = readRegular, top } = {}) {
   const place = keyPlace({ env, read, top });
   if (place !== null) return `the machine file ${keyPlaceFile(env, top)} (${described(place)})`;
   const v = env[KEY_ENV];
@@ -889,7 +899,10 @@ async function main(argv) {
     const opts = parse(rest);
     opts.config ||= findConfig();
     let config;
-    try { config = JSON.parse(readFileSync(opts.config, 'utf8')); } catch { throw new Misuse(`${opts.config} is not a readable JSON config`); }
+    try {
+      requireRegularFile(opts.config, 'the config');
+      config = JSON.parse(readFileSync(opts.config, 'utf8'));
+    } catch { throw new Misuse(`${opts.config} is not a readable JSON config`); }
     if (command === 'mask') {
       const s = config.jev || {};
       console.log(masker({ idPattern: s.idPattern, patterns: s.maskPatterns || [], words: [...(config.projectWords || []), ...(config.trackerWords || [])], people: knownPeople() }).mask(stdin()));

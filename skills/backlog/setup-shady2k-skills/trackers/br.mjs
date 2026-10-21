@@ -515,6 +515,80 @@ function opt(argv, flag, dflt) {
   }
 }
 
+// ---- export a refused flush to a side file ----------------------------------
+// A flush the tracker refuses is a flush whose state the mechanism still needs:
+// the database may hold a write the state file lacks, and a merge or a rebuild
+// from that file would drop it. This command puts the database's own state in a
+// side folder, so the mechanism can merge it per item and write nothing into
+// the store from a forced export.
+//
+// br's export guards are bypassed with --force, and --force is exactly what
+// must not run in the store: it replaces the state file from the database,
+// which is the loss the guards exist to prevent. So the database and the state
+// files are copied beside the store and the forced export runs there.
+//
+// A copy taken while another session is writing the database can be a state
+// that is older than the live one, and an export of it would silently lack a
+// write accepted in between. So the store's own files are fingerprinted before
+// the copy and again after the export, and the whole attempt is repeated while
+// they changed: a store being written is retried, and one that will not stand
+// still is refused by name rather than exported as an older state.
+function cmdExportSide(argv) {
+  const out = opt(argv, '--out');
+  if (!out) fail('export-side: missing --out <folder>');
+  const cwd = process.cwd();
+  const store = storeDir(cwd);
+  if (!fs.existsSync(store)) fail(`export-side: no store at ${store}`);
+  const copy = path.join(out, '.beads');
+  // What the store's own regular files are, so a copy taken between two writes
+  // is told apart from one taken while nothing was writing.
+  const fingerprint = () => {
+    const seen = [];
+    for (const n of fs.readdirSync(store).sort()) {
+      if (/\.lock$/.test(n)) continue;
+      const f = path.join(store, n);
+      let st;
+      try { st = fs.lstatSync(f); } catch { continue; }
+      if (st.isFile()) seen.push(`${n}:${st.size}:${st.mtimeMs}`);
+    }
+    return seen.join('|');
+  };
+  const state = path.join(copy, 'issues.jsonl');
+  let exported = false;
+  for (let attempt = 0; attempt < 3 && !exported; attempt++) {
+    const before = fingerprint();
+    fs.rmSync(copy, { recursive: true, force: true });
+    fs.mkdirSync(copy, { recursive: true });
+    try {
+      fs.cpSync(store, copy, {
+        recursive: true,
+        dereference: false,
+        // A lock is not state, a link is not state, and a named pipe or a socket
+        // is never opened: a read of one would block here for ever.
+        filter: (from) => {
+          if (/\.lock$/.test(path.basename(from))) return false;
+          let st;
+          try { st = fs.lstatSync(from); } catch { return false; }
+          return st.isDirectory() || st.isFile();
+        },
+      });
+    } catch (e) {
+      fail(`export-side: could not copy the store to ${copy}: ${e.message}`);
+    }
+    const db = path.join(copy, 'beads.db');
+    if (!fs.existsSync(db)) fail(`export-side: the copy holds no database (${db}), so there is nothing to export`);
+    const r = br(['--db', db, 'sync', '--flush-only', '--force'], out, { allowFailure: true });
+    if (r.status !== 0) fail(`export-side: the forced export failed (${r.status}): ${(r.stderr || r.stdout || '').trim()}`);
+    if (!fs.existsSync(state)) fail(`export-side: the forced export wrote no ${state}`);
+    // Nothing of the store moved while the copy was taken and exported: the side
+    // file is the state of the database this command was asked about.
+    exported = fingerprint() === before;
+  }
+  if (!exported)
+    fail(`export-side: the store at ${store} changed while its database was being exported three times over, so the copy may lack a write another command accepted; nothing is exported. Let the running command finish and try again`);
+  process.stdout.write(`${state}\n`);
+}
+
 // ---- pointer ----------------------------------------------------------------
 
 function cmdPointerInstall(argv) {
@@ -643,6 +717,7 @@ function cmdOrdinal(argv) {
 const commands = {
   init: cmdInit,
   merge: cmdMerge,
+  'export-side': cmdExportSide,
   claim: cmdClaim,
   transition: cmdTransition,
   post: cmdPost,
@@ -655,7 +730,7 @@ const isMain = process.argv[1] && import.meta.url === pathToFileURL(path.resolve
 if (isMain) {
   const [cmd, ...argv] = process.argv.slice(2);
   if (!cmd || !commands[cmd]) {
-    process.stderr.write(`usage: node trackers/br.mjs <init|merge|claim|transition|post|pointer-install|pointer-check|pointer-env|ordinal> [options]\n`);
+    process.stderr.write(`usage: node trackers/br.mjs <init|merge|export-side|claim|transition|post|pointer-install|pointer-check|pointer-env|ordinal> [options]\n`);
     process.exit(cmd ? 1 : 0);
   }
   commands[cmd](argv);
@@ -668,6 +743,24 @@ export default {
   storePath: '.beads',
   stateFiles: ['.beads/issues.jsonl', '.beads/beads.base.jsonl', '.beads/config.yaml'],
   export: 'br sync --flush-only',
+  // How this tracker refuses a flush, and what each refusal means. The mechanism
+  // knows no tracker: a refusal it does not find here is the dangerous one -
+  // the database may hold writes the state file lacks - and is merged from the
+  // database or stopped, never read as "nothing unexported".
+  // Measured on br 0.7.0, each exit status 7:
+  refusals: [
+    // A store that has not imported the ref yet: an empty database over the
+    // filled state file. Nothing is unexported, and the state files stand.
+    { code: 7, match: 'Refusing to export empty database over non-empty JSONL', meaning: 'nothing-unexported' },
+    // The state file changed since the database's last certified export, so the
+    // database holds writes the file lacks.
+    { code: 7, match: 'Refusing a no-op flush because the JSONL changed since its last certified sync', meaning: 'merge-database' },
+    // The state file holds items the database never imported: exporting would
+    // lose them, and importing would lose a write the database holds.
+    { code: 7, match: 'Refusing to export stale database that would lose issues', meaning: 'merge-database' },
+  ],
+  // The database's own state in a side file, for a flush the tracker refuses.
+  exportSide: 'node <recipeFile> export-side --out <out>',
   import: 'br sync --import-only --rebuild',
   init: 'node <recipeFile> init --prefix <prefix>',
   merge: 'node <recipeFile> merge --ours <ours> --theirs <theirs> --base <base> --out <out> --order <order> --order-local <orderLocal> --store <store>',

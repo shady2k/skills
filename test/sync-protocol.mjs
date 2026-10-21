@@ -24,6 +24,7 @@ export const SHARED = {
   'runs.mjs': TAKE,
   'ledger.mjs': TAKE,
   'argv.mjs': SETUP,
+  'regular-file.mjs': SETUP,
 };
 
 // The shared files a skill links to, directly or through another shared file.

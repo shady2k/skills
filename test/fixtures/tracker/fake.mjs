@@ -12,6 +12,8 @@
  *   init --prefix <p>                 create an empty store, refuse if it exists
  *   ordinal --machine <name>          claim this machine's ordinal, print it
  *   export / import                   state file <-> local database copy
+ *   export-side --out <folder>        the database's own state, for a refused flush
+ *   db-write --item <i> --text <t>    a write the tracker accepted, not yet flushed
  *   where                             print the store path this checkout points at
  *   pointer-install --store <s> --checkout <c>
  *   pointer-check --checkout <c>      print the store path the checkout reaches
@@ -143,7 +145,45 @@ switch (sub) {
     break;
   }
   case 'export': case 'import': {
+    // A tracker that refuses to flush its own database, which is what the
+    // mechanism must never read as "nothing unexported". The refusal is the
+    // tracker's own words, so a case can model one the recipe classifies and one
+    // it does not.
+    const refusal = process.env.FAKE_EXPORT_REFUSAL;
+    if (sub === 'export' && refusal) {
+      if (refusal === 'empty-over-filled') die('Refusing to export an empty database over a filled file; the state file is the newer one', 7);
+      if (refusal === 'jsonl-changed') die('Refusing a no-op flush: the JSONL changed since its last certified sync, and the database holds what it accepted', 7);
+      die('the export guard said something the recipe has never heard of', 9);
+    }
+    // A slow export is what makes the watcher's two loops meet: one holds the
+    // store while the other wants it.
+    const slow = Number(process.env.FAKE_SLOW_EXPORT || 0);
+    if (sub === 'export' && slow > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, slow);
     mirrorDb();
+    break;
+  }
+  // A write the tracker accepted and has not flushed: it is in the database and
+  // not in the state file, exactly what a refused flush must not drop.
+  case 'db-write': {
+    const id = a.flags.item, text = a.flags.text;
+    if (!id || text === undefined) die('db-write needs --item and --text', 1);
+    const db = existsSync(dbFile()) ? JSON.parse(readFileSync(dbFile(), 'utf8')) : { records: [] };
+    const target = (db.records || []).find((r) => r.id === id);
+    if (!target) die('db-write: no record named ' + id + ' in the database', 1);
+    target.comments = target.comments || [];
+    target.comments.push({ id: nextSeqId('c'), author: process.env.FAKE_AUTHOR || 'local-session', text, created_at: new Date().toISOString() });
+    writeFileSync(dbFile(), JSON.stringify(db, null, 1) + '\n');
+    out(id);
+    break;
+  }
+  // The database's own state in a side folder, for a flush the tracker refuses:
+  // what the mechanism merges per item before anything is fast-forwarded.
+  case 'export-side': {
+    const dir = a.flags.out;
+    if (!dir) die('export-side needs --out <folder>', 1);
+    const db = existsSync(dbFile()) ? JSON.parse(readFileSync(dbFile(), 'utf8')) : { records: [] };
+    writeJsonl(join(dir, 'fake', 'items.jsonl'), (db.records || []).filter((r) => r.type !== 'void'));
+    out(dir);
     break;
   }
   case 'where': {
@@ -327,5 +367,5 @@ switch (sub) {
     break;
   }
   default:
-    die('unknown subcommand: ' + sub + '\nknown: init ordinal export import where pointer-install pointer-check pointer-env claim transition post void merge');
+    die('unknown subcommand: ' + sub + '\nknown: init ordinal export import export-side db-write where pointer-install pointer-check pointer-env claim transition post void merge');
 }

@@ -890,6 +890,38 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.123.0** keeps the tracker in step and never leaves a check waiting. Three
+  repairs from real use (#42, #43).
+
+  The first: the watcher that keeps a project's tracker in step with every
+  machine no longer stops on its own lock. It waited for a lock its own process
+  was holding, reached the deadline and exited, and the supervisor restarted it
+  into the same wait — hundreds of restarts in a few hours, and no tracker
+  update meanwhile. Its publishing and syncing now queue on each other inside
+  the process, and a round that meets another command's lock is skipped and said
+  once in its log instead of ending the watcher. A command you run by hand still
+  waits for the lock and then tells you which process holds the store.
+
+  The second, and the one that lost work: a tracker that refused to flush its
+  database was read as having nothing to export, so the next merge and rebuild
+  dropped a comment the tracker had already accepted. Now the recipe says what
+  each refusal means. The harmless one — a store that has not imported the
+  remote's state yet — is said and the state files stand. Every other refusal,
+  including one the recipe does not recognize, has the database exported to a
+  side file and merged into the state files per item before anything is
+  fast-forwarded, so a write the tracker accepted survives. When that cannot be
+  done the sync stops and says what is at risk rather than continuing.
+
+  The third: the product-documents check no longer waits for ever on a registry
+  that is not a regular file. A folder walk takes only regular files, and a
+  `docs/kinds.yaml` that is a named pipe, a socket or a device is a finding that
+  names it, so the check exits at once instead of opening it. The same guard now
+  stands before every path a check or the tracker mechanism reads from the
+  command line or a folder walk.
+
+  Projects rerun setup (0.53.0) to take the repaired mechanism, recipe and
+  checks.
+
 - **0.122.0** refuses an option that was given no value, and measures the time of a
   session you started in your working-copies folder. Two repairs from outside
   contributors (@avlokhturov), landed with their commits kept (#33, #28).

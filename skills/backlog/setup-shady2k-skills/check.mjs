@@ -61,6 +61,7 @@
 
 import { createHash } from 'node:crypto';
 import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { notRegularFileSaid, requireRegularFile } from './regular-file.mjs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -793,7 +794,7 @@ function bulkClusters(m, threshold) {
 
 // The version of the set these rules shipped with. A project holds a COPY of
 // this file, and this is how anybody tells that the copy has fallen behind.
-const RULES_VERSION = '0.52.0';
+const RULES_VERSION = '0.53.0';
 
 const STRENGTHS = ['block', 'block-new', 'report'];
 
@@ -901,6 +902,10 @@ function checkedBacklog(raw, where) {
 function readJson(path, what) {
   let text;
   try {
+    // A named file is never opened before it is known to be a regular file; a
+    // named pipe with no writer would wait for ever. '-' is the caller's own
+    // stdin and is read as it comes.
+    if (path && path !== '-') requireRegularFile(path, what);
     text = !path || path === '-' ? readFileSync(0, 'utf8') : readFileSync(path, 'utf8');
   } catch (e) {
     throw new Misuse(`cannot read ${what} (${path || 'stdin'}): ${e.code || e.message}`);
@@ -1049,6 +1054,7 @@ function render(report) {
 function portability(projectConfigPath) {
   let cfg;
   try {
+    requireRegularFile(projectConfigPath, 'the project config');
     cfg = JSON.parse(readFileSync(projectConfigPath, 'utf8'));
   } catch {
     console.log('SKIP  portability: no project config given (--config) to read projectWords from');

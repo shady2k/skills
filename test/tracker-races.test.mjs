@@ -13,7 +13,14 @@ const source = process.env.TRACKER_RACE_SOURCE || join(root, 'skills/backlog/set
 // the mechanism written into a scratch folder gets it beside the copy: a probe
 // that cannot start proves nothing about a race.
 const ARGV_MODULE = join(root, 'skills/backlog/setup-shady2k-skills/argv.mjs');
-const withReader = (dir) => { writeFileSync(join(dir, 'argv.mjs'), readFileSync(ARGV_MODULE)); return dir; };
+// The mechanism also imports the one regular-file helper beside it, so a copy of
+// it that cannot load proves nothing: both files are written beside every copy.
+const REGULAR_FILE_MODULE = join(root, 'skills/backlog/setup-shady2k-skills/regular-file.mjs');
+const withReader = (dir) => {
+  for (const [name, from] of [['argv.mjs', ARGV_MODULE], ['regular-file.mjs', REGULAR_FILE_MODULE]])
+    writeFileSync(join(dir, name), readFileSync(from));
+  return dir;
+};
 
 const src = () => readFileSync(source, 'utf8');
 
@@ -146,11 +153,12 @@ test('sync reads HEAD and ancestry under the mutation lock, preserving a concurr
     const go = join(ctx.scratch, 'go');
     const resetSnapshot = join(ctx.scratch, 'reset-snapshot');
     const marker = `if (process.env.RACE_BARRIER && !globalThis.racePassed) {globalThis.racePassed=true;writeFileSync(process.env.RACE_BARRIER,'ready');while(!existsSync(process.env.RACE_GO)) await sleep(10);}`;
+    withReader(ctx.scratch);
     const file = join(ctx.scratch, 'barrier.mjs');
 
     writeFileSync(file, src().replace(
-      'async function locked(fn, waitMs = 120000) {',
-      'async function locked(fn, waitMs = 120000) {' + marker)
+      'async function locked(fn, waitMs = 120000, { skipOnTimeout = false } = {}) {',
+      'async function locked(fn, waitMs = 120000, { skipOnTimeout = false } = {}) {' + marker)
       .replace(
         "await gitOk(['reset', '--hard', remote.tip], { cwd: CURRENT.store });",
         "await gitOk(['reset', '--hard', remote.tip], { cwd: CURRENT.store }); if(process.env.RACE_RESET) writeFileSync(process.env.RACE_RESET,await headOid());"));
@@ -210,6 +218,7 @@ for (const mode of ['failed', 'timeout-no-ref', 'retried', 'retried-remote', 'ac
       const arrived = join(ctx.scratch, 'arrived');
       const go = join(ctx.scratch, 'go');
       const marker = `if (process.env.RACE_BARRIER && !globalThis.racePassed) {globalThis.racePassed=true;writeFileSync(process.env.RACE_BARRIER,'ready');while(!existsSync(process.env.RACE_GO)) await sleep(10);${rejected?(mode==='timeout-no-ref'?"await gitOk(['push','origin',`:${CURRENT.ref}`],{cwd:CURRENT.store});return {unreachable:true};":'return {unreachable:true};'):mode==='accepted-timeout'?"await gitOk(['push','origin',`${oid}:${CURRENT.ref}`],{cwd:CURRENT.store});return {unreachable:true};":''}}`;
+      withReader(ctx.scratch);
       const file = join(ctx.scratch, 'barrier.mjs');
 
       writeFileSync(file, src().replace(
@@ -473,6 +482,7 @@ test('candidate fatal errors clean only their worktree and preserve diagnostics 
 
     const live = storeOf(ctx, 'A');
     const before = readFileSync(join(live, 'fake/db.json'), 'utf8');
+    withReader(ctx.scratch);
     const file = join(ctx.scratch, 'fatal.mjs');
 
     writeFileSync(file, src().replace(
@@ -577,6 +587,7 @@ test('SIGKILL leaves an inspectable own candidate and a subsequent attempt prese
     assert.equal(ready.code, 0, ready.out);
 
     const arrived = join(ctx.scratch, 'arrived');
+    withReader(ctx.scratch);
     const file = join(ctx.scratch, 'crash.mjs');
 
     writeFileSync(file, src().replace(
@@ -642,13 +653,14 @@ for (const mode of ['failed', 'accepted-timeout', 'remote-update', 'code-head-up
       const arrived = join(ctx.scratch, 'arrived');
       const go = join(ctx.scratch, 'go');
       const marker = `if(!globalThis.recordBarrier){globalThis.recordBarrier=true;writeFileSync(${JSON.stringify(arrived)},'ready');while(!existsSync(${JSON.stringify(go)}))await sleep(10);${mode==='failed'?'return {ok:false,unreachable:true};':mode==='accepted-timeout'?"await gitOk(['push','origin',`${oid}:${CURRENT.ref}`],{cwd:CURRENT.store});return {ok:false,unreachable:true};":''}}`;
+      withReader(ctx.scratch);
       const file = join(ctx.scratch, 'record-barrier.mjs');
 
       writeFileSync(file, src().replace(
         'async function pushOnce(oid) {',
         'async function pushOnce(oid) {' + marker)
         .replace(
-          'async function pushOid(oid, { quiet, attempts = 3 } = {}) {',
+          'async function pushOid(oid, { quiet, attempts = 3, skipOnTimeout = false } = {}) {',
           'async function pushOid(oid, { quiet, attempts = 3 } = {}) {' + marker));
 
       const revision = git(ctx.codeA, ['rev-parse', 'HEAD']);

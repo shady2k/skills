@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SETUP = join(ROOT, 'skills/backlog/setup-shady2k-skills');
 const LOCK = join(ROOT, 'test/setup-lock.json');
-const INSTALLED = ['check.mjs', 'check-commits.mjs', 'check-docs.mjs', 'check-present.mjs', 'check-product.mjs', 'document-format.mjs', 'time-format.mjs',
+const INSTALLED = ['check.mjs', 'check-commits.mjs', 'check-docs.mjs', 'check-present.mjs', 'check-product.mjs', 'document-format.mjs', 'time-format.mjs', 'regular-file.mjs',
   'integration.md', 'model.md', 'documents.md', 'templates', 'adapters'];
 
 // What setup installs only where the project chose the off-branch tracker layout:
