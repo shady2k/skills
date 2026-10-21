@@ -95,6 +95,7 @@
 import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { requireRegularFile } from './regular-file.mjs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -110,7 +111,7 @@ export const MANIFEST_FILE = 'workspace.yaml';
  * keeps it equal to `.claude-plugin/plugin.json`, which wins where one is
  * found.
  */
-export const PLUGIN_VERSION = '0.122.0';
+export const PLUGIN_VERSION = '0.123.0';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -553,6 +554,9 @@ export function readProduct(productFolder) {
 
   let text;
   try {
+    // The manifest's path is built from the folder the command was given: it is
+    // known to be a regular file before it is opened, never a pipe that waits.
+    requireRegularFile(manifestFile, 'the manifest');
     text = readFileSync(manifestFile, 'utf8');
   } catch (error) {
     if (error.code === 'ENOENT')

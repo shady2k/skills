@@ -82,6 +82,7 @@
  * product folder that cannot be used.
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { requireRegularFile } from "./regular-file.mjs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -929,6 +930,7 @@ export function resolveTemplate({ prefix, root }) {
     if (!existsSync(path)) continue;
     let text;
     try {
+      requireRegularFile(path, "a template");
       text = readFileSync(path, "utf8");
     } catch (error) {
       return { ok: false, status: "findings", file: path, line: 1, message: `${path} cannot be read: ${error.message} — a template whose file cannot be read is refused as an unreadable file` };
@@ -1229,6 +1231,10 @@ function main(args) {
   }
   let text;
   try {
+    // The registry's path is the project's data, reached by walking: it is known
+    // to be a regular file before it is opened, because open() on a named pipe
+    // with no writer never returns.
+    requireRegularFile(place.path, "the registry");
     text = readFileSync(place.path, "utf8");
   } catch (error) {
     const words = `${place.path} cannot be read: ${error.message} — a registry whose file cannot be read is refused as one unreadable file, exit 1`;

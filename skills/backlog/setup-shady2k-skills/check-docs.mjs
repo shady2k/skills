@@ -2,11 +2,12 @@
 // Pure rules over deterministic project exports; see documents.md for the trust boundary.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { requireRegularFile } from './regular-file.mjs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ValueNeeded, valueOf } from './argv.mjs';
 
-export const RULES_VERSION = '0.52.0';
+export const RULES_VERSION = '0.53.0';
 const here = dirname(fileURLToPath(import.meta.url));
 const object = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
 const canonical = (x) => Array.isArray(x) ? x.map(canonical) : object(x)
@@ -624,7 +625,12 @@ function main(args) {
     }
   }
   if (!options['--input'] || !options['--policy']) throw new Error('--input and --policy are required');
-  const read = (p) => JSON.parse(readFileSync(p, 'utf8'));
+  // Every path here is named on the command line, so each one is known to be a
+  // regular file before it is opened: a named pipe would never answer.
+  const read = (p) => {
+    requireRegularFile(p, 'a document the check reads');
+    return JSON.parse(readFileSync(p, 'utf8'));
+  };
   const model = read(options['--input']);
   const violations = checkDocuments(model, read(options['--policy']), options['--evidence'] ? read(options['--evidence']) : null);
   const c = model.change;

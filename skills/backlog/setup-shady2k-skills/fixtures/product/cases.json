@@ -639,6 +639,19 @@
         }
       ],
       "expected": []
+    },
+    {
+      "name": "registry-that-is-not-a-regular-file",
+      "edits": [
+        {
+          "irregular": [
+            "docs/kinds.yaml"
+          ]
+        }
+      ],
+      "expected": [
+        "irregular-registry docs/kinds.yaml:1"
+      ]
     }
   ]
 }

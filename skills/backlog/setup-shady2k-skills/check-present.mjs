@@ -55,13 +55,14 @@
 
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { requireRegularFile } from './regular-file.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, posix, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pathMatcher } from './document-format.mjs';
 import { ValueNeeded, valueOf } from './argv.mjs';
 
-export const RULES_VERSION = '0.52.0';
+export const RULES_VERSION = '0.53.0';
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 class Misuse extends Error {}
@@ -503,7 +504,10 @@ function main(args) {
   }
   if (!options['--config'] || !options['--base']) throw new Misuse('--config and --base are required; see --help');
   let raw;
-  try { raw = JSON.parse(readFileSync(options['--config'], 'utf8')); }
+  try {
+    requireRegularFile(options['--config'], 'the config');
+    raw = JSON.parse(readFileSync(options['--config'], 'utf8'));
+  }
   catch (error) { throw new Misuse(`the config cannot be read: ${error.message}`); }
   const cfg = checkedConfig(raw);
   const repo = options['--repo'] || '.';
