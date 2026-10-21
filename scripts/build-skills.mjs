@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from 
 import { resolve, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { SHARED } from '../test/sync-protocol.mjs';
+import { SHARED, needs } from '../test/sync-protocol.mjs';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = p => readFileSync(p, 'utf8');
@@ -79,6 +79,16 @@ export function build(root = ROOT, check = false) {
       }
     };
     follow('SKILL.md', outputs.get(target));
+    // A script a skill ships carries the shared files it imports, and so does a
+    // shared file it carries: the folder is installed on its own. The closure is
+    // the packager's own (test/sync-protocol.mjs writes it, test/repo.mjs checks
+    // it), so what a build writes and what a check expects cannot drift.
+    for (const path of needs(resolve(root, folder))) {
+      const owner = shared[path];
+      if (owner === folder || needed.has(path)) continue;
+      needed.add(path);
+      outputs.set(`${folder}/${path}`, outputs.get(`${owner}/${path}`) ?? read(resolve(root, `${owner}/${path}`)));
+    }
     if (check)
       for (
         const path of new Set([

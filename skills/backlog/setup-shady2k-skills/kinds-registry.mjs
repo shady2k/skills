@@ -85,6 +85,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, 
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { ValueNeeded, valueOf } from "./argv.mjs";
 
 export const REGISTRY_FILE = "docs/kinds.yaml";
 
@@ -1068,6 +1069,27 @@ export function selftest(dir) {
   else words.push("kinds registry: a registry without its contract line is refused at line 1");
   templatesWalk(findings, words);
   if (verified.ok) words.unshift(`kinds registry: the example at ${path} is the writer's own bytes and verifies under the set's reader`);
+  // The command line reads every option that takes a value through argv.mjs: an
+  // empty, blank, missing or option-shaped word is misuse that names the option,
+  // where `--root ''` once verified the current folder instead of the one asked
+  // for and --root with nothing after it was only "incomplete".
+  const misuse = (args, option) => {
+    let said = "";
+    const write = process.stderr.write.bind(process.stderr);
+    process.stderr.write = (c) => { said += String(c); return true; };
+    let code;
+    try { code = main(args); } finally { process.stderr.write = write; }
+    return code === 2 && said.includes(`"${option}"`) ? null : `exit ${code}: ${said.trim().split("\n")[0]}`;
+  };
+  for (const [name, args, option] of [
+    ["an empty --root", ["--root", "", "--check", "--json"], "--root"],
+    ["a missing --root", ["--root"], "--root"],
+    ["an option instead of the --root value", ["--root", "--check"], "--root"],
+    ["an empty --template", ["--template", "", "--json"], "--template"],
+  ]) {
+    const why = misuse(args, option);
+    if (why !== null) findings.push(`kinds registry cli: ${name} is not misuse naming ${option} (${why})`);
+  }
   return verified.ok ? { ok: true, findings, words } : { ok: false, findings, words: [] };
 }
 
@@ -1077,7 +1099,17 @@ function main(args) {
   const wrong = args.filter((arg, x) => (arg.startsWith("--") && !recognized.includes(arg)) || (!arg.startsWith("--") && (x === 0 || args[x - 1] !== "--root" && args[x - 1] !== "--template")));
   const doSelftest = args.includes("--selftest");
   const templateAt = args.indexOf("--template");
-  const prefix = templateAt >= 0 ? args[templateAt + 1] : undefined;
+  // One reader for every option that takes a value: an id prefix, an empty or
+  // option-shaped one included, is read the same way here as everywhere else.
+  let prefix;
+  if (templateAt >= 0) {
+    try { prefix = valueOf(args, templateAt, "--template", "an id prefix"); } catch (e) {
+      if (!(e instanceof ValueNeeded)) throw e;
+      console.error(e.message);
+      console.error("usage: node kinds-registry.mjs --template <id prefix> [--root <product folder>] [--json]");
+      return 2;
+    }
+  }
   if (doSelftest && (wrong.length || args.some((arg) => ["--check", "--template", "--root"].includes(arg)))) {
     console.error("usage: node kinds-registry.mjs --selftest | [--root <product folder>] [--template <id prefix>] [--check] [--json]");
     return 2;
@@ -1112,11 +1144,13 @@ function main(args) {
       const arg = args[i];
       if (arg === "--json") continue;
       if (arg === "--root") {
-        root = args[++i];
-        if (root === undefined) {
+        try { root = valueOf(args, i, "--root", "the product folder"); } catch (e) {
+          if (!(e instanceof ValueNeeded)) throw e;
+          console.error(e.message);
           console.error("usage: node kinds-registry.mjs --template <id prefix> [--root <product folder>] [--json]");
           return 2;
         }
+        i++;
         continue;
       }
       rest.push(arg);
@@ -1158,11 +1192,13 @@ function main(args) {
     const arg = args[i];
     if (arg === "--json" || arg === "--check") continue;
     if (arg === "--root") {
-      root = args[++i];
-      if (root === undefined) {
+      try { root = valueOf(args, i, "--root", "the product folder"); } catch (e) {
+        if (!(e instanceof ValueNeeded)) throw e;
+        console.error(e.message);
         console.error("usage: node kinds-registry.mjs [--root <product folder>] [--check] [--json] | --selftest");
         return 2;
       }
+      i++;
       continue;
     }
     rest.push(arg);

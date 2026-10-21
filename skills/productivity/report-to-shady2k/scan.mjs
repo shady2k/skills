@@ -7,6 +7,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { hostname, userInfo } from 'node:os';
 import { basename, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ValueNeeded, valueOf } from './argv.mjs';
 
 const TARGET = 'https://github.com/shady2k/skills';
 const ALWAYS_ALLOWED = ['shady2k', 'skills', 'github', 'claude', 'codex'];
@@ -92,6 +93,28 @@ function selftest() {
     if (!ok) failed++;
     console.log(`${ok ? 'PASS' : 'FAIL'}  scan: ${name}${ok ? '' : ` (got ${JSON.stringify(got)})`}`);
   }
+  // The command line takes its values through argv.mjs: an empty or blank word
+  // is invalid use (2), never a value the scan carries on without -- `--config
+  // ''` once meant "no config", so the project's words were never read.
+  const invalid = (args) => {
+    const said = [];
+    const write = process.stderr.write.bind(process.stderr);
+    process.stderr.write = (c) => { said.push(String(c)); return true; };
+    let code;
+    try { code = main(args); } finally { process.stderr.write = write; }
+    return { code, said: said.join('') };
+  };
+  for (const [name, args, option] of [
+    ['an empty --config names the option', ['--draft', 'x', '--config', ''], '--config'],
+    ['an empty --draft names the option', ['--draft', '', '--config', 'y'], '--draft'],
+    ['a missing --word names the option', ['--draft', 'x', '--word'], '--word'],
+    ['an option instead of the --allow word names the option', ['--draft', 'x', '--allow', '--config'], '--allow'],
+  ]) {
+    const got = invalid(args);
+    const ok = got.code === 2 && got.said.includes(`"${option}"`);
+    if (!ok) failed++;
+    console.log(`${ok ? 'PASS' : 'FAIL'}  scan: ${name}${ok ? '' : ` (got ${got.code}: ${got.said.trim().split('\n')[0]})`}`);
+  }
   return failed ? 1 : 0;
 }
 
@@ -99,14 +122,24 @@ function main(args) {
   const usage = 'scan.mjs --draft <file> [--config <gate-config.json>] [--word <w>]... [--allow <w>]...\nscan.mjs --selftest\nExit 0 clean, 1 something to remove, 2 invalid use.';
   if (args.length === 1 && args[0] === '--selftest') return selftest();
   const opts = { draft: null, config: null, word: [], allow: [] };
-  for (let i = 0; i < args.length; i += 2) {
-    const key = args[i]?.replace(/^--/, '');
-    if (!(key in opts) || args[i + 1] === undefined) {
-      console.error(usage);
-      return 2;
+  // One reader for every option that takes a value: `--config ''` is not "no
+  // config", it is an option given nothing, and the scan would otherwise check
+  // the text against the words it knows and silently skip the project's.
+  try {
+    for (let i = 0; i < args.length; i += 2) {
+      const key = args[i]?.replace(/^--/, '');
+      if (!(key in opts)) {
+        console.error(usage);
+        return 2;
+      }
+      const one = valueOf(args, i, args[i], key === 'draft' ? 'the draft file' : `the ${key} word`);
+      if (Array.isArray(opts[key])) opts[key].push(one);
+      else opts[key] = one;
     }
-    if (Array.isArray(opts[key])) opts[key].push(args[i + 1]);
-    else opts[key] = args[i + 1];
+  } catch (e) {
+    if (!(e instanceof ValueNeeded)) throw e;
+    console.error(`${e.message}\n${usage}`);
+    return 2;
   }
   if (!opts.draft) {
     console.error(usage);

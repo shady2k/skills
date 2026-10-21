@@ -23,6 +23,7 @@ export const SHARED = {
   'jev.mjs': SETUP,
   'runs.mjs': TAKE,
   'ledger.mjs': TAKE,
+  'argv.mjs': SETUP,
 };
 
 // The shared files a skill links to, directly or through another shared file.
@@ -37,6 +38,20 @@ export function needs(skill) {
     }
   };
   follow('SKILL.md', readFileSync(join(skill, 'SKILL.md'), 'utf8'));
+  // A script a skill ships carries the shared files it imports, and so does a
+  // shared file it carries: a folder is installed on its own, so everything a
+  // script runs must lie beside it, whether a markdown link or an import says so.
+  const carries = (path, text) => {
+    for (const [, target] of text.matchAll(/from '\.\/([^']+)'/g)) {
+      if (!(target in SHARED) || found.has(target)) continue;
+      found.add(target);
+      if (target.endsWith('.mjs')) carries(target, readFileSync(join(ROOT, SHARED[target], target), 'utf8'));
+    }
+  };
+  for (const name of readdirSync(skill))
+    if (name.endsWith('.mjs')) carries(name, readFileSync(join(skill, name), 'utf8'));
+  for (const name of [...found])
+    if (name.endsWith('.mjs')) carries(name, readFileSync(join(ROOT, SHARED[name], name), 'utf8'));
   return found;
 }
 

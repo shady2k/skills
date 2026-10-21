@@ -21,6 +21,7 @@ import {
 import { homedir, tmpdir } from 'node:os';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ValueNeeded, valueOf } from './argv.mjs';
 
 // A gap before the owner's message this long is him reading and answering;
 // longer than this, he was somewhere else and the agent was simply stopped.
@@ -364,7 +365,7 @@ export function identify(project, { repo, cwds = [] } = {}) {
     // working copy is named after it and is still on disk.
     if (!commons.size) for (const d of cwds) if (d.split(sep).includes(project)) tryDir(d);
   }
-  const id = { project, commons, remotes: new Set(), checkouts: [], registered: [], roots: new Set() };
+  const id = { project, commons, remotes: new Set(), checkouts: [], registered: [], roots: new Set(), workspaceRoots: new Set() };
   for (const c of commons) {
     for (const r of remotesOf(c)) id.remotes.add(r);
     if (basename(c) === '.git') id.checkouts.push(dirname(c));
@@ -374,7 +375,11 @@ export function identify(project, { repo, cwds = [] } = {}) {
         try { id.registered.push(dirname(readFileSync(join(wt, n, 'gitdir'), 'utf8').trim())); } catch { /* half-made */ }
       }
   }
-  for (const p of id.registered) learnRoot(id, p);
+  for (const p of [...id.checkouts, ...id.registered]) {
+    learnRoot(id, p);
+    const parent = dirname(p);
+    if (id.roots.has(parent)) id.workspaceRoots.add(parent);
+  }
   return id;
 }
 
@@ -400,7 +405,7 @@ export function belongsTo(id, cwd, hints = {}, { roots = true } = {}) {
   const path = resolve(cwd);
   if (existsSync(path)) {
     const c = commonDir(path);
-    if (!c) return { yes: false };
+    if (!c) return roots && id.workspaceRoots.has(path) ? { yes: true, by: 'project workspace' } : { yes: false, unknown: true };
     if (id.commons.has(c)) return { yes: true, by: 'repository' };
     if (remotesOf(c).some((r) => id.remotes.has(r))) return { yes: true, by: 'remote' };
     return { yes: false };
@@ -1228,7 +1233,11 @@ const firstRow = (path) => {
     const buf = Buffer.alloc(8192);
     const n = readSync(fd, buf, 0, 8192, 0);
     return JSON.parse(String(buf.slice(0, n)).split('\n')[0] || '{}');
-  } catch { return {}; } finally { if (fd !== undefined) try { closeSync(fd); } catch { /* gone */ } }
+  } catch (cause) {
+    const error = new Error(`cannot read local transcript identity at ${path}; its absence is not established`, { cause });
+    error.code = 'TRANSCRIPT_UNREADABLE';
+    throw error;
+  } finally { if (fd !== undefined) try { closeSync(fd); } catch { /* gone */ } }
 };
 
 const piShapeLocation = (path) => {
@@ -2262,6 +2271,16 @@ Sessions are read from this machine's harness records and belong to the project 
 repository; --project defaults to the checkout's name.
 Exit 0 done, 2 misuse.`;
 
+// argv.mjs refuses a value that cannot be one; the ledger says so its own way.
+const value = (argv, i, option, what) => {
+  try {
+    return valueOf(argv, i, option, what);
+  } catch (e) {
+    if (e instanceof ValueNeeded) throw new Usage(e.message);
+    throw e;
+  }
+};
+
 export function run(argv) {
   const [command, ...rest] = argv;
   const opts = {};
@@ -2273,13 +2292,15 @@ export function run(argv) {
     // every command may ask for the drawing or the json.
     if (key === 'json' || key === 'no-color' || key === 'week' || key === 'month' || key === 'all') { opts[key] = true; continue; }
     if (key === 'day') {
+      // `--day` stands alone for today; a day it is given must be a day, so an
+      // empty or option-shaped word after it is refused, never a day of its own.
       const next = rest[i + 1];
-      if (next !== undefined && !String(next).startsWith('--')) { opts.day = next; i++; }
+      if (next !== undefined && !String(next).startsWith('-')) { opts.day = value(rest, i, a, 'a day'); i++; }
       else opts.day = true;
       continue;
     }
-    if (i + 1 >= rest.length) throw new Usage(`${a} needs a value`);
-    opts[key] = rest[++i];
+    opts[key] = value(rest, i, a);
+    i++;
   }
   for (const key of ['since', 'until'])
     if (opts[key] !== undefined && Number.isNaN(parseWhen(opts[key]))) throw new Usage(`--${key} needs a date`);
@@ -2906,6 +2927,17 @@ function selftest() {
     expect('misuse: a threshold that is not minutes', misuse(['time', '--project', 'demo', '--answer-minutes', 'soon']));
     expect('misuse: a repository that is not one', misuse(['time', '--project', 'demo', '--repo', home]));
     expect('misuse: a project name and a checkout of another project', misuse(['time', '--project', 'demo', '--repo', other]));
+    // Every option that takes a value reads it through argv.mjs: an empty,
+    // blank or option-shaped word is misuse that names the option, never a
+    // value the ledger carries on without.
+    const named = (a, option) => {
+      try { run(a); return `no refusal for ${option}`; } catch (e) { return e instanceof Usage && e.message.includes(`"${option}"`) ? null : e.message; }
+    };
+    expect('misuse: an empty --project names the option', named(['time', '--project', ''], '--project') === null);
+    expect('misuse: a blank --since names the option', named(['time', '--project', 'demo', '--since', '   '], '--since') === null);
+    expect('misuse: an option instead of the --repo value names the option', named(['time', '--project', 'demo', '--repo', '--json'], '--repo') === null);
+    expect('misuse: an empty --day names the option, where a bare --day still means today', named(['stats', '--project', 'demo', '--day', ''], '--day') === null
+      && run(['stats', '--project', 'demo', '--day', '--json']).includes('{'));
     process.chdir(home);
     expect('--repo alone names the project after that checkout',
       JSON.parse(run(['time', '--repo', demo, '--json'])).project === 'demo'

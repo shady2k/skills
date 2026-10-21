@@ -890,6 +890,34 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.122.0** refuses an option that was given no value, and measures the time of a
+  session you started in your working-copies folder. Two repairs from outside
+  contributors (@avlokhturov), landed with their commits kept (#33, #28).
+
+  The first: an option of the backlog check that takes a value — the rules to run,
+  the config, the baseline, the strength, the ages snapshots, the code revision,
+  the task whose purpose is printed — used to take whatever word followed it,
+  including an empty one. An unset variable in your own command was enough:
+  `--baseline-config "$CFG"` with `CFG` unset judged your baseline by today's
+  rules and answered green, and `--ages-from "$SNAP"` quietly dropped the ages
+  check. Every valued option now reads its value the same way, in the check and
+  in its helper commands: a missing, empty, blank or option-shaped value stops
+  the run, exits 2 and names the option, so no check can go missing without
+  saying so. A bare `-` still means standard input where a command offers it.
+
+  The second: when you start a session in the folder that holds your project's
+  working copies — the folder named after the project, which is not itself a Git
+  checkout — the receipts of that session were written as of unknown time, because
+  the check could not place its transcript. That folder is now attributed to the
+  project, so the session's real time is measured. A transcript that is present
+  but belongs to no repository the project owns is refused (`TRANSCRIPT_UNMAPPED`),
+  and one whose identity cannot be read at all is refused too
+  (`TRANSCRIPT_UNREADABLE`); neither can be closed as unknown time or dated from
+  another record, because neither is an absent transcript. Only a transcript that
+  is really gone follows the unknown-time rule as before.
+
+  Projects rerun setup (0.52.0) to take the repaired checks.
+
 - **0.121.0** answers a time you question with its basis. A duration or a date an
   agent says to you now comes from the same measurement a document's forecast
   uses: the pace of finished work in your project, with how many comparable
