@@ -16,6 +16,12 @@ import { join, dirname } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const fake = join(here, 'fake.mjs');
 
+// A case that proves an unclassified refusal fails closed runs the mechanism
+// with FAKE_RECIPE_DECLARES_NO_REFUSAL=1: this recipe then says nothing about
+// how its tracker refuses a flush, and declares no forced export either, which
+// is a tracker the mechanism has to stop on rather than guess about.
+const declaresNoRefusal = process.env.FAKE_RECIPE_DECLARES_NO_REFUSAL === '1';
+
 const def = {
   name: 'fake',
   tracker: 'fake',
@@ -26,6 +32,17 @@ const def = {
   ordinal: `node ${fake} ordinal --machine <machine>`,
   export: `node ${fake} export`,
   import: `node ${fake} import`,
+  // How this tracker refuses a flush, and what each refusal means: the
+  // mechanism knows no tracker, so a refusal it does not find here is the
+  // dangerous one. A refusal that proves nothing sits only in the database is
+  // said and the state files stand; every other one is merged from the database.
+  ...(declaresNoRefusal ? {} : {
+    refusals: [
+      { code: 7, match: 'Refusing to export an empty database over a filled file', meaning: 'nothing-unexported' },
+      { code: 7, match: 'Refusing a no-op flush: the JSONL changed since its last certified sync', meaning: 'merge-database' },
+    ],
+    exportSide: `node ${fake} export-side --out <out>`,
+  }),
   merge: `node ${fake} merge --ours <ours> --theirs <theirs> --base <base> --out <out> --order <order> --order-local <orderLocal> --store <store>`,
   claim: `node ${fake} claim --item <item> --holder <holder>`,
   transition: `node ${fake} transition --item <item> --to <to>`,
@@ -51,6 +68,8 @@ const r = isEntry ? (() => {
     case 'init': return run('init', argv);
     case 'ordinal': return run('ordinal', argv);
     case 'export': return run('export', argv);
+    case 'export-side': return run('export-side', argv);
+    case 'db-write': return run('db-write', argv);
     case 'import': return run('import', argv);
     case 'merge': return run('merge', argv);
     case 'claim': return run('claim', argv);
@@ -60,7 +79,7 @@ const r = isEntry ? (() => {
     case 'pointer': return run('pointer-' + argv[0], argv.slice(1));
     default:
       console.error('recipe: unknown subcommand: ' + (sub ?? '(none)'));
-      console.error('known: init ordinal export import merge claim transition post prove pointer');
+      console.error('known: init ordinal export import export-side db-write merge claim transition post prove pointer');
       return { status: 1 };
   }
 })() : { status: 0 };

@@ -32,6 +32,7 @@ const BR_RECIPE = join(WORKTREE, 'skills/backlog/setup-shady2k-skills/trackers/b
 // written into scratch folders of their own, so each one needs the reader beside
 // it -- and the imported one a folder above, the way the shipped tree has it.
 const ARGV_MODULE = join(WORKTREE, 'skills/backlog/setup-shady2k-skills/argv.mjs');
+const REGULAR_FILE_MODULE = join(WORKTREE, 'skills/backlog/setup-shady2k-skills/regular-file.mjs');
 
 // A CI runner, a container and a fresh machine have no git user.name or
 // user.email and no git configuration at all, so the proofs run the way such a
@@ -363,6 +364,10 @@ function makeBrokenEnv(breakName, apply, breakDef = {}) {
   writeFileSync(fakePath, out.fake !== undefined ? out.fake : src.fake);
   cpSync(ARGV_MODULE, join(dir, 'argv.mjs'));
   cpSync(ARGV_MODULE, join(SCRATCH, 'argv.mjs'));
+  // The mechanism imports the one regular-file helper beside it: a copy that
+  // cannot load it fails at bring-up, and a case failing at bring-up proves
+  // nothing about the break.
+  cpSync(REGULAR_FILE_MODULE, join(dir, 'regular-file.mjs'));
   checkSyntax(breakName, mechPath);
   checkSyntax(breakName, recipePath);
   checkSyntax(breakName, fakePath);
@@ -385,10 +390,10 @@ const BREAKS = [
       // fail. Breaking only one site leaves the other doing the work.
       mech: breakByLiteral('sync-nomerge',
         breakByLiteral('sync-nomerge-push', s.mech,
-          'oid = LOCK_HELD ? await mergeAndCommit(remote.tip) : await locked(() => mergeAndCommit(remote.tip));',
+          'oid = LOCK_CONTEXT.getStore() ? await mergeAndCommit(remote.tip) : await locked(() => mergeAndCommit(remote.tip), 120000, { skipOnTimeout });',
           'oid = oid; /* deliberate break: the merge is skipped */'),
-        '    return mergeAndCommit(remote.tip);\n  });',
-        '    return head; /* deliberate break: the merge is skipped */\n  });'),
+        '    return mergeAndCommit(remote.tip);\n  };',
+        '    return head; /* deliberate break: the merge is skipped */\n  };'),
     }),
   },
   {
@@ -510,6 +515,42 @@ const BREAKS = [
     apply: (s) => ({ recipe: breakByLiteral('br-pointer', s.recipe,
       'const held = fs.readdirSync(target).filter((n) => !/\\.lock$/.test(n) && n !== \'locks\');',
       'const held = []; /* deliberate break: a folder that holds a tracker is moved aside */') }),
+  },
+  {
+    name: 'refused-flush-read-as-nothing-unexported',
+    cases: ['21-refused-flush-keeps-the-write'],
+    // the fix undone: every refusal is taken as one that proves no write sits in
+    // the database, which is what dropped the write the tracker accepted.
+    apply: (s) => ({ mech: breakByLiteral('refusal-assumed-harmless', s.mech,
+      "  if (refusalMeaning(flushed) === 'nothing-unexported') {",
+      '  if (true) { /* deliberate break: every refusal is read as nothing unexported */') }),
+  },
+  {
+    name: 'an-unclassified-refusal-continues',
+    cases: ['23-an-unclassified-refusal-stops'],
+    // the fix undone: a refusal the recipe does not know is assumed to prove
+    // nothing sits in the database, so the sync continues instead of stopping.
+    apply: (s) => ({ mech: breakByLiteral('fail-open', s.mech,
+      "  return 'merge-database';\n}",
+      "  return 'nothing-unexported'; /* deliberate break: an unclassified refusal is assumed harmless */\n}") }),
+  },
+  {
+    name: 'the-watcher-queues-on-the-file-lock',
+    cases: ['22-watcher-publish-and-sync-overlap'],
+    // the fix undone: the two loops of one process take the file lock directly,
+    // so one waits for a lock its own process holds.
+    apply: (s) => ({ mech: breakByLiteral('no-in-process-mutex', s.mech,
+      'async function inProcessLock(fn) {',
+      'async function inProcessLock(fn) { return fn(); /* deliberate break: no in-process mutex */') }),
+  },
+  {
+    name: 'a-lock-timeout-exits-the-watcher',
+    cases: ['22-watcher-publish-and-sync-overlap'],
+    // the fix undone: a round that cannot take the lock refuses like a one-shot
+    // command does, so the supervisor restarts the watcher into the same wait.
+    apply: (s) => ({ mech: breakByLiteral('timeout-dies', s.mech,
+      '      if (skipOnTimeout && e.lockTimeout) throw e;\n      die(1, e.message);',
+      '      die(1, e.message); /* deliberate break: a lock timeout exits the watcher */') }),
   },
 ];
 
@@ -1508,6 +1549,99 @@ const CASES = {
     record('20-br-settings-deletion-merges', m1.code === 0 && m2.code === 0 && m3.code === 0 && gone1 && gone2 && kept,
       'merge exits ' + m1.code + '/' + m2.code + '/' + m3.code + ', deleted on ours: ' + gone1 + ', deleted on theirs: ' + gone2
       + ', carried when only one side has it: ' + kept);
+  },
+
+  // 21. A flush the tracker refuses is never read as "nothing unexported". A
+  // write the tracker accepted sits in its database while a later per-item merge
+  // rewrites the state files; the refused database is exported to a side file,
+  // merged per item, and the write survives. A refusal the recipe declares
+  // harmless is still said and the state files stand.
+  '21-refused-flush-keeps-the-write': async (ctx) => {
+    const id = '21-refused-flush-keeps-the-write';
+    let r = bringUp(ctx, 'A'); if (r.code !== 0) { record(id, false, 'bring-up A: ' + r.out); return; }
+    r = bringUp(ctx, 'B'); if (r.code !== 0) { record(id, false, 'bring-up B: ' + r.out); return; }
+    const storeA = storeOf(ctx, 'A');
+    // A write the tracker accepted and has not flushed: in the database only.
+    const w = sh('node', [ctx.fake, 'db-write', '--item', 'i-1', '--text', 'accepted, not flushed'], { cwd: storeA });
+    const inFileBefore = storeItems(ctx, 'A').find((x) => x.id === 'i-1')?.comments?.some((c) => c.text === 'accepted, not flushed');
+    // The remote moves under it, so the sync has a per-item merge to do, and the
+    // tracker refuses to flush its own database.
+    post(ctx, 'B', 'i-2', 'from B while the write sat in the database');
+    const pub = mech(ctx, 'publish', [], { machine: 'B' });
+    const s = mech(ctx, 'sync', [], { machine: 'A', env: { FAKE_EXPORT_REFUSAL: 'jsonl-changed' } });
+    const items = storeItems(ctx, 'A');
+    const kept = (items.find((x) => x.id === 'i-1')?.comments || []).some((c) => c.text === 'accepted, not flushed');
+    const mergedB = (items.find((x) => x.id === 'i-2')?.comments || []).some((c) => c.text === 'from B while the write sat in the database');
+    record(id, w.code === 0 && !inFileBefore && pub.code === 0 && s.code === 0 && kept && mergedB,
+      'the write was in the database only: ' + !inFileBefore + ', sync exit ' + s.code + ', the write survived: ' + kept
+      + ', the merge from B landed: ' + mergedB + (s.code !== 0 ? ' — ' + s.out.split('\n').slice(0, 2).join(' | ') : ''));
+    // The harmless refusal: the recipe declares one that proves nothing sits only
+    // in the database, so it is said and the state files are taken as they are.
+    post(ctx, 'B', 'i-3', 'a later write from B');
+    mech(ctx, 'publish', [], { machine: 'B' });
+    const harmless = mech(ctx, 'sync', [], { machine: 'A', env: { FAKE_EXPORT_REFUSAL: 'empty-over-filled' } });
+    record('21-a-declared-harmless-refusal-is-said', harmless.code === 0 && /holds no unexported write/.test(harmless.out),
+      'exit ' + harmless.code + ', out: ' + harmless.out.split('\n').filter(Boolean).slice(0, 2).join(' | ').slice(0, 160));
+  },
+
+  // 22. The watcher's two loops are one process and one file lock: they queue on
+  // each other in-process, so neither waits for a lock its own process holds, and
+  // a round that cannot take the lock is skipped and said once - never an exit.
+  '22-watcher-publish-and-sync-overlap': async (ctx) => {
+    const id = '22-watcher-publish-and-sync-overlap';
+    let r = bringUp(ctx, 'A'); if (r.code !== 0) { record(id, false, 'bring-up: ' + r.out); return; }
+    // A slow export makes the publish loop hold the store while the sync loop
+    // wants it, in the same process, every tick.
+    ctx.debugEnv = { FAKE_SLOW_EXPORT: '6000' };
+    const w = watcher(ctx, 'A', ['--interval', '1', '--debounce', '2']);
+    await sleep(9000);
+    const log1 = existsSync(w.logPath) ? readFileSync(w.logPath, 'utf8') : '';
+    const selfWait = /waiting for the store lock/.test(log1) || /the store is locked by pid/.test(log1);
+    const alive1 = w.exitCode === null && w.signalCode === null;
+    record('22-the-watcher-does-not-wait-on-its-own-lock', alive1 && !selfWait,
+      'alive: ' + alive1 + ', a self-wait was said: ' + selfWait + ', log: ' + log1.split('\n').filter(Boolean).slice(-1).join('').slice(0, 140));
+    // Another command holds the store past the watcher's own wait: the round is
+    // skipped, said once, and the watcher stays up. A holder of its own process
+    // would be the same wait; this is a foreign one, so the file lock is the only
+    // thing between them.
+    const holder = spawn('node', ['-e', `import(${JSON.stringify(ctx.mech)}).then(async (m) => {
+      const flags = { state: ${JSON.stringify(ctx.stateA)} };
+      const repo = ${JSON.stringify(ctx.codeA)};
+      for (let i = 0; i < 240; i++) {
+        try { m.takeLock(flags, repo); break; }
+        catch { await new Promise((r) => setTimeout(r, 250)); }
+      }
+      setTimeout(() => {}, 24000);
+    })`], { stdio: 'ignore' });
+    ctx.watchers.push(holder);
+    await sleep(30000);
+    const log2 = existsSync(w.logPath) ? readFileSync(w.logPath, 'utf8') : '';
+    const alive2 = w.exitCode === null && w.signalCode === null;
+    const skipped = (log2.match(/another command holds the store lock/g) || []).length;
+    record('22-a-lock-timeout-skips-the-round-said-once', alive2 && skipped === 1,
+      'alive after the holder passed the wait: ' + alive2 + ', the skip was said ' + skipped + ' time(s)');
+    try { holder.kill('SIGKILL'); } catch { /* it exits on its own */ }
+  },
+
+  // 23. A refusal the recipe does not classify is the dangerous one: with no way
+  // to export the database to a side file the sync stops (exit 1, naming what is
+  // at risk) instead of continuing, and the write stays in the database.
+  '23-an-unclassified-refusal-stops': async (ctx) => {
+    const id = '23-an-unclassified-refusal-stops';
+    let r = bringUp(ctx, 'A'); if (r.code !== 0) { record(id, false, 'bring-up A: ' + r.out); return; }
+    r = bringUp(ctx, 'B'); if (r.code !== 0) { record(id, false, 'bring-up B: ' + r.out); return; }
+    const storeA = storeOf(ctx, 'A');
+    sh('node', [ctx.fake, 'db-write', '--item', 'i-1', '--text', 'accepted, not flushed'], { cwd: storeA });
+    post(ctx, 'B', 'i-2', 'a write from B');
+    mech(ctx, 'publish', [], { machine: 'B' });
+    const head = () => sh('git', ['-C', storeA, 'rev-parse', 'HEAD']).stdout.trim();
+    const before = head();
+    const s = mech(ctx, 'sync', [], { machine: 'A', env: { FAKE_EXPORT_REFUSAL: 'unknown', FAKE_RECIPE_DECLARES_NO_REFUSAL: '1' } });
+    const db = (() => { try { return JSON.parse(readFileSync(join(storeA, 'fake', 'db.json'), 'utf8')); } catch { return { records: [] }; } })();
+    const stillThere = ((db.records || []).find((x) => x.id === 'i-1')?.comments || []).some((c) => c.text === 'accepted, not flushed');
+    record(id, s.code === 1 && /may lack writes/.test(s.out) && head() === before && stillThere,
+      'exit ' + s.code + ', the write is still in the database: ' + stillThere + ', nothing was committed: ' + (head() === before)
+      + ' — ' + s.out.split('\n').filter(Boolean).slice(0, 1).join('').slice(0, 150));
   },
 };
 
