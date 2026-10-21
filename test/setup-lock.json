@@ -1,14 +1,15 @@
 {
-  "setupVersion": "0.52.0",
+  "setupVersion": "0.53.0",
   "files": {
-    "check.mjs": "b761f6e0290b347b6f5eeac6ef1eb6c268623af7cba968c47ebe397a736865c0",
-    "check-commits.mjs": "bdac75c901b095a067e32a27ea8613c47eb88eef819cad774c6db2c6fbf19126",
-    "check-docs.mjs": "16b5775615183f55751250da55cf626105bbec95af819759019cee9fd8bf0a61",
-    "check-present.mjs": "322484187211f24b6330feccb648f6c2335dec412f9eb8fbd2226513cb24e128",
-    "check-product.mjs": "302d544aa6a16e6c32c61d9b7ba654ccb724317bc45d1dd020310fb664d35ba7",
+    "check.mjs": "f3635813d0c25f9d3d68f8cebdc052ad8e7e9f74056f2fe0b86716829455ce2f",
+    "check-commits.mjs": "c346eb4ac56f7316a4cfcf0f022daa3f77ae7c7e40e5bd29c6fc9fca3a27379a",
+    "check-docs.mjs": "68f97d8c2893e88fd754157b2580bdd5dc6e80cd1af7e59635a9af43c8b87882",
+    "check-present.mjs": "5ffe836877e03d88b3910a94ecfc654956c5a546a4a1d936622983324dd37a9c",
+    "check-product.mjs": "c7a4d60b8f5858c3dcf4332b165ae4ae63fdfe654e170aeee03f7f5e23aa8331",
     "document-format.mjs": "6947124f3ffe34b745e52bf0065d12257942d9d705a0b9c7300d403a0f9606e0",
     "time-format.mjs": "f61f6da6fe6df73145ee7d7fd0d9af15a53e36501e9a11e184e83afdd29da858",
-    "integration.md": "b7cbcb789cf20161a875c6a6d7937514b5af17a949b5fa8845146117c742ea1c",
+    "regular-file.mjs": "6646d327ed0c1dec7b5c432b427788815eaae25efbc922b74f1ff0b603af7cae",
+    "integration.md": "c8d0d2532ad2dfbab8bb549be47a76cce9e3cb84cd78819344983349e04c803f",
     "model.md": "716e75d89e846984ec0512c6400db1e2df6c7833f45dfdfa9fea5c2be4b97be8",
     "documents.md": "80688ef5cab85e8c1b863655c60b40c1f198f303b21cf76e7287fb5c935a0eef",
     "templates/architecture.md": "a51fadd3ce89492cc9b52451d573a449fb47677ece3234c121aff51376a7b3a6",
@@ -31,8 +32,8 @@
     "templates/vision.md": "268221fe7ff9a2350dd91358a967edad78902c5df494d253cd4777fb4f7b99c5"
   },
   "layout": {
-    "tracker-sync.mjs": "2d7352874cccd1ada2e3b1ea8190a1d78c6257695b243df1ecc85d9a249f06a5",
-    "trackers/br.mjs": "05d54b3fedc1ae1b3b2bcc9834af8f3e51a7c96e1dc47285f3623b5e0665a7d0",
+    "tracker-sync.mjs": "005e6f98f94967455ff597a4d99d20872b2aeca290cf35d0c93f35e66bf86c3d",
+    "trackers/br.mjs": "599151b9b6fd2b03bfaeba0e32c83bc904a6b1955a0079f91643890f5f41b2b2",
     "supervisors/systemd-user/tracker-sync.service": "de25f34f557e1d92b55a86568b17a81297221219f8e7f49dd54586352faf56c2"
   }
 }
