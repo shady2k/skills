@@ -193,6 +193,19 @@ mechanism is what meets them, and this skill installs it:
   That is the cost the set accepts for not making a claim wait for the other
   machine; every other part of a claim, a transition and a record is unchanged, and
   the proofs run the two-machine case with that allowance.
+- **Repair what an older version left, and say what came back.** A project
+  installed with an older mechanism keeps what that version left behind: copies
+  of the store that killed writes abandoned, a whole copy of the tracker's state
+  per revision, the tracker's own backups piled up inside the store. The updated
+  mechanism repairs all of it by itself the first time it runs in that project,
+  and again on every recheck: nothing is deleted by hand and no flag is passed.
+  Report it to the owner in one sentence, in their words and without mechanism
+  names, with the amount that came back ("about 35 GB that failed writes had left
+  behind came back, and the store no longer grows by a copy of its state on every
+  commit"). Say honestly what did not come back: the old copies stay in the
+  project's history, so the space they took there is not released by this, and
+  history is never rewritten to get it back. Anything the repair could not place
+  is named, never guessed at.
 - **Move an existing project without losing a record.** The move is a copy of
   the tracker's own store files into the machine's store, never a re-creation
   through the tracker's create command, because a record is retired by a void

@@ -19,6 +19,7 @@ import { spawnSync, spawn } from 'node:child_process';
 import { cpSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync, readdirSync, openSync, closeSync, lstatSync, readlinkSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const WORKTREE = resolve(join(dirname(fileURLToPath(import.meta.url)), '..'));
 const MECH_SRC = join(WORKTREE, 'skills/backlog/setup-shady2k-skills/tracker-sync.mjs');
@@ -216,6 +217,50 @@ function seedStore(ctx, machine, items) {
   writeFileSync(join(store, 'fake', 'items.jsonl'), items.map((r) => JSON.stringify(r)).join('\n') + '\n');
   writeFileSync(join(store, 'fake', 'db.json'), JSON.stringify({ records: items }, null, 1) + '\n');
 }
+
+// A store's state text, in the shape a recording exports: what `export --at`
+// must answer with, whichever form the recording holds.
+function stateTextOf(ctx, machine) {
+  const store = storeOf(ctx, machine);
+  return '=== fake/items.jsonl\n' + readFileSync(join(store, 'fake', 'items.jsonl'), 'utf8');
+}
+// The bytes a recording exports, read through the mechanism: the only reader the
+// project's gate has of a recording.
+function exportAt(ctx, machine, rev) {
+  return mech(ctx, 'export', ['--at', rev], { machine });
+}
+function candidateDirs(stateDir) {
+  const out = [];
+  for (const e of readdirSync(stateDir, { withFileTypes: true })) {
+    if (e.isDirectory() && e.name.startsWith('candidate-')) out.push(join(stateDir, e.name));
+  }
+  return out;
+}
+function resultFiles(stateDir) {
+  return readdirSync(stateDir).filter((n) => n.endsWith('.result.json'));
+}
+function folderBytes(dir) {
+  let n = 0;
+  const walk = (d) => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const p = join(d, e.name);
+      const st = lstatSync(p);
+      if (st.isSymbolicLink()) continue;
+      if (st.isDirectory()) walk(p); else n += st.size;
+    }
+  };
+  try { walk(dir); } catch {}
+  return n;
+}
+// A candidate written by nobody: the shape a killed process leaves, with the pid
+// its diagnostic names. `pid` of a reaped or impossible process is dead.
+function fakeCandidate(stateDir, { pid, phase, folder = true, result = true }) {
+  const name = 'candidate-' + createHash('sha1').update(String(pid) + (phase || '') + Math.random()).digest('hex').slice(0, 12);
+  if (folder) mkdirSync(join(stateDir, name), { recursive: true });
+  if (result) writeFileSync(join(stateDir, name + '.result.json'), JSON.stringify({ kind: 'record', item: 'x', pid, createdAt: new Date().toISOString(), phase: phase || 'preparing', files: 0, bytes: 0 }, null, 2) + '\n');
+  return name;
+}
+
 // a write on a machine's store: the fake's own record command
 function post(ctx, machine, itemId, text) {
   const store = storeOf(ctx, machine);
@@ -417,9 +462,9 @@ const BREAKS = [
       mech: breakByLiteral('record-overwrite',
         breakByLiteral('record-overwrite-conflict',
           breakByLiteral('record-overwrite-local', s.mech,
-            'if (existsSync(file)) {', 'if (false) { /* deliberate break: the local recording is written again */'),
-          'if (there && there !== mine)', 'if (false) /* deliberate break: the conflict is called success */'),
-        "if (there) return { already: String(rev).slice(0, 12), where: 'on the remote' };",
+            'if (existsSync(held)) {', 'if (false) { /* deliberate break: the local recording is written again */'),
+          'if (thereState !== null && thereState !== mine)', 'if (false) /* deliberate break: the conflict is called success */'),
+        "if (thereState !== null) return { already: String(rev).slice(0, 12), where: 'on the remote' };",
         "if (false) return { already: String(rev).slice(0, 12), where: 'on the remote' }; /* deliberate break: the recording is written again */"),
     }),
   },
@@ -551,6 +596,55 @@ const BREAKS = [
     apply: (s) => ({ mech: breakByLiteral('timeout-dies', s.mech,
       '      if (skipOnTimeout && e.lockTimeout) throw e;\n      die(1, e.message);',
       '      die(1, e.message); /* deliberate break: a lock timeout exits the watcher */') }),
+  },
+
+  {
+    name: 'the-sweep-touches-a-live-candidate',
+    cases: ['24-candidates-are-small-and-swept'],
+    // the fix undone: a candidate whose process is alive is swept with the dead
+    // ones, so a conditional write in another worktree loses its folder mid-push.
+    apply: (s) => ({ mech: breakByLiteral('sweep-liveness', s.mech,
+      "out.stale = out.created.filter((c) => !c.self && (c.result ? !pidAlive(c.result.diagnostic?.pid, c.result.diagnostic?.createdAt) : true));",
+      "out.stale = out.created.filter((c) => !c.self); /* deliberate break: a live candidate is swept */") }),
+  },
+  {
+    name: 'the-candidate-copies-the-whole-store',
+    cases: ['24-candidates-are-small-and-swept'],
+    // the fix undone: the candidate is filled by copying the store folder, which
+    // is what made one candidate 7-11 GB (the tracker's backups and the recordings).
+    apply: (s) => ({ mech: breakByLiteral('candidate-copy-all',
+      breakByLiteral('candidate-copy-all-import', s.mech,
+        "import { execFile } from 'node:child_process';",
+        "import { execFile } from 'node:child_process';\nimport { cpSync as cpSyncAll } from 'node:fs';"),
+      '      const copied = await copyCandidateFiles(live, candidate, before);',
+      '      cpSyncAll(live, candidate, { recursive: true, filter: (f) => f !== join(live, \'.git\') }); /* deliberate break: the whole store is copied */\n      const copied = { files: 1, bytes: 1 };') }),
+  },
+  {
+    name: 'a-recording-is-a-copy-again',
+    cases: ['25-recordings-are-references'],
+    // the fix undone: the recording holds the state itself, which grew one store
+    // by a full copy on every commit in every worktree.
+    apply: (s) => ({ mech: breakByLiteral('recording-copy', s.mech,
+      'writeFileSync(file, recordingText(stateOid, sideText(parts)));',
+      'writeFileSync(file, sideText(parts)); /* deliberate break: the state is copied */') }),
+  },
+  {
+    name: 'a-reference-is-not-checked',
+    cases: ['25-recordings-are-references'],
+    // the fix undone: a reference is believed without checking the state it names,
+    // so a rewritten history is read as the revision's state instead of refused.
+    apply: (s) => ({ mech: breakByLiteral('recording-digest', s.mech,
+      "if (ref.digest && ref.digest !== `sha256:${sha256(state)}`)",
+      'if (false) /* deliberate break: a reference is trusted unchecked */') }),
+  },
+  {
+    name: 'the-migration-keeps-whole-copies',
+    cases: ['26-an-old-installation-is-converted'],
+    // the fix undone: no snapshot is converted, so an existing installation keeps
+    // every whole copy its old version wrote.
+    apply: (s) => ({ mech: breakByLiteral('migration-none', s.mech,
+      'if (!parseRecording(t)) snapshots.push([n, t]);',
+      'if (false) snapshots.push([n, t]); /* deliberate break: nothing is converted */') }),
   },
 ];
 
@@ -888,8 +982,11 @@ const CASES = {
     const recPath = recDir ? join(recDir, head + '.jsonl') : null;
     const exists = recPath && existsSync(recPath);
     const raw = exists ? readFileSync(recPath, 'utf8') : '';
-    const rawOk = exists && raw.includes('"i-1"') && raw.includes('"i-2"');
-    record('6-recording-written', exists && rawOk, exists ? (rawOk ? '' : 'recording body wrong: ' + raw.slice(0, 80)) : 'no recording file at ' + recPath);
+    // A recording holds a reference to the store commit that has the state, not a
+    // copy of the state: what it records is read back through `export --at`.
+    const readBack = exists ? exportAt(ctx, 'A', head) : { code: 1, stdout: '' };
+    const rawOk = exists && raw.trim().startsWith('{') && /"store"\s*:/.test(raw) && readBack.code === 0 && readBack.stdout.includes('"i-1"') && readBack.stdout.includes('"i-2"');
+    record('6-recording-written', exists && rawOk, exists ? (rawOk ? '' : 'recording wrong: ' + raw.slice(0, 80) + ' / export: ' + String(readBack.stdout).slice(0, 120)) : 'no recording file at ' + recPath);
     const again = mech(ctx, 'record', ['--revision', head, '--checkout', ctx.codeA], { machine: 'A' });
     const rawAfter = exists ? readFileSync(recPath, 'utf8') : '';
     record('6-recording-already-recorded-is-success', again.code === 0 && rawAfter === raw && /already recorded/i.test(again.out),
@@ -909,7 +1006,11 @@ const CASES = {
       'exit ' + recB.code + ', wrote local: ' + wroteLocal + ', the remote recording is unchanged: ' + (remoteRec === raw) + ', out: ' + (recB.stdout || recB.out).slice(0, 110));
     // a read at the recorded revision answers with the recording
     const atRead = mech(ctx, 'export', ['--at', head], { machine: 'A' });
-    record('F9-export-at-returns-recording', atRead.code === 0 && atRead.stdout === raw, 'exit ' + atRead.code);
+    // The state the revision had, byte for byte - the same bytes an old snapshot
+    // recording returned, so a gate's baseline read at a revision changes by
+    // nothing when a store moves from copies to references.
+    const wantState = stateTextOf(ctx, 'A');
+    record('F9-export-at-returns-recording', atRead.code === 0 && atRead.stdout === wantState, 'exit ' + atRead.code + (atRead.stdout === wantState ? '' : ', got ' + JSON.stringify(atRead.stdout.slice(0, 80))));
     // a later state that names the same revision does not replace the recording
     r = mech(ctx, 'connect', ['--machine', 'A', '--checkout', ctx.codeA], { machine: 'A' });
     const rawRe = exists ? readFileSync(recPath, 'utf8') : '';
@@ -929,7 +1030,10 @@ const CASES = {
     const treeRev = sh('git', ['-C', ctx.codeA, 'rev-parse', 'HEAD']).stdout.trim();
     const fromTree = mech(ctx, 'record', ['--revision', treeRev, '--checkout', ctx.codeA, '--from-tree'], { machine: 'A' });
     const treePath = recDir ? join(recDir, treeRev + '.jsonl') : null;
-    const treeOk = treePath && existsSync(treePath) && readFileSync(treePath, 'utf8').includes('"i-1"');
+    // The state came from the code revision, so it was no store commit yet: the
+    // record writes that state as a commit of its own and the recording names it.
+    const treeRead = treePath && existsSync(treePath) ? exportAt(ctx, 'A', treeRev) : { code: 1, stdout: '' };
+    const treeOk = treePath && existsSync(treePath) && treeRead.code === 0 && treeRead.stdout.includes('"i-1"');
     record('F5-record-from-tree', fromTree.code === 0 && treeOk, 'exit ' + fromTree.code + ', ' + fromTree.out.slice(0, 100));
     // the hook recorded the revision when it was cut, never a checkout
     const moreRev = sh('git', ['-C', ctx.codeA, 'rev-parse', 'HEAD']).stdout.trim();
@@ -1430,7 +1534,8 @@ const CASES = {
     // the hook runs synchronously inside the commit; poll briefly, not on the clock alone
     const wrote = await waitUntil(async () => (existsSync(file) ? true : null), 5000, 100);
     const body = existsSync(file) ? readFileSync(file, 'utf8') : '';
-    record('17-record-from-a-hook', commit.code === 0 && !!wrote.value && body.includes('"i-1"'),
+    const bodyRead = existsSync(file) ? exportAt(ctx, 'A', rev) : { code: 1, stdout: '' };
+    record('17-record-from-a-hook', commit.code === 0 && !!wrote.value && body.trim().startsWith('{') && bodyRead.stdout.includes('"i-1"'),
       'commit exit ' + commit.code + ', recording for ' + rev.slice(0, 12) + ': ' + existsSync(file)
       + ' (recordings before the commit: ' + recsBefore + ', now: ' + readdirSync(recDir).length + ')');
     // a revision already recorded is success, and a recording is never moved
@@ -1643,6 +1748,260 @@ const CASES = {
       'exit ' + s.code + ', the write is still in the database: ' + stillThere + ', nothing was committed: ' + (head() === before)
       + ' — ' + s.out.split('\n').filter(Boolean).slice(0, 1).join('').slice(0, 150));
   },
+
+  // 24. A killed write leaves nothing behind for good, and a candidate weighs
+  // what a conditional write reads - not the store (issue #45: four dead
+  // candidates of 7-11 GB, 35 GB held, and a commit's state lost to ENOSPC).
+  '24-candidates-are-small-and-swept': async (ctx) => {
+    let r = bringUp(ctx, 'A');
+    if (r.code !== 0) { record('24-candidates-are-small-and-swept', false, 'bring-up: ' + r.out); return; }
+    const store = storeOf(ctx, 'A');
+    const stateDir = ctx.stateA;
+    // A store shaped like the one in the report: an ignored folder the tracker
+    // keeps for itself, and recordings of earlier revisions beside it.
+    mkdirSync(join(store, 'fake', 'recovery'), { recursive: true });
+    writeFileSync(join(store, 'fake', 'recovery', 'backup.bin'), Buffer.alloc(6 * 1024 * 1024, 1));
+    const rev = sh('git', ['-C', ctx.codeA, 'rev-parse', 'HEAD']).stdout.trim();
+    mech(ctx, 'record', ['--revision', rev, '--checkout', ctx.codeA], { machine: 'A' });
+    const storeBytes = folderBytes(store);
+
+    // A recipe whose import blocks, so a candidate stands still while it is
+    // measured and can be killed exactly where a hook timeout kills it.
+    // The recipe copy needs the tracker's own script beside it: a recipe is a
+    // module, and a copy that cannot resolve its neighbour answers nothing.
+    const blockingDir = join(ctx.scratch, 'blocking');
+    mkdirSync(blockingDir, { recursive: true });
+    cpSync(ctx.fake, join(blockingDir, 'fake.mjs'));
+    const blocking = join(blockingDir, 'recipe.mjs');
+    writeFileSync(blocking, readFileSync(ctx.recipe, 'utf8').replace(/import: `[^`]*`,/, "import: 'sleep 25',"));
+    const blockedLog = join(ctx.scratch, 'blocked-record.log');
+    const blockedFd = openSync(blockedLog, 'w');
+    const killed = spawn(process.execPath, [ctx.mech, 'record', '--revision', rev, '--checkout', ctx.codeA,
+      '--recipe', blocking, '--state', stateDir, '--repo', ctx.codeA], { cwd: ctx.scratch, stdio: ['ignore', blockedFd, blockedFd] });
+    const stood = await waitUntil(() => (candidateDirs(stateDir).length ? candidateDirs(stateDir)[0] : null), 20000, 100);
+    const candidate = stood.value;
+    let candidateBytes = -1; let holdsBackup = null; let holdsRecordingState = null;
+    if (candidate) {
+      candidateBytes = folderBytes(candidate);
+      holdsBackup = existsSync(join(candidate, 'fake', 'recovery', 'backup.bin'));
+      // The recording of the revision is in the store; the candidate's worktree
+      // leaves the recordings out, and what it does hold is the reference, not a copy.
+      const recs = existsSync(join(candidate, '.tracker-sync', 'recordings')) ? readdirSync(join(candidate, '.tracker-sync', 'recordings')) : [];
+      holdsRecordingState = recs.length;
+    }
+    // A live candidate beside it: a diagnostic naming a process that is running
+    // now is never swept, whatever its phase says.
+    const live = fakeCandidate(stateDir, { pid: process.pid, phase: 'preparing' });
+    // What a kill leaves: a candidate folder with no diagnostic at all.
+    const orphan = fakeCandidate(stateDir, { pid: 1, folder: true, result: false });
+    // And one whose process is gone, with a settled result file beside it.
+    const dead = fakeCandidate(stateDir, { pid: 999999, phase: 'preparing' });
+    const settled = fakeCandidate(stateDir, { pid: 999998, phase: 'accepted', folder: false, result: true });
+    // An unknown outcome is evidence a reconcile reads: its ref and its
+    // diagnostic stay, and the sweep must not touch either.
+    // A retained outcome with a copy still beside it: the copy goes, the diagnostic
+    // that names its retained ref stays, or a reconcile has nothing to read.
+    const unknown = fakeCandidate(stateDir, { pid: 999997, phase: 'unknown', folder: true, result: true });
+    // Kill the record exactly as a hook timeout does: the candidate, its worktree
+    // registration and its diagnostic stay behind, and no finally runs.
+    // The listener first: a SIGKILL can land before a later one is attached, and
+    // waiting for an event that already happened is a hung proof, not a verdict.
+    const exited = new Promise((res) => killed.on('exit', res));
+    killed.kill('SIGKILL');
+    await Promise.race([exited, sleep(10000)]);
+    const afterKill = candidateDirs(stateDir).length;
+    const swept = mech(ctx, 'status', ['--json'], { machine: 'A' });
+    let out = null;
+    // The sweep may say a line first (a lock whose process is gone was broken):
+    // the JSON starts at the first brace, whatever was said before it.
+    try { out = JSON.parse(swept.stdout.slice(Math.max(0, swept.stdout.indexOf('{')))); } catch { /* the assertions below say so */ }
+    const listed = sh('git', ['-C', store, 'worktree', 'list', '--porcelain']).stdout;
+    const keptLive = existsSync(join(stateDir, live)) && existsSync(join(stateDir, live + '.result.json'));
+    record('24-a-candidate-weighs-what-a-write-reads',
+      !!candidate && candidateBytes >= 0 && candidateBytes < 512 * 1024 && holdsBackup === false && holdsRecordingState === 0,
+      'store ' + Math.round(storeBytes / 1024) + ' KB, candidate ' + Math.round(candidateBytes / 1024) + ' KB'
+      + ', holds the ignored backups: ' + holdsBackup + ', whole recordings held: ' + holdsRecordingState
+      + (candidate ? '' : ' / the killed record said: ' + (existsSync(blockedLog) ? readFileSync(blockedLog, 'utf8').split('\n').slice(0, 3).join(' | ') : 'nothing')));
+    record('24-a-killed-write-is-swept-by-the-next-command',
+      afterKill > 0 && candidate && !existsSync(candidate) && !existsSync(candidate + '.result.json')
+      && !listed.includes(candidate) && !existsSync(join(stateDir, orphan)) && !existsSync(join(stateDir, dead)),
+      'before the sweep: ' + afterKill + ' candidate(s), after: ' + candidateDirs(stateDir).length
+      + ', the killed folder is gone: ' + (!!candidate && !existsSync(candidate)) + ', its worktree registration is gone: ' + (!!candidate && !listed.includes(candidate)));
+    record('24-a-live-candidate-survives-and-a-settled-one-goes',
+      keptLive && !existsSync(join(stateDir, settled + '.result.json'))
+      && !existsSync(join(stateDir, unknown)) && existsSync(join(stateDir, unknown + '.result.json')),
+      'the live candidate is kept: ' + keptLive + ', a settled result file is gone: ' + !existsSync(join(stateDir, settled + '.result.json'))
+      + ', an unknown outcome keeps its diagnostic: ' + existsSync(join(stateDir, unknown + '.result.json'))
+      + ' and loses its dead copy: ' + !existsSync(join(stateDir, unknown)));
+    record('24-status-reports-the-size-and-the-leftovers',
+      !!out && out.disk && out.disk.store.bytes >= storeBytes && out.disk.machineDir.bytes >= out.disk.store.bytes
+      && typeof out.disk.candidates.retained === 'number' && out.disk.candidates.retained >= 1,
+      'disk: ' + JSON.stringify(out && out.disk && { store: out.disk.store.bytes, machine: out.disk.machineDir.bytes, stale: out.disk.candidates.stale, retained: out.disk.candidates.retained })
+      + (out ? '' : ' / status said: ' + (swept.out || '').split('\n').slice(0, 3).join(' | ').slice(0, 200)));
+    // The report a person reads says the same, in words.
+    const spoken = mech(ctx, 'status', [], { machine: 'A' });
+    record('24-status-prints-the-size-in-words', /disk\s+machine folder [\d.]+ [KMG]B/.test(spoken.stdout) && /leftovers\s+\d+ dead candidate/.test(spoken.stdout),
+      spoken.stdout.split('\n').filter((l) => /^disk|^leftovers|^recordings/.test(l)).join(' | ').slice(0, 160));
+    for (const name of [live, unknown]) { rmSync(join(stateDir, name), { recursive: true, force: true }); rmSync(join(stateDir, name + '.result.json'), { force: true }); }
+  },
+
+  // 25. A recording is a reference to the state commit, and it reads back as the
+  // same bytes an old snapshot did; two references to commits with the same state
+  // are one recording, two states refuse, and a reference that cannot be trusted
+  // is said out loud rather than read from a later state.
+  '25-recordings-are-references': async (ctx) => {
+    let r = bringUp(ctx, 'A');
+    if (r.code !== 0) { record('25-recordings-are-references', false, 'bring-up: ' + r.out); return; }
+    r = bringUp(ctx, 'B');
+    if (r.code !== 0) { record('25-recordings-are-references', false, 'bring-up B: ' + r.out); return; }
+    const storeA = storeOf(ctx, 'A'); const storeB = storeOf(ctx, 'B');
+    const rev = sh('git', ['-C', ctx.codeA, 'rev-parse', 'HEAD']).stdout.trim();
+    // a revision recorded from this machine's store: the state the recording binds
+    const rec = mech(ctx, 'record', ['--revision', rev, '--checkout', ctx.codeA], { machine: 'A' });
+    if (rec.code !== 0) { record('25-recordings-are-references', false, 'record: ' + rec.out.slice(0, 150)); return; }
+    mech(ctx, 'sync', [], { machine: 'B' });
+    const recPathA = join(storeA, '.tracker-sync', 'recordings', rev + '.jsonl');
+    const recPathB = join(storeB, '.tracker-sync', 'recordings', rev + '.jsonl');
+    // A recording is a reference: one small line, never the state itself.
+    const ref = existsSync(recPathA) ? readFileSync(recPathA, 'utf8') : '';
+    const refOk = /"store"\s*:\s*"[0-9a-f]{40,64}"/.test(ref) && ref.length < 400;
+    record('25-a-recording-holds-a-reference', refOk, 'recording: ' + ref.trim().slice(0, 120));
+    // The same bytes an old snapshot returned: the state at that commit, which is
+    // what a gate's baseline at a revision reads.
+    const asReference = exportAt(ctx, 'A', rev);
+    const snapshot = stateTextOf(ctx, 'A');
+    const commitOf = (() => { try { return JSON.parse(ref).store; } catch { return null; } })();
+    const fromCommit = commitOf ? sh('git', ['-C', storeA, 'show', commitOf + ':fake/items.jsonl']).stdout : '';
+    record('25-export-at-returns-the-same-bytes',
+      asReference.code === 0 && asReference.stdout === snapshot && fromCommit && asReference.stdout === '=== fake/items.jsonl\n' + fromCommit,
+      'exit ' + asReference.code + ', identical to the state: ' + (asReference.stdout === snapshot) + ', identical to its commit: ' + ('=== fake/items.jsonl\n' + fromCommit === asReference.stdout));
+    // An old snapshot of the same state exports the same bytes: converting a store
+    // changes no answer, only the space the answer takes.
+    writeFileSync(recPathA, snapshot);
+    sh('git', ['-C', storeA, 'add', '.tracker-sync/recordings']);
+    sh('git', ['-C', storeA, '-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '-qm', 'the old form']);
+    const asSnapshot = exportAt(ctx, 'A', rev);
+    record('25-an-old-snapshot-exports-the-same-bytes', asSnapshot.code === 0 && asSnapshot.stdout === asReference.stdout,
+      'exit ' + asSnapshot.code + ', identical: ' + (asSnapshot.stdout === asReference.stdout));
+    // Two references to two commits holding the SAME state are not a conflict: the
+    // question a recording answers is which state the revision had. Both stores must
+    // hold both commits, so the twin is carried onto the ref the way a state taken
+    // from a code revision is carried: by a commit that has it as a parent.
+    const ct = (treeRev, parents, msg) => sh('git', ['-C', storeA, '-c', 'user.name=proof', '-c', 'user.email=proof@local',
+      'commit-tree', treeRev, ...parents.flatMap((x) => ['-p', x]), '-m', msg]).stdout.trim();
+    const digest = 'sha256:' + createHash('sha256').update(snapshot, 'utf8').digest('hex');
+    mech(ctx, 'publish', [], { machine: 'A' });
+    const tipA = sh('git', ['-C', storeA, 'rev-parse', 'HEAD']).stdout.trim();
+    const twin = ct(commitOf + '^{tree}', [commitOf], 'the same state, a second commit');
+    const carrying = ct(tipA + '^{tree}', [tipA, twin], 'a commit that carries the twin state');
+    sh('git', ['-C', storeA, 'push', '-q', 'origin', carrying + ':refs/tracker/state']);
+    const fetchB = mech(ctx, 'sync', [], { machine: 'B' });
+    const hasTwin = sh('git', ['-C', storeB, 'cat-file', '-e', twin + '^{commit}']).code === 0;
+    writeFileSync(recPathA, JSON.stringify({ format: 'tracker-sync-recording/1', store: commitOf, digest }, null, 2) + '\n');
+    writeFileSync(recPathB, JSON.stringify({ format: 'tracker-sync-recording/1', store: twin, digest }, null, 2) + '\n');
+    const pubB = mech(ctx, 'publish', [], { machine: 'B' });
+    const sameState = mech(ctx, 'sync', [], { machine: 'A' });
+    record('25-two-references-to-one-state-are-not-a-conflict',
+      hasTwin && pubB.code === 0 && sameState.code === 0 && exportAt(ctx, 'A', rev).stdout === asReference.stdout,
+      'both stores hold the twin: ' + hasTwin + ', B publish exit ' + pubB.code + ', sync A exit ' + sameState.code
+      + ', ' + (pubB.code === 0 ? sameState.out : pubB.out).split('\n')[0].slice(0, 100));
+    // Two references to commits holding DIFFERENT states refuse, exactly as two
+    // snapshots did: a person decides, nothing is moved. The side that meets the
+    // other's state first is the one that must refuse.
+    // A state that really differs: one item more, committed on A and carried to B.
+    writeFileSync(join(storeA, 'fake', 'items.jsonl'), snapshot.replace('=== fake/items.jsonl\n', '')
+      + JSON.stringify({ id: 'i-9', title: 'a state the other side does not hold' }) + '\n');
+    sh('git', ['-C', storeA, 'add', 'fake/items.jsonl']);
+    sh('git', ['-C', storeA, '-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '-qm', 'a different state']);
+    const otherCommit = sh('git', ['-C', storeA, 'rev-parse', 'HEAD']).stdout.trim();
+    mech(ctx, 'publish', [], { machine: 'A' });
+    mech(ctx, 'sync', [], { machine: 'B' });
+    writeFileSync(recPathB, JSON.stringify({ format: 'tracker-sync-recording/1', store: otherCommit }, null, 2) + '\n');
+    const differ = mech(ctx, 'publish', [], { machine: 'B' });
+    const differA = mech(ctx, 'sync', [], { machine: 'A' });
+    record('25-two-references-to-different-states-refuse', differA.code === 1 && /person|recording/i.test(differA.out),
+      'B publish exit ' + differ.code + ', A sync exit ' + differA.code + ': ' + differA.out.split('\n')[0].slice(0, 140));
+    // A digest that does not match the commit it names is a refusal, not a read.
+    writeFileSync(recPathA, JSON.stringify({ format: 'tracker-sync-recording/1', store: commitOf, digest: 'sha256:' + '0'.repeat(64) }, null, 2) + '\n');
+    const wrongDigest = exportAt(ctx, 'A', rev);
+    record('25-a-reference-that-cannot-be-trusted-is-said', wrongDigest.code === 1 && /history|digest|no longer holds/i.test(wrongDigest.out),
+      'exit ' + wrongDigest.code + ': ' + wrongDigest.out.split('\n')[0].slice(0, 120));
+    // A referenced commit this store does not hold is said, never guessed.
+    writeFileSync(recPathA, JSON.stringify({ format: 'tracker-sync-recording/1', store: '1'.repeat(40) }, null, 2) + '\n');
+    const missing = exportAt(ctx, 'A', rev);
+    record('25-a-missing-state-commit-is-said', missing.code === 1 && /does not hold|append-only/i.test(missing.out),
+      'exit ' + missing.code + ': ' + missing.out.split('\n')[0].slice(0, 140));
+  },
+
+  // 26. An installation of an older version is repaired by the mechanism itself,
+  // once, safely and idempotently (issue #45: nothing ever cleaned what a killed
+  // write or an older layout left).
+  '26-an-old-installation-is-converted': async (ctx) => {
+    let r = bringUp(ctx, 'A');
+    if (r.code !== 0) { record('26-an-old-installation-is-converted', false, 'bring-up: ' + r.out); return; }
+    const store = storeOf(ctx, 'A');
+    const stateDir = ctx.stateA;
+    const recDir = join(store, '.tracker-sync', 'recordings');
+    const rev = sh('git', ['-C', ctx.codeA, 'rev-parse', 'HEAD']).stdout.trim();
+    // A state with some size to it: a copy per revision is what the store grew by,
+    // and a store of three items would not show the difference a migration makes.
+    const padding = Array.from({ length: 40 }, (_, i) => JSON.stringify({ id: 'pad-' + i, title: 'a state that takes up space '.repeat(6), status: 'open', comments: [] })).join('\n') + '\n';
+    fsAppend(join(store, 'fake', 'items.jsonl'), padding);
+    sh('git', ['-C', store, 'add', 'fake/items.jsonl']);
+    sh('git', ['-C', store, '-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '-qm', 'a state with size']);
+    mech(ctx, 'publish', [], { machine: 'A' });
+    const state = stateTextOf(ctx, 'A');
+    // The store as an older version left it: the recording of the revision is a
+    // whole copy of the state, a candidate of a killed write holds a copy of the
+    // store, and a diagnostic of a settled outcome was never removed.
+    writeFileSync(join(recDir, rev + '.jsonl'), state);
+    const deadCandidate = fakeCandidate(stateDir, { pid: 999999, phase: 'preparing' });
+    mkdirSync(join(stateDir, deadCandidate, 'fake'), { recursive: true });
+    writeFileSync(join(stateDir, deadCandidate, 'fake', 'items.jsonl'), state);
+    writeFileSync(join(stateDir, fakeCandidate(stateDir, { pid: 999998, phase: 'accepted', folder: false })) , '');
+    sh('git', ['-C', store, 'add', '.tracker-sync/recordings']);
+    sh('git', ['-C', store, '-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '-qm', 'a whole copy, as the old version wrote it']);
+    // A snapshot no store commit holds: a revision recorded from a tree whose
+    // state was never a store state. It is kept and reported, never guessed.
+    const lostRev = 'f'.repeat(40);
+    writeFileSync(join(recDir, lostRev + '.jsonl'), '=== fake/items.jsonl\n{"id":"i-9","title":"a state no commit holds"}\n');
+    // What a kill in the middle of the migration leaves: the temporary file of a
+    // recording that was written but not yet renamed, beside the snapshot itself.
+    writeFileSync(join(recDir, `.${rev}.jsonl.migrating-999999`), 'half');
+    const beforeBytes = folderBytes(recDir);
+    const beforeSnapshots = (() => { const s = mech(ctx, 'status', ['--json'], { machine: 'A' }); try { return JSON.parse(s.stdout).snapshots; } catch { return null; } })();
+    // The first command with the store in its hands converts it, with no owner action.
+    const migrated = mech(ctx, 'publish', [], { machine: 'A' });
+    const afterRef = existsSync(join(recDir, rev + '.jsonl')) ? readFileSync(join(recDir, rev + '.jsonl'), 'utf8') : '';
+    const readBack = exportAt(ctx, 'A', rev);
+    const afterBytes = folderBytes(recDir);
+    record('26-a-whole-copy-becomes-a-reference',
+      migrated.code === 0 && afterRef.trim().startsWith('{') && readBack.code === 0 && readBack.stdout === state,
+      'publish exit ' + migrated.code + ', the recording is a reference: ' + afterRef.trim().startsWith('{') + ', it exports the same state: ' + (readBack.stdout === state));
+    record('26-a-snapshot-no-commit-holds-is-kept-and-reported',
+      existsSync(join(recDir, lostRev + '.jsonl')) && !readFileSync(join(recDir, lostRev + '.jsonl'), 'utf8').trim().startsWith('{'),
+      'the unheld snapshot is kept: ' + existsSync(join(recDir, lostRev + '.jsonl')));
+    record('26-the-migration-cleans-what-a-kill-left',
+      !existsSync(join(stateDir, deadCandidate)) && !readdirSync(stateDir).some((n) => n.endsWith('.migrating-999999')),
+      'the dead candidate is gone: ' + !existsSync(join(stateDir, deadCandidate)) + ', no temporary file is left behind');
+    // Space, measured on the recording itself: the copy was the size of the state,
+    // the reference is one line.
+    record('26-the-migration-frees-space', afterRef.trim().startsWith('{') && afterRef.length * 10 < state.length,
+      'the whole copy was ' + state.length + ' bytes, the reference is ' + afterRef.length + ' (the status reported ' + beforeSnapshots + ' whole states before the migration)');
+    // It is published like any other store change, and a second run changes nothing.
+    const tip = remoteTip(ctx);
+    const remoteRef = tip ? sh('git', ['-C', ctx.remote, 'cat-file', '-p', tip + ':.tracker-sync/recordings/' + rev + '.jsonl']).stdout : '';
+    const again = mech(ctx, 'publish', [], { machine: 'A' });
+    const afterRef2 = readFileSync(join(recDir, rev + '.jsonl'), 'utf8');
+    record('26-the-migration-is-published-and-idempotent',
+      remoteRef.trim().startsWith('{') && again.code === 0 && /nothing to publish|published/i.test(again.out) && afterRef2 === afterRef,
+      'the remote holds the reference: ' + remoteRef.trim().startsWith('{') + ', the second run said: ' + again.out.split('\n')[0].slice(0, 80));
+    // Reported by status, so an owner sees what a migration kept for them.
+    const spoken = mech(ctx, 'status', [], { machine: 'A' });
+    record('26-status-names-what-is-still-a-whole-state', /recordings\s+\d+\s+\(1 still whole states/.test(spoken.stdout),
+      spoken.stdout.split('\n').filter((l) => /^recordings/.test(l)).join(' | ').slice(0, 160));
+  },
+
 };
 
 const CASE_TIMEOUT_MS = 240000;

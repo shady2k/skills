@@ -291,7 +291,7 @@ for (const mode of ['failed', 'timeout-no-ref', 'retried', 'retried-remote', 'ac
       const diagnostics = resultFiles.map((n) => JSON.parse(readFileSync(join(ctx.stateA, n), 'utf8')));
 
       assert.equal(diagnostics.length, rejected ? 1 : 0, 'a settled outcome must leave no diagnostic');
-      assert.ok(diagnostics.every((d) => d.files > 0 && d.bytes > 0 && d.importMs >= 0));
+      assert.ok(diagnostics.every((d) => typeof d.files === 'number' && typeof d.bytes === 'number' && d.importMs >= 0));
 
       const candidateRefs = git(storeOf(ctx, 'A'), ['for-each-ref', '--format=%(refname)', 'refs/tracker-sync/candidates/']);
 
@@ -506,8 +506,10 @@ test('candidate fatal errors clean only their worktree and preserve diagnostics 
     const diagnostic = JSON.parse(readFileSync(join(ctx.stateA, artifacts[0]), 'utf8'));
 
     assert.equal(diagnostic.phase, 'error');
-    assert.ok(diagnostic.files > 0);
-    assert.ok(diagnostic.bytes > 0);
+    // The copy's own counts are reported, and they are what makes the leak legible
+    // in the diagnostic; how many files a candidate holds is the recipe's to say.
+    assert.equal(typeof diagnostic.files, 'number');
+    assert.equal(typeof diagnostic.bytes, 'number');
     assert.ok(!git(live, ['worktree', 'list', '--porcelain']).includes('candidate-'));
   } finally {
     await stopAllWatchers(ctx);
@@ -527,9 +529,22 @@ for (const hazard of ['symlink', 'absolute-config', 'absolute-command', 'absolut
       const before = readFileSync(join(live, 'fake/db.json'), 'utf8');
 
       if (hazard === 'symlink') {
+        // A candidate copies only what the recipe declares, so a link nobody
+        // declares is never followed: a recipe that declares it is the case where
+        // the refusal must come before anything is written.
         symlinkSync(join(live, 'fake/db.json'), join(live, 'shared-db'));
+        const custom = join(ctx.scratch, 'symlink-recipe.mjs');
+
+        writeFileSync(custom, `import original from ${JSON.stringify(pathToFileURL(ctx.recipe).href)};\nexport default {...original,candidateFiles:['shared-db']};`);
+
+        ctx.recipe = custom;
       } else if (hazard === 'absolute-config') {
         writeFileSync(join(live, 'local-config.json'), JSON.stringify({ db: join(live, 'fake/db.json') }));
+        const custom = join(ctx.scratch, 'config-recipe.mjs');
+
+        writeFileSync(custom, `import original from ${JSON.stringify(pathToFileURL(ctx.recipe).href)};\nexport default {...original,candidateFiles:['local-config.json']};`);
+
+        ctx.recipe = custom;
       } else {
         const custom = join(ctx.scratch, 'recipe.mjs');
 
@@ -579,7 +594,7 @@ test('pointer.env retains shell quoting, expansion, multiple assignments and uns
   }
 });
 
-test('SIGKILL leaves an inspectable own candidate and a subsequent attempt preserves it and live writes', async () => {
+test('SIGKILL leaves a candidate the next command sweeps, and live writes survive', async () => {
   const ctx = newCtx('race-crash-cleanup');
   try {
     const ready = bringUp(ctx, 'A');
@@ -622,9 +637,13 @@ test('SIGKILL leaves an inspectable own candidate and a subsequent attempt prese
 
     assert.equal(result.code, 0, result.out);
 
-    assert.equal(readFileSync(join(ctx.stateA, diagnostic), 'utf8'), saved);
-
-    for (const name of artifacts) assert.ok(existsSync(join(ctx.stateA, name)));
+    // What the killed write left is swept by the next command that holds the store:
+    // the copy, its worktree registration and its diagnostic (issue #45: nothing
+    // ever did, and four dead copies held 35 GB). What the sweep must not touch is
+    // what this case is about: the live writes, which are still there.
+    assert.deepEqual(readdirSync(ctx.stateA).filter((n) => n.startsWith('candidate-')), []);
+    const registered = spawnSync('git', ['-C', storeOf(ctx, 'A'), 'worktree', 'list', '--porcelain'], { encoding: 'utf8' });
+    assert.ok(!registered.stdout.includes('candidate-'), registered.stdout);
 
     const item = storeItems(ctx, 'A')[0];
 
