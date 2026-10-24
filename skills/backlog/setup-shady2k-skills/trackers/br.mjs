@@ -28,6 +28,18 @@
 //   same id in every export, so `post` gives every record its id at post time
 //   from the store's machine ordinal (ordinal * 1000000 + br's local id),
 //   and this recipe's merge never renumbers an existing record id.
+// - br's database rebuild (br sync --import-only --rebuild) lays a database
+//   backup per run into .beads/.br_recovery before it touches the database and
+//   keeps every one: measured ~17-18 files per run on br 0.7.0 (database, WAL,
+//   shm, WAL certificate, namespace sidecars; plain and vacuum each), while
+//   `br update`, `br close`, `br sync --flush-only` and a plain
+//   `br sync --import-only` (no --rebuild) measured zero. Because this recipe's
+//   import runs on every conditional write, the folder grows without bound
+//   (measured in one real store: 9553 files, 5.5 GB in 11 days). br gives no
+//   way to skip or bound those backups: `br config schema` lists no such key,
+//   and `br history prune` manages only .beads/.br_history (in this fixture it
+//   pruned 0 backups while .br_recovery held 35). So the recipe bounds the
+//   folder itself after a successful import (pruneRecovery below).
 
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -397,6 +409,82 @@ function cmdMerge(argv) {
   process.stdout.write(`merged ${merged.length} items\n`);
 }
 
+// ---- the recovery backups a rebuild import leaves ----------------------------
+
+// One successful rebuild import leaves a backup of the pre-import database
+// family in .beads/.br_recovery (br 0.7.0), and br keeps every one. The backup
+// is for br's own recovery: if the import dies mid-run, br restores the
+// database family from the run's backups. Once the import has succeeded, br
+// reads nothing of an older run again - and no restore can reference a backup
+// run br has already superseded - so keeping every past run is dead weight that
+// grows with every conditional write.
+//
+// What a prune loses. This recipe keeps the backups of the three newest backup
+// runs (three distinct run timestamps in the file names) and deletes only
+// older ones. After a successful import that is: the run just finished (kept),
+// the two before it (kept), and everything older (deleted) - the evidence of
+// pre-import states older than three conditional writes ago. The bound is not
+// a concern about never having a backup: the newest run's complete family is
+// always kept.
+//
+// Why this cannot delete a backup another process is still writing. br writes
+// each backup by writing a private temp file and renaming it into its final,
+// timestamped name, so a name this folder lists is fully written and is
+// renamed, never appended to. This runs only after a rebuild import that the
+// mechanism ran while holding the store's own write lock, so no other import
+// was in flight; and the current import's own backups carry the newest
+// timestamps, which are always kept. A concurrent process that starts later
+// writes files whose names do not exist until it renames them, and this run
+// never lists what it has not seen.
+//
+// Failure is not a write failure. The conditional write already happened; a
+// prune that fails (a permission, a name that vanished between list and
+// unlink) leaves the folder one run larger and the write still succeeds.
+// Idempotence and cost: it reads one directory listing and makes no br call
+// when fewer than three runs are present.
+const RECOVERY_BACKUP_STAMP = /\d{8}_\d{6}_\d{9}/;
+const RECOVERY_RUNS_KEPT = 3;
+
+function pruneRecovery(cwd) {
+  const dir = path.join(storeDir(cwd), '.br_recovery');
+  let entries;
+  try {
+    entries = fs.readdirSync(dir);
+  } catch {
+    return; // no recovery folder yet: nothing to bound
+  }
+  const stamps = [...new Set(entries.map((n) => (n.match(RECOVERY_BACKUP_STAMP) || [])[0]).filter(Boolean))]
+    .sort()
+    .reverse();
+  const keep = new Set(stamps.slice(0, RECOVERY_RUNS_KEPT));
+  for (const name of entries) {
+    const m = name.match(RECOVERY_BACKUP_STAMP);
+    if (!m || keep.has(m[0])) continue;
+    try {
+      fs.unlinkSync(path.join(dir, name));
+    } catch {
+      // A name that vanished (or cannot be removed) is left where it lies; the
+      // next successful import prunes again.
+    }
+  }
+}
+
+// Rebuild the database from the state files, then bound the recovery backups
+// the rebuild left. This is the recipe's declared import command, run by the
+// mechanism on every conditional write. Nothing it does here changes what the
+// import wrote: pruning happens only after br exited with status 0.
+function cmdImport() {
+  br(['sync', '--import-only', '--rebuild'], process.cwd());
+  pruneRecovery(process.cwd());
+  process.stdout.write('imported from JSONL and rebuilt\n');
+}
+
+// The same bound as a command of its own: the mechanism runs it when it repairs an
+// installation whose backups already piled up, where no import is due.
+function cmdPrune() {
+  pruneRecovery(process.cwd());
+}
+
 // ---- claim / transition / post ----------------------------------------------
 
 function cmdClaim(argv) {
@@ -487,7 +575,7 @@ function cmdPost(argv) {
   // (measured: the DB kept the old id); --rebuild replaces the rows from the
   // file, so the record id lands in the database and br's own next comment id
   // continues above it (max + 1).
-  br(['sync', '--import-only', '--rebuild'], cwd);
+  cmdImport();
   const back = readIssues(cwd).flatMap((it) => it.comments || []).find((c) => Number(c.id) === recordId);
   if (!back || back.text !== text) {
     fail(`post: record id ${recordId} did not survive the re-import with its text`);
@@ -716,6 +804,7 @@ function cmdOrdinal(argv) {
 
 const commands = {
   init: cmdInit,
+  import: cmdImport,
   merge: cmdMerge,
   'export-side': cmdExportSide,
   claim: cmdClaim,
@@ -725,12 +814,13 @@ const commands = {
   'pointer-check': cmdPointerCheck,
   'pointer-env': cmdPointerEnv,
   ordinal: cmdOrdinal,
+  prune: cmdPrune,
 };
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
 if (isMain) {
   const [cmd, ...argv] = process.argv.slice(2);
   if (!cmd || !commands[cmd]) {
-    process.stderr.write(`usage: node trackers/br.mjs <init|merge|export-side|claim|transition|post|pointer-install|pointer-check|pointer-env|ordinal> [options]\n`);
+    process.stderr.write(`usage: node trackers/br.mjs <init|import|prune|merge|export-side|claim|transition|post|pointer-install|pointer-check|pointer-env|ordinal> [options]\n`);
     process.exit(cmd ? 1 : 0);
   }
   commands[cmd](argv);
@@ -761,7 +851,10 @@ export default {
   ],
   // The database's own state in a side file, for a flush the tracker refuses.
   exportSide: 'node <recipeFile> export-side --out <out>',
-  import: 'br sync --import-only --rebuild',
+  import: 'node <recipeFile> import',
+  // Bounds the tracker's own database backups inside the store; the import runs it
+  // too, and the mechanism runs it when it repairs an installation.
+  prune: 'node <recipeFile> prune',
   init: 'node <recipeFile> init --prefix <prefix>',
   merge: 'node <recipeFile> merge --ours <ours> --theirs <theirs> --base <base> --out <out> --order <order> --order-local <orderLocal> --store <store>',
   claim: 'node <recipeFile> claim --item <item> --holder <holder>',
