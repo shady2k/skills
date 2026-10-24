@@ -36,8 +36,12 @@ paid for**: found now, a collision is an edge and a reshaping.
 
 A standalone task or bug joins the feature and stage it serves. If none exists,
 create the minimal feature and stage in the current slice, with criteria from
-the same small change, and attach the existing task. Do not duplicate it or add
-unrelated scope. A short delta in the task body is enough input here. Adding
+the same small change, and attach the existing task. Where the change needs no
+checkpoint of its own — one worker's session and its checks, which nothing after
+it builds on — it may stand directly under its feature, or with no parent where
+it serves no feature's outcome, and closes by the protocol's **A leaf with no
+stage closes at its merge**; a stage is for a result that later work waits on.
+Do not duplicate it or add unrelated scope. A short delta in the task body is enough input here. Adding
 these containers needs no approval; changing the outcome or budget does.
 
 Settle any question whose answer changes the breakdown first, through

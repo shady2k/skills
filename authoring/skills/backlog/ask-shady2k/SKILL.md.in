@@ -59,7 +59,12 @@ with the rest of the kitchen.
 **Always:** README and agent doc; vision, roadmap, charters, current specs,
 glossary and decision records where they exist; the shape of the code, its
 checks and CI; git history, branches, worktrees and uncommitted changes. Git
-history is progress evidence too.
+history is progress evidence too, and it is read for the commits that name a
+leaf: an item whose change is already on the main line is not remaining work, by
+the protocol's **Remaining work is counted from what landed**, and it is
+reported as landed and not closed, with that commit, and named as what `close-out`
+closes — never as work still to do, and never beside a recommendation to start
+it.
 
 **Where the project has a backlog integration** (its agent doc points to it):
 read [`protocol.md`](protocol.md) and do its compatibility check. Run the gate
@@ -121,7 +126,9 @@ with the evidence for each.
 - **Product:** what it is for and for whom; what users can already do; how far
   it is from the vision.
 - **Progress:** the milestone's outcomes as accepted, in work, not started or
-  stalled; what recent work changed for users; the pace, where history shows it.
+  stalled; the items whose work landed while their status did not move, each
+  with the commit that landed it; what recent work changed for users; the pace,
+  where history shows it.
   Where runs were recorded, how they went as the records hold it: how many
   stalled and had to be closed, how many stopped for the owner or for missing
   information, what the work took against its forecast, and how much of the

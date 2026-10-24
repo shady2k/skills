@@ -18,7 +18,13 @@ evidence.
 Neither `submitted` nor `implemented` means closed, by the protocol's
 **Execution and acceptance**. If integration is pending, keep submitted work
 for the next coordinator; if acceptance is pending, keep it implemented.
-Name the next action and who owns it. A task that still fails its criterion
+Name the next action and who owns it.
+
+A leaf with no stage is closed at the merge that delivers it, by the protocol's
+**A leaf with no stage closes at its merge**, and a merge may have left one
+open. Close it here with that merge's revision and the check evidence it
+carried — the evidence a stage's tasks are closed on. A leaf under a stage is
+step 2's. A task that still fails its criterion
 stays open or active, with what is missing. If asked to accept work directly,
 run the missing checks and review first; a stage can be checked before its
 children close.

@@ -48,6 +48,13 @@ are the repository's installation, and each person's plugin and hooks are theirs
 - **Evidence level:** <records (acceptance record, trusted not verified) or protected (runner/API receipts, revision and digest binding)>
 - **Document synchronization:** <prepare delta replay, verify final tree, publish, archive and close idempotently>
 - **Enforcement boundary:** <protected required CI and tracker transition guard, or explicitly audit-only limits>
+- **Main line for the gate:** <the command that enumerates the commits on the
+  main line at the revision the gate judges — the local history, never a
+  network read — parsed by the same convention as **Commit-link input and
+  check**, and exported as the normalized backlog's `landed` list,
+  `[{ "id": "<commit>", "taskIds": [...] }]`; the rule that names an item whose
+  change already landed reads it, and a project whose export carries no
+  `landed` list is judged by none of it>
 - **Backlog gate:** <exact command, config and baseline/config-revision selection; the gate is given the code revision it judges (`--at <code revision>`) and refuses with exit 2 an input read for another revision or one that names none — the store is off the branches, so the declared revision is the only thing tying the report to a code state, and the adapter's export is what must fill it>
 - **JSON report:** <exact command>
 - **Commit-link input and check:** <message/range parser, tracker resolution

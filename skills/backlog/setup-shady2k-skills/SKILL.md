@@ -596,7 +596,11 @@ the gate gave it.
 **Wiring the commit check:** it runs in commit-msg and CI. The project adapter
 turns the chosen message convention into the input of `check-commits.mjs`.
 Locally it checks the pending message; CI checks every newly introduced commit
-and fails if it unexpectedly finds none.
+and fails if it unexpectedly finds none. The same parser feeds the backlog
+gate's `landed` list, the commits on the main line at the revision the gate
+judges: one convention, read once, so a project cannot pass the commit check by
+one reading and have the gate judge another. It is a local read of history at
+that revision, never a network call.
 
 **What a push introduces** is what the range checks read (the commit check, the
 document gate's range, the backlog gate's baseline), in the pre-push hook and
@@ -724,7 +728,11 @@ real commits and this repository's own checks are proved.
    release, `implemented`, readiness and an actual claim of a
    dependant in the same stage, and of a dependant in the next stage of the same feature after its prerequisite's stage is accepted but still open, through the integration's own claim operation, acceptance across stages and independent ready
    work. Check that `submitted` results survive a handoff without being redone.
-   Check dependency cycles and the exact task-reference parser. Post a claim
+   Check dependency cycles and the exact task-reference parser. Prove the main
+   line the gate reads: leave a leaf open, land a commit naming it, and see the
+   gate report it with that commit; close it with that revision and see the
+   report clear. A `landed` list that names nothing is a failed proof, not a
+   green gate. Post a claim
    record the run script printed on a proof issue, read it back through the
    adapter's export and see it byte for byte; edit one number in a copy, post
    it, and see the gate name it damaged; then post the run script's `void` of
@@ -962,6 +970,23 @@ vision's journeys now travel in the export beside its principles, since a
 judgement may name either: an adapter reading the vision with the shipped reader
 gets them, and one that builds the vision itself adds the list. A project with no
 judgement record is not stopped.
+
+**What an update to this setup version changes, in the owner's terms.** A piece
+of work no longer stays open after the change that delivers it reaches the main
+line. A bug or a task that waits for no stage — filed on its own, or hanging
+directly under its feature — was a shape these skills file and then had nothing
+that could close it: it could not be recorded as handed in, because that state
+promises an acceptance, and no stage was going to accept it. It is now closed by
+whoever merges its change, in that same step, with the merge revision and the
+checks the merge ran. The gate gains one rule, `merged-but-open`: an open or
+held item that a commit already on the main line names is reported with that
+commit, so what is already in that state in your backlog surfaces by itself
+instead of being offered to a worker a second time. The rule reads the main line
+from the export, so this run adds that list to the adapter — the commits on the
+main line at the revision the gate judges, parsed by the message convention the
+commit check already uses, read here and never from the network. Until that list
+is there the rule reports nothing; once it is, the next gate run lists what
+landed and was never closed, and each is closed with its revision.
 
 An update that brings the store out of the branches tells the owner the move
 is coming and why, in their terms, and how it is done without losing a record:

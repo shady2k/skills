@@ -265,7 +265,7 @@ In Claude Code the plugin prefixes them: `/shady2k-skills:ask-shady2k`.
 | [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md) | Connects the project's tracker — one copy per machine, outside the code branches and in step with every machine, with the synchronization that keeps it so installed and started — cleans its queue with you, proposes settings as one profile, proves the checks work and, in a product repository, writes the product's kinds registry, with the kinds' link declarations. Rerunning it after 0.49.0 rewrites the judgement records a live charter or an admitted change carries, in your presence, and exports the journeys of your vision so a judgement can name them. | Once per project, and again when a skill says the installation is out of date. |
 | [to-milestone](skills/backlog/to-milestone/SKILL.md) | Agrees what the next version delivers, what is left out and how many new bugs it can absorb. Each outcome names the vision journeys and principles it serves, and the charter's acceptance carries another model's judgement of what it serves and breaks, each entry naming an id the vision declares and quoting a passage of the charter. | When the current version is done, or a project has no agreed next step. |
 | [refine-practices](skills/engineering/refine-practices/SKILL.md) | Reads how the work has gone since the last retrospective and judges the active practices first: the classes of error that came back, each put to you with a recommended practice to add or retire, and the practices that caught nothing in the period with what each costs, to retire or loosen — the ones guarding an expensive failure, such as publication, permissions or data loss, kept whatever the period held. Put to you as your project's setting for open questions says. | At the end of a milestone, when about five features have closed without one, or whenever you want to look back. |
-| [take-task](skills/engineering/take-task/SKILL.md) | Before you leave, gathers every decision a planned feature will need, in one list or one question at a time as your project chose; then builds the whole feature without you up to one pull request, deciding small gaps itself, stopping only for decisions that need you and telling you what the run's own overhead is costing. It never reaches green by making a check easier to pass. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, a duration it tells you is that same measurement with its basis, and every worker's brief carries what its task serves, whom it serves and where you see it. | When a feature is planned and you want it built while you are away. |
+| [take-task](skills/engineering/take-task/SKILL.md) | Before you leave, gathers every decision a planned feature will need, in one list or one question at a time as your project chose; then builds the whole feature without you up to one pull request, deciding small gaps itself, stopping only for decisions that need you and telling you what the run's own overhead is costing. An item whose change is already on the main line is closed rather than counted as remaining or built again. It never reaches green by making a check easier to pass. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, a duration it tells you is that same measurement with its basis, and every worker's brief carries what its task serves, whom it serves and where you see it. | When a feature is planned and you want it built while you are away. |
 | [handoff](skills/productivity/handoff/SKILL.md) | Keeps the work's state in the tracker and leaves what only this conversation knows where a fresh session will look, saying which effects already reached outside rather than leaving a status to be trusted. | Before you stop, or when a session gets too long. |
 | [ship-release](skills/engineering/ship-release/SKILL.md) | Carries merged, accepted work to its users: version by the project's scheme, release notes in what users can do, migrations with their reverse, rollout by environment with a check after each step and the rollback named before any step runs; a step already taken is read from the system that holds it, never run twice after a stop. | When a feature's pull request is merged and the project's users get it later than the merge. |
 | [handle-incident](skills/engineering/handle-incident/SKILL.md) | Restores a product failing in use — each move read from the system that holds it, so a session taking over does not undo what is already undone — then finds the cause through `diagnose-bug`, then holds a blameless review whose actions are filed as work. | When a product runs for users and they report it is down or broken. |
@@ -290,7 +290,7 @@ unrelated changes, new scope or publishing anything.
 | [describe-repository](skills/engineering/describe-repository/SKILL.md) | Describes one code repository the product spans for its wiki: the repository's intended model with its evidence, the architecture page, the capabilities found in the code as requirements and use cases marked derived from code, and the decisions found in the code or its ADRs, each linked to the model elements it shapes. | After a code repository is connected to the product, or when asked to describe one. |
 | [write-intended-model](skills/engineering/write-intended-model/SKILL.md) | Writes or checks a repository's intended model — the YAML architecture model in the repository's model folder, with its review report — elements, interfaces and relations, each evidenced at a commit and a blob, in three levels with a worked example, and renders its views. | When a repository needs its intended model written, reviewed or updated; `describe-repository` starts it. |
 | [to-backlog](skills/backlog/to-backlog/SKILL.md) | Files new work, bugs and ideas in the right place, without pushing them to the front; a filing is shared with everyone as soon as it is made. | When something new turns up in the middle of other work. |
-| [close-out](skills/backlog/close-out/SKILL.md) | Records accepted work — merges the change into the current specs, then closes its tasks — keeping the records proportionate to the task, one acceptance record for a small change, and preserves pending work where a fresh session picks it up, an effect that already left the checkout read from the system that holds it rather than repeated. | After you merge a feature's pull request, or when work is stopped or handed over. |
+| [close-out](skills/backlog/close-out/SKILL.md) | Records accepted work — merges the change into the current specs, then closes its tasks, and closes a bug or a task that waits for no stage on the merge that delivered it — keeping the records proportionate to the task, one acceptance record for a small change, and preserves pending work where a fresh session picks it up, an effect that already left the checkout read from the system that holds it rather than repeated. | After you merge a feature's pull request, or when work is stopped or handed over. |
 | [groom-backlog](skills/backlog/groom-backlog/SKILL.md) | Cleans up the queue reversibly with you: what is current, what waits, what was abandoned. | When the tracker has become a dump, and during setup. |
 | [check-upkeep](skills/backlog/check-upkeep/SKILL.md) | Reads the project for what ages quietly — outdated dependencies and their breaking changes, known vulnerabilities in what it ships, expiring certificates and keys, deprecated platform features, checks failing or slowing — and files what it finds in the right lane. Finds nothing? It says so in one line. | When the project should have a look after what runs it, or on its scheduled upkeep pass. |
 
@@ -816,6 +816,7 @@ work it was.
 | `idea-in-queue`, `idea-blocks-work` | ideas offered as work or blocking it |
 | `blocked-by-deferred` | live work waiting for deferred work |
 | `stale-hold` | active work unheld or apparently abandoned |
+| `merged-but-open` | live work a commit already on the main line names — reported with that commit, so landed work is closed rather than counted |
 | `epic-without-criterion` | a live feature/stage without a meaningful DONE WHEN marker |
 | `area-label`, `label-vocabulary` | missing/multiple areas or unknown labels |
 | `parent-cycle`, `dependency-cycle` | cycles in hierarchy or live prerequisites |
@@ -889,6 +890,29 @@ can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
+
+- **0.125.0** closes work whose change already landed. A bug or a task that
+  waits for no stage — one filed on its own, or one hanging directly under its
+  feature — is now closed by whoever merges its change, in that same step, with
+  the merge revision and the checks the merge ran. Those shapes had no legal way
+  to end: they could not be recorded as handed in, because that state promises
+  an acceptance, and no stage was going to accept them, so they stayed open
+  after their fix was already in the main line, were counted as remaining work
+  and were handed to a worker a second time. A leaf inside a stage keeps the
+  path it had: handed in, merged, and closed when its stage is accepted.
+
+  The backlog check gains a rule for what that left behind: `merged-but-open`
+  reports an open or held item that a commit already on the main line names,
+  with that commit. `take-task` now reads the main line for such a commit
+  before it offers an item to a worker, `ask-shady2k` before it reports what
+  remains, and a coordinator does the same before it counts or dispatches: work
+  that already landed is reported as landed and not closed, and closed, never
+  counted as remaining or built again.
+
+  A project that already has items in that state sees them by itself: once its
+  tracker export carries the main line's commits, the next gate run lists each
+  open item with the commit that landed it. Projects rerun setup (0.55.0) to
+  add that list to the adapter and take the new rules.
 
 - **0.123.0** keeps the tracker in step and never leaves a check waiting. Three
   repairs from real use (#42, #43).

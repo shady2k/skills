@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture good/merged-but-open-absent",
+  "issues": [
+    {
+      "id": "F",
+      "title": "Feature",
+      "type": "epic",
+      "status": "open",
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person can do the thing they could not before. Falsified if they cannot.",
+      "labels": [
+        "transport",
+        "milestone",
+        "v0-5"
+      ],
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "S",
+      "title": "Stage",
+      "type": "epic",
+      "status": "open",
+      "parent": "F",
+      "blockedBy": [],
+      "body": "DONE WHEN the stage result is observable to a person.",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "T1",
+      "title": "Issue T1",
+      "type": "task",
+      "status": "open",
+      "parent": "S",
+      "blockedBy": [],
+      "labels": [
+        "transport"
+      ],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z"
+    }
+  ]
+}

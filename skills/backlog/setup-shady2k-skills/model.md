@@ -136,6 +136,38 @@ the tracker or enumerate the range fails, never supplies an empty success.
 The checker cannot verify a dishonest parser, so setup must prove the parser
 with linked, unlinked and unknown-task messages through the real entry points.
 
+## The landed commits, and a leaf its merge already names
+
+The backlog may carry one more record: `landed`, the commits of the main line
+at the revision this export judges, shaped exactly like the `commits` list
+`check-commits.mjs` takes, so one message parser feeds both:
+
+```json
+"landed": [{ "id": "3f2a91c", "taskIds": ["T1"] }]
+```
+
+An adapter reads it from the main line — the revision the `source` line already names —
+with the same parser the commit checks use, never from a search or a network
+call: the gate is given the line, it does not fetch one. Include every issue
+the message names (closed ones too, as in the commit checks) and the hierarchy
+they sit in.
+
+It is what turns on `merged-but-open`: an open or active leaf that a main-line
+commit names is reported with that commit's revision — the work exists on the
+main line, so offering it again and telling the owner it remains is a lie the
+queue keeps telling until the leaf is closed with the revision that delivered
+it, by the protocol's rules **A leaf with no stage closes at its merge** and
+**Remaining work is counted from what landed**, or by close-out's evidence rule
+where the leaf carries a stage. Where a message names a leaf the commit did not
+deliver, the message or the link is corrected; the leaf's status is not what is
+wrong.
+
+The record is optional, and its absence is the rule's limit: a project whose
+adapter supplies no `landed` list is judged by none of it, and its queue is
+never errored for the main line nobody has read. The rule turns on for an
+existing project on the first gate run after its adapter supplies the record —
+which setup's update is.
+
 ## What an adapter must get right
 
 **`blockedBy` carries gating edges and nothing else.** A tracker that also

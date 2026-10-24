@@ -1,0 +1,610 @@
+{
+  "cases": [
+    {
+      "shape": "a leaf under a stage",
+      "steps": [
+        {
+          "name": "open",
+          "fires": [],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "F",
+                "title": "Issue F",
+                "type": "epic",
+                "status": "open",
+                "parent": null,
+                "blockedBy": [],
+                "body": "DONE WHEN a person can do the thing they could not before. Falsified if they cannot.",
+                "labels": [
+                  "transport",
+                  "milestone",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              },
+              {
+                "id": "S",
+                "title": "Issue S",
+                "type": "epic",
+                "status": "open",
+                "parent": "F",
+                "blockedBy": [],
+                "body": "DONE WHEN the stage result is observable to a person.",
+                "labels": [
+                  "transport",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              },
+              {
+                "id": "T1",
+                "title": "Issue T1",
+                "type": "task",
+                "status": "open",
+                "parent": "S",
+                "blockedBy": [],
+                "body": "",
+                "labels": [
+                  "transport"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              }
+            ]
+          }
+        },
+        {
+          "name": "submitted with evidence",
+          "fires": [],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "F",
+                "title": "Issue F",
+                "type": "epic",
+                "status": "open",
+                "parent": null,
+                "blockedBy": [],
+                "body": "DONE WHEN a person can do the thing they could not before. Falsified if they cannot.",
+                "labels": [
+                  "transport",
+                  "milestone",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              },
+              {
+                "id": "S",
+                "title": "Issue S",
+                "type": "epic",
+                "status": "open",
+                "parent": "F",
+                "blockedBy": [],
+                "body": "DONE WHEN the stage result is observable to a person.",
+                "labels": [
+                  "transport",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              },
+              {
+                "id": "T1",
+                "title": "Issue T1",
+                "type": "task",
+                "status": "submitted",
+                "parent": "S",
+                "blockedBy": [],
+                "body": "",
+                "labels": [
+                  "transport"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z",
+                "delivery": {
+                  "revision": "rev-delivery",
+                  "evidence": "checks green in the worker's checkout"
+                },
+                "comments": [
+                  {
+                    "id": "c5231",
+                    "at": "2026-01-29T10:00:00Z",
+                    "author": "worker",
+                    "body": "[shady2k-time v1] claim\nspan: 52310000\nat: 2026-01-29T10:00:00Z\nsession: claude-code:s5231\nagent: claude-worker:alex@laptop:work#s5231\nrole: worker"
+                  },
+                  {
+                    "id": "r5231",
+                    "at": "2026-01-29T11:00:00Z",
+                    "author": "worker",
+                    "body": "[shady2k-time v1] receipt\nspan: 52310000\nfrom: 2026-01-29T10:00:00Z\nto: 2026-01-29T11:00:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    24 |    30 |     6 |      0 |    0 |    0 |    60 |\n| total |    24 |    30 |     6 |      0 |    0 |    0 |    60 |"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "implemented with evidence",
+          "fires": [],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "F",
+                "title": "Issue F",
+                "type": "epic",
+                "status": "open",
+                "parent": null,
+                "blockedBy": [],
+                "body": "DONE WHEN a person can do the thing they could not before. Falsified if they cannot.",
+                "labels": [
+                  "transport",
+                  "milestone",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              },
+              {
+                "id": "S",
+                "title": "Issue S",
+                "type": "epic",
+                "status": "open",
+                "parent": "F",
+                "blockedBy": [],
+                "body": "DONE WHEN the stage result is observable to a person.",
+                "labels": [
+                  "transport",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              },
+              {
+                "id": "T1",
+                "title": "Issue T1",
+                "type": "task",
+                "status": "implemented",
+                "parent": "S",
+                "blockedBy": [],
+                "body": "",
+                "labels": [
+                  "transport"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z",
+                "integration": {
+                  "revision": "rev-integrated",
+                  "evidence": "stage checks green on the integrated revision"
+                },
+                "comments": [
+                  {
+                    "id": "c5232",
+                    "at": "2026-01-29T10:00:00Z",
+                    "author": "worker",
+                    "body": "[shady2k-time v1] claim\nspan: 52320000\nat: 2026-01-29T10:00:00Z\nsession: claude-code:s5232\nagent: claude-worker:alex@laptop:work#s5232\nrole: worker"
+                  },
+                  {
+                    "id": "r5232",
+                    "at": "2026-01-29T11:00:00Z",
+                    "author": "worker",
+                    "body": "[shady2k-time v1] receipt\nspan: 52320000\nfrom: 2026-01-29T10:00:00Z\nto: 2026-01-29T11:00:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    24 |    30 |     6 |      0 |    0 |    0 |    60 |\n| total |    24 |    30 |     6 |      0 |    0 |    0 |    60 |"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "closed",
+          "fires": [],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "F",
+                "title": "Issue F",
+                "type": "epic",
+                "status": "open",
+                "parent": null,
+                "blockedBy": [],
+                "body": "DONE WHEN a person can do the thing they could not before. Falsified if they cannot.",
+                "labels": [
+                  "transport",
+                  "milestone",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              },
+              {
+                "id": "S",
+                "title": "Issue S",
+                "type": "epic",
+                "status": "open",
+                "parent": "F",
+                "blockedBy": [],
+                "body": "DONE WHEN the stage result is observable to a person.",
+                "labels": [
+                  "transport",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              },
+              {
+                "id": "T1",
+                "title": "Issue T1",
+                "type": "task",
+                "status": "closed",
+                "parent": "S",
+                "blockedBy": [],
+                "body": "",
+                "updatedAt": "2026-01-30T00:00:00Z"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "shape": "a leaf directly under a feature",
+      "steps": [
+        {
+          "name": "active",
+          "fires": [],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "F",
+                "title": "Issue F",
+                "type": "epic",
+                "status": "open",
+                "parent": null,
+                "blockedBy": [],
+                "body": "DONE WHEN a person can do the thing they could not before. Falsified if they cannot.",
+                "labels": [
+                  "transport",
+                  "milestone",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              },
+              {
+                "id": "T1",
+                "title": "Issue T1",
+                "type": "task",
+                "status": "active",
+                "parent": "F",
+                "blockedBy": [],
+                "body": "",
+                "labels": [
+                  "transport"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z",
+                "holder": "somebody"
+              }
+            ]
+          }
+        },
+        {
+          "name": "submitted with evidence",
+          "fires": [],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "F",
+                "title": "Issue F",
+                "type": "epic",
+                "status": "open",
+                "parent": null,
+                "blockedBy": [],
+                "body": "DONE WHEN a person can do the thing they could not before. Falsified if they cannot.",
+                "labels": [
+                  "transport",
+                  "milestone",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              },
+              {
+                "id": "T1",
+                "title": "Issue T1",
+                "type": "task",
+                "status": "submitted",
+                "parent": "F",
+                "blockedBy": [],
+                "body": "",
+                "labels": [
+                  "transport"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z",
+                "comments": [
+                  {
+                    "id": "c5241",
+                    "at": "2026-01-29T10:00:00Z",
+                    "author": "worker",
+                    "body": "[shady2k-time v1] claim\nspan: 52410000\nat: 2026-01-29T10:00:00Z\nsession: claude-code:s5241\nagent: claude-worker:alex@laptop:work#s5241\nrole: worker"
+                  },
+                  {
+                    "id": "r5241",
+                    "at": "2026-01-29T11:00:00Z",
+                    "author": "worker",
+                    "body": "[shady2k-time v1] receipt\nspan: 52410000\nfrom: 2026-01-29T10:00:00Z\nto: 2026-01-29T11:00:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    24 |    30 |     6 |      0 |    0 |    0 |    60 |\n| total |    24 |    30 |     6 |      0 |    0 |    0 |    60 |"
+                  }
+                ],
+                "delivery": {
+                  "revision": "rev-1",
+                  "evidence": "local checks green"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "implemented with evidence",
+          "fires": [],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "F",
+                "title": "Issue F",
+                "type": "epic",
+                "status": "open",
+                "parent": null,
+                "blockedBy": [],
+                "body": "DONE WHEN a person can do the thing they could not before. Falsified if they cannot.",
+                "labels": [
+                  "transport",
+                  "milestone",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              },
+              {
+                "id": "T1",
+                "title": "Issue T1",
+                "type": "task",
+                "status": "implemented",
+                "parent": "F",
+                "blockedBy": [],
+                "body": "",
+                "labels": [
+                  "transport"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z",
+                "comments": [
+                  {
+                    "id": "c5242",
+                    "at": "2026-01-29T10:00:00Z",
+                    "author": "worker",
+                    "body": "[shady2k-time v1] claim\nspan: 52420000\nat: 2026-01-29T10:00:00Z\nsession: claude-code:s5242\nagent: claude-worker:alex@laptop:work#s5242\nrole: worker"
+                  },
+                  {
+                    "id": "r5242",
+                    "at": "2026-01-29T11:00:00Z",
+                    "author": "worker",
+                    "body": "[shady2k-time v1] receipt\nspan: 52420000\nfrom: 2026-01-29T10:00:00Z\nto: 2026-01-29T11:00:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    24 |    30 |     6 |      0 |    0 |    0 |    60 |\n| total |    24 |    30 |     6 |      0 |    0 |    0 |    60 |"
+                  }
+                ],
+                "integration": {
+                  "revision": "rev-2",
+                  "evidence": "merged and checks rerun"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "closed",
+          "fires": [],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "F",
+                "title": "Issue F",
+                "type": "epic",
+                "status": "open",
+                "parent": null,
+                "blockedBy": [],
+                "body": "DONE WHEN a person can do the thing they could not before. Falsified if they cannot.",
+                "labels": [
+                  "transport",
+                  "milestone",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              },
+              {
+                "id": "T1",
+                "title": "Issue T1",
+                "type": "task",
+                "status": "closed",
+                "parent": "F",
+                "blockedBy": [],
+                "body": "",
+                "updatedAt": "2026-01-30T00:00:00Z"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "shape": "a standalone bug with no parent",
+      "steps": [
+        {
+          "name": "open",
+          "fires": [],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "B",
+                "title": "Issue B",
+                "type": "bug",
+                "status": "open",
+                "parent": null,
+                "blockedBy": [],
+                "body": "",
+                "labels": [
+                  "transport",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z"
+              }
+            ]
+          }
+        },
+        {
+          "name": "active, held",
+          "fires": [],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "B",
+                "title": "Issue B",
+                "type": "bug",
+                "status": "active",
+                "parent": null,
+                "blockedBy": [],
+                "body": "",
+                "labels": [
+                  "transport",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z",
+                "holder": "somebody"
+              }
+            ]
+          }
+        },
+        {
+          "name": "submitted with evidence",
+          "fires": [
+            "submitted-without-evidence"
+          ],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "B",
+                "title": "Issue B",
+                "type": "bug",
+                "status": "submitted",
+                "parent": null,
+                "blockedBy": [],
+                "body": "",
+                "labels": [
+                  "transport",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z",
+                "delivery": {
+                  "revision": "rev-1",
+                  "evidence": "local checks green"
+                },
+                "integration": {
+                  "revision": "rev-2",
+                  "evidence": "merged"
+                },
+                "comments": [
+                  {
+                    "id": "c5241",
+                    "at": "2026-01-29T10:00:00Z",
+                    "author": "worker",
+                    "body": "[shady2k-time v1] claim\nspan: 52410000\nat: 2026-01-29T10:00:00Z\nsession: claude-code:s5241\nagent: claude-worker:alex@laptop:work#s5241\nrole: worker"
+                  },
+                  {
+                    "id": "r5241",
+                    "at": "2026-01-29T11:00:00Z",
+                    "author": "worker",
+                    "body": "[shady2k-time v1] receipt\nspan: 52410000\nfrom: 2026-01-29T10:00:00Z\nto: 2026-01-29T11:00:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    24 |    30 |     6 |      0 |    0 |    0 |    60 |\n| total |    24 |    30 |     6 |      0 |    0 |    0 |    60 |"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "implemented with evidence",
+          "fires": [
+            "implemented-without-evidence"
+          ],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "B",
+                "title": "Issue B",
+                "type": "bug",
+                "status": "implemented",
+                "parent": null,
+                "blockedBy": [],
+                "body": "",
+                "labels": [
+                  "transport",
+                  "v0-5"
+                ],
+                "updatedAt": "2026-01-30T00:00:00Z",
+                "delivery": {
+                  "revision": "rev-1",
+                  "evidence": "local checks green"
+                },
+                "integration": {
+                  "revision": "rev-2",
+                  "evidence": "merged"
+                },
+                "comments": [
+                  {
+                    "id": "c5241",
+                    "at": "2026-01-29T10:00:00Z",
+                    "author": "worker",
+                    "body": "[shady2k-time v1] claim\nspan: 52410000\nat: 2026-01-29T10:00:00Z\nsession: claude-code:s5241\nagent: claude-worker:alex@laptop:work#s5241\nrole: worker"
+                  },
+                  {
+                    "id": "r5241",
+                    "at": "2026-01-29T11:00:00Z",
+                    "author": "worker",
+                    "body": "[shady2k-time v1] receipt\nspan: 52410000\nfrom: 2026-01-29T10:00:00Z\nto: 2026-01-29T11:00:00Z\nend: finished\n\n| phase | model | tools | coord | answer | away | idle | total |\n|-------|------:|------:|------:|-------:|-----:|-----:|------:|\n| build |    24 |    30 |     6 |      0 |    0 |    0 |    60 |\n| total |    24 |    30 |     6 |      0 |    0 |    0 |    60 |"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "closed",
+          "fires": [],
+          "backlog": {
+            "generatedAt": "2026-01-31T00:00:00Z",
+            "source": "fixture leaf-close",
+            "issues": [
+              {
+                "id": "B",
+                "title": "Issue B",
+                "type": "bug",
+                "status": "closed",
+                "parent": null,
+                "blockedBy": [],
+                "body": ""
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
