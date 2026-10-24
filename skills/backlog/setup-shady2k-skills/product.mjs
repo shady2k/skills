@@ -111,7 +111,7 @@ export const MANIFEST_FILE = 'workspace.yaml';
  * keeps it equal to `.claude-plugin/plugin.json`, which wins where one is
  * found.
  */
-export const PLUGIN_VERSION = '0.123.0';
+export const PLUGIN_VERSION = '0.125.0';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 

@@ -25,7 +25,8 @@ Also available directly to the user.
 - [to-backlog](./to-backlog/SKILL.md): register work and discoveries; separate filing
   from admission, with the filing shared as soon as it is made.
 - [close-out](./close-out/SKILL.md): synchronize accepted current specifications
-  before closure, keep the records proportionate to the task and preserve
+  before closure, close a bug or task that waits for no stage on the merge that
+  delivered it, keep the records proportionate to the task and preserve
   pending implementation/publication results.
 - [check-upkeep](./check-upkeep/SKILL.md): the recurring pass over what runs the
   product — dependencies, vulnerabilities, expiries, deprecated features,

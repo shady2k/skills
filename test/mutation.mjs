@@ -10,6 +10,7 @@ const source = join(dirname(fileURLToPath(import.meta.url)), '../skills/backlog/
 const root = mkdtempSync(join(tmpdir(), 'skill-gate-mutations-'));
 const mutations = [
   ...['dependency-cycle', 'nonleaf-dependency', 'submitted-without-evidence', 'implemented-without-evidence',
+    'merged-but-open',
     'time-record-damaged', 'time-span-conflict', 'time-span-unclaimed', 'time-span-overlap', 'time-span-unreceipted',
     'time-work-unclaimed', 'time-void-idle'].map((id) => ({
     name: id, file: 'check.mjs', failure: `FAIL  bad/${id}.json`,

@@ -112,6 +112,12 @@ const isStage = (m, i) => {
 function index(backlog) {
   const by = new Map(backlog.issues.map((i) => [i.id, i]));
   const children = new Map();
+  // Issue id -> the commit ids naming it, each list sorted so the violation's
+  // ref — the earliest of them — does not depend on the adapter's order.
+  const landedBy = new Map();
+  if (backlog.landed) for (const c of backlog.landed)
+    for (const tid of c.taskIds)
+      landedBy.set(tid, [...(landedBy.get(tid) || []), c.id].sort());
   for (const i of backlog.issues) {
     if (!i.parent) continue;
     if (!children.has(i.parent)) children.set(i.parent, []);
@@ -123,6 +129,11 @@ function index(backlog) {
     // The forecast rules are turned on by the export carrying the records at all:
     // a project whose adapter emits none has not adopted them, and its existing
     // dates are not judged by a rule it never agreed to.
+    // The main line's commits, in check-commits.mjs's own shape, that the
+    // adapter supplies when it can read the line at the revision the gate
+    // judges. Absent means the adapter has no such read yet, and the merge
+    // rule below is judged by none of it.
+    landed: backlog.landed || null, landedBy,
     hasForecasts: backlog.forecasts != null, generatedAt: backlog.generatedAt,
   };
 }
@@ -476,6 +487,26 @@ const CHECKS = [
       }),
   },
   {
+    id: 'merged-but-open',
+    severity: 'error',
+    why: 'The work is already on the main line: a commit on it names this leaf. A worker is offered it a second time, and the owner is told work remains that exists.',
+    fix: 'Close the leaf with the revision that delivered it and the checks the merge ran, by the protocol\'s rules "A leaf with no stage closes at its merge" and "Remaining work is counted from what landed", or by close-out\'s evidence rule where the leaf carries a stage. Where the commit did not deliver it, the change or the link is what is wrong, not the status.',
+    // No `ref`: the party to this violation is the issue itself, and a commit
+    // is evidence in the note, not identity. A baseline keyed on a commit would
+    // call the same forgotten close new again the day another commit named it.
+    run: (m) => !m.landed ? [] : m.issues
+      .filter((i) => (i.status === 'open' || i.status === 'active') && i.type !== 'epic' && !carries(m, i))
+      .flatMap((i) => {
+        const namedBy = m.landedBy.get(i.id);
+        if (!namedBy) return [];
+        const others = namedBy.length - 1;
+        return [{
+          id: i.id,
+          note: `still ${i.status}, and the commit ${namedBy[0]} on the main line names it${others ? ` (and ${others} more)` : ''}`,
+        }];
+      }),
+  },
+  {
     id: 'orphaned-outcome',
     severity: 'error',
     why: 'A milestone outcome no stage serves is a promise made on paper. Deferred stages serve nothing, so a milestone whose gains sit beyond every live and closed stage is headed nowhere while looking planned.',
@@ -794,7 +825,7 @@ function bulkClusters(m, threshold) {
 
 // The version of the set these rules shipped with. A project holds a COPY of
 // this file, and this is how anybody tells that the copy has fallen behind.
-const RULES_VERSION = '0.53.0';
+const RULES_VERSION = '0.55.0';
 
 const STRENGTHS = ['block', 'block-new', 'report'];
 
@@ -894,6 +925,22 @@ function checkedBacklog(raw, where) {
     for (const o of raw.outcomes) {
       if (ids.has(o.id)) throw new Misuse(`${where}: the outcome id ${o.id} appears twice`);
       ids.add(o.id);
+    }
+  }
+  // The main line's commits, in the same shape check-commits.mjs takes its
+  // `commits` list in, so one parser feeds both. No list is the adoption path:
+  // a project whose adapter does not supply the main line yet is judged by none
+  // of the merge rule, and its existing queue is not errored on rules it never
+  // agreed to.
+  if (raw.landed != null) {
+    if (!Array.isArray(raw.landed) || raw.landed.some((c) => !c
+      || typeof c.id !== 'string' || !c.id.trim()
+      || !Array.isArray(c.taskIds) || c.taskIds.some((id) => typeof id !== 'string' || !id.trim())))
+      throw new Misuse(`${where}: landed must be a list of { id, taskIds }: each a main-line commit as check-commits.mjs takes it, with a non-empty string id and the non-empty string ids of the issues its message names`);
+    const ids = new Set();
+    for (const c of raw.landed) {
+      if (ids.has(c.id)) throw new Misuse(`${where}: the landed commit id ${c.id} appears twice`);
+      ids.add(c.id);
     }
   }
   return raw;
@@ -1065,7 +1112,7 @@ function portability(projectConfigPath) {
     console.log('SKIP  portability: the project config declares no projectWords or trackerWords');
     return 0;
   }
-  const files = ['check.mjs', 'check-commits.mjs', 'model.md', 'SKILL.md', 'integration.md', 'protocol.md', 'fixtures/config.json'];
+  const files = ['check.mjs', 'check-commits.mjs', 'model.md', 'SKILL.md', 'integration.md', 'protocol.md', 'fixtures/config.json', 'fixtures/leaf-close.json'];
   for (const kind of ['bad', 'good', 'commits'])
     for (const n of readdirSync(join(HERE, 'fixtures', kind))) files.push(`fixtures/${kind}/${n}`);
   let failures = 0;
@@ -1116,6 +1163,21 @@ function runSelftest(cfg, projectConfigPath) {
     const report = evaluate(load('good', name), cfg, null);
     const fired = report.results.filter((r) => r.violations.length).map((r) => r.id);
     say(fired.length === 0, `good/${name} → [${fired.join(', ') || 'nothing'}]`);
+  }
+  // The close path of every leaf shape, walked end to end: no shape is left
+  // without a legal state. A leaf with no stage closes at its merge, and one
+  // filed with no parent never takes the two middle states at all, so the walk
+  // carries the evidence rules' refusal of them as a step of its own.
+  const walk = load('.', 'leaf-close.json');
+  for (const c of walk.cases) {
+    const bad = [];
+    for (const [n, step] of c.steps.entries()) {
+      const fired = evaluate(step.backlog, cfg, null).results.filter((r) => r.violations.length).map((r) => r.id).sort();
+      const want = (step.fires || []).slice().sort();
+      if (fired.join(',') !== want.join(','))
+        bad.push(`step ${n + 1} (${step.name}) fires [${fired.join(', ') || 'nothing'}], expected [${want.join(', ') || 'nothing'}]`);
+    }
+    say(!bad.length, `leaf-close/${c.shape} (${c.steps.length} step(s)) -- ${bad.join('; ') || 'all clean'}`);
   }
   const covered = new Set(readdirSync(join(dir, 'bad')).map((n) => n.split('.')[0]));
   for (const c of CHECKS) if (!covered.has(c.id)) say(false, `no fixture for check ${c.id}`);

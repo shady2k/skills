@@ -1,0 +1,104 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture bad/merged-but-open",
+  "issues": [
+    {
+      "id": "F",
+      "title": "Feature",
+      "type": "epic",
+      "status": "open",
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person can do the thing they could not before. Falsified if they cannot.",
+      "labels": [
+        "transport",
+        "milestone",
+        "v0-5"
+      ],
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "S",
+      "title": "Stage",
+      "type": "epic",
+      "status": "open",
+      "parent": "F",
+      "blockedBy": [],
+      "body": "DONE WHEN the stage result is observable to a person.",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "T1",
+      "title": "Issue T1",
+      "type": "task",
+      "status": "open",
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "labels": [
+        "transport"
+      ],
+      "updatedAt": "2026-01-30T00:00:00Z"
+    },
+    {
+      "id": "T2",
+      "title": "Issue T2",
+      "type": "task",
+      "status": "closed",
+      "parent": "S",
+      "blockedBy": [],
+      "body": ""
+    },
+    {
+      "id": "T3",
+      "title": "Issue T3",
+      "type": "task",
+      "status": "deferred",
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "labels": [
+        "transport"
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "Issue T4",
+      "type": "task",
+      "status": "open",
+      "parent": "S",
+      "blockedBy": [],
+      "body": "",
+      "labels": [
+        "transport"
+      ],
+      "updatedAt": "2026-01-30T00:00:00Z"
+    }
+  ],
+  "landed": [
+    {
+      "id": "c0000001",
+      "taskIds": [
+        "T1",
+        "T2",
+        "T3"
+      ]
+    },
+    {
+      "id": "bb000002",
+      "taskIds": [
+        "T1"
+      ]
+    }
+  ],
+  "expect": [
+    "merged-but-open"
+  ],
+  "expectViolations": [
+    "merged-but-open|T1|"
+  ]
+}

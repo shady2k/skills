@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.53.0
+Setup version: 0.55.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -74,7 +74,14 @@ ask for one merely because the plugin was updated.
 | Milestone | the next slice, with a charter: what is in, what is out, a finding budget | what ships next   |
 | Feature   | a root issue holding one **outcome**                              | one run, one branch, one PR |
 | Stage     | an issue under a feature, with its own DONE WHEN                  | a checkpoint accepted inside the run |
-| Task, bug | a leaf: an issue with no children, inside one stage               | one worker's session |
+| Task, bug | a leaf: an issue with no children                                 | one worker's session |
+
+A leaf stands inside one stage or with no stage above it: directly under a
+feature, under the bug, chore or task it was filed with, or with no parent at
+all — a standalone bug or a debt of its own. The filing lanes create all of
+those. A leaf inside a stage is one step of that stage's checkpoint; a leaf with
+no stage belongs to no checkpoint, so its life ends where no acceptance has to be
+waited for: **A leaf with no stage closes at its merge**.
 
 An **outcome** is what becomes possible or true, and who observes it: "a person
 creates a connection group", "a rollback takes one command and one minute". Its
@@ -131,6 +138,34 @@ and its local evidence. Submitted work is neither taken again nor used by
 dependants yet. The stage's single coordinator merges it and marks it
 `implemented`, with the merge revision and check evidence; it is not taken again
 and not yet closed.
+
+**A leaf with no stage closes at its merge.** The two middle states are a
+result waiting for integration and accepted work waiting for acceptance, and a
+leaf with no stage has neither: nothing accepts it, so nothing would ever close
+it. So whoever merges the change that delivers it closes it in the same step as
+that merge, with the merge revision and the check evidence that merge carried —
+the evidence `close-out` asks for — and where the merge is the owner's, the
+session that opened the change closes it as soon as the merge is there. The
+shape is not a fault to be repaired by inventing a stage under it: one small
+off-path bug is one worker's session and nothing after it. `Submitted` and
+`implemented` are not its close: they record a result and its integration
+inside a run, and a leaf with no stage is closed at the merge whatever they
+say. A leaf filed with no parent, or under the bug, chore or task
+it was filed with, never takes them at all — a state promising an acceptance
+nothing will give is how such a leaf stayed forever. Where it rides its
+feature's one pull request, that pull request's merge is the one that closes it.
+
+**Remaining work is counted from what landed.** What remains in a milestone is
+the work whose change is not on the main line yet, not the items whose status
+nobody updated. Before an item is offered to a worker or counted as remaining to
+the owner, read the main line's history for a commit naming it: one there means
+the work landed, so the item is reported as landed and not closed, with that
+commit, and closed as **A leaf with no stage closes at its merge** says or by
+`close-out`'s evidence rule; it is never counted as remaining and never taken a
+second time. The gate names such an item with that commit where the project's
+export carries the main line's commits, so a forgotten close shows up in the
+next report instead of in the next dispatch.
+
 **The holder is whoever does the work.** A task an agent works on is held by
 that agent, never by the person by default, even when the tracker would fill
 in the person's name. The person holds only work they do themselves: a

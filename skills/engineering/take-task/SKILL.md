@@ -27,7 +27,12 @@ Take the feature, stage, task or bug the user named; otherwise propose a ready
 feature of the current milestone by name. Find or file the tracked work before
 any implementation. Read its requirements, spec, charter and code. Work already
 `submitted` resumes at integration and an `implemented` stage at acceptance,
-never from scratch. A run already under way continues under a fresh claim of
+never from scratch. Before an item is offered to a worker, read the main line's
+history for a commit naming it, by the protocol's **Remaining work is counted
+from what landed**: a commit there means its work is landed and the item is
+merely unclosed, so it is closed rather than taken a second time — through
+`close-out` where it has a stage, and by the protocol's **A leaf with no stage
+closes at its merge** where it has none. A run already under way continues under a fresh claim of
 the same feature rather than starting over; the run script's `stalled` (below)
 shows the runs that left no summary and passed the time their result was
 promised for, and one of those on this feature is taken over or ended with
@@ -64,7 +69,9 @@ name.
 - **Bug:** the existing requirement plus a regression scenario; change the spec
   only for a gap or an approved behaviour change. Use `diagnose-bug` when the
   cause is unclear. Attach the bug to its stage, or through `to-stages` to a
-  minimal one. A small bug needs no full spec.
+  minimal one; one that serves no stage of any feature stands where `to-backlog`
+  filed it and needs neither, by the protocol's **A leaf with no stage closes at
+  its merge**. A small bug needs no full spec.
 - **Uncertain or substantial work:** `brainstorming`, then `to-research` or
   `to-prototype` where evidence is needed, then `to-spec`; where the change
   introduces or changes a building block, an interface, ownership of state,
@@ -548,9 +555,12 @@ failures are diagnosed**. Review comments on it are handled by **A reviewer's
 comment is judged, not obeyed**.
 
 Finish the run's record with the pull request. The owner's acceptance is the
-merge. After it, close the tasks, stages and feature through `close-out`, which
-also reads the run's own record and files what it teaches, and remove the
-checkouts and branches this run created. Where the change reaches its users later than the merge — the
+merge. A leaf with no stage is closed in the step that reads that merge, on it
+and on the checks it ran, by the protocol's **A leaf with no stage closes at its
+merge**: it has no acceptance of its own to wait for, so `close-out` must not
+find it open afterwards. After it, close the tasks, stages and feature through
+`close-out`, which also reads the run's own record and files what it teaches,
+and remove the checkouts and branches this run created. Where the change reaches its users later than the merge — the
 project deploys or publishes — the run ends by naming `ship-release` as the
 next stage, the life cycle's transition, with what reaching them takes here:
 the release is its own ask on the owner's word, and the work this run carried

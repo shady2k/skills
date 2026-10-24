@@ -42,6 +42,10 @@ issue that already covers it.
 | a question for the owner that blocks nothing now, often met by a run working alone | a decision the owner holds: a leaf under the feature it concerns, open and never active, with no finding label and no budget; its body says what it affects, the agent's recommendation and what holds meanwhile. One about work beyond this milestone goes to the ideas lane, worded as the question |
 | a condition the owner put on when something may be done | onto the thing it governs, by the protocol's [**A decision the owner gives is kept, not only obeyed**](references/speaking.md) |
 
+A lane may file a bug or debt under no stage: it is closed by the merge that
+delivers it, by the protocol's **A leaf with no stage closes at its merge**, and
+needs no stage made for it.
+
 A finding that needs its own feature is a scope decision for the owner: join
 the current milestone by an explicit scope and budget change, or wait deferred.
 Joining the slice gives a feature no dependencies on other features.
