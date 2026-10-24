@@ -147,10 +147,10 @@ that merge, with the merge revision and the check evidence that merge carried �
 the evidence `close-out` asks for — and where the merge is the owner's, the
 session that opened the change closes it as soon as the merge is there. The
 shape is not a fault to be repaired by inventing a stage under it: one small
-off-path bug is one worker's session and nothing after it. Its
-`submitted` and `implemented` are not its close: they record a result and its
-integration inside a run, and a leaf with no stage is closed at the merge
-whatever they say. A leaf filed with no parent, or under the bug, chore or task
+off-path bug is one worker's session and nothing after it. `Submitted` and
+`implemented` are not its close: they record a result and its integration
+inside a run, and a leaf with no stage is closed at the merge whatever they
+say. A leaf filed with no parent, or under the bug, chore or task
 it was filed with, never takes them at all — a state promising an acceptance
 nothing will give is how such a leaf stayed forever. Where it rides its
 feature's one pull request, that pull request's merge is the one that closes it.
