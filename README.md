@@ -891,6 +891,49 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.126.0** stops your tracker's store from filling the disk. Two repairs from
+  real use (#45).
+
+  The first, and the one that lost work: a write to the tracker that is killed
+  while it prepares — a hook that times out, a session that ends, a machine short
+  of memory — used to leave its working copy behind for good, because the only
+  cleanup was a step that a killed process never reaches. In one project four
+  such copies held 35 GB, the disk reached 98%, and the write that then failed
+  was a commit's tracker state. The next tracker command, or asking how things
+  stand, now finds what a dead run left — the copy, its registration in git, its
+  result file — and removes it; a run that is still alive is never touched, and
+  an outcome nobody has confirmed yet is kept, because someone must reconcile it.
+  The copy itself is now only what a write needs: the tracker's committed state
+  and the little of its local configuration the recipe declares, never the
+  tracker's own backups or the history of earlier revisions, so a copy is
+  kilobytes instead of gigabytes. And the report you get from the sync step now
+  says how much the machine's tracker folder and the store take, and how many
+  leftovers it found, so a leak shows up before the disk does.
+
+  The second: the store grew on every commit. Each code revision kept a full copy
+  of the tracker's state — about 1 000 files of 6 MB in one project, 5 GB against
+  10 MB of items — and the tracker's own database backups piled up inside the
+  store with nothing bounding them (9 553 of them, 5.5 GB, in eleven days). A
+  revision now records a reference to the store commit that holds its state: one
+  line instead of a copy, read back with exactly the same bytes by everything
+  that asks for the state at a revision, including the baseline your checks read.
+  Two different recordings of one revision still refuse exactly when they did,
+  and the store's history is append-only, so a reference is never left pointing
+  at nothing. The tracker's own backups are pruned after a successful import,
+  keeping the few most recent.
+
+  Rerunning setup frees what an older version left: the dead copies, their git
+  registrations and their result files go, old per-revision copies become
+  references to the state they recorded (verified byte for byte; a copy no store
+  commit holds is kept and reported, never guessed), and the piled-up backups
+  beyond the bound are removed. It happens by itself, once, on the first command
+  after the update; nothing to delete by hand. What the old copies took in the
+  project's history stays there — history is never rewritten — so it is the
+  working folder and the store that shrink, not the repository's past.
+
+  Projects rerun setup (0.56.0) to take the repaired mechanism and the repair of
+  their own installation.
+
 - **0.125.0** closes work whose change already landed. A bug or a task that
   waits for no stage — one filed on its own, or one hanging directly under its
   feature — is now closed by whoever merges its change, in that same step, with
