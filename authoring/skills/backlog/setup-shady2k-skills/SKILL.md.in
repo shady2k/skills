@@ -137,7 +137,9 @@ mechanism is what meets them, and this skill installs it:
   never leave the duties stated with nothing installed.
 - **Copy what the project runs.** Copy the mechanism, the chosen recipe and the
   supervisor template into the project at the path the other installed script
-  and check copies live, byte for byte, and record in the integration's
+  and check copies live, byte for byte — the recipe imports
+  [`argv.mjs`](argv.mjs) as `../argv.mjs`, so that copy sits one level up from
+  `trackers/`, beside the mechanism — and record in the integration's
   **Tracker synchronization** field their paths, the plugin version they came
   from, the launch command, the supervisor and the bounds (the debounce, the
   maximum batch age, the sync timer, the network timeout). The copy is what a
@@ -563,9 +565,11 @@ project, or copy them unchanged (the backlog rules with
 [`time-format.mjs`](time-format.mjs) beside them, which they read records by,
 the present-documents check with [`document-format.mjs`](document-format.mjs),
 and every check with [`regular-file.mjs`](regular-file.mjs) beside it, which
-they ask before opening a path the command line or a folder walk named), and
-record where they came from in the
-integration, not inside the copies. Without Node, port all five and prove the
+they ask before opening a path the command line or a folder walk named, and
+with [`argv.mjs`](argv.mjs) beside it, which every check and every recipe
+imports — a recipe reaches it as `../argv.mjs`, one level up from
+`trackers/`), and record where they came from in the integration, not inside
+the copies. Without Node, port all five and prove the
 same fixtures. A matching version does not replace a byte comparison or port
 proof.
 
