@@ -251,7 +251,7 @@ export function takeLock(flags, repoRoot) {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         renameSync(candidate, p);
-        const lease = { release: null };
+        const lease = { release: null, token };
         let released = false;
         lease.release = () => {
           if (released) return;
@@ -289,14 +289,29 @@ export function takeLock(flags, repoRoot) {
           held = JSON.parse(readFileSync(ownerFile, 'utf8'));
           if (!Number.isInteger(held.pid) || held.pid <= 0 || (directory && basename(ownerFile) !== held.token)) throw new Error('invalid owner');
         } catch { throw new Error(`the store lock ${p} has no verifiable owner; nothing was written; inspect it before manual recovery`); }
+        // A process is never locked out by itself (#49). A lock in this process's
+        // own name is either the section this process holds - and a call that
+        // reached the lock outside `locked()`'s in-process queue (connect and status
+        // take it by hand and say so with LOCK_CONTEXT) runs in that section instead
+        // of waiting for it, its release doing nothing because the section that took
+        // the lock releases it - or a lock a dead process left under a pid that has
+        // since been handed to this one, which is broken below like any other dead
+        // holder because nothing of this process wrote it.
         let alive = true;
-        try {
-          process.kill(held.pid, 0);
-        } catch (err) {
-          alive = err.code !== 'ESRCH';
+        if (held.pid === process.pid) {
+          if (LOCK_HELD && LOCK_HELD.token === held.token) return () => {};
+          alive = false;
+        } else {
+          try {
+            process.kill(held.pid, 0);
+          } catch (err) {
+            alive = err.code !== 'ESRCH';
+          }
         }
         if (alive) throw new Error(`the store is locked by pid ${held.pid} since ${held.at} (${p}); another tracker-sync command is running`);
-        say(`tracker-sync: breaking a lock whose process is gone (${p}, pid ${held.pid})`);
+        say(held.pid === process.pid
+          ? `tracker-sync: breaking a store lock left under this process's own pid, which no run of this one wrote (${p}, pid ${held.pid})`
+          : `tracker-sync: breaking a lock whose process is gone (${p}, pid ${held.pid})`);
         // Unlink of an obsolete unique token fails rather than removing a new
         // holder. Only a successful remover attempts rmdir (which also refuses
         // a nonempty successor). Legacy file locks cannot replace a directory.
@@ -1313,7 +1328,12 @@ async function storeHistoryStates() {
     const m = /^:\d+ \d+ ([0-9a-f]+) [0-9a-f]+ \w+\t(.*)$/.exec(line);
     if (m && cur) cur.entries.push({ old: m[1], path: m[2] });
   }
-  if (!commits.length) return out;
+  if (!commits.length) {
+    // A history too large for the output bound is said, never read as "no commit
+    // holds this state": nothing is converted from a guess.
+    if (r.code !== 0) say(`tracker-sync: the store's state history could not be read in one call (${text(r).split('\n')[0] || 'no output'}); a recording no commit of the log holds is kept, not converted`);
+    return out;
+  }
   let state = await stateBlobsAt(commits[0].oid);
   const keyOf = (m) => [...m.entries()].sort().map(([p, o]) => `${p}:${o}`).join('|');
   for (const c of commits) {
@@ -1329,17 +1349,59 @@ async function storeHistoryStates() {
 /** Turn every snapshot recording into a reference, and keep the ones no store
  * commit holds so a person can see them. Runs under the store lock, replaces each
  * file with an atomic rename (a kill leaves the snapshot or the reference, never
- * neither, and never half of one), and is idempotent: a reference is left alone. */
+ * neither, and never half of one), and is idempotent: a reference is left alone.
+ *
+ * Bounded memory, whatever the store holds (#49): the first pass keeps the NAMES
+ * of the snapshots, the second reads one, converts it, writes it and drops it, and
+ * the only things that grow with the number of recordings are names and oids —
+ * nothing grows with the size of one. What it converts it commits in batches of
+ * MIGRATION_BATCH, so a run killed in the middle keeps its progress on the ref. */
+/** How many converted recordings are committed at a time. A migration over a
+ * thousand snapshots spends minutes in git, and a run killed in the middle must
+ * keep its progress on the ref, not only in the store's working tree. */
+const MIGRATION_BATCH = 100;
+
+/** Commit the recordings the migration has converted and not committed yet. The
+ * message says how many this commit carried, so a run interrupted before the last
+ * batch leaves commits that read on their own. */
+async function flushConverted(out) {
+  const n = out.pending;
+  out.pending = 0;
+  out.oid = await commitState(`tracker store: ${n} recording${n === 1 ? ' is a reference' : 's are references'} to the state commits they name`, [await headOid()]);
+  out.commits++;
+  return out.oid;
+}
+
+/** Recordings the store's working tree holds changed and no commit does: what a
+ * migration killed between a rename and its commit left behind. Counted from
+ * `git status`, so nothing is read, and a temporary file a kill left is not
+ * counted as a recording. */
+async function recordingsWaitingForCommit() {
+  const r = await git(['status', '--porcelain', '--', '.tracker-sync/recordings'], { cwd: CURRENT.store });
+  if (r.code !== 0) return 0;
+  return r.stdout.split('\n').filter((l) => l.trim() && !l.includes('.migrating-') && /\.[a-z]{2,}$/.test(l.trim().slice(3).trim())).length;
+}
+
 async function migrateRecordings() {
   const recDir = join(CURRENT.store, '.tracker-sync', 'recordings');
-  const out = { converted: 0, kept: [], freed: 0 };
+  const out = { converted: 0, kept: [], freed: 0, pending: 0, commits: 0, oid: null };
   let names = [];
   try { names = readdirSync(recDir).filter((n) => n.endsWith('.jsonl')).sort(); } catch { return out; }
+  // Names only. A snapshot is a whole state, a few megabytes, and a store can hold
+  // a thousand of them: keeping their text here was 4-6 GB of live strings and the
+  // migration died of it before converting one recording (#49). `isReferenceFile()`
+  // reads the first 64 bytes, which is what `status` already counts with.
   const snapshots = [];
   for (const n of names) {
-    let t;
-    try { requireRegularFile(join(recDir, n), 'a recording'); t = readFileSync(join(recDir, n), 'utf8'); } catch { out.kept.push({ name: n, why: 'not a regular file' }); continue; }
-    if (!parseRecording(t)) snapshots.push([n, t]);
+    const file = join(recDir, n);
+    try { requireRegularFile(file, 'a recording'); } catch { out.kept.push({ name: n, why: 'not a regular file' }); continue; }
+    if (!isReferenceFile(file)) { snapshots.push(n); continue; }
+    // A file that looks like a reference and is not one is reported, as it always
+    // was: nothing is converted from it and nothing is hidden about it. A
+    // reference is a line or two, so reading this one is not the leak.
+    let t = null;
+    try { t = readFileSync(file, 'utf8'); } catch { out.kept.push({ name: n, why: 'not a regular file' }); continue; }
+    if (!parseRecording(t)) out.kept.push({ name: n, why: 'not a recording this mechanism wrote' });
   }
   if (!snapshots.length) return out;
   // The commit that added a recording file is its first candidate: that commit's
@@ -1348,6 +1410,11 @@ async function migrateRecordings() {
   const added = new Map();
   const log = await git(['log', '--first-parent', '--format=%H', '--diff-filter=A', '--name-only', '--', '.tracker-sync/recordings'], { cwd: CURRENT.store });
   let cur = null;
+  // The list of commits that added a recording is names and oids only - one line
+  // per recording, never its text - so this grows with the number of recordings and
+  // not with their size. A log this machine cannot read whole is said, and the
+  // state history below still answers for every snapshot.
+  if (log.code !== 0) say(`tracker-sync: the commits that added the recordings could not be read in one call (${text(log).split('\n')[0] || 'no output'}); the migration answers from the state the ref's history holds`);
   for (const line of log.stdout.split('\n')) {
     const t = line.trim();
     if (!t) continue;
@@ -1358,8 +1425,14 @@ async function migrateRecordings() {
     added.get(name).push(cur);
   }
   let history = null;
-  for (const [name, text] of snapshots) {
-    const parts = snapshotParts(text);
+  // One recording at a time, and its text dropped before the next is read: the
+  // migration's memory is one state, whatever the store holds. Only names, oids
+  // and the states the ref's history held stay, and those do not grow with the
+  // size of a recording.
+  for (const name of snapshots) {
+    let whole;
+    try { whole = readFileSync(join(recDir, name), 'utf8'); } catch { out.kept.push({ name, why: 'not a regular file' }); continue; }
+    const parts = snapshotParts(whole);
     if (!parts) { out.kept.push({ name, why: 'not a recording this mechanism wrote' }); continue; }
     const blobs = new Map();
     for (const [p, body] of parts) blobs.set(p, await blobOf(body));
@@ -1375,13 +1448,18 @@ async function migrateRecordings() {
     if (!oid) { out.kept.push({ name, why: 'no store commit holds that state' }); continue; }
     // Byte for byte before anything is replaced: the reference must export exactly
     // what the snapshot exports, or it is not the same recording.
-    if ((await stateTextAt(oid)) !== text) { out.kept.push({ name, why: 'the commit holding that state exports other bytes' }); continue; }
-    const next = recordingText(oid, text);
+    if ((await stateTextAt(oid)) !== whole) { out.kept.push({ name, why: 'the commit holding that state exports other bytes' }); continue; }
+    const next = recordingText(oid, whole);
     const tmp = join(recDir, `.${name}.migrating-${process.pid}`);
     writeFileSync(tmp, next);
     renameSync(tmp, join(recDir, name));
     out.converted++;
-    out.freed += Math.max(0, Buffer.byteLength(text, 'utf8') - Buffer.byteLength(next, 'utf8'));
+    out.pending++;
+    out.freed += Math.max(0, Buffer.byteLength(whole, 'utf8') - Buffer.byteLength(next, 'utf8'));
+    // Dropped before the next recording is read, so the peak is one state and not
+    // the whole store's worth of them.
+    whole = null;
+    if (out.pending >= MIGRATION_BATCH) await flushConverted(out);
   }
   return out;
 }
@@ -1402,12 +1480,16 @@ async function migrateStore({ announce = false, force = false } = {}) {
     const r = CURRENT.recipe.prune ? await recipe('prune', {}) : null;
     if (r) pruned = { code: r.code, said: text(r).split('\n')[0] || null, failed: r.code !== 0 };
   }
-  let oid = null;
-  if (conv.converted)
-    oid = await commitState(`tracker store: ${conv.converted} recordings are references to the state commits they name`, [await headOid()]);
-  if (announce && (swept.candidates || conv.converted || pruned?.failed))
+  let oid = conv.oid || null;
+  // What the migration converted but did not commit reaches the ref here: the tail
+  // of a run killed between its last batch and its commit, or the whole of a run
+  // killed before any batch. It is counted from the store's own status, so a run
+  // that converts nothing new still publishes what an interruption left.
+  if (!conv.pending) conv.pending = conv.converted ? 0 : await recordingsWaitingForCommit();
+  if (conv.pending) oid = await flushConverted(conv);
+  if (announce && (swept.candidates || conv.converted || conv.commits || pruned?.failed))
     say(`tracker-sync: cleaned ${swept.candidates} dead candidate${swept.candidates === 1 ? '' : 's'} (${humanBytes(swept.bytes)}), ${conv.converted} recording${conv.converted === 1 ? '' : 's'} now reference their state instead of copying it (${humanBytes(conv.freed)}), ${conv.kept.length} kept for a person${pruned ? `; backup prune exit ${pruned.code}` : ''}`);
-  return { swept, ...conv, pruned, oid, migrated: !!(swept.candidates || conv.converted) };
+  return { swept, ...conv, pruned, oid, migrated: !!(swept.candidates || conv.converted || conv.commits) };
 }
 
 
