@@ -891,6 +891,36 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.128.0** converts the tracker recordings earlier versions wrote, and stops
+  reading them again on every command. From real use (#49).
+
+  A recording written by 0.121.0 held the whole state of the tracker, copied from
+  the store's own working tree. That copy carries a file the project's git ignores
+  — a tracker's database mirror — which no commit ever holds, and it can lack a
+  file the commits do hold. 0.127.0 compared the two as equal sets of files, so no
+  commit could ever match and it kept every one of the reporter's 1 110 recordings,
+  converting none, and each later record, sync or publish read them all again. The
+  comparison now counts only the files a store commit can hold, decided by the
+  store's own git; a file the commit holds and the recording did not print no
+  longer blocks the match, and what the recording did print must still be equal
+  byte for byte. Your old recordings become references to the commits that hold
+  their state, and the space their copies took comes back; what `export --at` and
+  your gate's baseline read at a revision is the same tracker data as before
+  (the ignored file is no longer printed).
+
+  A recording that still cannot be converted is now kept with its reason, in its
+  own words: which state file differs from which commit and by how much, which
+  file it prints that no commit holds, or what the file is instead of a recording.
+  `status` groups them by cause with a count and one example each and names the
+  file that lists every one of them, the line after a repair names the top cause,
+  and the same goes for the other refusals that used to state a verdict without
+  saying what happened.
+
+  And a pass that converts nothing is not repeated: what it can depend on — the
+  recordings, the states the store's history holds, the project's ignore rules, the
+  rule's own version — is remembered in the machine's folder, so a store whose
+  recordings no commit can hold costs one read instead of one per command.
+
 - **0.127.0** finishes the tracker repair on a store of any size, and stops a
   watch from restarting itself. Both from real use (#49).
 
