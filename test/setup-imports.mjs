@@ -31,7 +31,11 @@ const isInstalled = (rel) =>
   installedSet.has(rel) ||
   installedNames.some((n) => (rel === n || rel.startsWith(n + '/')));
 
-const IMPORT_RE = /(?:^|[\s;])(?:import|export)[^'"]*?from\s*['"]((?:\.?\/)[^'"]+)['"]/g;
+// Every local import form: `import x from './a.mjs'`, `export … from '../b.mjs'`,
+// a side-effect `import './c.mjs'`, and a dynamic `import('./d.mjs')`. A relative
+// specifier is `./` or `../`; one that is neither `../` nor `./` is not local.
+const IMPORT_RE = /(?:^|[\s;])(?:import|export)\s*(?:[^'"]*?from\s*)?['"]([^'"]+)['"]|\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+const isLocal = (spec) => spec.startsWith('./') || spec.startsWith('../');
 
 const failures = [];
 const seen = new Set();
@@ -42,7 +46,8 @@ while (queue.length) {
   seen.add(rel);
   const source = readFileSync(join(SETUP, rel), 'utf8');
   for (const match of source.matchAll(IMPORT_RE)) {
-    const spec = match[1];
+    const spec = match[1] || match[2];
+    if (!spec || !isLocal(spec)) continue;
     const target = resolve(dirname(join(SETUP, rel)), spec);
     const targetRel = relative(SETUP, target);
     if (!existsSync(target)) {
