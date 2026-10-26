@@ -909,11 +909,12 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
   A watch installed with 0.121.0 restarted about every twenty seconds — 510 times
   in six hours under one supervisor — with "the store is locked by pid <N>", where
   N was the watch's own pid, and it kept publishing between restarts. Its two
-  rounds no longer wait for a lock their own process holds, a process is never
-  refused by its own lock at all, and a lock left under a pid the system has since
-  handed to a new process is now broken like any other dead one instead of being
-  read as a command that is still running. A watch that restarts like that stops
-  after this update; if you saw those lines in a log, they are history.
+  rounds no longer wait for a lock their own process holds: they queue inside the
+  process, and the store's lock is asked for only by a process that holds nothing,
+  so a round that cannot take it is another command's and is skipped instead of
+  ending the watch (a supervisor restarts an ended watch, which is the loop). A
+  watch that restarts like that stops after this update; if you saw those lines in
+  a log, they are history.
 
   Setup now names every file a project copies and runs, not only the ones it named
   before: the helper that reads a command's values (`argv.mjs`) and the one that

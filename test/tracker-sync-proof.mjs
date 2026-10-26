@@ -583,7 +583,7 @@ const BREAKS = [
   },
   {
     name: 'the-watcher-queues-on-the-file-lock',
-    cases: ['22-watcher-publish-and-sync-overlap'],
+    cases: ['22-watcher-publish-and-sync-overlap', '28-a-watch-never-meets-its-own-lock'],
     // the fix undone: the two loops of one process take the file lock directly,
     // so one waits for a lock its own process holds.
     apply: (s) => ({ mech: breakByLiteral('no-in-process-mutex', s.mech,
@@ -592,7 +592,7 @@ const BREAKS = [
   },
   {
     name: 'a-lock-timeout-exits-the-watcher',
-    cases: ['22-watcher-publish-and-sync-overlap'],
+    cases: ['22-watcher-publish-and-sync-overlap', '28-a-watch-never-meets-its-own-lock'],
     // the fix undone: a round that cannot take the lock refuses like a one-shot
     // command does, so the supervisor restarts the watcher into the same wait.
     apply: (s) => ({ mech: breakByLiteral('timeout-dies', s.mech,
@@ -651,16 +651,6 @@ const BREAKS = [
         '  const snapshots = []; const HELD = []; globalThis.__HELD = HELD; /* deliberate break: every whole copy is kept */'),
       '    if (!isReferenceFile(file)) { snapshots.push(n); continue; }',
       "    if (!isReferenceFile(file)) { snapshots.push(n); HELD.push(readFileSync(file, 'utf8')); continue; }") }),
-  },
-  {
-    name: 'a-process-is-refused-by-its-own-lock',
-    cases: ['28-no-process-is-locked-out-by-itself'],
-    // the fix undone: a lock in this process's own name is treated as another
-    // command's, so a watcher's second section waits for a lock it holds itself and
-    // the supervisor restarts it for ever.
-    apply: (s) => ({ mech: breakByLiteral('own-lock-refused', s.mech,
-      '        if (held.pid === process.pid) {',
-      '        if (false) { /* deliberate break: a process is refused by its own lock */') }),
   },
   {
     name: 'the-migration-keeps-whole-copies',
@@ -2109,18 +2099,20 @@ const CASES = {
       'the second run said: ' + again.out.split('\n')[0].slice(0, 100) + '; every recording is a reference: ' + (asRefs() === N));
   },
 
-  // 28. A process is never refused by its own lock, and a watcher never locks
-  // itself out (#49: a watch restarting about every 20 s under a supervisor, with
-  // "the store is locked by pid <its own pid>").
-  '28-no-process-is-locked-out-by-itself': async (ctx) => {
-    const id = '28-no-process-is-locked-out-by-itself';
+  // 28. The store's lock is what a watch never meets twice in one process, and what
+  // another process is refused by (#49: a 0.121.0 watch restarting about every 20 s
+  // with "the store is locked by pid <its own pid>"). The two rounds of one watcher
+  // queue in-process (LOCK_CONTEXT, `locked()`'s queue), so the file lock is only
+  // ever asked for by a process that holds nothing: a round that cannot take it is
+  // another command's, and it is skipped, never an exit.
+  '28-a-watch-never-meets-its-own-lock': async (ctx) => {
+    const id = '28-a-watch-never-meets-its-own-lock';
     const up = bringUp(ctx, 'A');
     if (up.code !== 0) { record(id, false, 'bring-up: ' + up.out); return; }
-    // One process takes the store's lock twice - as two sections of one watcher
-    // would - and asks a second process for it while it holds it, before and after
-    // the nested lease is released.
-    const probe = join(ctx.scratch, 'own-lock-probe.mjs');
-    const child = join(ctx.scratch, 'own-lock-child.mjs');
+    // One process holds the store's lock; a second is refused, and the release frees
+    // it. That is the half of the lock's contract a kill or a supervisor depends on.
+    const probe = join(ctx.scratch, 'lock-probe.mjs');
+    const child = join(ctx.scratch, 'lock-child.mjs');
     writeFileSync(child, `
 import { takeLock } from ${JSON.stringify(ctx.mech)};
 const [state, repo] = process.argv.slice(2);
@@ -2132,30 +2124,24 @@ import { spawnSync } from 'node:child_process';
 import { takeLock } from ${JSON.stringify(ctx.mech)};
 const [state, repo, childPath] = process.argv.slice(2);
 const ask = () => spawnSync(process.execPath, [childPath, state, repo], { encoding: 'utf8' }).stdout.trim();
-const first = takeLock({ state, repo }, repo);
-let second = null; let refused = null;
-try { second = takeLock({ state, repo }, repo); } catch (e) { refused = e.message; }
+const release = takeLock({ state, repo }, repo);
 const whileHeld = ask();
-if (second) second();
-const afterNestedRelease = ask();
-first();
+release();
 const afterRelease = ask();
-console.log(JSON.stringify({ refused, pid: process.pid, whileHeld, afterNestedRelease, afterRelease }));
+console.log(JSON.stringify({ pid: process.pid, whileHeld, afterRelease }));
 `);
     const r = sh('node', [probe, ctx.stateA, ctx.codeA, child]);
     let out = null;
     try { out = JSON.parse(r.stdout.trim().split('\n').pop()); } catch { /* the assertions below say it */ }
-    const said = (r.out || '').replace(/\s+/g, ' ').slice(0, 240);
-    record('28-a-process-re-enters-its-own-lock',
-      r.code === 0 && out && out.refused === null && /^TAKEN$/.test(out.afterRelease || ''),
-      out ? 'a second take in the same process was refused: ' + (out.refused || 'no') + '; after the outer release another process took it: ' + out.afterRelease
-        : 'the probe did not answer: exit ' + r.code + ' — ' + said);
-    record('28-another-process-is-still-refused-while-one-holds-it',
-      out && /^REFUSED/.test(out.whileHeld || '') && /another tracker-sync command is running/.test(out.whileHeld || '')
-        && /^REFUSED/.test(out.afterNestedRelease || ''),
-      out ? 'while the lock was held: ' + (out.whileHeld || '').slice(0, 80) + '; after the nested lease was released: ' + (out.afterNestedRelease || '').slice(0, 80) + ' — ' + said : 'no answer — ' + said);
-    // The watch's own rounds: several of them, no exit and no line about a lock its
-    // own pid holds.
+    record('28-another-process-is-refused-while-one-holds-the-store',
+      out && /^REFUSED/.test(out.whileHeld || '') && /another tracker-sync command is running/.test(out.whileHeld || ''),
+      out ? 'while one process held the lock another was told: ' + (out.whileHeld || '').slice(0, 100) : 'the probe did not answer: exit ' + r.code + ' ' + (r.out || '').slice(0, 160));
+    record('28-the-release-frees-the-store-for-another-process',
+      out && /^TAKEN$/.test(out.afterRelease || ''),
+      out ? 'after the release another process took the lock: ' + out.afterRelease : 'no answer');
+    // The watch's own rounds: several of them, no exit, and no line about a lock a
+    // pid holds - its own or anyone else's - because its two rounds never race for
+    // the file lock inside one process.
     const w = watcher(ctx, 'A', ['--interval', '1', '--debounce', '2']);
     await sleep(12000);
     const log = existsSync(w.logPath) ? readFileSync(w.logPath, 'utf8') : '';

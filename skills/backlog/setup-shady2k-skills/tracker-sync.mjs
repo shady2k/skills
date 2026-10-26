@@ -251,7 +251,7 @@ export function takeLock(flags, repoRoot) {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         renameSync(candidate, p);
-        const lease = { release: null, token };
+        const lease = { release: null };
         let released = false;
         lease.release = () => {
           if (released) return;
@@ -289,29 +289,14 @@ export function takeLock(flags, repoRoot) {
           held = JSON.parse(readFileSync(ownerFile, 'utf8'));
           if (!Number.isInteger(held.pid) || held.pid <= 0 || (directory && basename(ownerFile) !== held.token)) throw new Error('invalid owner');
         } catch { throw new Error(`the store lock ${p} has no verifiable owner; nothing was written; inspect it before manual recovery`); }
-        // A process is never locked out by itself (#49). A lock in this process's
-        // own name is either the section this process holds - and a call that
-        // reached the lock outside `locked()`'s in-process queue (connect and status
-        // take it by hand and say so with LOCK_CONTEXT) runs in that section instead
-        // of waiting for it, its release doing nothing because the section that took
-        // the lock releases it - or a lock a dead process left under a pid that has
-        // since been handed to this one, which is broken below like any other dead
-        // holder because nothing of this process wrote it.
         let alive = true;
-        if (held.pid === process.pid) {
-          if (LOCK_HELD && LOCK_HELD.token === held.token) return () => {};
-          alive = false;
-        } else {
-          try {
-            process.kill(held.pid, 0);
-          } catch (err) {
-            alive = err.code !== 'ESRCH';
-          }
+        try {
+          process.kill(held.pid, 0);
+        } catch (err) {
+          alive = err.code !== 'ESRCH';
         }
         if (alive) throw new Error(`the store is locked by pid ${held.pid} since ${held.at} (${p}); another tracker-sync command is running`);
-        say(held.pid === process.pid
-          ? `tracker-sync: breaking a store lock left under this process's own pid, which no run of this one wrote (${p}, pid ${held.pid})`
-          : `tracker-sync: breaking a lock whose process is gone (${p}, pid ${held.pid})`);
+        say(`tracker-sync: breaking a lock whose process is gone (${p}, pid ${held.pid})`);
         // Unlink of an obsolete unique token fails rather than removing a new
         // holder. Only a successful remover attempts rmdir (which also refuses
         // a nonempty successor). Legacy file locks cannot replace a directory.
