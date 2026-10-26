@@ -1925,6 +1925,10 @@ const CASES = {
   '29-a-recording-of-an-older-release-matches-its-commit': async (ctx) => {
     const id = '29-a-recording-of-an-older-release-matches-its-commit';
     if (!existsSync(OLD_MECH_0121)) { record(id, false, 'the 0.121.0 mechanism fixture is missing: ' + OLD_MECH_0121); return; }
+    // The shape is a br store's, and the release's own connect refuses without br on
+    // PATH: a machine without the tracker proves nothing here and says so, the way the
+    // other br proofs do.
+    if (!brOnPath()) { console.log("SKIP (named): br is not on PATH, so a store's recordings of 0.121.0 cannot be built here"); return; }
     const up = oldMech(ctx, 'connect', ['--machine', 'A', '--checkout', ctx.codeA, '--prefix', 'br-a']);
     const store = (up.out.match(/connected \d+ checkout\(s\) to (\S+) on /) || [])[1] || null;
     if (up.code !== 0 || !store) { record(id, false, '0.121.0 connect exit ' + up.code + ': ' + up.out.split('\n').slice(-2).join(' | ').slice(0, 260)); return; }
