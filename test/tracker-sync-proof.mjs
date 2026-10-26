@@ -105,7 +105,9 @@ function mech(ctx, sub, args, opts = {}) {
   const state = machine === 'A' ? ctx.stateA : ctx.stateB;
   const shim = ctx.gitShim || (ctx.tag.startsWith('4-refused-push') ? '/tmp/gitshim' : null);
   const shimEnv = shim ? { PATH: shim + ':' + process.env.PATH, GITSHIM_LOG: join(ctx.scratch, 'git-shim.log') } : {};
-  return sh('node', [ctx.mech, sub, '--recipe', ctx.recipe, '--state', state, '--repo', repo, ...args],
+  // `nodeArgs` are the runtime's own switches (a heap bound, for a proof that a
+  // store of any size is read in bounded memory), never an option of the mechanism.
+  return sh('node', [...(opts.nodeArgs || []), ctx.mech, sub, '--recipe', ctx.recipe, '--state', state, '--repo', repo, ...args],
     { ...opts, env: { ...env, ...shimEnv }, cwd: opts.cwd || ctx.scratch });
 }
 // The mechanism with NO --state: the state folder is the one it derives from
@@ -581,7 +583,7 @@ const BREAKS = [
   },
   {
     name: 'the-watcher-queues-on-the-file-lock',
-    cases: ['22-watcher-publish-and-sync-overlap'],
+    cases: ['22-watcher-publish-and-sync-overlap', '28-a-watch-never-meets-its-own-lock'],
     // the fix undone: the two loops of one process take the file lock directly,
     // so one waits for a lock its own process holds.
     apply: (s) => ({ mech: breakByLiteral('no-in-process-mutex', s.mech,
@@ -590,7 +592,7 @@ const BREAKS = [
   },
   {
     name: 'a-lock-timeout-exits-the-watcher',
-    cases: ['22-watcher-publish-and-sync-overlap'],
+    cases: ['22-watcher-publish-and-sync-overlap', '28-a-watch-never-meets-its-own-lock'],
     // the fix undone: a round that cannot take the lock refuses like a one-shot
     // command does, so the supervisor restarts the watcher into the same wait.
     apply: (s) => ({ mech: breakByLiteral('timeout-dies', s.mech,
@@ -638,13 +640,26 @@ const BREAKS = [
       'if (false) /* deliberate break: a reference is trusted unchecked */') }),
   },
   {
+    name: 'the-migration-holds-every-whole-copy',
+    cases: ['27-the-migration-runs-in-bounded-memory'],
+    // the fix undone: the text of every whole-state recording is kept before any is
+    // converted, which is what made the first run of an updated installation die of
+    // the heap with 1106 recordings and nothing converted (#49).
+    apply: (s) => ({ mech: breakByLiteral('migration-holds-all',
+      breakByLiteral('migration-holds-all-array', s.mech,
+        '  const snapshots = [];',
+        '  const snapshots = []; const HELD = []; globalThis.__HELD = HELD; /* deliberate break: every whole copy is kept */'),
+      '    if (!isReferenceFile(file)) { snapshots.push(n); continue; }',
+      "    if (!isReferenceFile(file)) { snapshots.push(n); HELD.push(readFileSync(file, 'utf8')); continue; }") }),
+  },
+  {
     name: 'the-migration-keeps-whole-copies',
     cases: ['26-an-old-installation-is-converted'],
     // the fix undone: no snapshot is converted, so an existing installation keeps
     // every whole copy its old version wrote.
     apply: (s) => ({ mech: breakByLiteral('migration-none', s.mech,
-      'if (!parseRecording(t)) snapshots.push([n, t]);',
-      'if (false) snapshots.push([n, t]); /* deliberate break: nothing is converted */') }),
+      'if (!isReferenceFile(file)) { snapshots.push(n); continue; }',
+      'if (false) { snapshots.push(n); continue; } /* deliberate break: nothing is converted */') }),
   },
 ];
 
@@ -2000,6 +2015,139 @@ const CASES = {
     const spoken = mech(ctx, 'status', [], { machine: 'A' });
     record('26-status-names-what-is-still-a-whole-state', /recordings\s+\d+\s+\(1 still whole states/.test(spoken.stdout),
       spoken.stdout.split('\n').filter((l) => /^recordings/.test(l)).join(' | ').slice(0, 160));
+  },
+
+  // 27. The migration completes on a store of any size, in memory that does not
+  // grow with it, and what a run leaves half-done is finished by the next one
+  // (#49: the first loop kept the text of every whole-state recording and the
+  // migration died of the heap on 1106 of them, converting none).
+  '27-the-migration-runs-in-bounded-memory': async (ctx) => {
+    const id = '27-the-migration-runs-in-bounded-memory';
+    const up = bringUp(ctx, 'A');
+    if (up.code !== 0) { record(id, false, 'bring-up: ' + up.out); return; }
+    const store = storeOf(ctx, 'A');
+    const recDir = join(store, '.tracker-sync', 'recordings');
+    // A state with the size a tracker export of long histories has, in kilobytes:
+    // every whole-state recording of an older version was a copy of exactly this.
+    const padding = Array.from({ length: 2200 }, (_, i) => JSON.stringify({ id: 'pad-' + i, title: 'a state that takes up space in a store '.repeat(2), status: 'open', comments: [{ by: 'proof', text: 'a comment a tracker keeps '.repeat(3) }] })).join('\n') + '\n';
+    fsAppend(join(store, 'fake', 'items.jsonl'), padding);
+    sh('git', ['-C', store, 'add', 'fake/items.jsonl']);
+    sh('git', ['-C', store, '-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '-qm', 'a state with size']);
+    mech(ctx, 'publish', [], { machine: 'A' });
+    const state = stateTextOf(ctx, 'A');
+    // A few hundred whole-state recordings, as a version before references wrote
+    // them: each a copy of that state, and together far more than the heap the run
+    // is given below. Only the names grow in the migration; the size of each copy
+    // must not be held beside the others.
+    const N = 200;
+    const revs = [];
+    for (let i = 0; i < N; i++) {
+      const rev = 'c' + String(i).padStart(39, '0');
+      revs.push(rev);
+      writeFileSync(join(recDir, rev + '.jsonl'), state);
+    }
+    sh('git', ['-C', store, 'add', '.tracker-sync/recordings']);
+    sh('git', ['-C', store, '-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '-qm', 'whole copies, as an older version wrote them']);
+    const wholeBytes = N * Buffer.byteLength(state, 'utf8');
+    const heapMB = 64;
+    const nodeArgs = ['--max-old-space-size=' + heapMB];
+    const mine = new Set(revs.map((r) => r + '.jsonl'));
+    const asRefs = () => readdirSync(recDir).filter((n) => mine.has(n))
+      .filter((n) => readFileSync(join(recDir, n), 'utf8').trim().startsWith('{')).length;
+    // The whole store's worth of copies is many times the heap the run is allowed,
+    // so a run that holds them all dies and a run that holds one at a time does not.
+    const converted = mech(ctx, 'publish', [], { machine: 'A', nodeArgs });
+    const afterFirst = asRefs();
+    record('27-the-migration-completes-in-a-small-heap',
+      converted.code === 0 && afterFirst === N,
+      'publish exit ' + converted.code + ' in a ' + heapMB + ' MB heap: ' + N + ' whole copies of ' + Math.round(Buffer.byteLength(state, 'utf8') / 1024) + ' KB (' + Math.round(wholeBytes / 1048576) + ' MB in all), ' + afterFirst + ' of ' + N + ' are references' + (converted.code === 0 ? '' : ' — died: ' + converted.out.split('\n').slice(0, 2).join(' | ').slice(0, 200)));
+    // What a run killed a fifth of the way in leaves: the copies it had not reached
+    // are still copies, beside the references it had already renamed into place.
+    const killedAt = 160;
+    for (let i = 0; i < killedAt; i++) writeFileSync(join(recDir, revs[i] + '.jsonl'), state);
+    const kept = revs.slice(killedAt).map((r) => [r, readFileSync(join(recDir, r + '.jsonl'), 'utf8')]);
+    const bitForBit = kept.every(([r, before]) => existsSync(join(recDir, r + '.jsonl')) && readFileSync(join(recDir, r + '.jsonl'), 'utf8') === before);
+    record('27-what-a-kill-left-is-what-the-rerun-reads',
+      bitForBit && asRefs() === N - killedAt,
+      'the store holds ' + (N - killedAt) + ' references and ' + killedAt + ' copies, and every reference is byte for byte what the killed run wrote: ' + bitForBit);
+    // The rerun finishes the store inside the same heap, converts only what is
+    // left, and publishes all of it.
+    const rerun = mech(ctx, 'publish', [], { machine: 'A', nodeArgs });
+    const afterRerun = asRefs();
+    record('27-the-rerun-finishes-the-store',
+      rerun.code === 0 && afterRerun === N,
+      'publish exit ' + rerun.code + ' in the same ' + heapMB + ' MB heap; references: ' + afterRerun + ' of ' + N);
+    record('27-the-rerun-keeps-what-was-already-converted',
+      kept.every(([r, before]) => readFileSync(join(recDir, r + '.jsonl'), 'utf8') === before),
+      'all ' + (N - killedAt) + ' references the first run wrote are unchanged by the rerun');
+    // Every recording exports exactly the bytes its whole copy did.
+    const readBack = exportAt(ctx, 'A', revs[0]);
+    const last = exportAt(ctx, 'A', revs[N - 1]);
+    record('27-every-recording-exports-the-same-bytes',
+      readBack.code === 0 && readBack.stdout === state && last.code === 0 && last.stdout === state,
+      'export --at exit ' + readBack.code + ' and ' + last.code + ', identical to the whole copy: ' + (readBack.stdout === state && last.stdout === state));
+    // The ref carries them: the rerun published the references, not only the store.
+    const tip = remoteTip(ctx);
+    const inTree = tip ? sh('git', ['-C', ctx.remote, 'ls-tree', '-r', '--name-only', tip, '--', '.tracker-sync/recordings']).stdout.split('\n').filter(Boolean).length : 0;
+    const onRemote = tip ? sh('git', ['-C', ctx.remote, 'show', tip + ':.tracker-sync/recordings/' + revs[5] + '.jsonl']).stdout.trim().startsWith('{') : false;
+    record('27-the-ref-holds-the-references', inTree === N + 1 && onRemote,
+      "the remote's tree holds " + inTree + ' recordings (the ' + N + ' of this case and the store\'s own), and one of them reads as a reference: ' + onRemote);
+    // A second run changes nothing.
+    const again = mech(ctx, 'publish', [], { machine: 'A', nodeArgs });
+    record('27-a-second-run-changes-nothing',
+      again.code === 0 && asRefs() === N && /nothing to publish|published/i.test(again.out),
+      'the second run said: ' + again.out.split('\n')[0].slice(0, 100) + '; every recording is a reference: ' + (asRefs() === N));
+  },
+
+  // 28. The store's lock is what a watch never meets twice in one process, and what
+  // another process is refused by (#49: a 0.121.0 watch restarting about every 20 s
+  // with "the store is locked by pid <its own pid>"). The two rounds of one watcher
+  // queue in-process (LOCK_CONTEXT, `locked()`'s queue), so the file lock is only
+  // ever asked for by a process that holds nothing: a round that cannot take it is
+  // another command's, and it is skipped, never an exit.
+  '28-a-watch-never-meets-its-own-lock': async (ctx) => {
+    const id = '28-a-watch-never-meets-its-own-lock';
+    const up = bringUp(ctx, 'A');
+    if (up.code !== 0) { record(id, false, 'bring-up: ' + up.out); return; }
+    // One process holds the store's lock; a second is refused, and the release frees
+    // it. That is the half of the lock's contract a kill or a supervisor depends on.
+    const probe = join(ctx.scratch, 'lock-probe.mjs');
+    const child = join(ctx.scratch, 'lock-child.mjs');
+    writeFileSync(child, `
+import { takeLock } from ${JSON.stringify(ctx.mech)};
+const [state, repo] = process.argv.slice(2);
+try { const release = takeLock({ state, repo }, repo); release(); console.log('TAKEN'); }
+catch (e) { console.log('REFUSED ' + e.message); }
+`);
+    writeFileSync(probe, `
+import { spawnSync } from 'node:child_process';
+import { takeLock } from ${JSON.stringify(ctx.mech)};
+const [state, repo, childPath] = process.argv.slice(2);
+const ask = () => spawnSync(process.execPath, [childPath, state, repo], { encoding: 'utf8' }).stdout.trim();
+const release = takeLock({ state, repo }, repo);
+const whileHeld = ask();
+release();
+const afterRelease = ask();
+console.log(JSON.stringify({ pid: process.pid, whileHeld, afterRelease }));
+`);
+    const r = sh('node', [probe, ctx.stateA, ctx.codeA, child]);
+    let out = null;
+    try { out = JSON.parse(r.stdout.trim().split('\n').pop()); } catch { /* the assertions below say it */ }
+    record('28-another-process-is-refused-while-one-holds-the-store',
+      out && /^REFUSED/.test(out.whileHeld || '') && /another tracker-sync command is running/.test(out.whileHeld || ''),
+      out ? 'while one process held the lock another was told: ' + (out.whileHeld || '').slice(0, 100) : 'the probe did not answer: exit ' + r.code + ' ' + (r.out || '').slice(0, 160));
+    record('28-the-release-frees-the-store-for-another-process',
+      out && /^TAKEN$/.test(out.afterRelease || ''),
+      out ? 'after the release another process took the lock: ' + out.afterRelease : 'no answer');
+    // The watch's own rounds: several of them, no exit, and no line about a lock a
+    // pid holds - its own or anyone else's - because its two rounds never race for
+    // the file lock inside one process.
+    const w = watcher(ctx, 'A', ['--interval', '1', '--debounce', '2']);
+    await sleep(12000);
+    const log = existsSync(w.logPath) ? readFileSync(w.logPath, 'utf8') : '';
+    record('28-a-watch-runs-its-rounds-without-locking-itself-out',
+      w.exitCode === null && !/locked by pid/.test(log),
+      'the watch is still up after 12 s: ' + (w.exitCode === null) + '; its log names a lock held by a pid: ' + /locked by pid/.test(log) + '; last line: ' + (log.trim().split('\n').slice(-1)[0] || '').slice(0, 100));
   },
 
 };

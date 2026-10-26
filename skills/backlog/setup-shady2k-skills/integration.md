@@ -36,7 +36,7 @@ are the repository's installation, and each person's plugin and hooks are theirs
   at a code revision is what the store recorded under that revision's own name
   when it was cut or landed, and the adapter takes that recording, never the
   tree and never a later snapshot that happens to name the same revision>
-- **Rules:** <paths/provenance for check.mjs with time-format.mjs beside it, check-commits.mjs, check-docs.mjs, check-present.mjs with document-format.mjs beside it, and check-product.mjs, each check with regular-file.mjs beside it; verbatim copies or proved ports>
+- **Rules:** <paths/provenance for check.mjs with time-format.mjs beside it, check-commits.mjs, check-docs.mjs, check-present.mjs with document-format.mjs beside it, and check-product.mjs, each check with regular-file.mjs beside it, and argv.mjs beside every check and recipe (a recipe imports it as ../argv.mjs); verbatim copies or proved ports>
 - **Present documents:** <the check-present.mjs command a pull request's opening and CI run, and how CI finds the merge base; the documents themselves are in the config>
 - **Product documents:** <the check-product.mjs commands the commit hook (`--staged`) and CI (`--rev <revision>`) run>
 - **Work records:** <how the adapter exports each item's `[shady2k-time` comments raw with the tracker's comment id, time and author; the command the run script reads as `--backlog`, which reads the store on the ref, so a record another machine published is present once it is fetched and merged; how a record is posted unchanged>

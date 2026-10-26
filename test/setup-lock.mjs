@@ -10,15 +10,14 @@
  *   node test/setup-lock.mjs --write  record the current files (after a bump)
  */
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { INSTALLED, LAYOUT, walk } from './setup-installed.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SETUP = join(ROOT, 'skills/backlog/setup-shady2k-skills');
 const LOCK = join(ROOT, 'test/setup-lock.json');
-const INSTALLED = ['check.mjs', 'check-commits.mjs', 'check-docs.mjs', 'check-present.mjs', 'check-product.mjs', 'document-format.mjs', 'time-format.mjs', 'regular-file.mjs',
-  'integration.md', 'model.md', 'documents.md', 'templates', 'adapters'];
 
 // What setup installs only where the project chose the off-branch tracker layout:
 // the mechanism, the recipes and the supervisor template. They are locked exactly
@@ -31,9 +30,7 @@ const INSTALLED = ['check.mjs', 'check-commits.mjs', 'check-docs.mjs', 'check-pr
 // (`tracker-sync.mjs status`), which setup writes from the plugin's version, and
 // setup's own recheck compares the copy with the shipped file byte for byte, the
 // same duty the copied checks already carry.
-const LAYOUT = ['tracker-sync.mjs', 'trackers', 'supervisors'];
 
-const walk = (p) => (statSync(p).isDirectory() ? readdirSync(p).sort().flatMap((n) => walk(join(p, n))) : [p]);
 const digestOf = (list) => Object.fromEntries(list.map((n) => join(SETUP, n)).filter(existsSync).flatMap(walk).map((f) =>
   [relative(SETUP, f), createHash('sha256').update(readFileSync(f)).digest('hex')]));
 const files = Object.keys(digestOf(INSTALLED));

@@ -891,6 +891,44 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.127.0** finishes the tracker repair on a store of any size, and stops a
+  watch from restarting itself. Both from real use (#49).
+
+  The repair 0.126.0 shipped read every old per-revision copy into memory before
+  converting any of them, so on the store that reported it — 1 106 copies of a few
+  megabytes each, about 6 GB — the first command after the update died of the heap
+  within three seconds and converted nothing, and the next one did the same. The
+  watch, the commit hook and the merge hook all run that command, so landing the
+  update would have stopped the tracker from publishing at all. A copy is now read
+  one at a time, converted, written and dropped, so the conversion needs as much
+  memory as one state, whatever the store holds, and it commits what it converted
+  every hundred recordings: a run that is killed keeps its progress, and the next
+  run finishes it. The repair of 0.126.0 now completes on a store of thousands of
+  old copies; you delete nothing by hand.
+
+  A watch installed with 0.121.0 restarted about every twenty seconds — 510 times
+  in six hours under one supervisor — with "the store is locked by pid <N>", where
+  N was the watch's own pid, and it kept publishing between restarts. Its two
+  rounds no longer wait for a lock their own process holds: they queue inside the
+  process, and the store's lock is asked for only by a process that holds nothing,
+  so a round that cannot take it is another command's and is skipped instead of
+  ending the watch (a supervisor restarts an ended watch, which is the loop). A
+  watch that restarts like that stops after this update; if you saw those lines in
+  a log, they are history.
+
+  Setup now names every file a project copies and runs, not only the ones it named
+  before: the helper that reads a command's values (`argv.mjs`) and the one that
+  opens a path only after asking whether it is a regular file (`regular-file.mjs`)
+  are listed beside the checks, beside the mechanism, and beside the recipe, which
+  imports the first of them from one folder up. A connect command that lists every
+  file a hook reads, and tests that copy a fixed list, get the list right from
+  setup's own text. A new check in the project's own test run follows every import
+  of every file setup installs and fails when setup leaves one out, so the list
+  cannot drift again.
+
+  Projects rerun setup (0.57.0) to take the repaired mechanism and the named
+  helpers.
+
 - **0.126.0** stops your tracker's store from filling the disk. Two repairs from
   real use (#45).
 
