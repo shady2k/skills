@@ -116,6 +116,18 @@ function mechDefault(ctx, sub, args, { repo, env } = {}) {
   const e = { ...process.env, TRACKER_RECIPE: ctx.recipe, ...(env || {}) };
   return sh('node', [ctx.mech, sub, '--recipe', ctx.recipe, '--repo', repo, ...args], { env: e, cwd: ctx.scratch });
 }
+// The folder is named for the release, and the file inside it keeps the name the
+// mechanism has in a checkout: the record hooks it installs name the file beside it.
+const OLD_MECH_0121 = join(WORKTREE, 'test/fixtures/old-recordings/0.121.0/tracker-sync.mjs');
+// The mechanism as release 0.121.0 shipped it. A proof of "a recording an older
+// release wrote is converted" that writes its old recordings with the current code
+// proves nothing about the code that wrote them (#49): this one is the released
+// file, byte for byte, and it writes what the field holds.
+function oldMech(ctx, sub, args, opts = {}) {
+  const env = { ...process.env, TRACKER_RECIPE: ctx.recipe, ...(opts.env || {}) };
+  return sh('node', [...(opts.nodeArgs || []), OLD_MECH_0121, sub, '--recipe', ctx.recipe, '--state', ctx.stateA, '--repo', ctx.codeA, ...args],
+    { ...opts, env, cwd: opts.cwd || ctx.scratch });
+}
 function watcher(ctx, machine, args = ['--interval', '1', '--debounce', '2']) {
   const logPath = join(ctx.scratch, 'watch-' + machine + '-' + ctx.watchers.length + '.log');
   const logFd = openSync(logPath, 'w');
@@ -369,6 +381,9 @@ const CASE_OVERRIDES = {
   '18-br-settings-survive-the-move': { recipe: BR_RECIPE, br: true },
   '19-br-relink-after-a-pre-move-branch': { recipe: BR_RECIPE, br: true },
   '20-br-settings-deletion-merges': { recipe: BR_RECIPE, br: true },
+  // #49: the shape 0.121.0 wrote in the field is a br store's - a state file the
+  // tracker's own .gitignore ignores - so this case needs the shipped recipe and br.
+  '29-a-recording-of-an-older-release-matches-its-commit': { recipe: BR_RECIPE, br: true },
 };
 function waitForRemoteOnce(ctx) {
   for (let i = 0; i < 50; i++) { const tip = remoteTip(ctx); if (tip) return tip; }
@@ -627,7 +642,7 @@ const BREAKS = [
     // the fix undone: the recording holds the state itself, which grew one store
     // by a full copy on every commit in every worktree.
     apply: (s) => ({ mech: breakByLiteral('recording-copy', s.mech,
-      'writeFileSync(file, recordingText(stateOid, sideText(parts)));',
+      'writeFileSync(file, recordingText(stateOid, await stateTextAt(stateOid)));',
       'writeFileSync(file, sideText(parts)); /* deliberate break: the state is copied */') }),
   },
   {
@@ -651,6 +666,46 @@ const BREAKS = [
         '  const snapshots = []; const HELD = []; globalThis.__HELD = HELD; /* deliberate break: every whole copy is kept */'),
       '    if (!isReferenceFile(file)) { snapshots.push(n); continue; }',
       "    if (!isReferenceFile(file)) { snapshots.push(n); HELD.push(readFileSync(file, 'utf8')); continue; }") }),
+  },
+  {
+    name: 'an-old-recording-must-match-every-path-again',
+    cases: ['29-a-recording-of-an-older-release-matches-its-commit'],
+    // This case runs the shipped br recipe, so the break keeps it: a mutant with the
+    // fake recipe would fail at bring-up and prove nothing about the break.
+    sources: { recipe: BR_RECIPE },
+    // the fix undone, both halves of it: a file the store's git ignores is compared
+    // again AND the path sets must be equal again, which is exactly what 0.127.0 did
+    // and what converted none of a store of 1110 recordings (#49).
+    apply: (s) => ({ mech: breakByLiteral('migration-path-sets',
+      breakByLiteral('migration-ignored-files', s.mech,
+        '  comparableFiles = all.filter((p) => !ignored.has(p));',
+        '  comparableFiles = all; /* deliberate break: a file no commit can hold is compared */'),
+      '  if (!snapshotBlobs.size) return false;',
+      '  if (!snapshotBlobs.size || commitBlobs.size !== snapshotBlobs.size) return false; /* deliberate break: the path sets must be equal */') }),
+  },
+  {
+    name: 'a-kept-recording-is-a-verdict-again',
+    cases: ['29-a-recording-of-an-older-release-matches-its-commit'],
+    // This case runs the shipped br recipe, so the break keeps it: a mutant with the
+    // fake recipe would fail at bring-up and prove nothing about the break.
+    sources: { recipe: BR_RECIPE },
+    // the fix undone: every kept recording carries the same verdict instead of its
+    // own cause, which is what sent the reporter of #49 to a debug print.
+    apply: (s) => ({ mech: breakByLiteral('keep-verdict', s.mech,
+      "const keepRecording = (out, name, cause, said) => out.kept.push({ name, cause, said });",
+      "const keepRecording = (out, name, cause, said) => out.kept.push({ name, cause: 'no-candidate', said: 'no store commit holds that state' }); /* deliberate break: a verdict, not a cause */") }),
+  },
+  {
+    name: 'the-pass-is-repeated-on-every-command',
+    cases: ['29-a-recording-of-an-older-release-matches-its-commit'],
+    // This case runs the shipped br recipe, so the break keeps it: a mutant with the
+    // fake recipe would fail at bring-up and prove nothing about the break.
+    sources: { recipe: BR_RECIPE },
+    // the fix undone: the machine never remembers a pass, so a store of a thousand
+    // recordings no commit holds is read again on every record, sync and publish.
+    apply: (s) => ({ mech: breakByLiteral('migration-memory-ignored', s.mech,
+      'function readMigrationMemory() {',
+      'function readMigrationMemory() {\n  return null; /* deliberate break: the memory is never used */') }),
   },
   {
     name: 'the-migration-keeps-whole-copies',
@@ -1858,6 +1913,166 @@ const CASES = {
     record('24-status-prints-the-size-in-words', /disk\s+machine folder [\d.]+ [KMG]B/.test(spoken.stdout) && /leftovers\s+\d+ dead candidate/.test(spoken.stdout),
       spoken.stdout.split('\n').filter((l) => /^disk|^leftovers|^recordings/.test(l)).join(' | ').slice(0, 160));
     for (const name of [live, unknown]) { rmSync(join(stateDir, name), { recursive: true, force: true }); rmSync(join(stateDir, name + '.result.json'), { force: true }); }
+  },
+
+  // 29. Recordings written by a release that recorded the whole state (#49, after
+  // 0.127.0). 0.121.0 copied the store's WORKING TREE, so its copies carry a file
+  // the store's own git ignores (br's .beads/beads.base.jsonl) and can lack a
+  // declared file the commits hold; 0.127.0 compared path sets and converted none
+  // of a store's 1110 recordings. The fixture is the released mechanism itself, so
+  // this is the shape the field holds, not one the current code would write. Every
+  // recording that is kept says why, in the words of its own case.
+  '29-a-recording-of-an-older-release-matches-its-commit': async (ctx) => {
+    const id = '29-a-recording-of-an-older-release-matches-its-commit';
+    if (!existsSync(OLD_MECH_0121)) { record(id, false, 'the 0.121.0 mechanism fixture is missing: ' + OLD_MECH_0121); return; }
+    // The shape is a br store's, and the release's own connect refuses without br on
+    // PATH: a machine without the tracker proves nothing here and says so, the way the
+    // other br proofs do.
+    if (!brOnPath()) { console.log("SKIP (named): br is not on PATH, so a store's recordings of 0.121.0 cannot be built here"); return; }
+    const up = oldMech(ctx, 'connect', ['--machine', 'A', '--checkout', ctx.codeA, '--prefix', 'br-a']);
+    const store = (up.out.match(/connected \d+ checkout\(s\) to (\S+) on /) || [])[1] || null;
+    if (up.code !== 0 || !store) { record(id, false, '0.121.0 connect exit ' + up.code + ': ' + up.out.split('\n').slice(-2).join(' | ').slice(0, 260)); return; }
+    ctx.storeA = store;
+    const stateDir = ctx.stateA;
+    const recDir = join(store, '.tracker-sync', 'recordings');
+    const seeded = sh('br', ['create', 'first', '-d', 'proof', '--json'], { cwd: store });
+    if (seeded.code !== 0) { record(id, false, 'br create failed in ' + store + ' (' + JSON.stringify(readdirSync(store)) + '): ' + seeded.out.slice(0, 160) + ' | connect: ' + up.out.split('\n').slice(-4).join(' | ').slice(0, 240)); return; }
+    oldMech(ctx, 'publish', []);
+    // A revision per commit: the release's own post-commit hook writes a recording
+    // of the store's working tree, which is what a field store holds.
+    const revs = [];
+    for (let i = 0; i < 3; i++) {
+      writeFileSync(join(ctx.codeA, 'note-' + i + '.txt'), 'note ' + i + '\n');
+      sh('git', ['-C', ctx.codeA, 'add', '.']);
+      sh('git', ['-C', ctx.codeA, '-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '-qm', 'revision ' + i]);
+      revs.push(sh('git', ['-C', ctx.codeA, 'rev-parse', 'HEAD']).stdout.trim());
+    }
+    const oldRec = (r) => { const f = join(recDir, r + '.jsonl'); return existsSync(f) ? readFileSync(f, 'utf8') : ''; };
+    const partsOf = (text) => {
+      const marks = [...text.matchAll(/^=== ([^\n]+)\n/gm)];
+      if (!marks.length) return [];
+      const out = [];
+      for (let i = 0; i < marks.length; i++) {
+        const start = marks[i].index + marks[i][0].length;
+        const end = i + 1 < marks.length ? marks[i + 1].index : text.length;
+        out.push([marks[i][1], i + 1 < marks.length ? text.slice(start, end - 1) : text.slice(start, end)]);
+      }
+      return out;
+    };
+    const sideText = (parts) => parts.map(([p, c]) => `=== ${p}\n${c}`).join('\n');
+    const firstText = oldRec(revs[0]);
+    const oldParts = partsOf(firstText).map(([p]) => p);
+    const ignoredBase = sh('git', ['-C', store, 'check-ignore', '--no-index', '--', '.beads/beads.base.jsonl']);
+    // The premise this case rests on: the released mechanism wrote a copy that
+    // carries a file no store commit can hold.
+    record('29-the-fixture-is-what-0.121.0-wrote',
+      firstText.trim().startsWith('===') && oldParts.includes('.beads/beads.base.jsonl') && ignoredBase.code === 0,
+      '0.121.0 wrote the parts ' + JSON.stringify(oldParts) + '; the store\'s git ignores .beads/beads.base.jsonl (check-ignore exit ' + ignoredBase.code + ')');
+    // What a reader gets before the conversion: the bytes the gate's baseline sees.
+    const beforeReads = revs.map((r) => oldMech(ctx, 'export', ['--at', r]));
+    const idsIn = (state) => {
+      const body = (partsOf(state).find(([p]) => p === '.beads/issues.jsonl') || [null, ''])[1] || '';
+      return body.split('\n').filter((l) => l.trim()).map((l) => { try { return JSON.parse(l); } catch { return null; } })
+        .filter((x) => x && x.id).map((x) => x.id).sort();
+    };
+    const stateNow = oldRec(revs[revs.length - 1]);
+    const issuesBody = (partsOf(stateNow).find(([p]) => p === '.beads/issues.jsonl') || [null, ''])[1];
+    // One kept recording per cause, so status must name each of them, not a
+    // count of a single verdict (#49's addendum: the reporter needed a print).
+    const fakeRev = (n) => 'e'.repeat(39) + n;
+    const differRev = fakeRev('1'); const notHeldRev = fakeRev('2'); const opaqueRev = fakeRev('3');
+    const junkRev = fakeRev('4'); const dirRev = fakeRev('5'); const localRev = fakeRev('6');
+    writeFileSync(join(recDir, differRev + '.jsonl'), '=== .beads/issues.jsonl\n{"id":"i-9","title":"a state no commit holds"}\n');
+    writeFileSync(join(recDir, notHeldRev + '.jsonl'), sideText([['.beads/issues.jsonl', issuesBody], ['.beads/config.yaml', 'not: committed\n']]));
+    writeFileSync(join(recDir, opaqueRev + '.jsonl'), '=== .beads/issues.jsonl\n=== .beads/config.yaml\ncopy: true\n');
+    writeFileSync(join(recDir, junkRev + '.jsonl'), '{"hello":"there"}\n');
+    mkdirSync(join(recDir, dirRev + '.jsonl'), { recursive: true });
+    writeFileSync(join(recDir, localRev + '.jsonl'), '=== .beads/beads.base.jsonl\n{"id":"i-9"}\n');
+    sh('git', ['-C', store, 'add', '-A', '.tracker-sync/recordings']);
+    sh('git', ['-C', store, '-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '-qm', 'recordings no commit can hold, kept for a person']);
+    const isRef = (n) => { try { return readFileSync(join(recDir, n), 'utf8').trim().startsWith('{'); } catch { return false; } };
+    const names = () => { try { return readdirSync(recDir).filter((n) => n.endsWith('.jsonl')); } catch { return []; } };
+    const wholeBefore = names().filter((n) => !isRef(n)).length;
+    // Under the heap 0.127.0's own memory case allows, so the bound holds on this
+    // shape too, and not only on copies the current code built.
+    const migrated = mech(ctx, 'publish', [], { machine: 'A', nodeArgs: ['--max-old-space-size=64'] });
+    const converted = revs.filter((r) => isRef(r + '.jsonl')).length;
+    record('29-every-0.121.0-recording-is-converted', migrated.code === 0 && converted === revs.length,
+      'publish exit ' + migrated.code + ' in a 64 MB heap: ' + converted + ' of ' + revs.length + ' recordings of 0.121.0 are references, of ' + wholeBefore + ' whole states before the pass');
+    const afterReads = revs.map((r) => exportAt(ctx, 'A', r));
+    const sameItems = revs.every((r, i) => afterReads[i].code === 0 && idsIn(afterReads[i].stdout).join(',') === idsIn(beforeReads[i].stdout).join(','));
+    const noIgnoredPart = afterReads.every((x) => !x.stdout.includes('=== .beads/beads.base.jsonl'));
+    record('29-the-gate-reads-the-same-tracker-data', sameItems && noIgnoredPart,
+      'the items of every revision are the ones the whole copy carried: ' + sameItems
+      + '; the ignored file is no longer printed: ' + noIgnoredPart
+      + '; what a reader gets now: ' + JSON.stringify(afterReads[0].stdout.slice(0, 90)));
+    const mem = () => { try { return JSON.parse(readFileSync(join(stateDir, 'migration.json'), 'utf8')); } catch { return null; } };
+    const first = mem();
+    const headBefore = sh('git', ['-C', store, 'rev-parse', 'HEAD']).stdout.trim();
+    // The command that meets an old installation first is publish (and the record
+    // hook); it rewrites nothing when nothing changed, so the pass it does not take
+    // is visible in what it left in the machine folder.
+    const quiet = mech(ctx, 'publish', [], { machine: 'A' });
+    const second = mem();
+    record('29-a-command-that-changes-nothing-does-not-read-them-again',
+      quiet.code === 0 && first && second && second.passes === first.passes && (Number(second.skips) || 0) > (Number(first.skips) || 0)
+      && sh('git', ['-C', store, 'rev-parse', 'HEAD']).stdout.trim() === headBefore,
+      'the pass read the recordings ' + (first && first.passes) + ' time(s) and the next command reused that answer: '
+      + (second && second.skips) + ' skip(s) after ' + (first && first.skips) + ', the store head did not move');
+    // Every cause, in plain words, with one example each, and the list a person reads.
+    const spoken = mech(ctx, 'status', [], { machine: 'A' });
+    const keptLine = spoken.stdout.split('\n').filter((l) => /^kept\s/.test(l)).join(' | ');
+    const listLine = (spoken.stdout.match(/^list\s+(\S+)$/m) || [])[1] || null;
+    const said = {
+      'a state file differs from the nearest commit': differRev,
+      'its text does not come back byte for byte': opaqueRev,
+      'does not read back as a recording this mechanism wrote': junkRev,
+      'not a regular file': dirRev,
+      "one the store's git ignores": localRev,
+    };
+    const unnamed = Object.entries(said).filter(([word, example]) => !(keptLine.includes(word) && keptLine.includes(example + '.jsonl'))).map(([, example]) => example);
+    const listed = listLine && existsSync(listLine) ? readFileSync(listLine, 'utf8').trim().split('\n') : [];
+    const listedAll = Object.values(said).every((example) => listed.some((l) => l.startsWith(example + '.jsonl\t')));
+    record('29-status-names-each-cause-with-an-example-and-the-list', unnamed.length === 0 && listedAll && listed.length === 6,
+      'status said: ' + (keptLine || '(no kept line)').slice(0, 300) + ' | unnamed: ' + JSON.stringify(unnamed)
+      + ' | the list ' + listLine + ' holds ' + listed.length + ' line(s), every cause among them: ' + listedAll);
+    // A recording that changed makes the next command read them again, and so does
+    // a commit: nothing that could change the answer is remembered over.
+    const touchedBefore = mem();
+    const keptFile = join(recDir, differRev + '.jsonl');
+    writeFileSync(keptFile, readFileSync(keptFile, 'utf8'));
+    mech(ctx, 'publish', [], { machine: 'A' });
+    const touchedAfter = mem();
+    const born = sh('br', ['create', 'second', '-d', 'proof', '--json'], { cwd: store });
+    mech(ctx, 'publish', [], { machine: 'A' });
+    mech(ctx, 'publish', [], { machine: 'A' });
+    const movedAfter = mem();
+    record('29-a-changed-recording-or-a-new-commit-reads-them-again',
+      Number(touchedAfter.passes) === Number(touchedBefore.passes) + 1 && Number(movedAfter.passes) === Number(touchedAfter.passes) + 1,
+      'a rewritten recording: passes ' + touchedBefore.passes + ' -> ' + touchedAfter.passes
+      + '; a new br issue and its commit: -> ' + movedAfter.passes);
+    // What may differ is decided by the store's own git, so a project that stops
+    // ignoring its mirror changes what is compared: a recording that prints that
+    // file then carries one no commit holds, and that is the cause it is kept for,
+    // named with the commit it was compared with.
+    const gitignore = join(store, '.beads', '.gitignore');
+    const ignoredBefore = existsSync(gitignore) ? readFileSync(gitignore, 'utf8') : '';
+    writeFileSync(gitignore, ignoredBefore.split('\n').filter((l) => !/beads\.base\.jsonl/.test(l)).join('\n'));
+    sh('git', ['-C', store, 'add', '.beads/.gitignore']);
+    sh('git', ['-C', store, '-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '-qm', 'the project stops ignoring its own mirror']);
+    const heldRev = 'a'.repeat(40);
+    const mirror = join(store, '.beads', 'beads.base.jsonl');
+    writeFileSync(join(recDir, heldRev + '.jsonl'), sideText([['.beads/issues.jsonl', readFileSync(join(store, '.beads', 'issues.jsonl'), 'utf8')],
+      ['.beads/beads.base.jsonl', existsSync(mirror) ? readFileSync(mirror, 'utf8') : '{"id":"i-9"}\n']]));
+    const ruleChanged = mech(ctx, 'publish', [], { machine: 'A' });
+    // The command that changed the rule also commits its own state; the pass it ran
+    // is one commit behind, so it settles on the next one and is reused after that.
+    const settled = mech(ctx, 'publish', [], { machine: 'A' });
+    const spokenAgain = mech(ctx, 'status', [], { machine: 'A' });
+    const heldSaid = spokenAgain.stdout.split('\n').filter((l) => /^kept\s/.test(l)).join(' ');
+    record('29-a-file-no-commit-holds-is-named-with-the-commit',
+      ruleChanged.code === 0 && settled.code === 0 && /a state file it prints is in no commit the store holds/.test(heldSaid) && heldSaid.includes(localRev + '.jsonl'),
+      'with the rule gone the recording is kept and status says: ' + heldSaid.slice(0, 240));
   },
 
   // 25. A recording is a reference to the state commit, and it reads back as the
