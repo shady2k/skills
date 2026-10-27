@@ -642,7 +642,7 @@ const BREAKS = [
     // the fix undone: the recording holds the state itself, which grew one store
     // by a full copy on every commit in every worktree.
     apply: (s) => ({ mech: breakByLiteral('recording-copy', s.mech,
-      'writeFileSync(file, recordingText(stateOid, sideText(parts)));',
+      'writeFileSync(file, recordingText(stateOid, await stateTextAt(stateOid)));',
       'writeFileSync(file, sideText(parts)); /* deliberate break: the state is copied */') }),
   },
   {
