@@ -454,7 +454,9 @@ from its log where the agent can do that.
   protocol's **A red check is this run's work** and **A check is never rerun to
   find out why it failed**. Its repair rides with this work by **A repair the
   merge waits on is not intake**, and a gate that refuses the commit carrying it
-  is read by **A gate that refuses is not routed around**.
+  is read by **A gate that refuses is not routed around**; where the gate itself
+  demands what the work does not owe, it is the code under diagnosis, by **The
+  gate is the project's code, and an agent wrote it**.
 - An action the harness or a guard blocks — a command it refuses, a file it
   will not read, a write it will not let through — follows the protocol's
   **A blocked action is not handed over**.

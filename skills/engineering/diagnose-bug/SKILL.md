@@ -95,7 +95,10 @@ all. For a slowdown, measure first: a baseline, then bisect.
 
 A fix that passes by weakening the check is not a fix, by the protocol's
 [**A check changes only with the requirement it encodes**](references/checks.md):
-what that check encodes here is the original symptom.
+what that check encodes here is the original symptom. Where the failing thing is
+the gate itself — a hook, a wrapper or a rule that refuses work which owes it
+nothing — the gate is the code under diagnosis, by the protocol's [**The gate is
+the project's code, and an agent wrote it**](references/checks.md).
 
 For diagnosis only, return the cause or the remaining hypotheses, the evidence
 and the proposed fix. An approved fix is tracked work before it is implemented,

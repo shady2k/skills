@@ -472,7 +472,29 @@
           "path": "model/change/deltas/0/before/statement",
           "value": "Export all records."
         }
-      ]
+      ],
+      "why": {
+        "stale-base": "read the baseline from the target"
+      }
+    },
+    {
+      "name": "stale-base-when-the-requirement-already-exists",
+      "patches": [
+        {
+          "path": "model/change/deltas/0/before",
+          "value": null
+        }
+      ],
+      "expected": [
+        "stale-base"
+      ],
+      "receipts": true,
+      "at": [
+        "export/export-file"
+      ],
+      "why": {
+        "stale-base": "likely not counted as this change"
+      }
     },
     {
       "name": "unknown-requirement",
@@ -517,7 +539,10 @@
           "path": "model/phase",
           "value": "close"
         }
-      ]
+      ],
+      "why": {
+        "unsynced-current": "current equals the accepted baseline"
+      }
     },
     {
       "name": "premature-current",
@@ -550,6 +575,12 @@
             }
           ]
         }
+      ],
+      "why": {
+        "unsynced-current": "run the close phase"
+      },
+      "at": [
+        "export/export-file"
       ]
     },
     {
@@ -1351,6 +1382,214 @@
           "path": "evidence/checks/3/revision",
           "value": "reads-1"
         }
+      ]
+    },
+    {
+      "name": "a-range-that-adds-a-check-keeps-the-other-receipts",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "policy/requiredChecks",
+          "value": [
+            {
+              "id": "full",
+              "kind": "test",
+              "fixture": {
+                "size": 20000,
+                "unit": "files"
+              }
+            },
+            {
+              "id": "mutation",
+              "kind": "mutation"
+            },
+            {
+              "id": "review",
+              "kind": "review"
+            },
+            {
+              "id": "e2e",
+              "kind": "test"
+            }
+          ]
+        },
+        {
+          "path": "evidence/checks",
+          "value": [
+            {
+              "id": "full",
+              "status": "passed",
+              "reference": "fixture:full"
+            },
+            {
+              "id": "mutation",
+              "status": "passed",
+              "reference": "fixture:mutation"
+            },
+            {
+              "id": "review",
+              "status": "passed",
+              "reference": "fixture:review",
+              "designMatch": {
+                "matches": "yes",
+                "divergences": []
+              }
+            },
+            {
+              "id": "export-test",
+              "status": "passed",
+              "reference": "fixture:export-test"
+            },
+            {
+              "id": "e2e",
+              "status": "passed",
+              "reference": "fixture:e2e",
+              "policyDigest": "@final"
+            }
+          ]
+        }
+      ],
+      "expected": [],
+      "receipts": "pristine",
+      "at": []
+    },
+    {
+      "name": "a-change-to-one-checks-entry-voids-that-receipt-alone",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "policy/requiredChecks/0/fixture",
+          "value": {
+            "size": 50000,
+            "unit": "files"
+          }
+        }
+      ],
+      "expected": [
+        "stale-evidence"
+      ],
+      "receipts": "pristine",
+      "at": [
+        "full"
+      ]
+    },
+    {
+      "name": "a-policy-wide-change-voids-every-receipt",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "policy/requireApproval",
+          "value": false
+        }
+      ],
+      "expected": [
+        "stale-evidence"
+      ],
+      "receipts": "pristine",
+      "notes": [
+        "not-made:mutation"
+      ],
+      "at": [
+        "full",
+        "review",
+        "export-test"
+      ]
+    },
+    {
+      "name": "old-form-receipts-stand-while-the-policy-has-not-moved",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        }
+      ],
+      "expected": [],
+      "receipts": true,
+      "oldForm": true
+    },
+    {
+      "name": "old-form-receipts-are-stranded-by-an-added-check",
+      "patches": [
+        {
+          "path": "model/phase",
+          "value": "acceptance"
+        },
+        {
+          "path": "policy/requiredChecks",
+          "value": [
+            {
+              "id": "full",
+              "kind": "test",
+              "fixture": {
+                "size": 20000,
+                "unit": "files"
+              }
+            },
+            {
+              "id": "mutation",
+              "kind": "mutation"
+            },
+            {
+              "id": "review",
+              "kind": "review"
+            },
+            {
+              "id": "e2e",
+              "kind": "test"
+            }
+          ]
+        },
+        {
+          "path": "evidence/checks",
+          "value": [
+            {
+              "id": "full",
+              "status": "passed",
+              "reference": "fixture:full"
+            },
+            {
+              "id": "mutation",
+              "status": "passed",
+              "reference": "fixture:mutation"
+            },
+            {
+              "id": "review",
+              "status": "passed",
+              "reference": "fixture:review",
+              "designMatch": {
+                "matches": "yes",
+                "divergences": []
+              }
+            },
+            {
+              "id": "export-test",
+              "status": "passed",
+              "reference": "fixture:export-test"
+            },
+            {
+              "id": "e2e",
+              "status": "passed",
+              "reference": "fixture:e2e"
+            }
+          ]
+        }
+      ],
+      "expected": [
+        "stale-evidence"
+      ],
+      "receipts": "pristine",
+      "oldForm": true,
+      "notes": [
+        "not-made:mutation"
       ]
     },
     {

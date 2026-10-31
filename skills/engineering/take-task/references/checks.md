@@ -65,6 +65,30 @@ Where the check itself is the defect — it demands what the work does not owe,
 by **A gate that refuses is not routed around** — fixing the check is the
 work, and the change says which requirement made it wrong.
 
+**The gate is the project's code, and an agent wrote it.** The gate a run
+meets — the project's hooks, the wrapper around the set's checkers, that
+wrapper's policy and its configuration — was written into the project by setup,
+by an agent, from the set's contract. It is not an outside authority a run can
+only satisfy or fail: a defect in it is a defect in the project's code, and is
+diagnosed and fixed like any other. When an honest record is refused with
+nothing left to do — every check passed, the record says what is true, and no
+order of the work would pass — the run is not blocked. It diagnoses the gate as
+it would any failing code, finds the rule that demands what the work does not
+owe, and fixes it.
+
+That fix is a change of its own, never folded into the change the gate judges,
+by **A check changes only with the requirement it encodes**. It names the wrong
+demand and lands with two cases: the honest record it refused now passes, and a
+record that really does miss what is owed is still refused. The blocked work is
+pushed again after it, and reaches its end with the gate as it now stands.
+
+Where the wrapper is protected from the author, that protection is the owner's,
+and the fix is brought to them as the ready decision [running.md](running.md)'s
+**Autonomy** sends — the problem, what waits on it, the options and the
+recommendation — not taken by the run. Where the wrong demand comes from the
+set's own contract rather than from the project's copy of it, fixing that copy
+unblocks the work, and reporting it to the set is offered to the owner.
+
 **What a gate will demand is known before the work starts.** Shift left: the
 checks the work must pass, and what each will ask of it — a record, a document,
 an approval only the owner can give — are read when the work is prepared (at
