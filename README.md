@@ -891,6 +891,42 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.129.0** makes a change to a large tracker store cost what the change
+  costs, not what the store holds. From real use (#52).
+
+  On a store of about 4,500 items kept off the branches, one comment took about
+  9 s to publish, and with several agents writing at once the sync service ran
+  the machine out of memory twice in five minutes. Every merge, every sync that
+  brought a change and every claim rebuilt the tracker's whole database from its
+  state file, and the per-item merge read every item of three copies of the
+  state. On a store that size the rebuild also ran into the fixed 20 s limit on
+  a tracker command and was killed with no output. Now:
+
+  - a sync where only one machine changed the tracker merges nothing: your
+    store takes the other side as it is, and the database takes in only the
+    items that changed;
+  - a claim or a status change works on a copy of the live database instead of
+    rebuilding one;
+  - the merge reads only the items the two sides disagree on;
+  - the whole database is still rebuilt where it has to be: an item deleted,
+    most of the store changed at once, or a change br's own partial import
+    would skip (an item whose update time did not move forward, which is what a
+    comment renumbered by the merge or an edit from a machine whose clock runs
+    behind looks like). Whatever br is given is checked against what it
+    exported, and a mismatch is rebuilt rather than kept;
+  - the tracker's workflow policy (`.beads/policy.yaml`: custom statuses and
+    what entering one requires) travels with the store like its settings, so
+    a project no longer carries it by hand;
+  - a tracker command's time limit is yours to set (`--recipe-timeout`,
+    recorded when a machine connects; 120 s by default instead of 20 s).
+
+  Measured on that size of store on one machine: a comment published where the
+  other machine had only connected went from 19 s to under 1 s; taking it in on
+  the other machine from 17 s to 11 s; a claim from 35 s to 12 s. br itself
+  still spends about 7 s and a few hundred megabytes on any import, however
+  small, which only br can change. A project that runs the off-branch layout
+  reruns setup to refresh its installed copy; no other project is asked to.
+
 - **0.128.0** converts the tracker recordings earlier versions wrote, and stops
   reading them again on every command. From real use (#49).
 

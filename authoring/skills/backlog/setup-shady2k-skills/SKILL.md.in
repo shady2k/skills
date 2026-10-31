@@ -142,7 +142,9 @@ mechanism is what meets them, and this skill installs it:
   `trackers/`, beside the mechanism — and record in the integration's
   **Tracker synchronization** field their paths, the plugin version they came
   from, the launch command, the supervisor and the bounds (the debounce, the
-  maximum batch age, the sync timer, the network timeout). The copy is what a
+  maximum batch age, the sync timer, the network timeout, and the recipe timeout
+  connect records with `--recipe-timeout`: 120 s unless the tracker's whole import
+  of this store measured longer). The copy is what a
   supervisor runs: the plugin's own folder changes with every version. A setup
   run compares the installed copies byte for byte and reports the version the
   installed mechanism reports about itself, written into a `tracker-sync.version`
