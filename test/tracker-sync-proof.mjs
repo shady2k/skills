@@ -384,6 +384,9 @@ const CASE_OVERRIDES = {
   // #49: the shape 0.121.0 wrote in the field is a br store's - a state file the
   // tracker's own .gitignore ignores - so this case needs the shipped recipe and br.
   '29-a-recording-of-an-older-release-matches-its-commit': { recipe: BR_RECIPE, br: true },
+  // #52: what the tracker itself is asked to do for one change is the proof, so
+  // the case runs the shipped recipe against br.
+  '30-br-work-follows-the-change': { recipe: BR_RECIPE, br: true },
 };
 function waitForRemoteOnce(ctx) {
   for (let i = 0; i < 50; i++) { const tip = remoteTip(ctx); if (tip) return tip; }
@@ -454,7 +457,7 @@ const BREAKS = [
         breakByLiteral('sync-nomerge-push', s.mech,
           'oid = LOCK_CONTEXT.getStore() ? await mergeAndCommit(remote.tip) : await locked(() => mergeAndCommit(remote.tip), 120000, { skipOnTimeout });',
           'oid = oid; /* deliberate break: the merge is skipped */'),
-        '    return mergeAndCommit(remote.tip);\n  };',
+        '    return mergeAndCommit(remote.tip, { flushed });\n  };',
         '    return head; /* deliberate break: the merge is skipped */\n  };'),
     }),
   },
@@ -556,8 +559,57 @@ const BREAKS = [
     sources: { recipe: BR_RECIPE },
     // the recipe does not declare the tracker's settings as state, so they do not travel
     apply: (s) => ({ recipe: breakByLiteral('br-settings', s.recipe,
-      "stateFiles: ['.beads/issues.jsonl', '.beads/beads.base.jsonl', '.beads/config.yaml'],",
-      "stateFiles: ['.beads/issues.jsonl', '.beads/beads.base.jsonl'], /* deliberate break */") }),
+      "stateFiles: ['.beads/issues.jsonl', '.beads/beads.base.jsonl', '.beads/config.yaml', '.beads/policy.yaml'],",
+      "stateFiles: ['.beads/issues.jsonl', '.beads/beads.base.jsonl', '.beads/policy.yaml'], /* deliberate break */") }),
+  },
+  {
+    name: 'br-policy-left-behind',
+    cases: ['18-br-settings-survive-the-move'],
+    sources: { recipe: BR_RECIPE },
+    // the tracker's workflow policy is not state, so a project carries it by hand (#52)
+    apply: (s) => ({ recipe: breakByLiteral('br-policy', s.recipe,
+      "stateFiles: ['.beads/issues.jsonl', '.beads/beads.base.jsonl', '.beads/config.yaml', '.beads/policy.yaml'],",
+      "stateFiles: ['.beads/issues.jsonl', '.beads/beads.base.jsonl', '.beads/config.yaml'], /* deliberate break */") }),
+  },
+  {
+    name: 'br-sync-imports-the-whole-store',
+    cases: ['30-br-work-follows-the-change'],
+    sources: { recipe: BR_RECIPE },
+    // the recipe declares no import of the change alone, so every sync rebuilds
+    apply: (s) => ({ recipe: breakByLiteral('br-import-whole', s.recipe,
+      "  importChanged: 'node <recipeFile> import --before <before>',",
+      "  /* deliberate break: no import of the change alone */") }),
+  },
+  {
+    name: 'br-candidate-rebuilds-its-database',
+    cases: ['30-br-work-follows-the-change'],
+    sources: { recipe: BR_RECIPE },
+    // a conditional write's candidate rebuilds the database instead of copying it
+    apply: (s) => ({ recipe: breakByLiteral('br-candidate-rebuild', s.recipe,
+      "  seed: 'node <recipeFile> seed --from <live>',",
+      "  /* deliberate break: the candidate's database is rebuilt */") }),
+  },
+  {
+    name: 'br-partial-import-trusted',
+    cases: ['30-br-work-follows-the-change'],
+    sources: { recipe: BR_RECIPE },
+    // what the tracker skips in a partial import is neither foreseen nor checked,
+    // so it is taken as imported
+    apply: (s) => ({ recipe: breakByLiteral('br-partial-trusted', breakByLiteral('br-skip-unforeseen', s.recipe,
+      "    if (prior !== undefined && !(String(JSON.parse(line)[FIELD_ORDER] ?? '') > String(JSON.parse(prior)[FIELD_ORDER] ?? ''))) {",
+      "    if (false) { /* deliberate break: a skip is not foreseen */"),
+      "    for (const [id, line] of changed) if (!sameItem(exported.get(id), line)) return putBack(`br did not take ${id} as given`);",
+      "    /* deliberate break: the partial import is trusted */") }),
+  },
+  {
+    name: 'br-skip-not-foreseen',
+    cases: ['30-br-work-follows-the-change'],
+    sources: { recipe: BR_RECIPE },
+    // a change br's partial import is known to skip is tried anyway, and only the
+    // check after it sends it to a rebuild: correct, at the cost of both
+    apply: (s) => ({ recipe: breakByLiteral('br-skip-unforeseen-alone', s.recipe,
+      "    if (prior !== undefined && !(String(JSON.parse(line)[FIELD_ORDER] ?? '') > String(JSON.parse(prior)[FIELD_ORDER] ?? ''))) {",
+      "    if (false) { /* deliberate break: a skip is not foreseen */") }),
   },
   {
     name: 'br-settings-deletion-restored',
@@ -1635,6 +1687,9 @@ const CASES = {
     const storeA = storeOf(ctx, 'A');
     const setting = 'claim_exclusive: true\n';
     writeFileSync(join(storeA, '.beads', 'config.yaml'), setting);
+    // the tracker's workflow policy is a settings file of its own (#52)
+    const policy = 'statuses:\n  - name: submitted\n';
+    writeFileSync(join(storeA, '.beads', 'policy.yaml'), policy);
     r = mech(ctx, 'publish', [], { machine: 'A' });
     if (r.code !== 0) { record('18-br-settings-survive-the-move', false, 'publish A: ' + r.out.split('\n')[0]); return; }
     // B: a fresh clone, connect rebuilds its database and its settings from the ref
@@ -1642,8 +1697,10 @@ const CASES = {
     const storeB = storeOf(ctx, 'B');
     const cfgB = storeB ? join(storeB, '.beads', 'config.yaml') : null;
     const got = cfgB && existsSync(cfgB) ? readFileSync(cfgB, 'utf8') : '';
-    record('18-br-settings-survive-the-move', r.code === 0 && /claim_exclusive:\s*true/.test(got),
-      'connect B exit ' + r.code + ', its settings carry ' + JSON.stringify(got.trim().slice(0, 60)));
+    const polB = storeB ? join(storeB, '.beads', 'policy.yaml') : null;
+    const gotPolicy = polB && existsSync(polB) ? readFileSync(polB, 'utf8') : '';
+    record('18-br-settings-survive-the-move', r.code === 0 && /claim_exclusive:\s*true/.test(got) && gotPolicy === policy,
+      'connect B exit ' + r.code + ', its settings carry ' + JSON.stringify(got.trim().slice(0, 60)) + ', its policy ' + JSON.stringify(gotPolicy.trim().slice(0, 60)));
   },
 
   // 19. A checkout of a branch from before the move leaves a real tracker folder
@@ -2363,6 +2420,71 @@ console.log(JSON.stringify({ pid: process.pid, whileHeld, afterRelease }));
     record('28-a-watch-runs-its-rounds-without-locking-itself-out',
       w.exitCode === null && !/locked by pid/.test(log),
       'the watch is still up after 12 s: ' + (w.exitCode === null) + '; its log names a lock held by a pid: ' + /locked by pid/.test(log) + '; last line: ' + (log.trim().split('\n').slice(-1)[0] || '').slice(0, 100));
+  },
+
+  // 30. The work a change costs follows the change, not the store (#52): a
+  // comment synced to another machine, and a claim, take in what changed and
+  // never rebuild the tracker's database from the whole state; a change the
+  // tracker's partial import skips (a comment that did not move the item's
+  // updated_at) still arrives, because the partial import is checked. br is run
+  // through a shim that writes down every command it is given.
+  '30-br-work-follows-the-change': async (ctx) => {
+    const real = brOnPath();
+    if (!real) { console.log('SKIP (named): br is not on PATH, so what the tracker is asked to do cannot be counted here'); return; }
+    const shim = join(ctx.scratch, 'br-shim');
+    mkdirSync(shim, { recursive: true });
+    const log = join(ctx.scratch, 'br-commands.log');
+    writeFileSync(join(shim, 'br'), `#!/bin/sh\nprintf '%s\\n' "$*" >> "$BR_SHIM_LOG"\nexec ${real} "$@"\n`, { mode: 0o755 });
+    const env = { PATH: shim + ':' + process.env.PATH, BR_SHIM_LOG: log };
+    const m = (sub, args, machine) => mech(ctx, sub, args, { machine, env });
+    const rebuilds = () => (existsSync(log) ? readFileSync(log, 'utf8') : '').split('\n').filter((l) => /--import-only/.test(l) && /--rebuild/.test(l)).length;
+    let r = bringUp(ctx, 'A');
+    if (r.code !== 0) { record('30-a-comment-syncs-without-a-rebuild', false, 'bring-up A: ' + r.out.split('\n').slice(0, 3).join(' | ')); return; }
+    const storeA = storeOf(ctx, 'A');
+    const mk = (title) => JSON.parse(sh('br', ['create', title, '-d', 'proof', '--json'], { cwd: storeA }).stdout.trim().split('\n').pop()).id;
+    const [one, two, three] = [mk('one'), mk('two'), mk('three')];
+    r = mech(ctx, 'publish', [], { machine: 'A' });
+    if (r.code !== 0) { record('30-a-comment-syncs-without-a-rebuild', false, 'publish A: ' + r.out.split('\n')[0]); return; }
+    r = bringUp(ctx, 'B');
+    if (r.code !== 0) { record('30-a-comment-syncs-without-a-rebuild', false, 'bring-up B: ' + r.out.split('\n').slice(0, 3).join(' | ')); return; }
+    // A new machine's database is filled from the whole state once, by the
+    // tracker's own first command there; what is counted below is every change
+    // after it.
+    sh('br', ['count'], { cwd: storeOf(ctx, 'B') });
+
+    sh('br', ['comments', 'add', one, '-m', 'one comment'], { cwd: storeA });
+    m('publish', [], 'A');
+    writeFileSync(log, '');
+    const s1 = m('sync', [], 'B');
+    const got1 = ((brItemIn(ctx, 'B', one) || {}).comments || []).some((c) => c.text === 'one comment');
+    record('30-a-comment-syncs-without-a-rebuild', s1.code === 0 && got1 && rebuilds() === 0,
+      'sync exit ' + s1.code + ', the comment reached B: ' + got1 + ', whole-store rebuilds: ' + rebuilds());
+
+    writeFileSync(log, '');
+    const c = m('claim', ['--item', two, '--holder', 'proof-B'], 'B');
+    const held = (brItemIn(ctx, 'B', two) || {}).assignee;
+    record('30-a-claim-runs-no-rebuild', c.code === 0 && held === 'proof-B' && rebuilds() === 0,
+      'claim exit ' + c.code + ', holder on B ' + held + ', whole-store rebuilds: ' + rebuilds() + ' ' + (c.out || '').split('\n').slice(-1)[0].slice(0, 100));
+
+    // A comment written beside the tracker's own command, which leaves the
+    // item's updated_at where it was: br's partial import skips such an item.
+    m('sync', [], 'A');
+    const file = join(storeA, '.beads', 'issues.jsonl');
+    const items = readFileSync(file, 'utf8').split('\n').filter((l) => l.trim()).map((l) => JSON.parse(l));
+    const it = items.find((x) => x.id === three);
+    it.comments = [...(it.comments || []), { id: 1777000, issue_id: three, author: 'proof', text: 'unmoved', created_at: it.updated_at }];
+    writeFileSync(file, items.map((x) => JSON.stringify(x)).join('\n') + '\n');
+    writeFileSync(join(storeA, '.beads', 'beads.base.jsonl'), readFileSync(file));
+    sh('node', [ctx.recipe, 'import'], { cwd: storeA });
+    m('publish', [], 'A');
+    writeFileSync(log, '');
+    const s3 = m('sync', [], 'B');
+    const got3 = ((brItemIn(ctx, 'B', three) || {}).comments || []).some((x) => x.text === 'unmoved');
+    const tried = (readFileSync(log, 'utf8')).split('\n').filter((l) => /--import-only/.test(l) && !/--rebuild/.test(l)).length;
+    record('30-a-change-the-tracker-skips-still-arrives', s3.code === 0 && got3,
+      'sync exit ' + s3.code + ', the comment that did not move updated_at reached B: ' + got3);
+    record('30-a-skip-the-tracker-would-make-is-foreseen', s3.code === 0 && tried === 0 && rebuilds() === 1,
+      'partial imports tried for a change br skips: ' + tried + ', rebuilds: ' + rebuilds());
   },
 
 };
