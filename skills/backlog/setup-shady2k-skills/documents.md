@@ -190,6 +190,12 @@ delivers nothing to it and does not bring it back into the range, where it
 would owe fresh receipts for work landed hours before. Later work on the same
 task is a change of its own.
 
+A range that adds a check id to the policy owes a receipt for that check, and
+for that check alone: the receipts of the checks it did not touch are not
+disowned by the new entry, by **A receipt stands for its own check's definition,
+not for the whole policy** below. Judging the whole policy at once disowns them:
+that is an honest range refused with nothing left to fix.
+
 A range that delivers several changes judges each where it was finished: at
 its own last commit in the range, against the revision just before its first
 one there. Judged at the tip, an earlier change owes receipts for code a later
@@ -344,9 +350,9 @@ names what is left out, never what is read, and starts empty: an entry
 forgotten costs one run, an entry wrong leaves a receipt standing on inputs
 that changed, so an entry goes in only where the check's own command shows it
 cannot read that path (a Go test suite and the Markdown beside it). It is part
-of the policy, so changing it stales every receipt, and no run narrows it to
-save itself a check. A check with no list reads the whole revision, as
-before.
+of that check's policy entry, so changing it stales that check's receipt — the
+one given for what it read before — and no run narrows it to save itself a
+check. A check with no list reads the whole revision, as before.
 
 Requirement: `{id, title, statement, scenarios}`. Each scenario has
 `{id, given, when, then}` strings. IDs are unique within capability/requirement.
@@ -473,7 +479,11 @@ Setup recommends one, and it is recorded in the integration.
   tamper defences here is effort without a guarantee.
 - **Protected** (only where protected required CI can block a merge): the
   receipts come from a trusted runner or API as described below, and the
-  wrapper, policy and baseline selection are protected from the author.
+  wrapper, policy and baseline selection are protected from the author — the
+  author of the change being judged, not of the gate. A defect in that wrapper
+  or policy is not the author's to patch and not the change's to work around:
+  it is fixed as the protocol's **The gate is the project's code, and an agent
+  wrote it** says, with the owner deciding where the protection stands.
 
 Both levels use the same checker, export and phases, so a project can move from
 records to protected when it gains CI, without rewriting its documents.
@@ -500,19 +510,41 @@ which may not touch product code, does not owe the product's test suites; it
 owes review and the checks of what it does change (for example the tooling's
 own tests). Every kind must still owe at least one check (`empty-policy`).
 
-Evidence: `{schemaVersion: 1, revision?, policyDigest, approvals, checks}`.
+Evidence: `{schemaVersion: 1, revision?, policyDigest?, approvals, checks}`.
 Approval: `{changeDigest, reference}`. Check: `{id, status, reference,
-revision?}` where status is `passed`, `failed`, `skipped` or `unsupported`, and
-`revision` is the one its check read when it ran; a check without its own
-falls back to the evidence's. A receipt is stale where that differs from the
-check's pin in the export (`checkRevisions`, else `revision`), and only that
-receipt: the others stand. A stale `mutation` receipt is the same report, not
-a refusal; the exception above covers every way a run comes short. A policy
+revision?, policyDigest?}` where status is `passed`, `failed`, `skipped` or
+`unsupported`, and `revision` is the one its check read when it ran; a check
+without its own falls back to the evidence's. A receipt is stale where that
+differs from the check's pin in the export (`checkRevisions`, else `revision`),
+and only that receipt: the others stand. A stale `mutation` receipt is the same
+report, not a refusal; the exception above covers every way a run comes short. A policy
 entry with `ignores` and no pin in the export is `unpinned-check`. The wrapper retrieves
 and verifies runner/approval records; references identify the actual evidence.
 An approval's reference records the summary the owner was shown, since that is
 what they approved, not the document text they were not asked to read.
-`policyDigest = digest(policy)`; `changeDigest` is the digest of what the change
+
+**A receipt stands for its own check's definition, not for the whole policy.**
+What a check's result can be voided by is that check's own entry and the policy
+fields that apply to every check, so that is what its receipt carries:
+`policyDigest = digest({wide: digest(policy without requiredChecks), check: the
+requiredChecks entry with this receipt's id, or null where the policy does not
+require it})`, computed by the checker's own `policyScope(policy, id)`. Adding a
+check to the policy therefore stales nothing — the new check owes a receipt of
+its own, and the receipts already held stand; a change to one check's entry
+(`kind`, `appliesTo`, `ignores`, `fixture`) stales that receipt alone; a change
+to a field outside `requiredChecks` (`requireApproval`, `requireDesignMatch`,
+`schemaVersion`) applies to every check and stales every receipt. Policy still
+comes from the base: which policy a receipt is judged under moves with nothing
+the author writes. A receipt that carries no `policyDigest` of its own is read
+against the evidence's whole-policy `policyDigest = digest(policy)`, which is
+what the older wrapper wrote: an installation whose policy has not moved keeps
+its receipts; after a policy change, an old-form receipt is stale until that
+check is run again and its result is recorded under the changed policy, either
+with the updated whole-policy digest or with its own narrower digest. A wrapper
+that records the narrower form may leave the evidence-wide field out; where both
+are present, the receipt's own stands.
+
+`changeDigest` is the digest of what the change
 **decides** — `{kind, intent, outOfScope, deltas, preserves}` — and not of the
 whole record, so the approval can be given in the preflight, before the record
 is written, and survives the agent's own working on it afterwards: the

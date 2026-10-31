@@ -285,7 +285,7 @@ unrelated changes, new scope or publishing anything.
 | [to-spec](skills/engineering/to-spec/SKILL.md) | Writes down what exactly is being built, as the user will see it, with scenarios that will be checked; short or full by what the change touches, not by the writer's own sense of its size. A constraint it states is a requirement with a check, and an uncovered one is refused. | Before building something whose behaviour is not yet agreed. |
 | [to-design](skills/engineering/to-design/SKILL.md) | Decides how the system will meet an outcome before it is built: the product goal confirmed with you first, the drivers traced to it with each constraint's source, at least two options from named patterns and established practice, the direction confirmed with you before the long write, a recorded decision with what was rejected and assumed, review by another model that checks the goal before the details, and the scenarios that become checks. The design lists its constraints with a check each — a limit of scale is proved only on a fixture at least that size — names the vision principles of its area, and its acceptance carries another model's judgement of what it serves and breaks, each entry naming an id the vision declares and quoting a passage of the design record. | When a change introduces or changes a building block, an interface, ownership of state, a runtime interaction, an external dependency or an interface surface. |
 | [to-stages](skills/backlog/to-stages/SKILL.md) | Splits a feature into stages, checkpoints that are each checked before the next builds on them, and tasks small enough for one agent. A stage or task names the outcomes it serves, since the forecast is computed over the exact tasks covering them. | When planning a feature before it runs. |
-| [diagnose-bug](skills/engineering/diagnose-bug/SKILL.md) | Finds the cause of a bug with evidence: reproduces it, tests hypotheses one at a time, and refuses a fix that passes by weakening the check that caught it. | When a bug did not yield to a quick look. |
+| [diagnose-bug](skills/engineering/diagnose-bug/SKILL.md) | Finds the cause of a bug with evidence: reproduces it, tests hypotheses one at a time, refuses a fix that passes by weakening the check that caught it, and treats a gate that refuses honest work as code to diagnose. | When a bug did not yield to a quick look. |
 | [model-domain](skills/engineering/model-domain/SKILL.md) | Keeps the glossary — domain terms and the names of the system's own parts — and records of hard-to-reverse decisions. | When words start meaning different things, when a part had to be explained instead of named, or when a decision needs its reason kept. |
 | [describe-repository](skills/engineering/describe-repository/SKILL.md) | Describes one code repository the product spans for its wiki: the repository's intended model with its evidence, the architecture page, the capabilities found in the code as requirements and use cases marked derived from code, and the decisions found in the code or its ADRs, each linked to the model elements it shapes. | After a code repository is connected to the product, or when asked to describe one. |
 | [write-intended-model](skills/engineering/write-intended-model/SKILL.md) | Writes or checks a repository's intended model — the YAML architecture model in the repository's model folder, with its review report — elements, interfaces and relations, each evidenced at a commit and a blob, in three levels with a worked example, and renders its views. | When a repository needs its intended model written, reviewed or updated; `describe-repository` starts it. |
@@ -890,6 +890,41 @@ can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
+
+- **0.130.0** stops an agent from halting in front of a gate that refuses honest
+  work, and stops one added check from disowning the results that came before it.
+  From real use (#54).
+
+  A feature added a capability and two check ids, and every required result was
+  recorded as passed on the final revision. The document gate refused anyway: a
+  change that adds a check changes the policy its results are judged under, so
+  every result was disowned, including those of checks whose definitions had not
+  moved, and no record could pass. The run saw three ways out — edit the gate,
+  close red, bypass the hook — all of them forbidden, and stopped. Now:
+
+  - a result stands for its own check's definition and for the settings that
+    apply to every check, not for the whole list: adding a check asks for that
+    check's result and leaves the others standing, a change to one check asks
+    again for that check alone, and only a change to a setting that applies to
+    every check asks for everything again. Results recorded before this version
+    keep working while the policy has not moved, and are replaced one by one as
+    the checks run again;
+  - the protocol says the gate — its hooks, the wrapper around the checks, the
+    policy and the settings — was written into your project by setup, by an
+    agent. A gate that refuses an honest record with nothing left to do is a
+    defect in your project's code: a run diagnoses it, fixes it as a change of
+    its own, with a case for the record it refused and a case for a record that
+    really is missing something, and pushes the blocked work again. Where the
+    wrapper is protected from the author, the fix comes to you as a ready
+    decision: you decide it, the run does not;
+  - two refusals now say their likely cause: a change that adds a requirement
+    the change is judged from already holds (the commit that added it is
+    probably not counted as this change's), and documents brought to the
+    change's end before closure (run the close phase, or keep current at the
+    baseline until then).
+
+  Projects rerun setup once, so their installed checkers carry the narrower
+  result binding and the new rule.
 
 - **0.129.0** makes a change to a large tracker store cost what the change
   costs, not what the store holds. From real use (#52).

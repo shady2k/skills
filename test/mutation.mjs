@@ -76,6 +76,20 @@ const mutations = [
     change: (code) => code.replace("kindOf.get(id) === 'mutation'", 'false') },
   { name: 'documents-applies-to', file: 'check-docs.mjs', failure: 'FAIL  documents/check-for-other-kind:',
     change: (code) => code.replace('!c.appliesTo || c.appliesTo.includes(change.kind)', 'true') },
+  // A receipt stands for its own check's definition, not the whole policy: bound
+  // back to the whole policy, the honest range that adds a check loses every
+  // receipt it already held.
+  { name: 'documents-receipt-stands-for-its-own-check', file: 'check-docs.mjs',
+    failure: 'FAIL  documents/a-range-that-adds-a-check-keeps-the-other-receipts:',
+    change: (code) => code.replace('? receipt.policyDigest === policyScope(policy, receipt.id)',
+      '? evidence.policyDigest === digest(policy)') },
+  // A refusal that names the cause the state shows: muted, its own case says so.
+  { name: 'documents-stale-base-cause', file: 'check-docs.mjs',
+    failure: 'FAIL  documents/stale-base-when-the-requirement-already-exists:',
+    change: (code) => code.replace('!d.before && baseline.has(key) ? STALE_BASE_ALREADY_THERE : null', 'null') },
+  { name: 'documents-unsynced-current-cause', file: 'check-docs.mjs',
+    failure: 'FAIL  documents/premature-current:',
+    change: (code) => code.replace('atTheEnd ? UNSYNCED_CURRENT_AT_THE_END : null', 'null') },
   ...[['old-debt', "was && was.how === false ? 'old-dead'", "false ? 'old-dead'", 'older-drift-is-debt'],
     ['removed-path', 'const dead = v.how === false ||', 'const dead =', 'change-removed-what-it-names'],
     ['a-link-says-it-exists', "v.ref.kind === 'link' || ", '', 'change-added-a-broken-link'],
