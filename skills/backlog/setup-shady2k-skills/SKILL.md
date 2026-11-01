@@ -180,11 +180,13 @@ mechanism is what meets them, and this skill installs it:
   must read and write the store, never the code checkout the hook came from.
   A revision that is already recorded is success — the command says so and writes
   nothing — because a hook runs again after a merge. A record a hook starts is
-  bounded and never silent: it asks for the store a few times, and a record it
-  still cannot write leaves a marker per revision in the machine's own state,
-  never in the tree, which the read that finds no recording names as a timeout
-  with the command that redoes it; a later successful record of that revision
-  removes the marker. Reachability is whether the
+  bounded on the store and never silent about it: it asks for the store a few
+  times, and a record it still cannot write because the store is held leaves a
+  marker per revision, keyed by the revision's full id, in the machine's own
+  state, never in the tree; the read that finds no recording names that timeout
+  and the command that redoes it, and a later successful record of the revision
+  removes the marker. A failure that is not the lock - an unreachable remote, a
+  recipe that failed - is said and kept as it was: this bound is the lock's. Reachability is whether the
   remote answers: a remote whose `HEAD` names a branch that does not exist answers
   and is reachable, and only a remote that does not answer makes a read refuse (or
   connect says to pass `--offline` and publish when it does).
