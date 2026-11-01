@@ -169,6 +169,19 @@ switch (sub) {
     const slow = Number(process.env.FAKE_SLOW_EXPORT || 0);
     if (sub === 'export' && slow > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, slow);
     mirrorDb();
+    // An outside writer's write that reaches the database after this flush read
+    // it: the state file stays clean, and the database moves inside the export's
+    // own window. A watcher that trusted the value it statted AFTER the export
+    // would fold that write away and skip it for ever (#57, review finding).
+    if (sub === 'export' && process.env.FAKE_EXPORT_DB_MOVES_AFTER === '1') {
+      const db = existsSync(dbFile()) ? JSON.parse(readFileSync(dbFile(), 'utf8')) : { records: [] };
+      const first = (db.records || [])[0];
+      if (first) {
+        first.comments = first.comments || [];
+        first.comments.push({ id: 'c-late-' + Date.now(), author: 'outside-writer', text: 'landed after the flush read the database', created_at: new Date().toISOString() });
+        writeFileSync(dbFile(), JSON.stringify(db, null, 1) + '\n');
+      }
+    }
     break;
   }
   // A write the tracker accepted and has not flushed: it is in the database and

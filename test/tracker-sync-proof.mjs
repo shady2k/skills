@@ -468,6 +468,16 @@ const BREAKS = [
     }),
   },
   {
+    // The coordinator's finding of 2026-11-02: the value statted AFTER an export
+    // is not trustworthy, because a clean state file does not prove that no
+    // outside write reached the database while the export ran.
+    name: 'watcher-trusts-the-value-after-the-export',
+    cases: ['37-a-flush-that-moves-the-database-keeps-exporting'],
+    apply: (s) => ({ mech: breakByLiteral('trust-post-export', s.mech,
+      'if (sigPaths && exported && sig !== null) { lastSignal = sig; signalKnown = true; }',
+      'if (sigPaths && exported && sig !== null) { lastSignal = readChangeSignal(sigPaths) || sig; signalKnown = true; } /* deliberate break: the after value is trusted */') }),
+  },
+  {
     name: 'watcher-skips-a-store-that-changed',
     cases: ['34-idle-change-is-published'],
     apply: (s) => ({
@@ -954,8 +964,11 @@ const CASES = {
       const res2 = await waitForRemote(ctx, (items) => items.some((x) => x.id === 'i-3'
         && (x.comments || []).some((c) => c.id === 'c-state-only')), 12000);
       const ms2 = Date.now() - t1;
-      // max-age (5 s) plus the longest idle poll (5 s) plus scheduling slack
-      record('34-idle-change-is-published', !!res.value && !!res2.value && ms <= 12000 && ms2 <= 12000,
+      // --max-age 5 s bounds the age of the change, and the age starts where the
+      // idle poll last saw the store unchanged, so the bound covers the wait
+      // before the change was seen: a 8 s ceiling is the bound plus one tick of
+      // scheduling slack, not the bound plus a whole idle poll.
+      record('34-idle-change-is-published', !!res.value && !!res2.value && ms <= 8000 && ms2 <= 8000,
         !res.value ? 'the write made while idle never reached the remote'
           : !res2.value ? 'a changed state file with an unchanged database was never published' : '', ms);
     } finally { await stopAllWatchers(ctx); }
@@ -1004,24 +1017,31 @@ const CASES = {
     } finally { await stopAllWatchers(ctx); }
   },
 
-  // 37. A tracker whose own export moves its database is not exported for ever:
-  // the export's own write is told apart from an outside write by whether it
-  // wrote state, and the loop settles.
-  '37-a-trackers-own-write-does-not-loop': async (ctx) => {
+  // 37. A flush that moves the database on every run, with an outside write that
+  // reaches the database after the flush read it. The watcher keeps exporting on
+  // every tick, which is exactly what it did before there was a signal: a clean
+  // state file does not prove that no outside write reached the database, so the
+  // value taken AFTER an export can never be the one the next tick trusts (the
+  // coordinator's finding of 2026-11-02). A tracker whose flush moves nothing
+  // when it has nothing to export goes idle instead (case 33).
+  '37-a-flush-that-moves-the-database-keeps-exporting': async (ctx) => {
     const r = bringUp(ctx, 'A');
-    if (r.code !== 0) { record('37-a-trackers-own-write-does-not-loop', false, 'bring-up: ' + r.out); return; }
+    if (r.code !== 0) { record('37-a-flush-that-moves-the-database-keeps-exporting', false, 'bring-up: ' + r.out); return; }
     const log = join(ctx.scratch, 'exports-ownwrite.log');
-    ctx.debugEnv = { FAKE_EXPORT_LOG: log, FAKE_EXPORT_TOUCHES_DB: '1' };
+    // FAKE_EXPORT_TOUCHES_DB: every flush moves the database. FAKE_EXPORT_DB_MOVES_AFTER:
+    // an outside writer's write lands in it after the flush read it, before the tick's
+    // next stat - the window in which an AFTER value would fold that write away.
+    ctx.debugEnv = { FAKE_EXPORT_LOG: log, FAKE_EXPORT_TOUCHES_DB: '1', FAKE_EXPORT_DB_MOVES_AFTER: '1' };
     const w = watcher(ctx, 'A', ['--interval', '60', '--debounce', '2', '--max-age', '5']);
     try {
       await waitUntil(async () => remoteTip(ctx), 5000);
       await settleWatcher(ctx, 'A');
       await sleep(6000);
       const before = exportCount(log);
-      await sleep(8000);
+      await sleep(7000);
       const during = exportCount(log) - before;
-      record('37-a-trackers-own-write-does-not-loop', during <= 1,
-        `exports in 8 idle seconds while every export moves the database: ${during}`);
+      record('37-a-flush-that-moves-the-database-keeps-exporting', during >= 3,
+        `exports in 7 idle seconds while every flush moves the database and a write lands after each flush reads it: ${during} (today's watcher does about 7; a skipped tick would be 0)`);
     } finally { await stopAllWatchers(ctx); }
   },
 

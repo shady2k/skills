@@ -2372,7 +2372,7 @@ async function recordRun({ revision, checkout, fromTree }) {
       settleDiagnostic(step.diagnostic);
       // This revision IS recorded now: a marker a hook's timed-out record left
       // must not outlive it, or the next push would name a timeout that is over.
-      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, captured.rev);
+      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, await canonicalRevision(captured.rev));
       writeConfig(CURRENT.flags, CURRENT.repoRoot, { lastRecord: nowIso() });
       say(`tracker-sync: ${step.already} is already recorded ${step.where}; a recording is written once and never moved, so nothing was written`);
       return;
@@ -2383,7 +2383,7 @@ async function recordRun({ revision, checkout, fromTree }) {
     if (step.pushed.ok) {
       await integrateCandidate(step);
       settleDiagnostic(step.diagnostic);
-      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, captured.rev);
+      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, await canonicalRevision(captured.rev));
       writeConfig(CURRENT.flags, CURRENT.repoRoot, { lastRecord: nowIso() });
       say(`tracker-sync: recorded the store at ${String(captured.rev).slice(0, 12)}`);
       return;
@@ -2408,6 +2408,20 @@ async function recordRun({ revision, checkout, fromTree }) {
  * later successful record of that revision removes the marker.
  */
 const recordTimeoutDir = (flags, repoRoot) => join(machineDir(flags, repoRoot), 'record-timeouts');
+/** A revision's full object id, or the name as given when it does not resolve.
+ *
+ * A marker is keyed by the full id, so a hook that writes `rev-parse HEAD` and a
+ * reader that asks with an abbreviation name the same marker, and two revisions
+ * that begin alike can never be confused: one marker file per revision, matched
+ * exactly. */
+async function canonicalRevision(rev) {
+  const name = String(rev || '');
+  if (!name) return null;
+  const ck = CURRENT.repoRoot || CURRENT.store;
+  const r = await git(['rev-parse', '--verify', `${name}^{commit}`], { cwd: ck });
+  const oid = r.code === 0 ? r.stdout.trim() : '';
+  return /^[0-9a-f]{40,64}$/.test(oid) ? oid : name;
+}
 // A revision's full name and a short one name the same marker: the hook writes
 // the name git gives it, and a reader may ask with either.
 function findRecordTimeout(flags, repoRoot, at) {
@@ -2416,11 +2430,16 @@ function findRecordTimeout(flags, repoRoot, at) {
   if (!want || want.includes('/') || want.includes('..')) return null;
   let names = [];
   try { names = readdirSync(dir); } catch { return null; }
-  const name = names.find((n) => n.endsWith('.json') && (n.slice(0, -5) === want
-    || (n.slice(0, -5).startsWith(want) && n.slice(0, -5).length > want.length)
-    || (want.startsWith(n.slice(0, -5)) && want.length > n.slice(0, -5).length)));
-  if (!name) return null;
-  try { return { file: join(dir, name), ...JSON.parse(readFileSync(join(dir, name), 'utf8')) }; } catch { return { file: join(dir, name), revision: want }; }
+  // Exact first: the marker's name is the revision's full id, and `at` is read
+  // exactly as the caller wrote it. An abbreviation that resolves to nothing is
+  // the one case a prefix is allowed, and only when exactly one marker carries
+  // it: two revisions that begin alike must never lend each other a marker.
+  const ids = names.filter((n) => n.endsWith('.json')).map((n) => n.slice(0, -5));
+  const exact = ids.filter((id) => id === want);
+  const loose = exact.length ? exact : ids.filter((id) => id.startsWith(want) || want.startsWith(id));
+  if (loose.length !== 1) return null;
+  const name = `${loose[0]}.json`;
+  try { return { file: join(dir, name), ...JSON.parse(readFileSync(join(dir, name), 'utf8')) }; } catch { return { file: join(dir, name), revision: loose[0] }; }
 }
 function writeRecordTimeout(flags, repoRoot, revision, said) {
   if (!revision) return null;
@@ -2464,7 +2483,7 @@ async function recordWithRetries(opts) {
       }
     }
   }
-  const rev = await recordedRevision(opts);
+  const rev = await canonicalRevision(await recordedRevision(opts));
   const file = writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message);
   die(1, `the recording of ${rev ? String(rev).slice(0, 12) : 'this revision'} timed out on the store lock after ${HOOK_RECORD_ATTEMPTS} attempts (${last.message.split(';')[0]}); `
     + `${file ? `a marker is kept at ${file}, so the next push names it as a timeout instead of a missing recording, and running record again removes it` : 'a person must rerun record'}`);
@@ -2860,7 +2879,7 @@ async function exportRun(flags, pos) {
       // that finds no recording must name the timeout and the command that redoes
       // it, never "the store never recorded that revision", which is not what
       // happened and leaves the reader with no way to see it was a timeout (#57).
-      const timedOut = findRecordTimeout(CURRENT.flags, CURRENT.repoRoot, at);
+      const timedOut = findRecordTimeout(CURRENT.flags, CURRENT.repoRoot, await canonicalRevision(at));
       if (timedOut)
         die(1, `the recording of ${at} timed out at commit time: the store was locked (${timedOut.said || 'the lock was held elsewhere'}), and record gave up after its bounds at ${timedOut.at || 'commit time'}; the state is not lost, it was never written. Redo it with: ${timedOut.command || rerunRecordLine(CURRENT.flags, CURRENT.repoRoot, at)}`);
       die(1, `no recording for ${at}: the store never recorded that revision, so its state is unknown and is not guessed from a later state`);
@@ -2922,21 +2941,30 @@ async function watchRun(flags) {
   let lastSignal = null;      // the signal taken BEFORE the export of that tick
   let signalKnown = false;
   let idleMs = 1000;
+  // How long the last tick waited before looking: the change it may have missed
+  // by that much is aged from before it was seen, so the idle back-off cannot
+  // push a publication past the bound a project set.
+  let idleWaited = 0;
   const IDLE_MAX_MS = 5000;
   const publishLoop = async () => {
     while (!stop) {
       // A tick's signal is taken BEFORE anything is exported, and that value -
       // never the one after - is what the next tick is compared with. An outside
-      // write that lands during the export is therefore part of the store's next
-      // signal, which cannot equal the recorded one, so the next tick exports
-      // again: a write during an export is delayed by one tick and never lost.
-      // The watcher's own export cannot loop for the same reason it cannot lie:
-      // a flush with nothing unexported moves nothing (measured with br), so the
-      // tick after it records the value it finds and the one after that skips.
+      // write that lands at any point of the export, even after the export read
+      // the database and before the tick ended, is therefore part of the store's
+      // next signal, which cannot equal the recorded one, so the next tick
+      // exports again: such a write is delayed by one tick and never lost.
+      // A tracker whose flush moves its own database on every run then exports
+      // on every tick, which is what a watcher without a signal does: never
+      // worse than before, and never a write folded away. One whose flush with
+      // nothing to export moves nothing - measured on the shipped recipe,
+      // "Nothing to export (no dirty issues)" - records the value it found and
+      // goes idle from the next tick.
       const sig = sigPaths ? readChangeSignal(sigPaths) : null;
       if (sigPaths && sig !== null && signalKnown && sig === lastSignal && firstChange === null
           && !(await hasUncommittedState())) {
         idleMs = Math.min(IDLE_MAX_MS, idleMs + 1000);
+        idleWaited = idleMs;
         await sleep(idleMs);
         continue;
       }
@@ -2946,40 +2974,31 @@ async function watchRun(flags) {
       // session is never made to wait on the watcher's network.
       let digest = null;
       let exported = false;
-      let post = null;
-      let touched = false;
       try {
-        const step = await locked(async () => {
+        digest = await locked(async () => {
           await flushDatabase();
-          // The signal again, inside the same critical section: what the export
-          // itself wrote is now in it.
-          const after = sigPaths ? readChangeSignal(sigPaths) : null;
-          const dirty = await hasUncommittedState();
-          return { after, dirty, digest: dirty ? stateDigest() : null };
+          if (!(await hasUncommittedState())) return null;
+          return stateDigest();
         }, 20000, { skipOnTimeout: true });
-        digest = step.digest; post = step.after; touched = step.dirty;
         exported = true;
       } catch (e) {
         if (e.lockTimeout) { onLockTimeout(e); await sleep(1000); continue; }
         say(`tracker-sync: the export failed: ${e.message}`);
       }
-      // What the next tick is compared with. A round skipped for the lock
-      // records nothing: it must try again, not believe it exported.
-      if (sigPaths && exported && sig !== null && post !== null) {
-        // The export wrote state: record the BEFORE value, so a write that
-        // landed during the export (and was not flushed into that state) still
-        // differs on the next tick. The export's own write differs too, which
-        // costs exactly one further export: a flush with nothing unexported
-        // writes nothing, so the tick after it finds the value it records.
-        // The export wrote no state but moved the database: that is the
-        // tracker's own bookkeeping, nothing is unexported, and recording the
-        // AFTER value is what stops such a tracker exporting for ever.
-        lastSignal = touched && post !== sig ? sig : post;
-        signalKnown = true;
-      }
-      if (digest === null) { firstChange = null; lastChange = null; lastDigest = ''; await sleep(1000); continue; }
+      // What the next tick is compared with: the value taken BEFORE this export,
+      // and no other. A round that could not take the lock records nothing, so it
+      // tries again instead of believing it exported.
+      if (sigPaths && exported && sig !== null) { lastSignal = sig; signalKnown = true; }
+      if (digest === null) { firstChange = null; lastChange = null; lastDigest = ''; idleWaited = 0; await sleep(1000); continue; }
       const t = Date.now();
-      if (digest !== lastDigest) { lastDigest = digest; lastChange = t; if (firstChange === null) firstChange = t; }
+      if (digest !== lastDigest) {
+        lastDigest = digest;
+        lastChange = t;
+        // The change may have landed up to one idle poll before this tick looked,
+        // so the age that --max-age bounds starts where the poll last saw the
+        // store unchanged: the bound covers the idle wait, never less than it.
+        if (firstChange === null) firstChange = t - idleWaited;
+      }
       const ready = (t - lastChange) / 1000 >= debounce || (t - firstChange) / 1000 >= maxAge;
       if (ready) {
         let oid;
