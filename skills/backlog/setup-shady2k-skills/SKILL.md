@@ -1007,6 +1007,29 @@ commit check already uses, read here and never from the network. Until that list
 is there the rule reports nothing; once it is, the next gate run lists what
 landed and was never closed, and each is closed with its revision.
 
+**What an update to this setup version changes, in the owner's terms.** A
+feature is now run only on a plan its owner has seen. Before a run starts, the
+agent shows how the system will meet the outcome, with what already does that
+job, and then the plan — the stages and what each makes true — and records each
+agreement on the feature in the owner's own words; the gate refuses a feature
+whose work has started without them (`started-without-agreement`). The same
+update makes a second implementation of a job the project already has into a
+finding rather than a memory: a proposal that adds or replaces a mechanism
+carries what exists today and what it extends or replaces, a replacement takes
+the old one's retirement inside the same feature unless the owner says
+otherwise, and a stage is not accepted while a second way into a capability
+stays reachable beside the one the project's decisions put there. A project
+adopting it needs no new export: the record is two lines in the feature's body,
+which the adapter already carries. This run lists the features already under
+way in the config's `agreementExempt`, once and with the owner's agreement, as
+it lists work in flight when time records are adopted — so the rule judges what
+starts after that, whatever strength the project chose, and a project on
+`block-new` also sees an unlisted one as printed old debt rather than a wall of
+new errors on the day it arrives. One refusal widens instead of arriving: an order between two
+stages that are not broken down yet is now an edge the tracker keeps, on the
+waiting stage, until that stage is broken into tasks — then it moves onto the
+tasks, and the gate refuses it on the stage again.
+
 An update that brings the store out of the branches tells the owner the move
 is coming and why, in their terms, and how it is done without losing a record:
 snapshot the old state first; start the store; take what is written during the

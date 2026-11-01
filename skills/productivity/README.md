@@ -15,7 +15,7 @@ Skills for decisions, evidence and continuity.
 Also available directly to the user.
 
 - [brainstorming](./brainstorming/SKILL.md): explore ideas, investigate or decide
-  through dialogue; understand reasoning before disagreeing, no mandatory artifact. A principle you state about how the product must work is written into your vision or decision record at once, in your words.
+  through dialogue; understand reasoning before disagreeing, no mandatory artifact. A principle you state about how the product must work is written into your vision or decision record at once, in your words, and a proposal that adds or replaces a mechanism carries what the code already does for that job.
 - [define-product](./define-product/SKILL.md): talk a raw idea through with the
   person who has it, in plain words, and write the product's documents an
   engineer can start from. Your key journeys and principles each get a stable id, and every milestone outcome names the ones it serves.

@@ -1,0 +1,68 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture bad/nonleaf-dependency.unrelated-container",
+  "issues": [
+    {
+      "title": "",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person finds a receipt. Falsified if they cannot.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "F1"
+    },
+    {
+      "title": "The page shows the count",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [
+        "C"
+      ],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "L"
+    },
+    {
+      "title": "The import runs nightly",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "C"
+    },
+    {
+      "title": "The import reads one row",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "C",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "U"
+    }
+  ],
+  "expect": [
+    "nonleaf-dependency"
+  ],
+  "expectViolations": [
+    "nonleaf-dependency|L|C"
+  ]
+}

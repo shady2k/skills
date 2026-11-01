@@ -46,7 +46,15 @@ Cover both sides, with parallel reviewers where useful:
   ([`references/design.md`](references/design.md)) and against the quality
   attribute scenarios the design recorded: whether the change still meets
   each scenario, and whether every scenario a machine could judge became a
-  check instead of a hope.
+  check instead of a hope. Where the change adds or replaces a mechanism, the
+  reviewer does not take its description for it: they search the revision for
+  every way that job is reached — entry points, stores, workers, commands,
+  pipelines — and read the change against the project's recorded decisions, by
+  [`references/building.md`](references/building.md)'s **One surface per
+  capability** and **Find before writing**. A second way in beside the one a
+  decision put there, or a retirement the plan promised and the revision does
+  not carry, is a blocking finding, and so is a change that contradicts a
+  recorded decision without saying so.
 - **Diagnosability:** whether failures explain themselves: errors carry their
   causes, logs follow the project's levels and carry request and trace ids
   where requests cross components, no secrets or personal data are logged, and

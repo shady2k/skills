@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture good/stage-order-epic-stages",
+  "issues": [
+    {
+      "title": "",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person finds a receipt. Falsified if they cannot.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "F1"
+    },
+    {
+      "title": "",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "## DONE WHEN\nThe store keeps one receipt. Falsified if it keeps two.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "S1"
+    },
+    {
+      "title": "",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [
+        "S1"
+      ],
+      "body": "## DONE WHEN\nReceipts list by date. Falsified if they cannot be found.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "S2"
+    }
+  ]
+}

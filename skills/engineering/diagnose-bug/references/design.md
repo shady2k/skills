@@ -50,10 +50,20 @@ the design.
 **Inventory before options.** Before any option, read what exists: the
 building blocks and the state each owns, the interfaces between them, the
 runtime interactions the change would touch, the design-system components
-and the patterns already in use. This is [building.md](building.md)'s
-**Find before writing** and **One surface per capability** applied to the
-design before code: a new block beside one that could serve says why the
-existing one cannot.
+and the patterns already in use, and — where the change adds or replaces a
+mechanism — every implementation of that job the project has today: its entry
+points and their callers, the modules and stores behind them, the commands and
+workers that run it, the pipeline that runs them. This is
+[building.md](building.md)'s **Find before writing** and **One surface per
+capability** applied to the design before code: a new block beside one that
+could serve says why the existing one cannot. The inventory is part of what the
+owner reads before they are asked to choose — what exists, what the change
+extends, what it replaces — and a proposal that carries none is not put to
+them, by [speaking.md](speaking.md)'s **An approval covers what was shown**.
+The proposal also says what the project's recorded decisions have already
+settled about those implementations; an option that would contradict one names
+it and what it would replace, rather than being drawn as if the decision were
+not there.
 
 **Options from named patterns.** At least two options are built from named
 patterns and tactics, not from habit: the patterns of enterprise
@@ -121,7 +131,12 @@ says so.
 **Scenarios become checks.** Every quality attribute scenario a machine can
 judge becomes an executable check — a fitness function, run with the
 project's other checks — and is handed to `to-stages` as a task's
-criterion, so the attribute is owned by a check and not by hope. The
+criterion, so the attribute is owned by a check and not by hope. Where the
+project's stack can see it, [building.md](building.md)'s **One surface per
+capability** is one of these scenarios: a capability reached by a second way —
+a store written outside its owner, a parallel pipeline, a module that nothing
+calls — is what the project's own architecture checks find, by that file's
+lint-rule sentence, instead of the reviewer being the only one who can. The
 scenarios that cannot be automated are named with who will judge them and
 how, by [deciding.md](deciding.md)'s **A claim reaches only as far as its
 evidence**.

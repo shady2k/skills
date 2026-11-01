@@ -13,7 +13,7 @@
       ],
       "parent": null,
       "blockedBy": [],
-      "body": "DONE WHEN the first outcome is observable.",
+      "body": "DONE WHEN the first outcome is observable.\nAgreed direction: 2026-01-10T09:00:00Z — \"One store behind one command; retire the old reader.\"\nAgreed plan: 2026-01-12T17:30:00Z — \"Plan is fine: the store stage first, then the listing.\"",
       "updatedAt": "2026-01-30T00:00:00Z"
     },
     {
@@ -27,7 +27,7 @@
       ],
       "parent": null,
       "blockedBy": [],
-      "body": "DONE WHEN the second outcome is observable.",
+      "body": "DONE WHEN the second outcome is observable.\nAgreed direction: 2026-01-10T09:00:00Z — \"One store behind one command; retire the old reader.\"\nAgreed plan: 2026-01-12T17:30:00Z — \"Plan is fine: the store stage first, then the listing.\"",
       "updatedAt": "2026-01-30T00:00:00Z"
     },
     {

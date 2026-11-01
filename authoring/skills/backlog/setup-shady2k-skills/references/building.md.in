@@ -23,7 +23,8 @@ pipeline that builds, checks and releases it. These are project decisions
 taken once too, changed by a change that needs them to change; a release uses
 what is decided, and never invents a second path so it can ship. Where a machine can check a rule (no literal colour or size
 in a component, no bare element in a page, no import against the direction of
-dependencies), the project makes it a lint rule in the same change, so it
+dependencies, no reach into a capability except through its one entry point),
+the project makes it a lint rule in the same change, so it
 binds instead of being remembered.
 
 ## Code
@@ -31,9 +32,18 @@ binds instead of being remembered.
 **Find before writing.** Before a new component, helper, utility, command or
 module, search the project for one that already does it or nearly does, and
 extend that; a new script is written only where no command already does its
-job. A parallel copy of what exists is the commonest way an agent
-degrades a codebase: each copy is correct on the day it is written, and they
-drift from then on.
+job. The search covers the whole way the capability is reached today — its
+entry points and their callers, the modules it lives in, the stores it writes,
+the commands and workers that run it and the pipeline that runs them — never
+the nearest file that looks related: a second implementation is found by
+seeking where the job is done, not where the new one would sit. What the search
+found is not the agent's private note: it is what
+[design.md](design.md)'s **Inventory before options** shows the owner before
+any proposal that adds or replaces a mechanism, by [speaking.md](speaking.md)'s
+**An approval covers what was shown**, because a search nobody sees is a search
+the next agent repeats. A parallel copy of what exists is the commonest way an
+agent degrades a codebase: each copy is correct on the day it is written, and
+they drift from then on.
 
 **The smallest complete change.** Before writing code, take the first of these
 that does the whole job: nothing, where the need is not in the task (and what
@@ -48,13 +58,21 @@ handling that prevents data loss, security and accessibility are never what
 is cut. A one-liner that has to be decoded is not small.
 
 **One surface per capability.** A capability has one way in: one screen, one
-endpoint, one command, one settings file, one script. A change extends that way
+endpoint, one command, one settings file, one script, one store, one worker, one
+pipeline for the same job. A change extends that way
 in; it never adds a second beside it, such as a "v2" page, a parallel endpoint,
 a wrapper under another name or a second place for the same setting. Two ways in
 double what must be kept correct, and they part until nobody knows which one is
 real. Where the existing surface truly cannot carry the change, replacing it is
 a decision for the owner, and the old one is removed in the same feature, never
-kept "for compatibility" without that decision. A throwaway harness for a
+kept "for compatibility" without that decision. That removal is work of the
+feature and is cut in the same breakdown as the rest of it: the replacement and
+the retirement of what it replaces are one feature, and "removing the old one is
+out of scope" is a scope the owner gave in so many words, recorded where the
+work is written — never a line the agent writes for itself to keep a feature
+small. What is left behind by that line is the surface that stays reachable and
+correct for nobody, and it is the one still running the day the replacement
+fails. A throwaway harness for a
 diagnosis or a prototype is not a surface; it is deleted when its question is
 answered.
 

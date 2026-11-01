@@ -9,7 +9,7 @@ import { spawnSync } from 'node:child_process';
 const source = join(dirname(fileURLToPath(import.meta.url)), '../skills/backlog/setup-shady2k-skills');
 const root = mkdtempSync(join(tmpdir(), 'skill-gate-mutations-'));
 const mutations = [
-  ...['dependency-cycle', 'nonleaf-dependency', 'submitted-without-evidence', 'implemented-without-evidence',
+  ...['dependency-cycle', 'nonleaf-dependency', 'started-without-agreement', 'submitted-without-evidence', 'implemented-without-evidence',
     'merged-but-open',
     'time-record-damaged', 'time-span-conflict', 'time-span-unclaimed', 'time-span-overlap', 'time-span-unreceipted',
     'time-work-unclaimed', 'time-void-idle'].map((id) => ({

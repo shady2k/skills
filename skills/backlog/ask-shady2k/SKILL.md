@@ -200,7 +200,7 @@ the list.
 | an open decision holds the ground the rest of the milestone stands on | that decision, worked, while the owner is here: `brainstorming`, or `to-spec` where its answer is a contract |
 | a change is not ready by the document check | the concrete gap: missing contract, stale base or open decision; `to-spec` |
 | a live outcome's next stage is due: a decision the design owns, or a breaking down | `to-design` where the change changes the system's shape, by the protocol's [design.md](references/design.md); requirements where the behaviour is not yet written: `to-spec`; breaking down: `to-stages`; no design for a small bug or a trivial change, with the tailoring's reason; `/take-task` picks the route inside a feature |
-| a planned feature is ready | `/take-task` to run the whole feature to one pull request, if its run fits how long the project lets a branch live; otherwise split it first; mention what can run in parallel |
+| a planned feature is ready | `/take-task` to run the whole feature to one pull request once its direction and then its plan are agreed and recorded on it, which the gate reads — a feature without that record is planned with the owner before anything runs; if its run fits how long the project lets a branch live; otherwise split it first; mention what can run in parallel |
 | a feature is not yet planned enough to run alone | plan it with the owner (`brainstorming`, `to-spec`, `to-stages`), ending in `/take-task`'s preflight |
 | everything left is blocked or held | the result or owner that would unblock it; do not widen the milestone or invent work |
 
