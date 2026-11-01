@@ -179,7 +179,12 @@ mechanism is what meets them, and this skill installs it:
   `GIT_INDEX_FILE`, `GIT_WORK_TREE` and the rest of it): a step started from a hook
   must read and write the store, never the code checkout the hook came from.
   A revision that is already recorded is success — the command says so and writes
-  nothing — because a hook runs again after a merge. Reachability is whether the
+  nothing — because a hook runs again after a merge. A record a hook starts is
+  bounded and never silent: it asks for the store a few times, and a record it
+  still cannot write leaves a marker per revision in the machine's own state,
+  never in the tree, which the read that finds no recording names as a timeout
+  with the command that redoes it; a later successful record of that revision
+  removes the marker. Reachability is whether the
   remote answers: a remote whose `HEAD` names a branch that does not exist answers
   and is reachable, and only a remote that does not answer makes a read refuse (or
   connect says to pass `--offline` and publish when it does).

@@ -477,6 +477,15 @@ const BREAKS = [
     }),
   },
   {
+    name: 'hook-record-times-out-silently',
+    cases: ['38-a-hook-record-that-times-out-is-named'],
+    apply: (s) => ({
+      mech: breakByLiteral('hook-no-marker', s.mech,
+        'const file = writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message);',
+        'const file = null; void writeRecordTimeout; /* deliberate break: the timeout leaves no marker */'),
+    }),
+  },
+  {
     name: 'sync-skips-the-merge',
     cases: ['4-refused-push'],
     apply: (s) => ({
@@ -1014,6 +1023,45 @@ const CASES = {
       record('37-a-trackers-own-write-does-not-loop', during <= 1,
         `exports in 8 idle seconds while every export moves the database: ${during}`);
     } finally { await stopAllWatchers(ctx); }
+  },
+
+  // 38. #57: a hook's record that cannot take the store lock is bounded, leaves a
+  // marker, is named as a timeout at the read that finds no recording, and the
+  // marker goes when the recording is made.
+  '38-a-hook-record-that-times-out-is-named': async (ctx) => {
+    const r = bringUp(ctx, 'A');
+    if (r.code !== 0) { record('38-a-hook-record-that-times-out-is-named', false, 'bring-up: ' + r.out); return; }
+    const lock = join(ctx.stateA, 'lock');
+    const rev = sh('git', ['-C', ctx.codeA, 'rev-parse', 'HEAD']).stdout.trim();
+    let held = false;
+    try {
+      // Another process holds the store: a live pid, so the holder is never
+      // judged stale and recovered while this case runs.
+      mkdirSync(lock, { recursive: true });
+      writeFileSync(join(lock, `owner-${process.pid}-held.json`),
+        JSON.stringify({ pid: process.pid, at: new Date().toISOString(), token: 'held-by-the-proof' }) + '\n');
+      held = true;
+      const t0 = Date.now();
+      const rec = mech(ctx, 'record', ['--hook', '--revision', rev], { machine: 'A' });
+      const ms = Date.now() - t0;
+      const marker = join(ctx.stateA, 'record-timeouts', `${rev}.json`);
+      const marked = existsSync(marker);
+      // The bound: never a commit blocked for minutes, and never silence.
+      const bounded = ms <= 40000;
+      const read = mech(ctx, 'export', ['--at', rev], { machine: 'A' });
+      const saysTimeout = /timed out at commit time/.test(read.out) && /record --revision/.test(read.out);
+      const saysMissing = /never recorded that revision/.test(read.out);
+      // Release the lock and record it for real: the marker must go.
+      rmSync(lock, { recursive: true, force: true }); held = false;
+      const again = mech(ctx, 'record', ['--revision', rev], { machine: 'A' });
+      const cleared = !existsSync(marker);
+      const ok = marked && bounded && saysTimeout && !saysMissing && again.code === 0 && cleared;
+      record('38-a-hook-record-that-times-out-is-named', ok,
+        `hook record against a held store: exit ${rec.code} after ${ms} ms, marker ${marked ? 'written' : 'MISSING'}; the read says ${saysTimeout ? 'a timeout and the command' : saysMissing ? '"never recorded" (wrong cause)' : JSON.stringify(read.out.split('\n')[0].slice(0, 120))}; marker after a successful record: ${cleared ? 'gone' : 'STILL THERE'}`);
+    } finally {
+      if (held) rmSync(lock, { recursive: true, force: true });
+      await stopAllWatchers(ctx);
+    }
   },
 
   // 2. Sync: B sees A's write after its sync tick, before anything reads the store.

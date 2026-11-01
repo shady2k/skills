@@ -1113,6 +1113,14 @@ async function takeLockWait(ms) {
  * the lock) runs in the section that holds it, as it did before.
  */
 let LOCK_QUEUE = Promise.resolve();
+// How long an unqualified lock wait may take. A record started by a hook lowers
+// it for its own run: a commit is already made and nothing may wait on it for
+// minutes, so the hook's record asks a bounded few times instead (see
+// recordWithRetries).
+let LOCK_WAIT_MS = 120000;
+// Whether this run is a record a checkout's hook started: its lock timeouts are
+// thrown to that caller rather than ending the process on the spot.
+let HOOK_RECORD = false;
 // Whether THIS call is already inside a critical section. The two loops of one
 // process are both "this process" but never nested, so the answer has to travel
 // with the call that asked, not with the process: an async context says exactly
@@ -1134,13 +1142,15 @@ async function inProcessLock(fn) {
  * written. A loop inside the watcher passes skipOnTimeout: the round is not its
  * to take, so it is skipped, said once in the log, and tried again on the next
  * tick - never an exit, which the supervisor would answer with a restart. */
-async function locked(fn, waitMs = 120000, { skipOnTimeout = false } = {}) {
+async function locked(fn, waitMs = LOCK_WAIT_MS, { skipOnTimeout = false } = {}) {
   return inProcessLock(async () => {
     let release;
     try {
       release = await takeLockWait(waitMs);
     } catch (e) {
-      if (skipOnTimeout && e.lockTimeout) throw e;
+      // A loop skips the round; a record started by a hook is retried by its
+      // caller, which is the one that knows how long a commit may wait (#57).
+      if ((skipOnTimeout || HOOK_RECORD) && e.lockTimeout) throw e;
       die(1, e.message);
     }
     try { return await fn(); } finally { release(); }
@@ -2360,6 +2370,9 @@ async function recordRun({ revision, checkout, fromTree }) {
     });
     if (step.already) {
       settleDiagnostic(step.diagnostic);
+      // This revision IS recorded now: a marker a hook's timed-out record left
+      // must not outlive it, or the next push would name a timeout that is over.
+      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, captured.rev);
       writeConfig(CURRENT.flags, CURRENT.repoRoot, { lastRecord: nowIso() });
       say(`tracker-sync: ${step.already} is already recorded ${step.where}; a recording is written once and never moved, so nothing was written`);
       return;
@@ -2370,6 +2383,7 @@ async function recordRun({ revision, checkout, fromTree }) {
     if (step.pushed.ok) {
       await integrateCandidate(step);
       settleDiagnostic(step.diagnostic);
+      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, captured.rev);
       writeConfig(CURRENT.flags, CURRENT.repoRoot, { lastRecord: nowIso() });
       say(`tracker-sync: recorded the store at ${String(captured.rev).slice(0, 12)}`);
       return;
@@ -2380,12 +2394,95 @@ async function recordRun({ revision, checkout, fromTree }) {
   }
   die(4, 'the remote refused three recording candidates; live work was preserved; reconcile remote state before retrying');
 }
+// ---- a recording that timed out at commit time ----------------------------
+/**
+ * The marker a hook's record leaves when the store lock could not be had.
+ *
+ * A post-commit hook has nothing to fail: the commit exists, its output is
+ * discarded, and the recording it could not write is invisible until a push
+ * refuses the revision and says "no recording for <rev>: the store never
+ * recorded that revision" - which names the wrong cause (#57). So a record run
+ * started by a hook that still cannot take the lock keeps a marker per revision
+ * in the machine's own state (never in the tree): the push that reads the
+ * missing recording names the timeout and the command that redoes it, and a
+ * later successful record of that revision removes the marker.
+ */
+const recordTimeoutDir = (flags, repoRoot) => join(machineDir(flags, repoRoot), 'record-timeouts');
+// A revision's full name and a short one name the same marker: the hook writes
+// the name git gives it, and a reader may ask with either.
+function findRecordTimeout(flags, repoRoot, at) {
+  const dir = recordTimeoutDir(flags, repoRoot);
+  const want = String(at || '');
+  if (!want || want.includes('/') || want.includes('..')) return null;
+  let names = [];
+  try { names = readdirSync(dir); } catch { return null; }
+  const name = names.find((n) => n.endsWith('.json') && (n.slice(0, -5) === want
+    || (n.slice(0, -5).startsWith(want) && n.slice(0, -5).length > want.length)
+    || (want.startsWith(n.slice(0, -5)) && want.length > n.slice(0, -5).length)));
+  if (!name) return null;
+  try { return { file: join(dir, name), ...JSON.parse(readFileSync(join(dir, name), 'utf8')) }; } catch { return { file: join(dir, name), revision: want }; }
+}
+function writeRecordTimeout(flags, repoRoot, revision, said) {
+  if (!revision) return null;
+  const file = join(recordTimeoutDir(flags, repoRoot), `${revision}.json`);
+  const body = { revision, at: nowIso(), said: String(said || '').split('\n')[0], command: rerunRecordLine(flags, repoRoot, revision) };
+  writeAtomic(file, `${JSON.stringify(body, null, 2)}\n`);
+  return file;
+}
+function clearRecordTimeout(flags, repoRoot, revision) {
+  const found = findRecordTimeout(flags, repoRoot, revision);
+  if (!found) return false;
+  try { rmSync(found.file, { force: true }); return true; } catch { return false; }
+}
+/** The command that redoes a recording a hook could not write. */
+const rerunRecordLine = (flags, repoRoot, revision) =>
+  `node ${quote(join(HERE, 'tracker-sync.mjs'))} record --revision ${revision} --checkout ${quote(CURRENT.repoRoot)} --state ${quote(machineDir(flags, repoRoot))} --recipe ${quote(CURRENT.recipe.path)}`;
+
+/** A record a checkout's hook started: bounded, and never silent.
+ *
+ * Three attempts of at most HOOK_LOCK_WAIT_MS each, with a short pause between
+ * them: about half a minute at worst, and never the two minutes a person's own
+ * record may wait. A commit is not held by it in any case - the hook runs after
+ * the commit exists - but a hook that waits minutes is a hook that runs into the
+ * next one, so the bound is short and the outcome is a marker, not silence. */
+const HOOK_LOCK_WAIT_MS = 8000;
+const HOOK_RECORD_ATTEMPTS = 3;
+async function recordWithRetries(opts) {
+  HOOK_RECORD = true;
+  LOCK_WAIT_MS = HOOK_LOCK_WAIT_MS;
+  let last = null;
+  for (let attempt = 1; attempt <= HOOK_RECORD_ATTEMPTS; attempt++) {
+    try {
+      await recordRun(opts);
+      return;
+    } catch (e) {
+      if (!e.lockTimeout) throw e;
+      last = e;
+      if (attempt < HOOK_RECORD_ATTEMPTS) {
+        say(`tracker-sync: the store is locked (${e.message.split(';')[0]}); attempt ${attempt} of ${HOOK_RECORD_ATTEMPTS} for this recording, trying again`);
+        await sleep(2000);
+      }
+    }
+  }
+  const rev = await recordedRevision(opts);
+  const file = writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message);
+  die(1, `the recording of ${rev ? String(rev).slice(0, 12) : 'this revision'} timed out on the store lock after ${HOOK_RECORD_ATTEMPTS} attempts (${last.message.split(';')[0]}); `
+    + `${file ? `a marker is kept at ${file}, so the next push names it as a timeout instead of a missing recording, and running record again removes it` : 'a person must rerun record'}`);
+}
+/** The revision this run is about, read the way record reads it. */
+async function recordedRevision(opts) {
+  if (opts.revision) return String(opts.revision);
+  const ck = opts.checkout ? resolve(opts.checkout) : CURRENT.repoRoot;
+  const r = await git(['rev-parse', 'HEAD'], { cwd: ck });
+  return r.code === 0 ? r.stdout.trim() : null;
+}
+
 // ---- connect, status, export, watch ----------------------------------------
 
 /** The record step a checkout's own hook needs, said so a person can put it in a
  * hook this mechanism must not write to itself. */
 const recordLine = (flags, repoRoot, checkout) =>
-  `node ${quote(join(HERE, 'tracker-sync.mjs'))} record --revision "$(git rev-parse HEAD)" --checkout "$(git rev-parse --show-toplevel)" --state ${quote(machineDir(flags, repoRoot))} --recipe ${quote(CURRENT.recipe.path)}`;
+  `node ${quote(join(HERE, 'tracker-sync.mjs'))} record --hook --revision "$(git rev-parse HEAD)" --checkout "$(git rev-parse --show-toplevel)" --state ${quote(machineDir(flags, repoRoot))} --recipe ${quote(CURRENT.recipe.path)}`;
 
 /** The line that puts a checkout back on the store's pointer, for the hook that
  * runs when a branch is checked out. A branch from before the move carries its
@@ -2758,8 +2855,16 @@ async function exportRun(flags, pos) {
   if (at) {
     const f = join(CURRENT.store, '.tracker-sync', 'recordings', `${at}.jsonl`);
     requireRegularFile(f, 'the recording');
-    if (!existsSync(f))
+    if (!existsSync(f)) {
+      // A hook's record that timed out on the store lock left a marker: the push
+      // that finds no recording must name the timeout and the command that redoes
+      // it, never "the store never recorded that revision", which is not what
+      // happened and leaves the reader with no way to see it was a timeout (#57).
+      const timedOut = findRecordTimeout(CURRENT.flags, CURRENT.repoRoot, at);
+      if (timedOut)
+        die(1, `the recording of ${at} timed out at commit time: the store was locked (${timedOut.said || 'the lock was held elsewhere'}), and record gave up after its bounds at ${timedOut.at || 'commit time'}; the state is not lost, it was never written. Redo it with: ${timedOut.command || rerunRecordLine(CURRENT.flags, CURRENT.repoRoot, at)}`);
       die(1, `no recording for ${at}: the store never recorded that revision, so its state is unknown and is not guessed from a later state`);
+    }
     // A recording holds a reference to the store commit whose state it records, so
     // the state is read from that commit: the bytes are the ones a snapshot of the
     // same state returned, and a baseline read at a revision changes by nothing.
@@ -2923,7 +3028,7 @@ function usage(code = 1) {
     '  sync [--interval <s>]',
     '  claim --item <id> --holder <holder>',
     '  transition --item <id> --to <status>',
-    '  record --revision <rev> [--checkout <path>] [--from-tree]',
+    '  record --revision <rev> [--checkout <path>] [--from-tree] [--hook]',
     '  export [--at <revision>] [--now] [--offline]',
     '  status [--json]',
     '  watch [--interval <s>] [--debounce <s>] [--max-age <s>]',
@@ -3005,9 +3110,13 @@ async function main() {
       }, String(flags.item));
       break;
     }
-    case 'record':
-      await recordRun({ revision: flags.revision ? String(flags.revision) : null, checkout: flags.checkout ? String(flags.checkout) : null, fromTree: !!flags['from-tree'] });
+    case 'record': {
+      const opts = { revision: flags.revision ? String(flags.revision) : null, checkout: flags.checkout ? String(flags.checkout) : null, fromTree: !!flags['from-tree'] };
+      // --hook: the checkout's own post-commit and post-merge line. It is
+      // bounded and it never fails silently (see recordWithRetries).
+      if (flags.hook) await recordWithRetries(opts); else await recordRun(opts);
       break;
+    }
     case 'export':
       await exportRun(flags, pos);
       break;

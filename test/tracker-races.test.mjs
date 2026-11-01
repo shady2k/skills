@@ -157,8 +157,10 @@ test('sync reads HEAD and ancestry under the mutation lock, preserving a concurr
     const file = join(ctx.scratch, 'barrier.mjs');
 
     writeFileSync(file, src().replace(
-      'async function locked(fn, waitMs = 120000, { skipOnTimeout = false } = {}) {',
-      'async function locked(fn, waitMs = 120000, { skipOnTimeout = false } = {}) {' + marker)
+      // The lock's wait is a module value now (a hook's record lowers it), so the
+      // barrier goes at the same seam with the signature as it is written.
+      'async function locked(fn, waitMs = LOCK_WAIT_MS, { skipOnTimeout = false } = {}) {',
+      'async function locked(fn, waitMs = LOCK_WAIT_MS, { skipOnTimeout = false } = {}) {' + marker)
       .replace(
         "await gitOk(['reset', '--hard', remote.tip], { cwd: CURRENT.store });",
         "await gitOk(['reset', '--hard', remote.tip], { cwd: CURRENT.store }); if(process.env.RACE_RESET) writeFileSync(process.env.RACE_RESET,await headOid());"));
