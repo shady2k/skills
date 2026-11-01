@@ -1,0 +1,80 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture bad/nonleaf-dependency.stage-with-tasks",
+  "issues": [
+    {
+      "title": "",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person finds a receipt. Falsified if they cannot.\nAgreed direction: 2026-01-10T09:00:00Z — \"One store behind one command.\"\nAgreed plan: 2026-01-12T17:30:00Z — \"The store stage first, then the listing.\"",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "F1"
+    },
+    {
+      "title": "",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "## DONE WHEN\nThe store keeps one receipt. Falsified if two.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "S1"
+    },
+    {
+      "title": "A receipt is written once",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "T1"
+    },
+    {
+      "title": "",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [
+        "S1"
+      ],
+      "body": "## DONE WHEN\nReceipts list by date. Falsified if not.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "S2"
+    },
+    {
+      "title": "The listing reads the store",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S2",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "T2"
+    }
+  ],
+  "expect": [
+    "nonleaf-dependency"
+  ],
+  "expectViolations": [
+    "nonleaf-dependency|S2|S1"
+  ]
+}

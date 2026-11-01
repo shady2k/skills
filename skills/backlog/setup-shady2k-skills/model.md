@@ -50,7 +50,7 @@ revision — so the state being judged says which revision it stands for:
 
 ## The outcome lines
 
-The gate reads three one-line facts out of a body itself, case-insensitive,
+The gate reads one-line facts out of a body itself, case-insensitive,
 each at the start of a line with an optional leading `-`, `*` or `>`, and each
 declared only when its value is real text: a value that is only a placeholder
 (TODO, TBD, TKTK, or something between angle brackets) declares nothing.
@@ -60,6 +60,8 @@ declared only when its value is real text: a value that is only a placeholder
 | a stage (an issue that carries work: it has children, or it is the only child of its feature): `Serves: O1, O2` | the outcome ids this stage serves |
 | a feature: `Seen at: signup-page, receipt-email` | the handles of the places a person reaches this feature's outcome |
 | a stage: `Preparatory: <reason>` | this stage is prefactoring, and why |
+| a feature: `Agreed direction: <time> — "<the owner's words>"` | the direction was shown and agreed: how the system meets the outcome, with the inventory of what already does that job |
+| a feature: `Agreed plan: <time> — "<the owner's words>"` | the plan was shown and agreed: the stages, what each makes true, their DONE WHEN and their order |
 | a charter or a feature: `Target: <date>` | the date this document promises |
 | a charter or a feature: `Forecast: <duration>` | the duration it reports, in the same shape |
 
@@ -72,6 +74,34 @@ still required to reach the person (`unobservable-first-stage`). Lines of this
 syntax are stripped from the DONE WHEN text before anything is counted against
 it. A feature that names no place is not judged: that is the rule's stated
 limit, and declaring the place is the fix.
+
+## The two agreements, and when the gate asks for them
+
+An agreement line carries three things: which agreement it is, when the owner
+gave it, and a quotation of their own words in `"…"`, `“…”` or `«…»`. A line
+without a readable time, or with no quotation of what the person said, declares
+nothing: it is the agent's own decision wearing the record's shape, and it is
+refused exactly like an absent line.
+
+`started-without-agreement` asks for both lines on a feature that carries
+stages once work under it has begun. A stage is the feature's child that carries
+live work of its own: a leaf whose sub-task has closed is a leaf again, so a
+repair filed under one is no breakdown. Begun means one of: a descendant in
+`active`, `submitted` or `implemented`; a descendant carrying a `[shady2k-time`
+claim; a descendant a `landed` commit names; or a descendant closed while the
+feature itself is held by a run — `active`, or claimed. The plan's time may not
+be earlier than the direction's. Not judged: a leaf under a feature with no
+stage, and a feature never broken down, because the shortest path has no plan to
+agree.
+
+A feature already under way when a project adopted the rule cannot honestly
+acquire the record afterwards, so setup lists it once in the config's
+`agreementExempt`, as it lists work in flight for the time records, and the
+exemption follows the tree: the work started after that is judged, and a task
+that was split off keeps it. Under `block-new` an unlisted one is old debt
+against the baseline and is printed without blocking; under `block` every error
+still stops the commit, which is what that strength means, so the list — not the
+baseline — is the route for a project that chose it.
 
 ## The vision record, and the chain up to it
 

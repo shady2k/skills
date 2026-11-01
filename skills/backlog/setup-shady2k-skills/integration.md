@@ -17,6 +17,13 @@ are the repository's installation, and each person's plugin and hooks are theirs
 - **Acceptance records:** <where stage base/final revisions, included tasks,
   criteria, test/mutation/review evidence and pending limitations are retained>
 - **Features and stages:** <native type mapped to epic; coordinator ownership>
+- **Feature agreement:** <where a feature records that its owner agreed its
+  direction and then its plan: the two lines of the normalized `body` the gate
+  reads (`Agreed direction: <time> — "<owner's words>"` and `Agreed plan:
+  <time> — "<owner's words>"`), and the operation that writes them; the
+  config's `agreementExempt` holds the features already under way when the rule
+  was adopted, listed once by setup with the owner's agreement, so the rule
+  judges what starts after that>
 - **Implemented:** <native status or durable metadata mapping, integration
   revision and local-check evidence; neither ready nor closed>
 - **Submitted:** <native status or metadata, durable result revision/location

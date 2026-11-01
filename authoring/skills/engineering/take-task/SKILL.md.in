@@ -86,6 +86,14 @@ needs and settle a real scope change with the owner.
 
 Before the owner leaves, prepare the run so it needs nobody:
 
+- **the feature's agreement is on record**, by the protocol's [**An approval
+  covers what was shown**](references/speaking.md): its direction — with the
+  inventory of what already does that job — and then its plan, the stages and
+  their DONE WHEN, each agreed by the owner with when they agreed it and their
+  own words. Without it this run does not start: show the direction, then the
+  breakdown, record both when they agree, and only then leave preflight. A leaf
+  with no stage and a trivial change carry no plan, so they carry no record of
+  one;
 - the feature's spec and its stages exist; later stages may stay coarse, and the
   coordinator breaks them into tasks when it reaches them, within the spec.
   On the shortest path above, the task's line is both, and this step asks
@@ -496,7 +504,13 @@ project's checks.
 
 Check that the agent doc, the glossary, the current specs and the architecture
 still describe the assembled revision, by the protocol's **What describes the
-present is kept true**; what this stage made false is updated in it. Get a
+present is kept true**; what this stage made false is updated in it. Check it
+against the project's recorded decisions too, and against the shape they
+settled: a stage that contradicts a decision, or that opens a second way into a
+capability the project already reaches — a second entry point, store, worker or
+pipeline for the same job — is not accepted until it is fixed or the owner
+changes the decision, by [review.md](review.md)'s **The design the change builds
+on** and building.md's **One surface per capability**. Get a
 review following [`review.md`](review.md), preferably from a reviewer on another
 model the set can reach from here ([`agents.md`](references/agents.md)); the
 review answers "matches the design: yes/no, divergences"

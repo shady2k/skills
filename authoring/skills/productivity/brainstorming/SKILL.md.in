@@ -114,7 +114,11 @@ state of the practice**](references/deciding.md). Ask the question that
 unblocks the next step, not every question in the design.
 
 A choice about the design comes as the protocol's [**A design decision comes
-with its mechanism**](references/deciding.md) says. Where the choice is
+with its mechanism**](references/deciding.md) says, and a proposal that adds or
+replaces a mechanism carries the inventory of what already does that job by
+[**Inventory before options**](references/design.md) — what exists, what it
+extends, what it replaces — because the one thing the person cannot check from
+the conversation is what the code already holds. Where the choice is
 between designs of the system's shape — options built from patterns and
 traded against quality attribute scenarios — the protocol's
 [architecture and design](references/design.md) holds the standards, and a

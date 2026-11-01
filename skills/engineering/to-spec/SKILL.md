@@ -139,7 +139,14 @@ introduces or changes a building block, an interface, ownership of state, a
 runtime interaction, an external dependency or an interface surface, the
 architecture is not decided here: `to-design` decides it after this spec,
 by the protocol's [architecture and design](references/design.md), and this
-section records what it decided.
+section records what it decided. A spec that proposes a mechanism itself — a
+new command, store, worker or pipeline — carries the inventory beside it:
+what already does that job, where it is reached from, and whether this extends
+it or replaces it, by [building.md](references/building.md)'s **Find before
+writing**, which is what
+[design.md](references/design.md)'s **Inventory before options** shows the
+owner. Without it the owner is choosing between descriptions of things none of
+them has seen.
 No file paths and no code: they go stale within the week. The one exception
 is a snippet a prototype produced that says a decision more exactly than prose
 can (a state machine, a schema, a type), trimmed to the part that decides.

@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.59.0
+Setup version: 0.60.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -94,6 +94,15 @@ where the project allows one). A task that will not fit one worker's session is
 split before it starts. A stage has no session limit: it groups
 tasks toward a checkpoint that is accepted by checks and review before the
 next stage builds on it.
+
+**A feature runs on a plan its owner agreed.** Its direction, with the
+inventory of what already does that job, and then its plan — the stages, what
+each makes true, their DONE WHEN and their order — are shown and agreed before
+a run starts, and each agreement is recorded on the feature where the gate
+reads it, by [speaking.md](references/speaking.md)'s **An approval covers what
+was shown**. A feature whose work has started without that record is refused by
+the gate (`started-without-agreement`); a leaf with no stage and a trivial
+change have no plan to agree and need none.
 
 **The horizon.** Only the current milestone is broken down below features. The
 next milestone exists as feature titles; anything further lives in the vision.

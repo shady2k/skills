@@ -180,10 +180,26 @@ Show word for word only short text whose exact words matter: a done criterion,
 text users will see, an irreversible action, anything to be published. Offer
 the document on request; never make reading it a condition to proceed.
 
-An approval covers what was shown. The summary carries every decision, scope
-boundary, assumption and risk of the document; an independent reviewer checks
-it against the document for anything missing. A document that cannot be
-summarized fully holds too many decisions to approve at once: split it.
+**An approval covers what was shown.** And only that. A yes to a direction is
+not a yes to a plan, and a yes to a plan is not a yes to the stages it is broken
+into: no stage, criterion, scope boundary or order the summary did not carry is
+approved by it. A document that cannot be summarized fully holds too many
+decisions to approve at once, so it is split. The summary carries every
+decision, scope boundary, assumption and risk of what it approves; an
+independent reviewer checks it against the document for anything missing.
+
+Autonomous work on a feature therefore starts only after two things were shown
+and agreed, in this order: its **direction** — how the system will meet the
+outcome, with the inventory of what already does that job, by
+[design.md](design.md)'s **Inventory before options** — and then its **plan**:
+the stages, what each makes true, their DONE WHEN, and the order they run in.
+Each agreement is recorded on the feature item in the owner's words, by **A
+decision the owner gives is kept, not only obeyed**, where the gate reads it —
+a line each for the direction and the plan, with when it was given and the
+person's own words — because the run that starts on a plan nobody saw is the
+one no step of this set is left to stop. Scope added after an agreement that
+changes what was agreed goes back to them as a new proposal, and the work it
+governs waits.
 
 **An ask carries its own substance.** What was shown is what this message
 shows. A request for the person's decision says what it is about here, however

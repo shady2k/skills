@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture good/leaf-under-a-feature-needs-no-agreement",
+  "issues": [
+    {
+      "title": "",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person can undo one filter. Falsified if they cannot.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "F1"
+    },
+    {
+      "title": "Undo clears one filter",
+      "type": "task",
+      "status": "closed",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "T1"
+    }
+  ]
+}

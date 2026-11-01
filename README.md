@@ -262,10 +262,10 @@ In Claude Code the plugin prefixes them: `/shady2k-skills:ask-shady2k`.
 | skill | what it does | when to use it |
 | --- | --- | --- |
 | [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md) | Reads the project and tells you where it stands, how far it has come, what is stuck and which ways forward exist, with one recommendation and each way's time measured with its basis; or, for the team's daily sync, what was done over a period, what got in the way, the questions for others and whether the work fits by a date. Changes nothing. | At the start of a session, after a break, in an unfamiliar project, whenever you are unsure what comes next, before a standup. |
-| [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md) | Connects the project's tracker — one copy per machine, outside the code branches and in step with every machine, with the synchronization that keeps it so installed and started — cleans its queue with you, proposes settings as one profile, proves the checks work and, in a product repository, writes the product's kinds registry, with the kinds' link declarations. Rerunning it after 0.49.0 rewrites the judgement records a live charter or an admitted change carries, in your presence, and exports the journeys of your vision so a judgement can name them. | Once per project, and again when a skill says the installation is out of date. |
+| [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md) | Connects the project's tracker — one copy per machine, outside the code branches and in step with every machine, with the synchronization that keeps it so installed and started — cleans its queue with you, proposes settings as one profile, proves the checks work and, in a product repository, writes the product's kinds registry, with the kinds' link declarations. Rerunning it after 0.49.0 rewrites the judgement records a live charter or an admitted change carries, in your presence, and exports the journeys of your vision so a judgement can name them. Rerunning it for 0.131.0 records where a feature's agreement with you is written, and lists the features already under way once, with your agreement, so the rule judges only what starts after that. | Once per project, and again when a skill says the installation is out of date. |
 | [to-milestone](skills/backlog/to-milestone/SKILL.md) | Agrees what the next version delivers, what is left out and how many new bugs it can absorb. Each outcome names the vision journeys and principles it serves, and the charter's acceptance carries another model's judgement of what it serves and breaks, each entry naming an id the vision declares and quoting a passage of the charter. | When the current version is done, or a project has no agreed next step. |
 | [refine-practices](skills/engineering/refine-practices/SKILL.md) | Reads how the work has gone since the last retrospective and judges the active practices first: the classes of error that came back, each put to you with a recommended practice to add or retire, and the practices that caught nothing in the period with what each costs, to retire or loosen — the ones guarding an expensive failure, such as publication, permissions or data loss, kept whatever the period held. Put to you as your project's setting for open questions says. | At the end of a milestone, when about five features have closed without one, or whenever you want to look back. |
-| [take-task](skills/engineering/take-task/SKILL.md) | Before you leave, gathers every decision a planned feature will need, in one list or one question at a time as your project chose; then builds the whole feature without you up to one pull request, deciding small gaps itself, stopping only for decisions that need you and telling you what the run's own overhead is costing. An item whose change is already on the main line is closed rather than counted as remaining or built again. It never reaches green by making a check easier to pass. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, a duration it tells you is that same measurement with its basis, and every worker's brief carries what its task serves, whom it serves and where you see it. | When a feature is planned and you want it built while you are away. |
+| [take-task](skills/engineering/take-task/SKILL.md) | Before you leave, gathers every decision a planned feature will need, in one list or one question at a time as your project chose; then builds the whole feature without you up to one pull request, deciding small gaps itself, stopping only for decisions that need you and telling you what the run's own overhead is costing. An item whose change is already on the main line is closed rather than counted as remaining or built again. It never reaches green by making a check easier to pass. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, a duration it tells you is that same measurement with its basis, and every worker's brief carries what its task serves, whom it serves and where you see it. It starts only on the agreement on record — the direction and then the plan, in your words — and refuses to start without one, and a stage is not accepted while a second way into a capability the project already reaches stays open beside the one its decisions put there. | When a feature is planned and you want it built while you are away. |
 | [handoff](skills/productivity/handoff/SKILL.md) | Keeps the work's state in the tracker and leaves what only this conversation knows where a fresh session will look, saying which effects already reached outside rather than leaving a status to be trusted. | Before you stop, or when a session gets too long. |
 | [ship-release](skills/engineering/ship-release/SKILL.md) | Carries merged, accepted work to its users: version by the project's scheme, release notes in what users can do, migrations with their reverse, rollout by environment with a check after each step and the rollback named before any step runs; a step already taken is read from the system that holds it, never run twice after a stop. | When a feature's pull request is merged and the project's users get it later than the merge. |
 | [handle-incident](skills/engineering/handle-incident/SKILL.md) | Restores a product failing in use — each move read from the system that holds it, so a session taking over does not undo what is already undone — then finds the cause through `diagnose-bug`, then holds a blameless review whose actions are filed as work. | When a product runs for users and they report it is down or broken. |
@@ -278,13 +278,13 @@ unrelated changes, new scope or publishing anything.
 
 | skill | what it does | when to use it |
 | --- | --- | --- |
-| [brainstorming](skills/productivity/brainstorming/SKILL.md) | Thinks an idea through with you: offers its own ideas and counterexamples, argues its own position from several sides with the risks, brings the established practice first, and gives way only to a reason. Nothing has to come out of it. A principle you state about how the product must work is written into your vision or decision record at once, in your words. | "Let's discuss", "what if", an open product decision. |
+| [brainstorming](skills/productivity/brainstorming/SKILL.md) | Thinks an idea through with you: offers its own ideas and counterexamples, argues its own position from several sides with the risks, brings the established practice first, and gives way only to a reason. Nothing has to come out of it. A principle you state about how the product must work is written into your vision or decision record at once, in your words, and a proposal that adds or replaces a mechanism carries what the code already does for that job. | "Let's discuss", "what if", an open product decision. |
 | [define-product](skills/productivity/define-product/SKILL.md) | Talks your idea through with you in plain words, one plain question at a time unless your project chose several in one message, and writes what an engineer needs to start: what you said, what you believe and how to test it, what a user does, what they must be able to see, and what is still unknown. Your key journeys and principles each get a stable id, and every milestone outcome names the ones it serves. | When you have an idea but no requirements, or before a product's first feature. |
 | [to-research](skills/productivity/to-research/SKILL.md) | Answers a question from primary sources, with citations. | When a decision depends on facts nobody has checked. |
 | [to-prototype](skills/engineering/to-prototype/SKILL.md) | Builds a small throwaway experiment that answers one design question. | When arguing takes longer than trying. |
-| [to-spec](skills/engineering/to-spec/SKILL.md) | Writes down what exactly is being built, as the user will see it, with scenarios that will be checked; short or full by what the change touches, not by the writer's own sense of its size. A constraint it states is a requirement with a check, and an uncovered one is refused. | Before building something whose behaviour is not yet agreed. |
-| [to-design](skills/engineering/to-design/SKILL.md) | Decides how the system will meet an outcome before it is built: the product goal confirmed with you first, the drivers traced to it with each constraint's source, at least two options from named patterns and established practice, the direction confirmed with you before the long write, a recorded decision with what was rejected and assumed, review by another model that checks the goal before the details, and the scenarios that become checks. The design lists its constraints with a check each — a limit of scale is proved only on a fixture at least that size — names the vision principles of its area, and its acceptance carries another model's judgement of what it serves and breaks, each entry naming an id the vision declares and quoting a passage of the design record. | When a change introduces or changes a building block, an interface, ownership of state, a runtime interaction, an external dependency or an interface surface. |
-| [to-stages](skills/backlog/to-stages/SKILL.md) | Splits a feature into stages, checkpoints that are each checked before the next builds on them, and tasks small enough for one agent. A stage or task names the outcomes it serves, since the forecast is computed over the exact tasks covering them. | When planning a feature before it runs. |
+| [to-spec](skills/engineering/to-spec/SKILL.md) | Writes down what exactly is being built, as the user will see it, with scenarios that will be checked; short or full by what the change touches, not by the writer's own sense of its size. A constraint it states is a requirement with a check, and an uncovered one is refused. A spec that proposes a mechanism names what already does that job and whether it extends or replaces it. | Before building something whose behaviour is not yet agreed. |
+| [to-design](skills/engineering/to-design/SKILL.md) | Decides how the system will meet an outcome before it is built: the product goal confirmed with you first, the drivers traced to it with each constraint's source, at least two options from named patterns and established practice, the inventory of what already does the job — entry points, modules, stores, commands, workers — laid out before any option and carried into the direction you confirm, the direction confirmed with you before the long write, a recorded decision with what was rejected and assumed, review by another model that checks the goal before the details, and the scenarios that become checks. The design lists its constraints with a check each — a limit of scale is proved only on a fixture at least that size — names the vision principles of its area, and its acceptance carries another model's judgement of what it serves and breaks, each entry naming an id the vision declares and quoting a passage of the design record. | When a change introduces or changes a building block, an interface, ownership of state, a runtime interaction, an external dependency or an interface surface. |
+| [to-stages](skills/backlog/to-stages/SKILL.md) | Splits a feature into stages, checkpoints that are each checked before the next builds on them, and tasks small enough for one agent. A stage or task names the outcomes it serves, since the forecast is computed over the exact tasks covering them. The breakdown is shown to you and recorded in your words before anything is published, a replacement carries the old mechanism's retirement inside the same feature unless you say otherwise, and a project decision the breakdown would contradict comes to you instead of being built. An order between two stages that are not broken down yet sits on the waiting stage until it has tasks, and moves onto them then. | When planning a feature before it runs. |
 | [diagnose-bug](skills/engineering/diagnose-bug/SKILL.md) | Finds the cause of a bug with evidence: reproduces it, tests hypotheses one at a time, refuses a fix that passes by weakening the check that caught it, and treats a gate that refuses honest work as code to diagnose. | When a bug did not yield to a quick look. |
 | [model-domain](skills/engineering/model-domain/SKILL.md) | Keeps the glossary — domain terms and the names of the system's own parts — and records of hard-to-reverse decisions. | When words start meaning different things, when a part had to be explained instead of named, or when a decision needs its reason kept. |
 | [describe-repository](skills/engineering/describe-repository/SKILL.md) | Describes one code repository the product spans for its wiki: the repository's intended model with its evidence, the architecture page, the capabilities found in the code as requirements and use cases marked derived from code, and the decisions found in the code or its ADRs, each linked to the model elements it shapes. | After a code repository is connected to the product, or when asked to describe one. |
@@ -820,7 +820,8 @@ work it was.
 | `epic-without-criterion` | a live feature/stage without a meaningful DONE WHEN marker |
 | `area-label`, `label-vocabulary` | missing/multiple areas or unknown labels |
 | `parent-cycle`, `dependency-cycle` | cycles in hierarchy or live prerequisites |
-| `nonleaf-dependency` | blanket blocking edges involving containers |
+| `nonleaf-dependency` | a blocking edge a container carries instead of a task — an order may sit on a stage that has no tasks yet, and moves onto them with them |
+| `started-without-agreement` | a feature whose work has started before its direction and then its plan were agreed by the owner, recorded in their words and checked in that order |
 | `implemented-without-evidence` | implemented work without recorded integration and local-check evidence |
 | `submitted-without-evidence` | submitted work without a durable result and local-check evidence |
 | `stale-edge` (warning) | absent or long-untouched prerequisites needing review |
@@ -890,6 +891,54 @@ can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
+
+- **0.131.0** stops a second implementation of something the project already has
+  from being planned, built and accepted beside the one its decisions named, and
+  stops autonomous work from starting on a plan nobody saw. From real use.
+
+  One run planned a new implementation with the old one's removal written out of
+  scope, built it beside the path the project's decisions named, and had it
+  accepted on its own description; both paths then stayed reachable, and the
+  one nobody needed was the one that failed under load. Another took a short
+  "yes" to a summary as consent to the stages, criteria and scope that followed
+  it, none of which the owner had been shown. Now:
+
+  - **before planning**, what already does the job is what you read: a proposal
+    that adds or replaces a mechanism carries the inventory of the entry
+    points, modules, stores, commands, workers and pipelines the project has for
+    it — what exists, what it extends, what it replaces — and a proposal with no
+    inventory is not put to you;
+  - **at decomposition**, a replacement carries the old one's retirement inside
+    the same feature, as a wide refactor already did; "removing the old one is
+    out of scope" is your recorded decision, never a line the breakdown writes
+    for itself. The project's standing decisions are read before the breakdown,
+    and one it would contradict is put to you instead of built;
+  - **at acceptance**, the stage review searches the revision for every way that
+    job is reached and reads the change against the recorded decisions: a second
+    entry point, store, worker or pipeline beside the one a decision put there,
+    or a retirement the plan promised and the revision does not carry, blocks
+    acceptance. Where the stack can see it, one way in becomes one of the
+    project's own checks;
+  - **a run starts on an agreement about what you were shown**: the direction,
+    then the plan — the stages, what each makes true, their DONE WHEN and their
+    order — each recorded on the feature with when you gave it and your own
+    words. A yes to a summary authorizes nothing the summary did not contain,
+    and the preflight refuses to start without that record;
+  - **the gate refuses work started without it** (`started-without-agreement`).
+    A line whose time does not parse, quotes nothing you said, or still holds a
+    placeholder counts as none. A task that waits for no stage and a trivial
+    change need no record, and a feature already under way when a project
+    adopts the rule is listed once in the config, as work in flight is listed
+    when time records arrive, so the rule judges what starts after that;
+  - **an order between two stages that are not broken down yet is now an edge
+    the tracker keeps**, on the waiting stage; `nonleaf-dependency` refuses it
+    again the moment that stage has a task, which is where the order moved to.
+    The ready list sees the order instead of a comment nobody reads.
+
+  Projects rerun setup once: the installed gate carries the new rule and the
+  widened one, the project's integration records where the two agreement lines
+  are written, and setup lists the features already under way so they are not
+  an error on the day the rules arrive.
 
 - **0.130.0** stops an agent from halting in front of a gate that refuses honest
   work, and stops one added check from disowning the results that came before it.

@@ -20,7 +20,7 @@ Skills that keep the queue usable and stage acceptance honest.
 Also available directly to the user.
 
 - [to-stages](./to-stages/SKILL.md): stages as checkpoints and tasks sized for one
-  worker, parallel except for concrete prerequisites or conflicts. A stage or task names the outcomes it serves, since the forecast is computed over the exact tasks covering them.
+  worker, parallel except for concrete prerequisites or conflicts. A stage or task names the outcomes it serves, since the forecast is computed over the exact tasks covering them. The breakdown reaches the owner and is recorded in their words before anything is published, a replacement retires the old mechanism inside the same feature unless they say otherwise, and a standing decision the breakdown would contradict is put to them. An order between two stages not broken down yet sits on the waiting stage and moves onto its tasks in the same step.
 - [groom-backlog](./groom-backlog/SKILL.md): reversible cleanup, including setup bootstrap.
 - [to-backlog](./to-backlog/SKILL.md): register work and discoveries; separate filing
   from admission, with the filing shared as soon as it is made.

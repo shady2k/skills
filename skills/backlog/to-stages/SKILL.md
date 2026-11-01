@@ -78,13 +78,24 @@ the walk happens inside the run and not only at its end. A stage has no
 session limit; its tasks do. Together they meet the feature's end-to-end
 criterion; they need not form a sequence, and independent stages and features
 run concurrently. Add a dependency only for a real required result,
-conflicting write or exclusive resource, on the affected task.
+conflicting write or exclusive resource, on the affected task — or between two
+stages while the later one is not broken down: it has no task to carry the
+order yet, and the tracker's ready list reads a stage that waits. Breaking that
+stage down moves the order onto its tasks in the same step, and the gate
+refuses an order left on a stage that already has tasks (`nonleaf-dependency`).
+A dependency kept in a comment is one the ready list never reads.
 
 **Tasks**, for the stages starting now only:
 
 - Small enough for one worker's session, including its local checks.
 - A **vertical slice**: a narrow, complete path through every layer the outcome
   touches, never one layer across. Finished, it can be shown or checked alone.
+- A stage or task that replaces a mechanism carries the old one's retirement in
+  the same feature, by [building.md](references/building.md)'s **One surface per
+  capability**: the new form beside the old, callers moved, the old form deleted
+  in a last task of that same feature. "Removing the old one is out of scope" is
+  the owner's decision in so many words, recorded; written by the breakdown
+  itself, it is the second implementation with nobody left to remove it.
 - Prefactoring first, as its own tasks.
 - Acceptance covers the spec's seams; local tests may use other stable interfaces.
 - The title is a sentence the work can be understood from, naming each part by
@@ -114,7 +125,27 @@ each; delete the old form in a last task once nothing uses it.
 Stages and tasks each wear exactly one area label. Create stages as the type
 the integration names for them; that is the type the gate checks for a DONE WHEN.
 
+**The project's standing decisions come before the breakdown**, by
+[deciding.md](references/deciding.md)'s **A question is searched for before it
+is asked**: read the decision records, the glossary, the constraints the
+charter names, and the design the change builds on. Where the breakdown would
+contradict one, or stand a new mechanism beside the one a decision put there,
+that is the owner's decision and not the agent's: put it, with what the
+decision says and what the breakdown would do instead, before any stage is
+created. A breakdown written against a recorded decision is the second design
+the owner never agreed to.
+
 ## 4. Present the breakdown
+
+For a feature that will be run, this presentation is the agreement the run
+starts on, by [speaking.md](references/speaking.md)'s **An approval covers what
+was shown**: what the owner agrees here is the plan — these stages, what each
+makes true, their DONE WHEN and their order — and no caller stands in for them.
+Record it on the feature in their words, with when they gave it, where the gate
+reads it; then publish. Where the owner's own decision closes an option the
+breakdown would otherwise have taken (the old mechanism retired inside this
+feature or later), that decision is recorded with it, because the next reader
+of the plan is a run that will not ask again.
 
 Show a numbered list: title, what it makes true, what it waits for. Explain
 each stage's result, size, real prerequisites, what can run in parallel and
@@ -133,4 +164,7 @@ Create stages under the feature and tasks under their stages with the tracker's
 verbs. Run the gate. It is done when the gate is clean and the ready tasks are
 exactly the first ones you expect. Publish and name what is ready to take:
 `take-task` for the stage, with the tasks that can run in parallel. When called
-from an authorized execution workflow, return the breakdown to it and continue.
+from an authorized execution workflow whose feature already carries the agreed
+plan, return the breakdown to that caller and continue; where the plan is not on
+record, present it first — a workflow authorizes the work, not the plan the owner
+has not seen.
