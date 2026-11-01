@@ -232,6 +232,13 @@ function seedStore(ctx, machine, items) {
   writeFileSync(join(store, 'fake', 'db.json'), JSON.stringify({ records: items }, null, 1) + '\n');
 }
 
+// How many times the tracker was asked to export, in the file the fake was told
+// to log to. What a watcher costs while nothing changes is exactly this number
+// (#57).
+function exportCount(logPath) {
+  try { return readFileSync(logPath, 'utf8').split('\n').filter((l) => l.trim() === 'export').length; } catch { return 0; }
+}
+
 // A store's state text, in the shape a recording exports: what `export --at`
 // must answer with, whichever form the recording holds.
 function stateTextOf(ctx, machine) {
@@ -321,7 +328,10 @@ function newCtx(tag, overrides = {}) {
   return {
     tag, scratch: dir, remote, codeA, codeB,
     stateA: join(dir, 'stateA'), stateB: join(dir, 'stateB'),
-    mech: overrides.mech || MECH_SRC,
+    // PROOF_MECH_OVERRIDE runs these cases against another copy of the mechanism
+    // (a released file, a deliberately broken one): the report's "before" number
+    // for the idle watcher is measured that way, never estimated.
+    mech: overrides.mech || process.env.PROOF_MECH_OVERRIDE || MECH_SRC,
     recipe: overrides.recipe || RECIPE_SRC,
     fake: overrides.fake || FAKE_SRC,
     br: overrides.br !== undefined ? !!overrides.br : overrides.recipe === BR_RECIPE,
@@ -444,6 +454,27 @@ const BREAKS = [
     name: 'publish-commits-but-does-not-push',
     cases: ['1-publish-latency'],
     apply: (s) => ({ mech: breakByRegex('publish-nopush', s.mech, /(['"])push\1(?=,\s*['"]origin['"])/, '$1pushx$1') }),
+  },
+  // #57: the idle skip is the whole point of the change, and it has two rules -
+  // a tick that exports always, and a tick that skips a store that holds an
+  // unpublished write. Each is broken into its own copy and its own case.
+  {
+    name: 'watcher-exports-every-tick',
+    cases: ['33-idle-watcher-exports-nothing'],
+    apply: (s) => ({
+      mech: breakByLiteral('watcher-no-skip', s.mech,
+        'if (sigPaths && sig !== null && signalKnown && sig === lastSignal && firstChange === null',
+        'if (false && sigPaths && sig !== null && signalKnown && sig === lastSignal && firstChange === null'),
+    }),
+  },
+  {
+    name: 'watcher-skips-a-store-that-changed',
+    cases: ['34-idle-change-is-published'],
+    apply: (s) => ({
+      mech: breakByLiteral('watcher-ignores-dirty', s.mech,
+        '          && !(await hasUncommittedState())) {',
+        '          && true) { /* deliberate break: nothing asks the store whether it is dirty */'),
+    }),
   },
   {
     name: 'sync-skips-the-merge',
@@ -658,12 +689,15 @@ const BREAKS = [
       'async function inProcessLock(fn) { return fn(); /* deliberate break: no in-process mutex */') }),
   },
   {
+    // A watcher that has nothing to export never meets a foreign lock at all
+    // (#57), so only the case that makes a write while the store is held can
+    // show what a lock timeout does.
     name: 'a-lock-timeout-exits-the-watcher',
-    cases: ['22-watcher-publish-and-sync-overlap', '28-a-watch-never-meets-its-own-lock'],
+    cases: ['22-watcher-publish-and-sync-overlap'],
     // the fix undone: a round that cannot take the lock refuses like a one-shot
     // command does, so the supervisor restarts the watcher into the same wait.
     apply: (s) => ({ mech: breakByLiteral('timeout-dies', s.mech,
-      '      if (skipOnTimeout && e.lockTimeout) throw e;\n      die(1, e.message);',
+      '      if ((skipOnTimeout || HOOK_RECORD) && e.lockTimeout) throw e;\n      die(1, e.message);',
       '      die(1, e.message); /* deliberate break: a lock timeout exits the watcher */') }),
   },
 
@@ -847,6 +881,138 @@ const CASES = {
       const res2 = await waitForRemote(ctx, (items) => items.some((x) => x.id === 'i-2' && x.comments.some((c) => c.text === 'while unsupervised')));
       record('9-supervisor-restart', !!res2.value, res2.value ? 'a write after the restart landed (not a real boot)' : 'the write after the restart never landed');
       await stopWatcher(w2);
+    } finally { await stopAllWatchers(ctx); }
+  },
+
+  // 33. #57: an idle watcher does no work and never makes a record wait.
+  '33-idle-watcher-exports-nothing': async (ctx) => {
+    const r = bringUp(ctx, 'A');
+    if (r.code !== 0) { record('33-idle-watcher-exports-nothing', false, 'bring-up: ' + r.out); return; }
+    const log = join(ctx.scratch, 'exports-idle.log');
+    ctx.debugEnv = { FAKE_EXPORT_LOG: log };
+    const w = watcher(ctx, 'A', ['--interval', '60', '--debounce', '2', '--max-age', '5']);
+    try {
+      await waitUntil(async () => remoteTip(ctx), 5000);
+      await settleWatcher(ctx, 'A');
+      await sleep(3000); // the tick that settles after the store's first publish
+      const before = exportCount(log);
+      // A record run while the watcher is idle: it must take the store at once,
+      // never wait for a watcher that has nothing to do.
+      const rev = sh('git', ['-C', ctx.codeA, 'rev-parse', 'HEAD']).stdout.trim();
+      const t0 = Date.now();
+      const rec = mech(ctx, 'record', ['--revision', rev], { machine: 'A' });
+      const recMs = Date.now() - t0;
+      await sleep(8000);
+      const during = exportCount(log) - before;
+      const waited = /waiting for the store lock/.test(rec.out);
+      const ok = during === 0 && rec.code === 0 && !waited;
+      record('33-idle-watcher-exports-nothing', ok,
+        `exports while idle and unchanged: ${during} over 8 s (a watcher with no signal does about 8); record during the watch: exit ${rec.code}, ${recMs} ms${waited ? ', waited for the lock' : ', never waited for the lock'}`,
+        recMs);
+    } finally { await stopAllWatchers(ctx); }
+  },
+
+  // 34. A change made while the watcher is idle is still published inside the
+  // bounds, and the idle back-off does not put it past them.
+  '34-idle-change-is-published': async (ctx) => {
+    const r = bringUp(ctx, 'A');
+    if (r.code !== 0) { record('34-idle-change-is-published', false, 'bring-up: ' + r.out); return; }
+    const log = join(ctx.scratch, 'exports-change.log');
+    ctx.debugEnv = { FAKE_EXPORT_LOG: log };
+    const w = watcher(ctx, 'A', ['--interval', '60', '--debounce', '2', '--max-age', '5']);
+    try {
+      await waitUntil(async () => remoteTip(ctx), 5000);
+      await settleWatcher(ctx, 'A');
+      await sleep(6000); // idle long enough to be backed off to the longest poll
+      const t0 = Date.now();
+      const p = post(ctx, 'A', 'i-1', 'made while idle');
+      if (p.code !== 0) { record('34-idle-change-is-published', false, 'post failed: ' + p.out); return; }
+      const res = await waitForRemote(ctx, (items) => items.some((x) => x.id === 'i-1'
+        && x.comments.some((c) => c.id === p.recordId && c.text === 'made while idle')), 15000);
+      const ms = Date.now() - t0;
+      // A state file that changed while the database did not: nothing in the
+      // signal moved, so only asking the store whether it holds an unpublished
+      // write can catch this one, and the watcher must catch it.
+      const store = storeOf(ctx, 'A');
+      const statePath = join(store, 'fake', 'items.jsonl');
+      const rows = readFileSync(statePath, 'utf8').split('\n').filter((l) => l.trim()).map((l) => JSON.parse(l));
+      const target = rows.find((x) => x.id === 'i-3');
+      if (!target) { record('34-idle-change-is-published', false, 'no i-3 in the store to change'); return; }
+      const late = { id: 'c-state-only', author: 'local-session', text: 'state file only', created_at: new Date().toISOString() };
+      target.comments = [...(target.comments || []), late];
+      writeFileSync(statePath, rows.map((r) => JSON.stringify(r)).join('\n') + '\n');
+      const t1 = Date.now();
+      const res2 = await waitForRemote(ctx, (items) => items.some((x) => x.id === 'i-3'
+        && (x.comments || []).some((c) => c.id === 'c-state-only')), 12000);
+      const ms2 = Date.now() - t1;
+      // max-age (5 s) plus the longest idle poll (5 s) plus scheduling slack
+      record('34-idle-change-is-published', !!res.value && !!res2.value && ms <= 12000 && ms2 <= 12000,
+        !res.value ? 'the write made while idle never reached the remote'
+          : !res2.value ? 'a changed state file with an unchanged database was never published' : '', ms);
+    } finally { await stopAllWatchers(ctx); }
+  },
+
+  // 35. A write that lands while an export is running is published, not lost to
+  // a signal the export itself moved.
+  '35-write-during-an-export-is-published': async (ctx) => {
+    const r = bringUp(ctx, 'A');
+    if (r.code !== 0) { record('35-write-during-an-export-is-published', false, 'bring-up: ' + r.out); return; }
+    ctx.debugEnv = { FAKE_SLOW_EXPORT: '1500' };
+    const w = watcher(ctx, 'A', ['--interval', '60', '--debounce', '2', '--max-age', '5']);
+    try {
+      await waitUntil(async () => remoteTip(ctx), 5000);
+      await settleWatcher(ctx, 'A');
+      // Land the write inside the export window: the export is held open 1.5 s,
+      // and this write starts after it must have begun.
+      await sleep(1200);
+      const t0 = Date.now();
+      const p = post(ctx, 'A', 'i-2', 'landed during an export');
+      const res = await waitForRemote(ctx, (items) => items.some((x) => x.id === 'i-2'
+        && x.comments.some((c) => c.id === p.recordId && c.text === 'landed during an export')), 15000);
+      const ms = Date.now() - t0;
+      record('35-write-during-an-export-is-published', !!res.value && ms <= 15000,
+        res.value ? '' : 'the write that landed during an export never reached the remote', ms);
+    } finally { await stopAllWatchers(ctx); }
+  },
+
+  // 36. A recipe that declares no change signal keeps the old behaviour: the
+  // export runs on every tick, because nothing else can tell it what changed.
+  '36-recipe-without-a-signal-exports-each-tick': async (ctx) => {
+    const r = bringUp(ctx, 'A');
+    if (r.code !== 0) { record('36-recipe-without-a-signal-exports-each-tick', false, 'bring-up: ' + r.out); return; }
+    const log = join(ctx.scratch, 'exports-nosignal.log');
+    ctx.debugEnv = { FAKE_EXPORT_LOG: log, FAKE_RECIPE_DECLARES_NO_SIGNAL: '1' };
+    const w = watcher(ctx, 'A', ['--interval', '60', '--debounce', '2', '--max-age', '5']);
+    try {
+      await waitUntil(async () => remoteTip(ctx), 5000);
+      await settleWatcher(ctx, 'A');
+      await sleep(3000);
+      const before = exportCount(log);
+      await sleep(6000);
+      const during = exportCount(log) - before;
+      record('36-recipe-without-a-signal-exports-each-tick', during >= 4,
+        `exports in 6 s with no signal declared: ${during} (a tick is one second)`);
+    } finally { await stopAllWatchers(ctx); }
+  },
+
+  // 37. A tracker whose own export moves its database is not exported for ever:
+  // the export's own write is told apart from an outside write by whether it
+  // wrote state, and the loop settles.
+  '37-a-trackers-own-write-does-not-loop': async (ctx) => {
+    const r = bringUp(ctx, 'A');
+    if (r.code !== 0) { record('37-a-trackers-own-write-does-not-loop', false, 'bring-up: ' + r.out); return; }
+    const log = join(ctx.scratch, 'exports-ownwrite.log');
+    ctx.debugEnv = { FAKE_EXPORT_LOG: log, FAKE_EXPORT_TOUCHES_DB: '1' };
+    const w = watcher(ctx, 'A', ['--interval', '60', '--debounce', '2', '--max-age', '5']);
+    try {
+      await waitUntil(async () => remoteTip(ctx), 5000);
+      await settleWatcher(ctx, 'A');
+      await sleep(6000);
+      const before = exportCount(log);
+      await sleep(8000);
+      const during = exportCount(log) - before;
+      record('37-a-trackers-own-write-does-not-loop', during <= 1,
+        `exports in 8 idle seconds while every export moves the database: ${during}`);
     } finally { await stopAllWatchers(ctx); }
   },
 
@@ -1828,30 +1994,43 @@ const CASES = {
     const w = watcher(ctx, 'A', ['--interval', '1', '--debounce', '2']);
     await sleep(9000);
     const log1 = existsSync(w.logPath) ? readFileSync(w.logPath, 'utf8') : '';
-    const selfWait = /waiting for the store lock/.test(log1) || /the store is locked by pid/.test(log1);
+    // Its OWN lock is what this asks about: a wait that names another pid is a
+    // foreign holder, which the second half is about.
+    const selfWait = /waiting for the store lock/.test(log1) && new RegExp('locked by pid ' + w.pid + '\\b').test(log1);
     const alive1 = w.exitCode === null && w.signalCode === null;
     record('22-the-watcher-does-not-wait-on-its-own-lock', alive1 && !selfWait,
       'alive: ' + alive1 + ', a self-wait was said: ' + selfWait + ', log: ' + log1.split('\n').filter(Boolean).slice(-1).join('').slice(0, 140));
     // Another command holds the store past the watcher's own wait: the round is
     // skipped, said once, and the watcher stays up. A holder of its own process
     // would be the same wait; this is a foreign one, so the file lock is the only
-    // thing between them.
+    // thing between them. The write comes FIRST and the watcher starts after the
+    // store is held: a watcher whose signal has not moved takes neither the lock
+    // nor the export and would never meet the holder at all (#57), so the state
+    // that needs exporting is made before it starts.
+    await stopWatcher(w);
+    const p22 = post(ctx, 'A', 'i-1', 'while the store is held');
+    const took = join(ctx.scratch, 'holder-took');
     const holder = spawn('node', ['-e', `import(${JSON.stringify(ctx.mech)}).then(async (m) => {
+      const fs = await import('node:fs');
       const flags = { state: ${JSON.stringify(ctx.stateA)} };
       const repo = ${JSON.stringify(ctx.codeA)};
       for (let i = 0; i < 240; i++) {
-        try { m.takeLock(flags, repo); break; }
+        try { m.takeLock(flags, repo); fs.writeFileSync(${JSON.stringify(took)}, 'held'); break; }
         catch { await new Promise((r) => setTimeout(r, 250)); }
       }
-      setTimeout(() => {}, 24000);
+      setTimeout(() => {}, 70000);
     })`], { stdio: 'ignore' });
     ctx.watchers.push(holder);
-    await sleep(30000);
-    const log2 = existsSync(w.logPath) ? readFileSync(w.logPath, 'utf8') : '';
-    const alive2 = w.exitCode === null && w.signalCode === null;
+    await waitUntil(() => existsSync(took), 20000, 100);
+    const w2 = watcher(ctx, 'A', ['--interval', '60', '--debounce', '1', '--max-age', '2']);
+    // The watcher's own wait for the store is 20 s; this is long enough for it to
+    // expire once and for the round to be skipped.
+    await sleep(26000);
+    const log2 = existsSync(w2.logPath) ? readFileSync(w2.logPath, 'utf8') : '';
+    const alive2 = w2.exitCode === null && w2.signalCode === null;
     const skipped = (log2.match(/another command holds the store lock/g) || []).length;
     record('22-a-lock-timeout-skips-the-round-said-once', alive2 && skipped === 1,
-      'alive after the holder passed the wait: ' + alive2 + ', the skip was said ' + skipped + ' time(s)');
+      'the write: exit ' + p22.code + '; alive after the holder passed the wait: ' + alive2 + ', the skip was said ' + skipped + ' time(s)');
     try { holder.kill('SIGKILL'); } catch { /* it exits on its own */ }
   },
 

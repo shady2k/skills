@@ -28,7 +28,7 @@
  * from .tracker-sync/machines.json (written by `ordinal`), so the same record
  * keeps the same id on every machine and the merge never renumbers one.
  */
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync } from 'node:fs';
 import { join, resolve, dirname, basename, isAbsolute } from 'node:path';
 import { createHash } from 'node:crypto';
 
@@ -66,8 +66,14 @@ function writeJsonl(p, records) {
 }
 function mirrorDb() {
   const items = readJsonl(stateFile()).filter((r) => r.type !== 'void');
+  const body = JSON.stringify({ records: items }, null, 1) + '\n';
   mkdirSync(dirname(dbFile()), { recursive: true });
-  writeFileSync(dbFile(), JSON.stringify({ records: items }, null, 1) + '\n');
+  // A flush with nothing to export writes nothing: that is what a real tracker's
+  // flush does (measured with br 0.7.0, "Nothing to export (no dirty issues)"),
+  // and a database rewritten on every flush would make a watcher's own export
+  // look like a change for ever. FAKE_EXPORT_TOUCHES_DB=1 is that other tracker,
+  // declared so the watcher's own-write path is proved to settle (#57).
+  if (process.env.FAKE_EXPORT_TOUCHES_DB === '1' || !existsSync(dbFile()) || readFileSync(dbFile(), 'utf8') !== body) writeFileSync(dbFile(), body);
 }
 const findItem = (items, id) => items.find((r) => r.id === id && r.type !== 'void');
 
@@ -145,6 +151,9 @@ switch (sub) {
     break;
   }
   case 'export': case 'import': {
+    // A case that counts what the watcher asks the tracker to do while nothing
+    // changes (#57): one line per export, in the file the case names.
+    if (sub === 'export' && process.env.FAKE_EXPORT_LOG) appendFileSync(process.env.FAKE_EXPORT_LOG, 'export\n');
     // A tracker that refuses to flush its own database, which is what the
     // mechanism must never read as "nothing unexported". The refusal is the
     // tracker's own words, so a case can model one the recipe classifies and one

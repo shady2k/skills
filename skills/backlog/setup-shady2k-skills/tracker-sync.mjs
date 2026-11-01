@@ -469,6 +469,7 @@ async function recipeOk(decl, map, opts) {
  *   exportSide: 'node <recipeFile> export-side --out <out>'
  *   candidateFiles: ['<a local file a conditional write needs>', ...]
  *   prune: '<a command that keeps the tracker's own backups within its bound>'
+ *   signal: ['<a store-relative path the database writes>', ...]
  *
  * `candidateFiles` is the only way a path the store's git ignores reaches a
  * candidate: a tracker that keeps a setting outside the committed state names it
@@ -1042,6 +1043,45 @@ const stateDigest = () => {
 async function hasUncommittedState() {
   const r = await git(['status', '--porcelain', '--', ...stateFiles(), '.tracker-sync'], { cwd: CURRENT.store });
   return r.stdout.trim().length > 0;
+}
+
+/** The paths the recipe says move when its database does, or null.
+ *
+ *   signal: ['<a path the database writes>', ...]    store-relative
+ *
+ * A tracker's database is machine-local and its writes never touch the state
+ * files until they are flushed, so "did anything change?" is a question about
+ * the database, and the cheap answer is the stats of the files it writes: its
+ * own file, its write-ahead log and their sidecars. Declared as paths, never as
+ * a command, because the point of the signal is that asking costs no process
+ * and no store lock: the mechanism stats them itself. A recipe that declares
+ * none keeps the behaviour of a watcher that exports on every tick. */
+function changeSignalPaths() {
+  const decl = CURRENT.recipe.signal;
+  if (!decl) return null;
+  const paths = Array.isArray(decl) ? decl : decl.paths || [];
+  const list = paths.map(String).filter((p) => p);
+  return list.length ? list : null;
+}
+
+/** One tick's signal: each declared path's size and mtime, in nanoseconds.
+ *
+ * Read WITHOUT the store lock on purpose: it must not make a record wait. A
+ * read that fails for any reason other than "the file is not there" answers
+ * null, and null is never a match for anything, so the tick exports: a signal
+ * nobody could read must never become a skip. */
+function readChangeSignal(paths) {
+  const parts = [];
+  for (const p of paths) {
+    try {
+      const s = statSync(join(CURRENT.store, p), { bigint: true });
+      parts.push(`${p}:${s.mtimeNs}:${s.size}`);
+    } catch (e) {
+      if (e && e.code === 'ENOENT') { parts.push(`${p}:-`); continue; }
+      return null;
+    }
+  }
+  return parts.join('|');
 }
 
 /** The store's file lock, waited for. Past the deadline this throws a tagged
@@ -2769,21 +2809,68 @@ async function watchRun(flags) {
     lockTimeoutSaid = true;
     say(`tracker-sync: another command holds the store lock (${e.message.split(';')[0]}); this round is skipped and tried again, the watcher stays up`);
   };
+  // The tracker's own change signal, for a recipe that declares one: with it,
+  // a tick whose signal equals the one taken before the last export skips both
+  // the store lock and the export, which is what makes an idle watcher cost
+  // almost nothing and lets a record have the lock at once (#57).
+  const sigPaths = changeSignalPaths();
+  let lastSignal = null;      // the signal taken BEFORE the export of that tick
+  let signalKnown = false;
+  let idleMs = 1000;
+  const IDLE_MAX_MS = 5000;
   const publishLoop = async () => {
     while (!stop) {
+      // A tick's signal is taken BEFORE anything is exported, and that value -
+      // never the one after - is what the next tick is compared with. An outside
+      // write that lands during the export is therefore part of the store's next
+      // signal, which cannot equal the recorded one, so the next tick exports
+      // again: a write during an export is delayed by one tick and never lost.
+      // The watcher's own export cannot loop for the same reason it cannot lie:
+      // a flush with nothing unexported moves nothing (measured with br), so the
+      // tick after it records the value it finds and the one after that skips.
+      const sig = sigPaths ? readChangeSignal(sigPaths) : null;
+      if (sigPaths && sig !== null && signalKnown && sig === lastSignal && firstChange === null
+          && !(await hasUncommittedState())) {
+        idleMs = Math.min(IDLE_MAX_MS, idleMs + 1000);
+        await sleep(idleMs);
+        continue;
+      }
+      idleMs = 1000;
       // The lock covers the store's own work only; the push is a network call
       // and happens with the lock released, so a claim or a record from another
       // session is never made to wait on the watcher's network.
       let digest = null;
+      let exported = false;
+      let post = null;
+      let touched = false;
       try {
-        digest = await locked(async () => {
+        const step = await locked(async () => {
           await flushDatabase();
-          if (!(await hasUncommittedState())) return null;
-          return stateDigest();
+          // The signal again, inside the same critical section: what the export
+          // itself wrote is now in it.
+          const after = sigPaths ? readChangeSignal(sigPaths) : null;
+          const dirty = await hasUncommittedState();
+          return { after, dirty, digest: dirty ? stateDigest() : null };
         }, 20000, { skipOnTimeout: true });
+        digest = step.digest; post = step.after; touched = step.dirty;
+        exported = true;
       } catch (e) {
         if (e.lockTimeout) { onLockTimeout(e); await sleep(1000); continue; }
         say(`tracker-sync: the export failed: ${e.message}`);
+      }
+      // What the next tick is compared with. A round skipped for the lock
+      // records nothing: it must try again, not believe it exported.
+      if (sigPaths && exported && sig !== null && post !== null) {
+        // The export wrote state: record the BEFORE value, so a write that
+        // landed during the export (and was not flushed into that state) still
+        // differs on the next tick. The export's own write differs too, which
+        // costs exactly one further export: a flush with nothing unexported
+        // writes nothing, so the tick after it finds the value it records.
+        // The export wrote no state but moved the database: that is the
+        // tracker's own bookkeeping, nothing is unexported, and recording the
+        // AFTER value is what stops such a tracker exporting for ever.
+        lastSignal = touched && post !== sig ? sig : post;
+        signalKnown = true;
       }
       if (digest === null) { firstChange = null; lastChange = null; lastDigest = ''; await sleep(1000); continue; }
       const t = Date.now();
