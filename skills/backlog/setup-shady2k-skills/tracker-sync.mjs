@@ -2538,8 +2538,12 @@ async function hookPlan(checkout) {
     const file = join(dir, name);
     // A hook that is not a regular file is refused like one without the marker:
     // opening a named pipe there would block the connect for ever.
-    const text = existsSync(file) && notRegularFile(file) === null ? readFileSync(file, 'utf8') : null;
-    return { name, file, line: files[name], mark: `${HOOK_MARKS[name]}\n`, text, present: text !== null && text.includes(HOOK_MARKS[name]) };
+    // The bytes are kept beside the decoded text: an upgrade of an older
+    // generated command splices bytes, because a hook may carry comments or
+    // commands that are not valid UTF-8 and a decode-and-rewrite would replace them.
+    const bytes = existsSync(file) && notRegularFile(file) === null ? readFileSync(file) : null;
+    const text = bytes === null ? null : bytes.toString('utf8');
+    return { name, file, line: files[name], mark: `${HOOK_MARKS[name]}\n`, bytes, text, present: text !== null && text.includes(HOOK_MARKS[name]) };
   });
   return { dir, inRepo, wanted, missing: wanted.filter((h) => !h.present) };
 }
@@ -2571,13 +2575,54 @@ async function installHooks(checkout) {
   mkdirSync(plan.dir, { recursive: true });
   for (const h of plan.wanted) {
     const { file: f, mark, line } = h;
-    if (h.present) continue;
+    let upgraded = null;
+    if (h.present) {
+      // A hook that already carries the marker is normally left alone. The one
+      // exception is the exact command an older release generated, installed
+      // before `record --hook` existed: the marker says that line is ours, so
+      // rerunning setup can bring it up to date. A marker alone never grants
+      // ownership of code: only the exact old line, immediately after its own
+      // marker, is replaced, and every other byte is kept.
+      // A hooks folder inside the tree is the project's own files, and
+      // post-checkout carries the relink line, which never changed.
+      if (plan.inRepo || h.name === 'post-checkout') continue;
+      // Matched and spliced as bytes, never as decoded shell text: a comment or
+      // another command in the same hook may hold bytes that are not valid UTF-8,
+      // and only the generated line may change.
+      const legacy = Buffer.from(mark + line.replace(' record --hook --revision ', ' record --revision ').trimEnd());
+      const replacement = Buffer.from(mark + line.trimEnd());
+      const parts = [];
+      let copied = 0;
+      let at = h.bytes.indexOf(legacy);
+      while (at !== -1) {
+        const end = at + legacy.length;
+        // Whole lines only: the same text inside a longer command is not a
+        // generated line, and is not ours to change.
+        if ((at === 0 || h.bytes[at - 1] === 10) && (end === h.bytes.length || h.bytes[end] === 10)) {
+          parts.push(h.bytes.subarray(copied, at), replacement);
+          copied = end;
+        }
+        at = h.bytes.indexOf(legacy, end);
+      }
+      if (!parts.length) continue;
+      // A machine hook can be a symlink into the project's tracked files even
+      // when its folder is git metadata: the file itself is resolved, and a
+      // tracked target is never rewritten.
+      if (await hooksInsideRepository(checkout, f)) continue;
+      parts.push(h.bytes.subarray(copied));
+      upgraded = Buffer.concat(parts);
+    }
     if (h.text !== null) {
       // A hook that is not a POSIX shell script cannot carry this line: shell
       // appended to another language is a syntax error that stops every commit.
       const shebang = (h.text.split('\n')[0] || '').trim();
       if (shebang.startsWith('#!') && !/\/(sh|bash|dash|zsh|ksh)\b/.test(shebang)) {
         die(1, `${f} is not a shell hook (${shebang}): tracker-sync will not append shell to it. Call the step from that hook yourself: ${line.trim()}`);
+      }
+      if (upgraded !== null) {
+        writeFileSync(f, upgraded);
+        say(`tracker-sync: upgraded the generated ${h.name} record step in ${f}`);
+        continue;
       }
       // A hook that ends in `exit 0` would end before an appended step runs, so
       // the step goes in front of that line, and the project's own hook is kept.
