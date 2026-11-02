@@ -174,7 +174,11 @@ mechanism is what meets them, and this skill installs it:
   clone and rerun. A hook that is missing or lacks its marker is refused (exit 1),
   named with the line for the project to add to that hook, because the line
   carries this machine's state directory and the recipe's path, which no other
-  machine can use. Every command the mechanism runs runs without git's own hook
+  machine can use. Outside the tracked tree, reconnecting upgrades the exact
+  generated record command an older release installed, in place: a hook's own
+  commands, the bytes around the generated line, and a hook the project keeps in
+  its tree are left as they are, and reconnecting again changes nothing.
+  Every command the mechanism runs runs without git's own hook
   environment (`GIT_DIR`,
   `GIT_INDEX_FILE`, `GIT_WORK_TREE` and the rest of it): a step started from a hook
   must read and write the store, never the code checkout the hook came from.
@@ -183,9 +187,15 @@ mechanism is what meets them, and this skill installs it:
   bounded on the store and never silent about it: it asks for the store a few
   times, and a record it still cannot write because the store is held leaves a
   marker per revision, keyed by the revision's full id, in the machine's own
-  state, never in the tree; the read that finds no recording names that timeout
-  and the command that redoes it, and a later successful record of the revision
-  removes the marker. A failure that is not the lock - an unreachable remote, a
+  state, never in the tree. That marker also keeps the store commit whose tree is
+  the state the revision had when the hook gave up, so the read that finds no
+  recording names the timeout and the command that restores exactly that state,
+  and a later successful record of the revision removes the marker. A recording
+  is that revision's history and is never taken from a later state: a retry
+  records the kept state, and a marker that kept none (one written before this
+  release) is refused, naming the ways out - make a new commit or amend, so the
+  hook records a fresh revision, or sync when another machine already recorded
+  it. A failure that is not the lock - an unreachable remote, a
   recipe that failed - is said and kept as it was: this bound is the lock's. Reachability is whether the
   remote answers: a remote whose `HEAD` names a branch that does not exist answers
   and is reachable, and only a remote that does not answer makes a read refuse (or

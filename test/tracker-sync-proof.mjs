@@ -491,8 +491,8 @@ const BREAKS = [
     cases: ['38-a-hook-record-that-times-out-is-named'],
     apply: (s) => ({
       mech: breakByLiteral('hook-no-marker', s.mech,
-        'const file = writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message);',
-        'const file = null; void writeRecordTimeout; /* deliberate break: the timeout leaves no marker */'),
+        'writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message, storeCommit)',
+        'null /* deliberate break: the timeout leaves no marker */'),
     }),
   },
   {
@@ -747,8 +747,20 @@ const BREAKS = [
     // the fix undone: the recording holds the state itself, which grew one store
     // by a full copy on every commit in every worktree.
     apply: (s) => ({ mech: breakByLiteral('recording-copy', s.mech,
-      'writeFileSync(file, recordingText(stateOid, await stateTextAt(stateOid)));',
+      'writeFileSync(file, recordingText(written, await stateTextAt(written)));',
       'writeFileSync(file, sideText(parts)); /* deliberate break: the state is copied */') }),
+  },
+  {
+    // skills-vk03: a redo after a timed-out hook record must record the store
+    // commit the marker kept, never the state standing when the redo runs - that
+    // later state would become the old revision's permanent history, which the
+    // gate reads with --at and as the baseline under block-new.
+    name: 'a-redo-records-the-current-state',
+    cases: ['38-a-hook-record-that-times-out-is-named'],
+    // the fix undone: every marker is read as "the state now".
+    apply: (s) => ({ mech: breakByLiteral('redo-current-state', s.mech,
+      '  if (!oid) return null;',
+      '  return await headOid(); /* deliberate break: the redo records the state standing now, never the state the marker kept */') }),
   },
   {
     name: 'a-reference-is-not-checked',
@@ -1047,12 +1059,16 @@ const CASES = {
 
   // 38. #57: a hook's record that cannot take the store lock is bounded, leaves a
   // marker, is named as a timeout at the read that finds no recording, and the
-  // marker goes when the recording is made.
+  // redo records the state the revision had at commit time - never the tracker as
+  // it stands later, which would become that revision's permanent history.
   '38-a-hook-record-that-times-out-is-named': async (ctx) => {
     const r = bringUp(ctx, 'A');
     if (r.code !== 0) { record('38-a-hook-record-that-times-out-is-named', false, 'bring-up: ' + r.out); return; }
     const lock = join(ctx.stateA, 'lock');
+    const store = storeOf(ctx, 'A');
     const rev = sh('git', ['-C', ctx.codeA, 'rev-parse', 'HEAD']).stdout.trim();
+    const atCommit = mech(ctx, 'export', ['--now', '--offline'], { machine: 'A' }).stdout;
+    const pinned = sh('git', ['-C', store, 'rev-parse', 'HEAD']).stdout.trim();
     let held = false;
     try {
       // Another process holds the store: a live pid, so the holder is never
@@ -1066,18 +1082,27 @@ const CASES = {
       const ms = Date.now() - t0;
       const marker = join(ctx.stateA, 'record-timeouts', `${rev}.json`);
       const marked = existsSync(marker);
+      const pinnedMarker = marked && JSON.parse(readFileSync(marker, 'utf8')).commit === pinned;
       // The bound: never a commit blocked for minutes, and never silence.
       const bounded = ms <= 40000;
-      const read = mech(ctx, 'export', ['--at', rev], { machine: 'A' });
-      const saysTimeout = /timed out at commit time/.test(read.out) && /record --revision/.test(read.out);
-      const saysMissing = /never recorded that revision/.test(read.out);
-      // Release the lock and record it for real: the marker must go.
+      const saysMissing = /never recorded that revision/.test(mech(ctx, 'export', ['--at', rev], { machine: 'A' }).out);
+      // Release the lock, and let the tracker move on at unchanged HEAD: the
+      // later write is published, so it is the store's head when the redo runs.
       rmSync(lock, { recursive: true, force: true }); held = false;
+      post(ctx, 'A', 'i-1', 'written after the timeout, at unchanged HEAD');
+      const published = mech(ctx, 'publish', [], { machine: 'A' });
+      const read = mech(ctx, 'export', ['--at', rev], { machine: 'A' });
+      const saysTimeout = /timed out at commit time/.test(read.out) && read.out.includes(pinned.slice(0, 12))
+        && /record --revision/.test(read.out);
       const again = mech(ctx, 'record', ['--revision', rev], { machine: 'A' });
+      const redone = mech(ctx, 'export', ['--at', rev], { machine: 'A' });
       const cleared = !existsSync(marker);
-      const ok = marked && bounded && saysTimeout && !saysMissing && again.code === 0 && cleared;
+      const ok = marked && pinnedMarker && bounded && saysTimeout && !saysMissing && published.code === 0
+        && again.code === 0 && cleared && redone.stdout === atCommit && !/written after the timeout/.test(redone.stdout);
       record('38-a-hook-record-that-times-out-is-named', ok,
-        `hook record against a held store: exit ${rec.code} after ${ms} ms, marker ${marked ? 'written' : 'MISSING'}; the read says ${saysTimeout ? 'a timeout and the command' : saysMissing ? '"never recorded" (wrong cause)' : JSON.stringify(read.out.split('\n')[0].slice(0, 120))}; marker after a successful record: ${cleared ? 'gone' : 'STILL THERE'}`);
+        `hook record against a held store: exit ${rec.code} after ${ms} ms, marker ${marked ? 'written' : 'MISSING'}`
+        + `${marked ? ` naming the state commit: ${pinnedMarker}` : ''}; the read says ${saysTimeout ? 'a timeout and the command that restores that state' : saysMissing ? '"never recorded" (wrong cause)' : JSON.stringify(read.out.split('\n')[0].slice(0, 120))}`
+        + `; redone exit ${again.code}, the recording is the commit-time state: ${redone.stdout === atCommit}, holds the later write: ${/written after the timeout/.test(redone.stdout)}, marker after the redo: ${cleared ? 'gone' : 'STILL THERE'}`);
     } finally {
       if (held) rmSync(lock, { recursive: true, force: true });
       await stopAllWatchers(ctx);
@@ -2147,12 +2172,22 @@ const CASES = {
     mkdirSync(blockingDir, { recursive: true });
     cpSync(ctx.fake, join(blockingDir, 'fake.mjs'));
     const blocking = join(blockingDir, 'recipe.mjs');
-    writeFileSync(blocking, readFileSync(ctx.recipe, 'utf8').replace(/import: `[^`]*`,/, "import: 'sleep 25',"));
+    // The candidate's FOLDER appears before its sparse checkout has written the
+    // files a write reads, so measuring it there measured a half-built candidate
+    // and once saw 1 KB with a whole recording still held (a red main CI run on
+    // 2026-11-01). The import command is the boundary: it runs inside the
+    // candidate once its contents are there, so it reports where it runs and
+    // then holds, and the measurement happens after that line.
+    const importReady = join(ctx.scratch, 'candidate-import-ready');
+    const pauseImport = `printf '%s' "$PWD" > '${importReady.replaceAll("'", "'\\''")}'; sleep 25`;
+    writeFileSync(blocking, readFileSync(ctx.recipe, 'utf8').replace(/import: `[^`]*`,/, `import: ${JSON.stringify(pauseImport)},`));
     const blockedLog = join(ctx.scratch, 'blocked-record.log');
     const blockedFd = openSync(blockedLog, 'w');
     const killed = spawn(process.execPath, [ctx.mech, 'record', '--revision', rev, '--checkout', ctx.codeA,
       '--recipe', blocking, '--state', stateDir, '--repo', ctx.codeA], { cwd: ctx.scratch, stdio: ['ignore', blockedFd, blockedFd] });
-    const stood = await waitUntil(() => (candidateDirs(stateDir).length ? candidateDirs(stateDir)[0] : null), 20000, 100);
+    // Directory creation precedes sparse checkout. The import is the boundary at
+    // which the candidate's contents are ready to measure.
+    const stood = await waitUntil(() => (existsSync(importReady) && readFileSync(importReady, 'utf8') ? readFileSync(importReady, 'utf8') : null), 20000, 100);
     const candidate = stood.value;
     let candidateBytes = -1; let holdsBackup = null; let holdsRecordingState = null;
     if (candidate) {
