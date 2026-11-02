@@ -491,7 +491,7 @@ const BREAKS = [
     cases: ['38-a-hook-record-that-times-out-is-named'],
     apply: (s) => ({
       mech: breakByLiteral('hook-no-marker', s.mech,
-        'writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message, storeCommit)',
+        'writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message, storeCommit, exact)',
         'null /* deliberate break: the timeout leaves no marker */'),
     }),
   },
@@ -749,6 +749,19 @@ const BREAKS = [
     apply: (s) => ({ mech: breakByLiteral('recording-copy', s.mech,
       'writeFileSync(file, recordingText(written, await stateTextAt(written)));',
       'writeFileSync(file, sideText(parts)); /* deliberate break: the state is copied */') }),
+  },
+  {
+    // skills-v0cn: a timeout marker names a store commit only when the database's
+    // own signal proves the head IS that state. A tracker write the watcher had not
+    // exported is in no commit, and naming the head anyway records an older state
+    // as the revision's permanent history.
+    name: 'a-timeout-marker-outruns-the-database',
+    cases: ['39-a-timeout-marker-never-outruns-the-database'],
+    // The conditions undone at once: the pair is never compared with the signal the
+    // hook read, and a proof is invented for the head as it stands.
+    apply: (s) => ({ mech: breakByLiteral('marker-outruns-database', s.mech,
+      '  if (!pair || pair.signal !== signalAtStart) return null;',
+      "  if (!pair || pair.signal !== signalAtStart) return { commit: await storeStateCommit(), signal: String(signalAtStart || 'no-signal'), at: 0 }; /* deliberate break: the marker keeps the head whatever the database holds */") }),
   },
   {
     // skills-vk03: a redo after a timed-out hook record must record the store
@@ -1103,6 +1116,47 @@ const CASES = {
         `hook record against a held store: exit ${rec.code} after ${ms} ms, marker ${marked ? 'written' : 'MISSING'}`
         + `${marked ? ` naming the state commit: ${pinnedMarker}` : ''}; the read says ${saysTimeout ? 'a timeout and the command that restores that state' : saysMissing ? '"never recorded" (wrong cause)' : JSON.stringify(read.out.split('\n')[0].slice(0, 120))}`
         + `; redone exit ${again.code}, the recording is the commit-time state: ${redone.stdout === atCommit}, holds the later write: ${/written after the timeout/.test(redone.stdout)}, marker after the redo: ${cleared ? 'gone' : 'STILL THERE'}`);
+    } finally {
+      if (held) rmSync(lock, { recursive: true, force: true });
+      await stopAllWatchers(ctx);
+    }
+  },
+
+  // 39. #skills-v0cn: the head is the last PUBLISHED state. A tracker write the
+  // watcher had not exported is in no commit, so a timeout marker must not name
+  // the head as that revision's state - 0.133.0 did, and the redo then recorded an
+  // older state as that revision's permanent history. A recipe that declares no
+  // signal can never prove exactness either: its markers keep no commit at all.
+  '39-a-timeout-marker-never-outruns-the-database': async (ctx) => {
+    const r = bringUp(ctx, 'A');
+    if (r.code !== 0) { record('39-a-timeout-marker-never-outruns-the-database', false, 'bring-up: ' + r.out); return; }
+    const lock = join(ctx.stateA, 'lock');
+    const store = storeOf(ctx, 'A');
+    const rev = sh('git', ['-C', ctx.codeA, 'rev-parse', 'HEAD']).stdout.trim();
+    const pair = (() => { try { return JSON.parse(readFileSync(join(ctx.stateA, 'export-state.json'), 'utf8')); } catch { return null; } })();
+    const paired = !!pair && pair.commit === sh('git', ['-C', store, 'rev-parse', 'HEAD']).stdout.trim();
+    let held = false;
+    try {
+      mkdirSync(lock, { recursive: true });
+      writeFileSync(join(lock, `owner-${process.pid}-unexported.json`),
+        JSON.stringify({ pid: process.pid, at: new Date().toISOString(), token: 'held-by-the-proof' }) + '\n');
+      held = true;
+      // The write lands seconds before the commit and no export holds it.
+      post(ctx, 'A', 'i-1', 'written seconds before the commit, never exported');
+      const rec = mech(ctx, 'record', ['--hook', '--revision', rev], { machine: 'A' });
+      const marker = join(ctx.stateA, 'record-timeouts', `${rev}.json`);
+      const marked = existsSync(marker);
+      const kept = marked ? JSON.parse(readFileSync(marker, 'utf8')).commit : 'no marker';
+      // The refusal names the ways out, and no recording invents a state.
+      const read = mech(ctx, 'export', ['--at', rev], { machine: 'A' });
+      const named = /make a new commit/i.test(read.out) && /sync/i.test(read.out);
+      rmSync(lock, { recursive: true, force: true }); held = false;
+      const again = mech(ctx, 'record', ['--revision', rev], { machine: 'A' });
+      const recordingMade = existsSync(join(store, '.tracker-sync', 'recordings', `${rev}.jsonl`));
+      const ok = paired && marked && kept === undefined && rec.code === 1 && named && again.code === 1 && !recordingMade;
+      record('39-a-timeout-marker-never-outruns-the-database', ok,
+        `the store started paired with its published state: ${paired}; the write before the commit is in no export; the hook record exits ${rec.code}, its marker keeps ${kept === undefined ? 'no commit (the state was not proved)' : JSON.stringify(kept)}`
+        + `; the read names the ways out: ${named}; the redo exits ${again.code}, recording made: ${recordingMade}`);
     } finally {
       if (held) rmSync(lock, { recursive: true, force: true });
       await stopAllWatchers(ctx);
@@ -3059,4 +3113,4 @@ process.on('exit', () => {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) main().catch((e) => { console.error('proof harness failed: ' + (e && e.stack ? e.stack.split('\n')[0] : e)); process.exit(2); });
 
-export { newCtx, bringUp, mech, storeOf, post, claim, seedStore, storeItems, remoteItems, item1, item2, stopAllWatchers };
+export { newCtx, bringUp, mech, storeOf, post, claim, seedStore, storeItems, remoteItems, item1, item2, watcher, stopAllWatchers };

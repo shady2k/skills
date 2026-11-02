@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
-import { newCtx, bringUp, mech, storeOf, post, stopAllWatchers } from './tracker-sync-proof.mjs';
+import { newCtx, bringUp, mech, storeOf, post, watcher, stopAllWatchers } from './tracker-sync-proof.mjs';
 
 // A recording is the one history a revision will ever have: the gate reads it
 // with --at, and the baseline under block-new compares against it. So a record
@@ -31,6 +31,11 @@ function commit(ctx, message) {
 
 const stateFileOf = (store) => join(store, 'fake', 'items.jsonl');
 const markerOf = (ctx, revision) => join(ctx.stateA, 'record-timeouts', `${revision}.json`);
+// The pair an export persists: the database's signal, read immediately before it
+// read the database, and the store commit it made from it (or the head it found
+// unchanged). A hook compares the signal standing now with it.
+const pairOf = (ctx) => join(ctx.stateA, 'export-state.json');
+const readPair = (ctx) => { try { return JSON.parse(readFileSync(pairOf(ctx), 'utf8')); } catch { return null; } };
 
 // A live holder of the store lock, so the hook's record exhausts its three
 // bounded waits exactly as a hook does when another command holds the store.
@@ -186,8 +191,13 @@ test('a marker that arrives while a manual record waits is recorded instead of t
     });
     // The hook gave up at this moment: its marker keeps the state the store had.
     mkdirSync(join(ctx.stateA, 'record-timeouts'), { recursive: true });
+    // The pair the export that produced `pinned` persisted: a marker this release
+    // writes carries it, because a marker without it names a state nobody proved.
+    const pair = readPair(ctx);
+    assert.equal(pair.commit, pinned);
     writeFileSync(markerOf(ctx, revision), JSON.stringify({
       revision, at: new Date().toISOString(), said: 'the store lock was held elsewhere', commit: pinned,
+      pair: { signal: pair.signal, commit: pinned, at: pair.at },
       command: `node tracker-sync.mjs record --revision ${revision}`,
     }) + '\n');
     // The lock holder is what a publish is: it exports and commits the write, so
@@ -237,8 +247,10 @@ test('an abbreviated key replays its own recording and finds the full id’s mar
     // the recording are about one revision, whichever name each one uses.
     const later = writeLaterState(ctx, 'later live state after a short-name recording');
     mkdirSync(join(ctx.stateA, 'record-timeouts'), { recursive: true });
+    const pinnedPair = readPair(ctx);
     writeFileSync(markerOf(ctx, revision), JSON.stringify({
       revision, at: new Date().toISOString(), said: 'the lock was held', commit: git(store, 'rev-parse', 'HEAD'),
+      pair: { signal: pinnedPair.signal, commit: git(store, 'rev-parse', 'HEAD'), at: pinnedPair.at },
       command: `node tracker-sync.mjs record --revision ${revision}`,
     }) + '\n');
     const replay = ok(mech(ctx, 'record', ['--revision', short, '--checkout', ctx.codeA, '--from-tree']), 'short-name replay');
@@ -321,6 +333,265 @@ test('a repeated timeout keeps the first state, and no marker outlives a recordi
     release = holdLock(ctx);
     try { mech(ctx, 'record', ['--hook', '--revision', revision, '--checkout', ctx.codeA]); } finally { release(); }
     assert.equal(existsSync(markerOf(ctx, revision)), false, 'a marker must not outlive a recording another run already made');
+  } finally {
+    await stopAllWatchers(ctx);
+    rmSync(ctx.scratch, { recursive: true, force: true });
+  }
+});
+
+
+// ---- skills-v0cn: the state at the commit, or nothing ------------------------
+// 0.133.0's marker kept the store head read at the hook's start, and the head is
+// the last PUBLISHED state: a tracker write the watcher had not exported yet -
+// younger than its max-age, or held back by a blocked watcher - is in no commit.
+// The common sequence hits it: close a task, commit at once, the hook times out.
+// So an export now persists the database signal it read immediately before it
+// read the database, with the commit it made from it, and a timeout marker names
+// a commit only when the signal standing now is that signal and the commit is the
+// head - otherwise the state is not proved, and the redo is refused.
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const headOf = (store) => git(store, 'rev-parse', 'HEAD');
+
+// A hook record started in the background, its output collected as it says it.
+function startHook(ctx, revision) {
+  const child = spawn(process.execPath, [ctx.mech, 'record', '--hook', '--revision', revision,
+    '--checkout', ctx.codeA, '--recipe', ctx.recipe, '--state', ctx.stateA, '--repo', ctx.codeA],
+  { cwd: ctx.scratch, env: { ...process.env, TRACKER_RECIPE: ctx.recipe }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const said = { text: '' };
+  child.stdout.on('data', (d) => { said.text += d.toString(); });
+  child.stderr.on('data', (d) => { said.text += d.toString(); });
+  const exited = new Promise((resolve) => child.once('close', (code) => resolve(code)));
+  return { child, said, exited };
+}
+
+test('a write the watcher had not exported keeps no commit, so the redo is refused', async () => {
+  const ctx = newCtx('recording-timeout-unexported');
+  try {
+    ok(bringUp(ctx, 'A'), 'bring up');
+    const store = storeOf(ctx, 'A');
+    const revision = git(ctx.codeA, 'rev-parse', 'HEAD');
+    const pair = readPair(ctx);
+    assert.equal(pair.commit, headOf(store), 'the publish at bring-up paired the state the store holds');
+    // The write is made seconds before the commit and is in no commit yet:
+    // nothing has exported it. Its signal is not the pair's, so the head is not
+    // this revision's state and the marker must not name it.
+    ok(post(ctx, 'A', 'i-1', 'written seconds before the commit, never exported'), 'the unexported write');
+    assert.notEqual(readFileSync(stateFileOf(store), 'utf8'), '', 'the write is in the database, not the state files');
+    const release = holdLock(ctx);
+    let timeout;
+    try {
+      timeout = mech(ctx, 'record', ['--hook', '--revision', revision, '--checkout', ctx.codeA]);
+    } finally { release(); }
+    assert.equal(timeout.code, 1, timeout.out);
+    const marker = JSON.parse(readFileSync(markerOf(ctx, revision), 'utf8'));
+    assert.equal(marker.revision, revision);
+    assert.equal(marker.commit, undefined,
+      'a state the export never proved - the database moved after it - is not named by the marker');
+    const said = exportedAt(ctx, revision);
+    assert.equal(said.code, 1, said.out);
+    assert.match(said.out, /make a new commit/i);
+    const redo = mech(ctx, 'record', ['--revision', revision, '--checkout', ctx.codeA]);
+    assert.equal(redo.code, 1, redo.out);
+    assert.match(redo.out, /make a new commit/i);
+    assertNoRecording(ctx, revision);
+    assert.equal(existsSync(markerOf(ctx, revision)), true, 'a refusal never clears the marker');
+  } finally {
+    await stopAllWatchers(ctx);
+    rmSync(ctx.scratch, { recursive: true, force: true });
+  }
+});
+
+test('a write the watcher exported before the commit is that revision’s state, exactly', async () => {
+  const ctx = newCtx('recording-timeout-export-holds-it');
+  try {
+    ok(bringUp(ctx, 'A'), 'bring up');
+    const store = storeOf(ctx, 'A');
+    const revision = git(ctx.codeA, 'rev-parse', 'HEAD');
+    const settled = readPair(ctx);
+    watcher(ctx, 'A', ['--interval', '1', '--debounce', '0', '--max-age', '1']);
+    // The sequence this release exists for: the tracker write lands, the watcher
+    // exports it, and the commit follows. The export's pair was written before the
+    // hook looked at the database, so the state it names is exactly this one.
+    ok(post(ctx, 'A', 'i-1', 'written seconds before the commit'), 'the write');
+    let exported = null;
+    for (let i = 0; i < 200 && !exported; i += 1) {
+      const pair = readPair(ctx);
+      if (pair && pair.commit !== settled.commit && pair.commit === headOf(store)) exported = pair;
+      else await sleep(50);
+    }
+    assert.ok(exported, 'the watcher exports the write before the commit');
+    assert.match(readFileSync(stateFileOf(store), 'utf8'), /written seconds before the commit/);
+    const release = holdLock(ctx);
+    let timeout;
+    try {
+      timeout = mech(ctx, 'record', ['--hook', '--revision', revision, '--checkout', ctx.codeA]);
+    } finally { release(); }
+    assert.equal(timeout.code, 1, timeout.out);
+    const marker = JSON.parse(readFileSync(markerOf(ctx, revision), 'utf8'));
+    assert.equal(marker.commit, exported.commit, 'the marker names the export that holds exactly that write');
+    assert.equal(marker.pair.signal, exported.signal, 'and carries the pair that proved it');
+    // A write made after that export is not that revision, either.
+    ok(post(ctx, 'A', 'i-2', 'written after the export'), 'a later write');
+    ok(mech(ctx, 'publish', [], { machine: 'A' }), 'publish the later write');
+    assert.notEqual(headOf(store), marker.commit);
+    ok(mech(ctx, 'record', ['--revision', revision, '--checkout', ctx.codeA]), 'the redo');
+    assert.equal(existsSync(markerOf(ctx, revision)), false, 'a successful record clears the marker');
+    const replayed = ok(exportedAt(ctx, revision), 'the redone recording');
+    assert.match(replayed.stdout, /written seconds before the commit/, 'the redo holds the write the export held');
+    assert.doesNotMatch(replayed.stdout, /written after the export/, 'and not a write made after it');
+    const remoteRecording = spawnSync('git', ['-C', ctx.remote, 'show',
+      `refs/tracker/state:.tracker-sync/recordings/${revision}.jsonl`], { encoding: 'utf8' });
+    assert.equal(remoteRecording.status, 0, 'the redone recording is published');
+    assert.match(remoteRecording.stdout, new RegExp(marker.commit), 'and it names the export that held the write');
+  } finally {
+    await stopAllWatchers(ctx);
+    rmSync(ctx.scratch, { recursive: true, force: true });
+  }
+});
+
+test('an export that lands after the hook looked is not that revision’s state', async () => {
+  const ctx = newCtx('recording-timeout-export-after');
+  try {
+    ok(bringUp(ctx, 'A'), 'bring up');
+    const store = storeOf(ctx, 'A');
+    const revision = git(ctx.codeA, 'rev-parse', 'HEAD');
+    watcher(ctx, 'A', ['--interval', '1', '--debounce', '0', '--max-age', '1']);
+    let settled = null;
+    for (let i = 0; i < 200 && !settled; i += 1) {
+      const pair = readPair(ctx);
+      if (pair && pair.commit === headOf(store)) settled = pair; else await sleep(100);
+    }
+    assert.ok(settled, 'the watcher pairs the state it exported');
+    // The write lands and the watcher cannot export it: the store is locked.
+    const release = holdLock(ctx);
+    ok(post(ctx, 'A', 'i-1', 'written seconds before the commit'), 'the write the watcher had not exported');
+    const hook = startHook(ctx, revision);
+    await sleep(31000);           // the hook's three bounded waits are over
+    const t0 = Date.now();
+    release();
+    // The export the watcher owed lands now, and it reads the database a moment
+    // after it reads the signal: it could hold a write made after the hook looked,
+    // so it cannot prove the state at the commit, and the marker keeps none.
+    let exported = null;
+    for (let i = 0; i < 80 && !exported; i += 1) {
+      const pair = readPair(ctx);
+      if (pair && pair.commit !== settled.commit) exported = { pair, ms: Date.now() - t0 };
+      else await sleep(100);
+    }
+    const code = await hook.exited;
+    assert.equal(code, 1, hook.said.text);
+    console.log(`tracker-sync: the export a blocked watcher owed arrived ${exported ? `${exported.ms} ms` : 'never'} after the lock was released; the hook had already looked at the database`);
+    assert.ok(exported, 'the watcher exports the write once the lock is free');
+    assert.match(readFileSync(stateFileOf(store), 'utf8'), /written seconds before the commit/);
+    const marker = JSON.parse(readFileSync(markerOf(ctx, revision), 'utf8'));
+    assert.equal(marker.commit, undefined, 'an export written after the hook looked proves nothing about it');
+    const said = exportedAt(ctx, revision);
+    assert.equal(said.code, 1, said.out);
+    assert.match(said.out, /make a new commit/i);
+    const redo = mech(ctx, 'record', ['--revision', revision, '--checkout', ctx.codeA]);
+    assert.equal(redo.code, 1, redo.out);
+    assertNoRecording(ctx, revision);
+    assert.equal(existsSync(markerOf(ctx, revision)), true, 'a refusal never clears the marker');
+  } finally {
+    await stopAllWatchers(ctx);
+    rmSync(ctx.scratch, { recursive: true, force: true });
+  }
+});
+
+test('a write made after the hook’s start never enters the redo', async () => {
+  const ctx = newCtx('recording-timeout-write-after-start');
+  try {
+    ok(bringUp(ctx, 'A'), 'bring up');
+    const store = storeOf(ctx, 'A');
+    const revision = git(ctx.codeA, 'rev-parse', 'HEAD');
+    const settled = readPair(ctx);
+    assert.equal(settled.commit, headOf(store), 'the store starts paired with its published state');
+    const release = holdLock(ctx);
+    const hook = startHook(ctx, revision);
+    await sleep(3000);            // the hook is past its own start read by now
+    ok(post(ctx, 'A', 'i-1', 'written after the hook started'), 'the write after the start');
+    const code = await hook.exited;
+    release();
+    assert.equal(code, 1, hook.said.text);
+    const marker = JSON.parse(readFileSync(markerOf(ctx, revision), 'utf8'));
+    // The write landed after the hook read its signal, so it is in neither: the
+    // pair the hook found standing is still the state at its start, exactly.
+    assert.equal(marker.commit, settled.commit,
+      'the head is the state at the hook’s start, and the write that came later is in no part of it');
+    // The later write is exported now, and it is still not this revision.
+    ok(mech(ctx, 'publish', [], { machine: 'A' }), 'publish the later write');
+    const later = readFileSync(stateFileOf(store), 'utf8');
+    assert.match(later, /written after the hook started/);
+    assert.notEqual(headOf(store), marker.commit);
+    ok(mech(ctx, 'record', ['--revision', revision, '--checkout', ctx.codeA]), 'the redo');
+    const replayed = ok(exportedAt(ctx, revision), 'the redone recording');
+    assert.doesNotMatch(replayed.stdout, /written after the hook started/, 'a write made after the start is not that revision');
+    assert.equal(readFileSync(stateFileOf(store), 'utf8'), later, 'the redo must not roll the tracker back');
+  } finally {
+    await stopAllWatchers(ctx);
+    rmSync(ctx.scratch, { recursive: true, force: true });
+  }
+});
+
+test('a pair that is missing, or older than the head, keeps no commit', async () => {
+  const ctx = newCtx('recording-timeout-stale-pair');
+  try {
+    ok(bringUp(ctx, 'A'), 'bring up');
+    const store = storeOf(ctx, 'A');
+    const revision = git(ctx.codeA, 'rev-parse', 'HEAD');
+    assert.equal(readPair(ctx).commit, headOf(store), 'the store starts paired with its published state');
+    // (i) No pair at all - an older release never wrote one, or this is a fresh
+    // machine directory: nothing proves what the head is.
+    rmSync(pairOf(ctx), { force: true });
+    let release = holdLock(ctx);
+    try { mech(ctx, 'record', ['--hook', '--revision', revision, '--checkout', ctx.codeA]); } finally { release(); }
+    assert.equal(JSON.parse(readFileSync(markerOf(ctx, revision), 'utf8')).commit, undefined,
+      'a missing pair proves nothing');
+    // (ii) A pair of the right shape whose commit the head has left behind: the
+    // export it describes is not the state standing now.
+    rmSync(markerOf(ctx, revision), { force: true });
+    ok(mech(ctx, 'publish', [], { machine: 'A' }), 'a live export pairs the state again');
+    const settled = readPair(ctx);
+    assert.ok(settled, 'the publish persists a pair');
+    const first = git(store, 'rev-list', '--max-parents=0', 'HEAD').split('\n')[0];
+    assert.notEqual(first, settled.commit);
+    writeFileSync(pairOf(ctx), `${JSON.stringify({ ...settled, commit: first }, null, 2)}\n`);
+    release = holdLock(ctx);
+    try { mech(ctx, 'record', ['--hook', '--revision', revision, '--checkout', ctx.codeA]); } finally { release(); }
+    assert.equal(JSON.parse(readFileSync(markerOf(ctx, revision), 'utf8')).commit, undefined,
+      'a pair naming a commit that is not the head proves nothing');
+    const redo = mech(ctx, 'record', ['--revision', revision, '--checkout', ctx.codeA]);
+    assert.equal(redo.code, 1, redo.out);
+    assert.match(redo.out, /make a new commit/i);
+    assertNoRecording(ctx, revision);
+  } finally {
+    await stopAllWatchers(ctx);
+    rmSync(ctx.scratch, { recursive: true, force: true });
+  }
+});
+
+test('a recipe that declares no signal keeps no commit', async () => {
+  const ctx = newCtx('recording-timeout-no-signal');
+  try {
+    ok(bringUp(ctx, 'A'), 'bring up');
+    const store = storeOf(ctx, 'A');
+    const revision = git(ctx.codeA, 'rev-parse', 'HEAD');
+    const release = holdLock(ctx);
+    let timeout;
+    try {
+      // The same recipe, saying it declares no database signal: nothing observes
+      // the database, so no export can prove which state the head is.
+      timeout = mech(ctx, 'record', ['--hook', '--revision', revision, '--checkout', ctx.codeA],
+        { env: { FAKE_RECIPE_DECLARES_NO_SIGNAL: '1' } });
+    } finally { release(); }
+    assert.equal(timeout.code, 1, timeout.out);
+    assert.equal(JSON.parse(readFileSync(markerOf(ctx, revision), 'utf8')).commit, undefined,
+      'a tracker whose database is not observed cannot be said to have stood still');
+    assert.equal(readPair(ctx).commit, headOf(store), 'the pair another export wrote is still there; it just is not used');
+    const redo = mech(ctx, 'record', ['--revision', revision, '--checkout', ctx.codeA]);
+    assert.equal(redo.code, 1, redo.out);
+    assertNoRecording(ctx, revision);
   } finally {
     await stopAllWatchers(ctx);
     rmSync(ctx.scratch, { recursive: true, force: true });
