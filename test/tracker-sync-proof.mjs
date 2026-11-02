@@ -747,7 +747,7 @@ const BREAKS = [
     // the fix undone: the recording holds the state itself, which grew one store
     // by a full copy on every commit in every worktree.
     apply: (s) => ({ mech: breakByLiteral('recording-copy', s.mech,
-      'writeFileSync(file, recordingText(stateOid, await stateTextAt(stateOid)));',
+      'writeFileSync(file, recording);',
       'writeFileSync(file, sideText(parts)); /* deliberate break: the state is copied */') }),
   },
   {
@@ -1046,8 +1046,8 @@ const CASES = {
   },
 
   // 38. #57: a hook's record that cannot take the store lock is bounded, leaves a
-  // marker, is named as a timeout at the read that finds no recording, and the
-  // marker goes when the recording is made.
+  // marker, is named as a timeout at the read that finds no recording, and
+  // refuses to invent historical state when a later retry can take the lock.
   '38-a-hook-record-that-times-out-is-named': async (ctx) => {
     const r = bringUp(ctx, 'A');
     if (r.code !== 0) { record('38-a-hook-record-that-times-out-is-named', false, 'bring-up: ' + r.out); return; }
@@ -1069,15 +1069,17 @@ const CASES = {
       // The bound: never a commit blocked for minutes, and never silence.
       const bounded = ms <= 40000;
       const read = mech(ctx, 'export', ['--at', rev], { machine: 'A' });
-      const saysTimeout = /timed out at commit time/.test(read.out) && /record --revision/.test(read.out);
+      const saysTimeout = /timed out at commit time/.test(read.out);
       const saysMissing = /never recorded that revision/.test(read.out);
-      // Release the lock and record it for real: the marker must go.
+      // Releasing the lock cannot recover the snapshot the hook never captured.
       rmSync(lock, { recursive: true, force: true }); held = false;
       const again = mech(ctx, 'record', ['--revision', rev], { machine: 'A' });
-      const cleared = !existsSync(marker);
-      const ok = marked && bounded && saysTimeout && !saysMissing && again.code === 0 && cleared;
+      const kept = existsSync(marker);
+      const after = mech(ctx, 'export', ['--at', rev], { machine: 'A' });
+      const ok = marked && bounded && saysTimeout && !saysMissing && again.code === 1 && kept
+        && after.code === 1 && after.stdout === '';
       record('38-a-hook-record-that-times-out-is-named', ok,
-        `hook record against a held store: exit ${rec.code} after ${ms} ms, marker ${marked ? 'written' : 'MISSING'}; the read says ${saysTimeout ? 'a timeout and the command' : saysMissing ? '"never recorded" (wrong cause)' : JSON.stringify(read.out.split('\n')[0].slice(0, 120))}; marker after a successful record: ${cleared ? 'gone' : 'STILL THERE'}`);
+        `hook record against a held store: exit ${rec.code} after ${ms} ms, marker ${marked ? 'written' : 'MISSING'}; the read says ${saysTimeout ? 'a timeout' : saysMissing ? '"never recorded" (wrong cause)' : JSON.stringify(read.out.split('\n')[0].slice(0, 120))}; retry exit ${again.code}, marker retained: ${kept}, historical export exit ${after.code}`);
     } finally {
       if (held) rmSync(lock, { recursive: true, force: true });
       await stopAllWatchers(ctx);
@@ -2147,12 +2149,16 @@ const CASES = {
     mkdirSync(blockingDir, { recursive: true });
     cpSync(ctx.fake, join(blockingDir, 'fake.mjs'));
     const blocking = join(blockingDir, 'recipe.mjs');
-    writeFileSync(blocking, readFileSync(ctx.recipe, 'utf8').replace(/import: `[^`]*`,/, "import: 'sleep 25',"));
+    const importReady = join(ctx.scratch, 'candidate-import-ready');
+    const pauseImport = `printf '%s' "$PWD" > '${importReady.replaceAll("'", "'\\''")}'; sleep 25`;
+    writeFileSync(blocking, readFileSync(ctx.recipe, 'utf8').replace(/import: `[^`]*`,/, `import: ${JSON.stringify(pauseImport)},`));
     const blockedLog = join(ctx.scratch, 'blocked-record.log');
     const blockedFd = openSync(blockedLog, 'w');
     const killed = spawn(process.execPath, [ctx.mech, 'record', '--revision', rev, '--checkout', ctx.codeA,
       '--recipe', blocking, '--state', stateDir, '--repo', ctx.codeA], { cwd: ctx.scratch, stdio: ['ignore', blockedFd, blockedFd] });
-    const stood = await waitUntil(() => (candidateDirs(stateDir).length ? candidateDirs(stateDir)[0] : null), 20000, 100);
+    // Directory creation precedes sparse checkout. The import is the boundary
+    // at which the candidate's contents are ready to measure.
+    const stood = await waitUntil(() => existsSync(importReady) ? readFileSync(importReady, 'utf8') || null : null, 20000, 100);
     const candidate = stood.value;
     let candidateBytes = -1; let holdsBackup = null; let holdsRecordingState = null;
     if (candidate) {

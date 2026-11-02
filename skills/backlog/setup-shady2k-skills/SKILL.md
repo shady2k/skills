@@ -174,7 +174,9 @@ mechanism is what meets them, and this skill installs it:
   clone and rerun. A hook that is missing or lacks its marker is refused (exit 1),
   named with the line for the project to add to that hook, because the line
   carries this machine's state directory and the recipe's path, which no other
-  machine can use. Every command the mechanism runs runs without git's own hook
+  machine can use. Outside the tracked tree, reconnect upgrades the mechanism's
+  exact legacy generated record command in place; surrounding shell code and
+  custom marked commands remain unchanged. Commands run without git's own hook
   environment (`GIT_DIR`,
   `GIT_INDEX_FILE`, `GIT_WORK_TREE` and the rest of it): a step started from a hook
   must read and write the store, never the code checkout the hook came from.
@@ -184,8 +186,12 @@ mechanism is what meets them, and this skill installs it:
   times, and a record it still cannot write because the store is held leaves a
   marker per revision, keyed by the revision's full id, in the machine's own
   state, never in the tree; the read that finds no recording names that timeout
-  and the command that redoes it, and a later successful record of the revision
-  removes the marker. A failure that is not the lock - an unreachable remote, a
+  and says its historical state is unknown. A marker is not a snapshot: a retry
+  must refuse to label later state as that revision's, even if HEAD has not moved.
+  A valid recording that already exists stays readable and immutable and can
+  clear a stale marker on replay. If another machine recorded the revision,
+  sync that existing recording rather than create a replacement from today's
+  state. A failure that is not the lock - an unreachable remote, a
   recipe that failed - is said and kept as it was: this bound is the lock's. Reachability is whether the
   remote answers: a remote whose `HEAD` names a branch that does not exist answers
   and is reachable, and only a remote that does not answer makes a read refuse (or

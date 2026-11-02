@@ -2273,8 +2273,9 @@ async function recordedStateCommit(parts, oid, rev) {
   return made;
 }
 
-async function recordRun({ revision, checkout, fromTree }) {
+async function recordRun({ revision, checkout, fromTree, resolvedRevision }) {
   const ck = checkout ? resolve(checkout) : CURRENT.repoRoot;
+  const requested = resolvedRevision || await canonicalRevision(await recordedRevision({ revision, checkout }), ck);
   let captured;
   for (let attempt = 0; attempt < 3; attempt++) {
     const remote = await fetchRemote();
@@ -2292,19 +2293,17 @@ async function recordRun({ revision, checkout, fromTree }) {
     });
     const step = await isolatedCandidate('record', revision || 'HEAD', async (before) => {
       const ck2 = ck;
-      let rev = revision;
+      let rev = revision || requested;
       let parts;
       if (!captured) {
         if (fromTree) {
-          rev = rev || (await gitOk(['rev-parse', 'HEAD'], { cwd: ck2 })).trim();
-          if ((await git(['cat-file', '-e', `${rev}^{commit}`], { cwd: CURRENT.store })).code !== 0)
+          if ((await git(['cat-file', '-e', `${requested}^{commit}`], { cwd: CURRENT.store })).code !== 0)
             die(1, `${rev} is not a revision of this repository`);
-          parts = await stateFrom(rev);
+          parts = await stateFrom(requested);
           if (parts.every(([, c]) => c === null))
             die(1, `${rev} carries none of the state files (${stateFiles().join(', ')}), so it holds no state to record`);
         } else {
           const head = (await gitOk(['rev-parse', 'HEAD'], { cwd: ck2 })).trim();
-          rev = rev || head;
           if (rev !== head)
             die(1, `revision ${String(rev).slice(0, 12)} is not ${ck2}'s HEAD (${head.slice(0, 12)}): only a revision cut or landed now is recorded, because a later state is not that revision's`);
           // Only the files a commit can hold: the recording digests the state a
@@ -2365,14 +2364,20 @@ async function recordRun({ revision, checkout, fromTree }) {
       // The digest covers the state the commit exports, which is what every reader
       // computes: a projection of the working tree's parts would not read back when
       // the commit holds a declared file the working tree does not (#49 review).
-      writeFileSync(file, recordingText(stateOid, await stateTextAt(stateOid)));
+      const recording = recordingText(stateOid, await stateTextAt(stateOid));
+      // Check at the write, under the candidate's lock: a timeout may have
+      // arrived while this run fetched or waited. A marker is not a snapshot.
+      // Existing recordings have already taken their immutable replay path.
+      if (findRecordTimeout(CURRENT.flags, CURRENT.repoRoot, requested))
+        die(1, `the recording of ${requested} timed out at commit time; its historical state is unknown, so recording a later state is refused. If another machine recorded it, sync that existing recording; otherwise an exact historical snapshot is unavailable`);
+      writeFileSync(file, recording);
       return { oid: await commitState(`tracker store: record ${String(rev).slice(0, 12)}`, [await headOid()]) };
     });
     if (step.already) {
       settleDiagnostic(step.diagnostic);
       // This revision IS recorded now: a marker a hook's timed-out record left
       // must not outlive it, or the next push would name a timeout that is over.
-      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, await canonicalRevision(captured.rev));
+      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, requested);
       writeConfig(CURRENT.flags, CURRENT.repoRoot, { lastRecord: nowIso() });
       say(`tracker-sync: ${step.already} is already recorded ${step.where}; a recording is written once and never moved, so nothing was written`);
       return;
@@ -2383,7 +2388,7 @@ async function recordRun({ revision, checkout, fromTree }) {
     if (step.pushed.ok) {
       await integrateCandidate(step);
       settleDiagnostic(step.diagnostic);
-      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, await canonicalRevision(captured.rev));
+      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, requested);
       writeConfig(CURRENT.flags, CURRENT.repoRoot, { lastRecord: nowIso() });
       say(`tracker-sync: recorded the store at ${String(captured.rev).slice(0, 12)}`);
       return;
@@ -2404,8 +2409,8 @@ async function recordRun({ revision, checkout, fromTree }) {
  * recorded that revision" - which names the wrong cause (#57). So a record run
  * started by a hook that still cannot take the lock keeps a marker per revision
  * in the machine's own state (never in the tree): the push that reads the
- * missing recording names the timeout and the command that redoes it, and a
- * later successful record of that revision removes the marker.
+ * missing recording names the timeout and refuses to invent a snapshot from
+ * later state. A valid recording that already exists can clear a stale marker.
  */
 const recordTimeoutDir = (flags, repoRoot) => join(machineDir(flags, repoRoot), 'record-timeouts');
 /** A revision's full object id, or the name as given when it does not resolve.
@@ -2414,10 +2419,9 @@ const recordTimeoutDir = (flags, repoRoot) => join(machineDir(flags, repoRoot), 
  * reader that asks with an abbreviation name the same marker, and two revisions
  * that begin alike can never be confused: one marker file per revision, matched
  * exactly. */
-async function canonicalRevision(rev) {
+async function canonicalRevision(rev, ck = CURRENT.repoRoot || CURRENT.store) {
   const name = String(rev || '');
   if (!name) return null;
-  const ck = CURRENT.repoRoot || CURRENT.store;
   const r = await git(['rev-parse', '--verify', `${name}^{commit}`], { cwd: ck });
   const oid = r.code === 0 ? r.stdout.trim() : '';
   return /^[0-9a-f]{40,64}$/.test(oid) ? oid : name;
@@ -2444,7 +2448,7 @@ function findRecordTimeout(flags, repoRoot, at) {
 function writeRecordTimeout(flags, repoRoot, revision, said) {
   if (!revision) return null;
   const file = join(recordTimeoutDir(flags, repoRoot), `${revision}.json`);
-  const body = { revision, at: nowIso(), said: String(said || '').split('\n')[0], command: rerunRecordLine(flags, repoRoot, revision) };
+  const body = { revision, at: nowIso(), said: String(said || '').split('\n')[0] };
   writeAtomic(file, `${JSON.stringify(body, null, 2)}\n`);
   return file;
 }
@@ -2453,9 +2457,6 @@ function clearRecordTimeout(flags, repoRoot, revision) {
   if (!found) return false;
   try { rmSync(found.file, { force: true }); return true; } catch { return false; }
 }
-/** The command that redoes a recording a hook could not write. */
-const rerunRecordLine = (flags, repoRoot, revision) =>
-  `node ${quote(join(HERE, 'tracker-sync.mjs'))} record --revision ${revision} --checkout ${quote(CURRENT.repoRoot)} --state ${quote(machineDir(flags, repoRoot))} --recipe ${quote(CURRENT.recipe.path)}`;
 
 /** A record a checkout's hook started: bounded, and never silent.
  *
@@ -2469,10 +2470,12 @@ const HOOK_RECORD_ATTEMPTS = 3;
 async function recordWithRetries(opts) {
   HOOK_RECORD = true;
   LOCK_WAIT_MS = HOOK_LOCK_WAIT_MS;
+  const rev = await canonicalRevision(await recordedRevision(opts), opts.checkout ? resolve(opts.checkout) : CURRENT.repoRoot);
+  const pinned = { ...opts, resolvedRevision: rev };
   let last = null;
   for (let attempt = 1; attempt <= HOOK_RECORD_ATTEMPTS; attempt++) {
     try {
-      await recordRun(opts);
+      await recordRun(pinned);
       return;
     } catch (e) {
       if (!e.lockTimeout) throw e;
@@ -2483,10 +2486,9 @@ async function recordWithRetries(opts) {
       }
     }
   }
-  const rev = await canonicalRevision(await recordedRevision(opts));
   const file = writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message);
   die(1, `the recording of ${rev ? String(rev).slice(0, 12) : 'this revision'} timed out on the store lock after ${HOOK_RECORD_ATTEMPTS} attempts (${last.message.split(';')[0]}); `
-    + `${file ? `a marker is kept at ${file}, so the next push names it as a timeout instead of a missing recording, and running record again removes it` : 'a person must rerun record'}`);
+    + `${file ? `a marker is kept at ${file}, so the next push names the timeout; an uncaptured historical state cannot be reconstructed by retrying against later state` : 'the historical state was not captured and cannot be reconstructed from later state'}`);
 }
 /** The revision this run is about, read the way record reads it. */
 async function recordedRevision(opts) {
@@ -2538,8 +2540,9 @@ async function hookPlan(checkout) {
     const file = join(dir, name);
     // A hook that is not a regular file is refused like one without the marker:
     // opening a named pipe there would block the connect for ever.
-    const text = existsSync(file) && notRegularFile(file) === null ? readFileSync(file, 'utf8') : null;
-    return { name, file, line: files[name], mark: `${HOOK_MARKS[name]}\n`, text, present: text !== null && text.includes(HOOK_MARKS[name]) };
+    const bytes = existsSync(file) && notRegularFile(file) === null ? readFileSync(file) : null;
+    const text = bytes === null ? null : bytes.toString('utf8');
+    return { name, file, line: files[name], mark: `${HOOK_MARKS[name]}\n`, bytes, text, present: text !== null && text.includes(HOOK_MARKS[name]) };
   });
   return { dir, inRepo, wanted, missing: wanted.filter((h) => !h.present) };
 }
@@ -2571,13 +2574,43 @@ async function installHooks(checkout) {
   mkdirSync(plan.dir, { recursive: true });
   for (const h of plan.wanted) {
     const { file: f, mark, line } = h;
-    if (h.present) continue;
+    let upgraded = null;
+    if (h.present) {
+      // Tracked hooks and manually supplied commands belong to the project.
+      // Only the exact old generated command immediately after its own marker
+      // is ours to upgrade; a marker alone never grants ownership of code.
+      if (plan.inRepo || h.name === 'post-checkout') continue;
+      // Match and splice bytes, not decoded shell text: comments and unrelated
+      // commands may contain bytes that are not valid UTF-8.
+      const legacy = Buffer.from(mark + line.replace(' record --hook --revision ', ' record --revision ').trimEnd());
+      const replacement = Buffer.from(mark + line.trimEnd());
+      const parts = [];
+      let copied = 0;
+      for (let at = h.bytes.indexOf(legacy); at !== -1; at = h.bytes.indexOf(legacy, at + legacy.length)) {
+        const end = at + legacy.length;
+        if ((at === 0 || h.bytes[at - 1] === 10) && (end === h.bytes.length || h.bytes[end] === 10)) {
+          parts.push(h.bytes.subarray(copied, at), replacement);
+          copied = end;
+        }
+      }
+      if (!parts.length) continue;
+      // A machine hook can itself link into the project's tracked tree even
+      // when its hooks directory is Git metadata. Resolve the individual file.
+      if (await hooksInsideRepository(checkout, f)) continue;
+      parts.push(h.bytes.subarray(copied));
+      upgraded = Buffer.concat(parts);
+    }
     if (h.text !== null) {
       // A hook that is not a POSIX shell script cannot carry this line: shell
       // appended to another language is a syntax error that stops every commit.
       const shebang = (h.text.split('\n')[0] || '').trim();
       if (shebang.startsWith('#!') && !/\/(sh|bash|dash|zsh|ksh)\b/.test(shebang)) {
         die(1, `${f} is not a shell hook (${shebang}): tracker-sync will not append shell to it. Call the step from that hook yourself: ${line.trim()}`);
+      }
+      if (upgraded !== null) {
+        writeFileSync(f, upgraded);
+        say(`tracker-sync: upgraded the generated ${h.name} record step in ${f}`);
+        continue;
       }
       // A hook that ends in `exit 0` would end before an appended step runs, so
       // the step goes in front of that line, and the project's own hook is kept.
@@ -2876,12 +2909,12 @@ async function exportRun(flags, pos) {
     requireRegularFile(f, 'the recording');
     if (!existsSync(f)) {
       // A hook's record that timed out on the store lock left a marker: the push
-      // that finds no recording must name the timeout and the command that redoes
-      // it, never "the store never recorded that revision", which is not what
-      // happened and leaves the reader with no way to see it was a timeout (#57).
+      // that finds no recording must name the timeout, not recommend capturing
+      // today's state under the old revision. Old markers may still contain a
+      // command field; it is not evidence of a recoverable historical snapshot.
       const timedOut = findRecordTimeout(CURRENT.flags, CURRENT.repoRoot, await canonicalRevision(at));
       if (timedOut)
-        die(1, `the recording of ${at} timed out at commit time: the store was locked (${timedOut.said || 'the lock was held elsewhere'}), and record gave up after its bounds at ${timedOut.at || 'commit time'}; the state is not lost, it was never written. Redo it with: ${timedOut.command || rerunRecordLine(CURRENT.flags, CURRENT.repoRoot, at)}`);
+        die(1, `the recording of ${at} timed out at commit time: the store was locked (${timedOut.said || 'the lock was held elsewhere'}), and record gave up after its bounds at ${timedOut.at || 'commit time'}; its historical state is unknown and will not be guessed from a later state`);
       die(1, `no recording for ${at}: the store never recorded that revision, so its state is unknown and is not guessed from a later state`);
     }
     // A recording holds a reference to the store commit whose state it records, so
