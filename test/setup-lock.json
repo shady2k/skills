@@ -1,11 +1,11 @@
 {
-  "setupVersion": "0.62.0",
+  "setupVersion": "0.63.0",
   "files": {
-    "check.mjs": "a311ecf89f88fc69370b38b78625c4a0d67785617fa907f6281ec78171baa657",
-    "check-commits.mjs": "e87b9b86920dab279f4e3738d753a8fb6157debf4a773d0b29de8e30b36b9b52",
-    "check-docs.mjs": "d928755a0e933ed5b6761d178cb9a94708c6f1d682d61cee6cba9cdaed90ae44",
-    "check-present.mjs": "ecef5a5c96490552af1acb9b69bcee6ef1bf09842eb29986536794d78cc5651a",
-    "check-product.mjs": "64e10ef842b2e08134bb73d6a33e1f3211dbd1f2aacdaede285101def86bc1aa",
+    "check.mjs": "e94b8e9bd39363986ffe079948f9c524c8e87b9494e49e254ffe275a806dd547",
+    "check-commits.mjs": "06fe271a53ee02e7e417a19f4afdb2311d22469b7db530052edf513feb8fc4c5",
+    "check-docs.mjs": "eb1a671a6f2e8d895e8538f15d1ab070e2d1aabedd76aefb817333bbbf08cfa8",
+    "check-present.mjs": "bdceb24051122504b5ab887e3ef907f94daaf4274f178a3dc6f67813d303351e",
+    "check-product.mjs": "cae9fc2fdb7b29ff79d8991d656605be0f6d7be0f665252a9f5ca4dc2b9407e6",
     "document-format.mjs": "6947124f3ffe34b745e52bf0065d12257942d9d705a0b9c7300d403a0f9606e0",
     "time-format.mjs": "f61f6da6fe6df73145ee7d7fd0d9af15a53e36501e9a11e184e83afdd29da858",
     "regular-file.mjs": "6646d327ed0c1dec7b5c432b427788815eaae25efbc922b74f1ff0b603af7cae",
@@ -33,7 +33,7 @@
     "templates/vision.md": "268221fe7ff9a2350dd91358a967edad78902c5df494d253cd4777fb4f7b99c5"
   },
   "layout": {
-    "tracker-sync.mjs": "d8e86024b2e54e5dcdcc037cae415a7c59e049ef6f0bc9eb546f2d05f3693302",
+    "tracker-sync.mjs": "d12eedf085a44ec85571ba76bc4d2f01d11dbb142d67a39df1b10b4daf99d2e6",
     "trackers/br.mjs": "97d4a3d7e5bdf131ac5aa1a2bfe5434ee5a4a15b6fe4ee786fc0adbf3d91817d",
     "supervisors/systemd-user/tracker-sync.service": "de25f34f557e1d92b55a86568b17a81297221219f8e7f49dd54586352faf56c2"
   }
