@@ -28,6 +28,12 @@ const def = {
   ref: 'refs/tracker/state',
   storePath: 'fake',
   stateFiles: ['fake/items.jsonl'], // the portable state only, never the local database
+  // The tracker's cheap change signal: the database copy this fake keeps beside
+  // the state file. A watcher stats it without the store lock, so a tick whose
+  // database has not moved takes neither the lock nor the export. A case that
+  // proves a recipe without one still exports every tick asks for it with
+  // FAKE_RECIPE_DECLARES_NO_SIGNAL=1.
+  ...(process.env.FAKE_RECIPE_DECLARES_NO_SIGNAL === '1' ? {} : { signal: ['fake/db.json'] }),
   init: `node ${fake} init --prefix <prefix>`,
   ordinal: `node ${fake} ordinal --machine <machine>`,
   export: `node ${fake} export`,
