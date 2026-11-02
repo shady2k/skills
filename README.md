@@ -262,7 +262,7 @@ In Claude Code the plugin prefixes them: `/shady2k-skills:ask-shady2k`.
 | skill | what it does | when to use it |
 | --- | --- | --- |
 | [ask-shady2k](skills/backlog/ask-shady2k/SKILL.md) | Reads the project and tells you where it stands, how far it has come, what is stuck and which ways forward exist, with one recommendation and each way's time measured with its basis; or, for the team's daily sync, what was done over a period, what got in the way, the questions for others and whether the work fits by a date. Changes nothing. | At the start of a session, after a break, in an unfamiliar project, whenever you are unsure what comes next, before a standup. |
-| [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md) | Connects the project's tracker — one copy per machine, outside the code branches and in step with every machine, with the synchronization that keeps it so installed and started — cleans its queue with you, proposes settings as one profile, proves the checks work and, in a product repository, writes the product's kinds registry, with the kinds' link declarations. Rerunning it after 0.49.0 rewrites the judgement records a live charter or an admitted change carries, in your presence, and exports the journeys of your vision so a judgement can name them. Rerunning it for 0.131.0 records where a feature's agreement with you is written, and lists the features already under way once, with your agreement, so the rule judges only what starts after that. Rerunning it for 0.133.0 upgrades the recording hooks it installed in your checkouts without touching your own hook commands, and keeps a failed recording honest: a recording that timed out at commit time is named at your push with the store state that revision had, and a retry redoes it with exactly that state, never with tracker state written later, while a timeout that saved no state is refused and says how to get out. | Once per project, and again when a skill says the installation is out of date. |
+| [setup-shady2k-skills](skills/backlog/setup-shady2k-skills/SKILL.md) | Connects the project's tracker — one copy per machine, outside the code branches and in step with every machine, with the synchronization that keeps it so installed and started — cleans its queue with you, proposes settings as one profile, proves the checks work and, in a product repository, writes the product's kinds registry, with the kinds' link declarations. Rerunning it after 0.49.0 rewrites the judgement records a live charter or an admitted change carries, in your presence, and exports the journeys of your vision so a judgement can name them. Rerunning it for 0.131.0 records where a feature's agreement with you is written, and lists the features already under way once, with your agreement, so the rule judges only what starts after that. Rerunning it for 0.133.0 upgrades the recording hooks it installed in your checkouts without touching your own hook commands, and for 0.134.0 keeps a failed recording honest: a recording that timed out at commit time is redone with exactly the state the tracker had at that commit — a change made seconds before it included — and, when that state cannot be proved, refused with the ways out named. | Once per project, and again when a skill says the installation is out of date. |
 | [to-milestone](skills/backlog/to-milestone/SKILL.md) | Agrees what the next version delivers, what is left out and how many new bugs it can absorb. Each outcome names the vision journeys and principles it serves, and the charter's acceptance carries another model's judgement of what it serves and breaks, each entry naming an id the vision declares and quoting a passage of the charter. | When the current version is done, or a project has no agreed next step. |
 | [refine-practices](skills/engineering/refine-practices/SKILL.md) | Reads how the work has gone since the last retrospective and judges the active practices first: the classes of error that came back, each put to you with a recommended practice to add or retire, and the practices that caught nothing in the period with what each costs, to retire or loosen — the ones guarding an expensive failure, such as publication, permissions or data loss, kept whatever the period held. Put to you as your project's setting for open questions says. | At the end of a milestone, when about five features have closed without one, or whenever you want to look back. |
 | [take-task](skills/engineering/take-task/SKILL.md) | Before you leave, gathers every decision a planned feature will need, in one list or one question at a time as your project chose; then builds the whole feature without you up to one pull request, deciding small gaps itself, stopping only for decisions that need you and telling you what the run's own overhead is costing. An item whose change is already on the main line is closed rather than counted as remaining or built again. It never reaches green by making a check easier to pass. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, a duration it tells you is that same measurement with its basis, and every worker's brief carries what its task serves, whom it serves and where you see it. It starts only on the agreement on record — the direction and then the plan, in your words — and refuses to start without one, and a stage is not accepted while a second way into a capability the project already reaches stays open beside the one its decisions put there. | When a feature is planned and you want it built while you are away. |
@@ -891,6 +891,40 @@ can block merges; blocking direct tracker closure requires an actual transition
 guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
+
+- **0.134.0** redoes a recording that timed out at commit time with exactly the
+  state the tracker had at that commit, a change made seconds before it
+  included, and refuses the redo with the ways out named when that state cannot
+  be proved. Projects using the off-branch tracker rerun setup to get it.
+
+  The marker added in 0.133.0 kept the store commit read when the hook started,
+  and that commit is the last *published* state. A tracker write the watcher had
+  not exported yet - younger than its five-second bound, or held back while the
+  store was busy - was in no commit at all. Closing a task and committing at once
+  is exactly that sequence, so the redo recorded the state from before the close
+  as that revision's permanent history: the gate reads a recording with `--at`,
+  and the baseline under `block-new` compares against it. Now:
+
+  - **an export keeps what it proved**: the watcher's publish, and a publish run
+    by hand, store the database's own change signal - read just before they read
+    the database - beside the store commit they made from it, in the machine's
+    own state beside the store. That pair is the machine's proof of which state
+    its store head is; a commit that changes the head without a signal of its own
+    drops it, a flush the tracker refused proves nothing and drops it too, so a
+    stale pair or an unproved one can never read as proof;
+  - **a timed-out marker names a commit only while that proof stands**: when the
+    signal standing now is the paired one and the paired commit is the head, the
+    marker keeps it, and the redo is byte-exact, as in 0.133.0. When it is not -
+    a write the watcher had not exported, a pair an older release never wrote, a
+    head another command moved on, or a recipe that declares no signal - the
+    marker keeps no commit and the push and the retry name the ways out instead
+    of passing a later state off as that revision's;
+  - **an export that came too late is refused, not guessed**: only an export
+    whose proof was on disk before the hook looked at the database can say what
+    the state was. One written afterwards could hold a tracker write made after
+    the commit, so the marker keeps no commit, and the ways out are named instead.
+    The hook does not wait for such an export: waiting would trade the proof for
+    a few seconds.
 
 - **0.133.0** makes rerunning setup really upgrade the recording hooks your
   checkouts run, and keeps a recording that timed out at commit time honest: it

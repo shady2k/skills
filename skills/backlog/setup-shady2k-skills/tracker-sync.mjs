@@ -688,8 +688,15 @@ async function writeState(parts) {
   }
 }
 
-/** Stage the state files and the mechanism's own files, and commit a tree. */
-async function commitState(message, parents) {
+/** Stage the state files and the mechanism's own files, and commit a tree.
+ *
+ * `signal` is the database's change signal an export took immediately before it
+ * read the database: this commit is then the state that signal describes, and
+ * the pair is persisted so a hook that times out can prove what the head is
+ * (see readStatePair). Every commit without one moves the head away from the
+ * state the persisted pair describes, so the pair is dropped: a stale pair that
+ * still read as valid would vouch for a state the database no longer has. */
+async function commitState(message, parents, { signal = null } = {}) {
   const existing = stateFiles().filter((p) => existsSync(join(CURRENT.store, p)));
   if (existing.length) await git(['add', '--', ...existing], { cwd: CURRENT.store });
   const tracked = (await git(['ls-files', '--', ...stateFiles()], { cwd: CURRENT.store })).stdout.split('\n').filter(Boolean);
@@ -706,6 +713,7 @@ async function commitState(message, parents) {
   if (c.code !== 0) die(1, `could not write the store commit: ${text(c)}`);
   const oid = c.stdout.trim();
   await gitOk(['reset', '--soft', oid], { cwd: CURRENT.store });
+  pairExportState(signal, oid);
   return oid;
 }
 
@@ -1163,10 +1171,21 @@ async function publishOnce({ quiet, skipOnTimeout = false } = {}) {
   let oid;
   try {
     oid = await locked(async () => {
+      // The database's signal, read under the store's own lock immediately before
+      // the flush reads the database, is what this publish proves about the head.
+      const signal = exportSignal();
       const migrated = await migrateStore({ announce: true });
-      await flushDatabase();
-      if (!migrated.migrated && !(await hasUncommittedState())) return migrated.oid;
-      return commitState(`tracker store: ${nowIso()}`, [await headOid()]);
+      const flushed = await flushDatabase();
+      // Only a flush the tracker answered cleanly proves the state files are the
+      // database's: a refusal it calls "nothing unexported" leaves the files as
+      // they are - which is another machine's merge, not this database - and a
+      // refusal merged from the database's side file carries what that merge kept.
+      const clean = !!(flushed && flushed.ok && !flushed.nothing && !flushed.merged);
+      if (!migrated.migrated && !(await hasUncommittedState())) {
+        pairExportState(clean ? signal : null, await headOid());
+        return migrated.oid;
+      }
+      return commitState(`tracker store: ${nowIso()}`, [await headOid()], { signal: clean ? signal : null });
     }, 120000, { skipOnTimeout });
   } catch (e) {
     if (e.lockTimeout) return { ok: false, skipped: e.message };
@@ -2384,7 +2403,7 @@ async function recordRun({ revision, checkout, fromTree, resolvedRevision }) {
       let written = stateOid;
       if (arrival) {
         const pinned = await timeoutPinnedState(CURRENT.flags, CURRENT.repoRoot, requested);
-        if (!pinned) die(1, `the recording of ${String(rev).slice(0, 12)} timed out at commit time and ${noSnapshotWaysOut(rev)}`);
+        if (!pinned) die(1, `the recording of ${String(rev).slice(0, 12)} timed out at commit time and ${noSnapshotWaysOut(rev, arrival.commit)}`);
         if (pinned !== stateOid) captured.oid = pinned;
         written = pinned;
       }
@@ -2402,7 +2421,7 @@ async function recordRun({ revision, checkout, fromTree, resolvedRevision }) {
       const late = requested ? findRecordTimeout(CURRENT.flags, CURRENT.repoRoot, requested) : null;
       if (late) {
         const pinnedLate = await timeoutPinnedState(CURRENT.flags, CURRENT.repoRoot, requested);
-        if (!pinnedLate) die(1, `the recording of ${String(rev).slice(0, 12)} timed out at commit time and ${noSnapshotWaysOut(rev)}`);
+        if (!pinnedLate) die(1, `the recording of ${String(rev).slice(0, 12)} timed out at commit time and ${noSnapshotWaysOut(rev, late.commit)}`);
         if (pinnedLate !== written) {
           captured.oid = pinnedLate;
           writeFileSync(file, recordingText(pinnedLate, await stateTextAt(pinnedLate)));
@@ -2495,6 +2514,92 @@ async function storeStateCommit() {
   return /^[0-9a-f]{40,64}$/.test(oid) ? oid : null;
 }
 
+/** The signal an export took, and the store commit that export made.
+ *
+ * The head is the last PUBLISHED state, and a tracker write the watcher had not
+ * exported yet is in no commit at all - so naming the head as a revision's state
+ * is exact only while nothing is waiting to be exported (#skills-v0cn). An
+ * export therefore persists the database's change signal, read immediately
+ * before it reads the database, with the commit it made from it, or with the
+ * unchanged head when it made none: after a flush that left no uncommitted
+ * state, the head IS the state the database holds.
+ *
+ * A reader that finds the same signal standing now, and that commit at the head,
+ * has proved the head is exactly the state the database had; the redo then
+ * records it. Anything else is not proved: a signal that moved, a commit the
+ * head has left behind, a pair an older release never wrote, or a path that
+ * changed the head without a signal of its own - which drops the pair, because a
+ * pair left standing reads as a valid claim about a state that is gone.
+ *
+ * The pair is this machine's own, so it lives in the machine's state directory
+ * (never the tree), and it carries the store it describes, so a state directory
+ * reused for another store cannot lend it one.
+ */
+const statePairPath = (flags, repoRoot) => join(machineDir(flags, repoRoot), 'export-state.json');
+function readStatePair() {
+  try {
+    const f = statePairPath(CURRENT.flags, CURRENT.repoRoot);
+    requireRegularFile(f, 'the last exportʼs state pair');
+    const p = JSON.parse(readFileSync(f, 'utf8'));
+    if (typeof p?.signal !== 'string' || !p.signal) return null;
+    if (typeof p?.commit !== 'string' || !/^[0-9a-f]{40,64}$/.test(p.commit)) return null;
+    // A pair written for another store proves nothing about this one.
+    if (typeof p?.store === 'string' && p.store && canonicalPath(p.store) !== canonicalPath(CURRENT.store)) return null;
+    // When it was written: a pair that came after the reader's own look at the
+    // database proves nothing about the state the reader found (see exactStateCommit).
+    const at = Date.parse(p.at || '');
+    if (!Number.isFinite(at)) return null;
+    return { signal: p.signal, commit: p.commit, at };
+  } catch { return null; }
+}
+function writeStatePair(signal, commit) {
+  writeAtomic(statePairPath(CURRENT.flags, CURRENT.repoRoot), `${JSON.stringify({
+    signal, commit, store: CURRENT.store, at: nowIso(),
+  }, null, 2)}\n`);
+}
+function clearStatePair() {
+  try { rmSync(statePairPath(CURRENT.flags, CURRENT.repoRoot), { force: true }); } catch {}
+}
+/** What an export proved, or that it proved nothing: a signal that could not be
+ * read is never a pair, and a pair is never invented from a later read. */
+function pairExportState(signal, commit) {
+  if (typeof signal === 'string' && signal && /^[0-9a-f]{40,64}$/.test(String(commit || ''))) writeStatePair(signal, commit);
+  else clearStatePair();
+}
+/** The signal an export takes immediately before it reads the database, under
+ * the store lock, so no other export can run between the two. */
+const exportSignal = () => {
+  const paths = changeSignalPaths();
+  return paths ? readChangeSignal(paths) : null;
+};
+/** The store commit that holds exactly the state the database had when
+ * `signalAtStart` was read, or null when that is not proved.
+ *
+ * Three things have to hold, and together they are the whole proof:
+ *
+ *   the pair's signal IS the signal read here - so the database did not move
+ *   between the export's own read of it and this one; the pair's commit IS the
+ *   store head; and the pair was written BEFORE this reader looked at the
+ *   database. The last is what makes the state exact and not merely close: an
+ *   export reads the database a moment AFTER it reads the signal, so a pair
+ *   written after this reader's look could hold a tracker write made after the
+ *   reader looked - a later state, which this mechanism must never record. A pair
+ *   that was already there cannot: whatever the export read, it read it before
+ *   the pair was written, which was before this reader's look, and a write in
+ *   between would have moved the signal this reader compares.
+ *
+ * A signal that could not be read proves nothing, and neither does a recipe that
+ * declares no signal at all: a tracker whose database is not observed cannot be
+ * said to have stood still. */
+async function exactStateCommit(signalAtStart, readAt) {
+  if (typeof signalAtStart !== 'string' || !signalAtStart) return null;
+  const pair = readStatePair();
+  if (!pair || pair.signal !== signalAtStart) return null;
+  if (!(Number.isFinite(readAt) && pair.at <= readAt)) return null;
+  const head = await storeStateCommit();
+  return head && pair.commit === head ? pair : null;
+}
+
 /** The store commit a timeout marker pinned, verified in this store.
  *
  * A recording may only name a commit the store still holds and that the store's
@@ -2503,7 +2608,16 @@ async function storeStateCommit() {
  * release's predecessor wrote) has no state to give: null, never a guess. */
 async function timeoutPinnedState(flags, repoRoot, revision) {
   const marker = revision ? findRecordTimeout(flags, repoRoot, revision) : null;
-  const oid = typeof marker?.commit === 'string' && /^[0-9a-f]{40,64}$/.test(marker.commit) ? marker.commit : null;
+  // A marker names a state only when it carries the proof that the state IS the
+  // database's at that commit: the export pair, the commit it named being the one
+  // the same marker names. A marker from 0.132.0 kept none; a marker from 0.133.0
+  // kept the last published head, which a tracker write the watcher had not
+  // exported is missing - so neither is a state to record, and both are refused
+  // with the ways out instead (skills-v0cn).
+  const proved = marker && marker.pair && typeof marker.pair === 'object'
+    && typeof marker.pair.signal === 'string' && marker.pair.signal
+    && typeof marker.pair.commit === 'string' && marker.pair.commit === marker.commit;
+  const oid = proved && typeof marker.commit === 'string' && /^[0-9a-f]{40,64}$/.test(marker.commit) ? marker.commit : null;
   if (!oid) return null;
   if ((await git(['cat-file', '-e', `${oid}^{commit}`], { cwd: CURRENT.store })).code !== 0)
     die(1, `the timeout marker of ${String(revision).slice(0, 12)} names store commit ${oid.slice(0, 12)}, which this store does not hold: the store ref's history is append-only, so the state that revision had is not guessed from a later one`);
@@ -2513,8 +2627,9 @@ async function timeoutPinnedState(flags, repoRoot, revision) {
 }
 
 /** What a person can do about a marker that holds no state, in plain words. */
-const noSnapshotWaysOut = (rev) =>
-  `its state at that commit was never captured, and a later state is not guessed to be it: make a new commit (or amend this one) and its hook records that fresh revision, or sync, if another machine has already recorded ${String(rev || 'that revision').slice(0, 12)}`;
+const noSnapshotWaysOut = (rev, unproved = null) => `${unproved
+  ? `the marker kept store commit ${String(unproved).slice(0, 12)}, which an earlier release wrote from the last published state: whether that is exactly this revision's state was never proved, and a state that is not proved is not recorded, so`
+  : 'its state at that commit was never captured, and a later state is not guessed to be it:'} make a new commit (or amend this one) and its hook records that fresh revision, or sync, if another machine has already recorded ${String(rev || 'that revision').slice(0, 12)}`;
 // A revision's full name and a short one name the same marker: the hook writes
 // the name git gives it, and a reader may ask with either.
 function findRecordTimeout(flags, repoRoot, at) {
@@ -2534,16 +2649,24 @@ function findRecordTimeout(flags, repoRoot, at) {
   const name = `${loose[0]}.json`;
   try { return { file: join(dir, name), ...JSON.parse(readFileSync(join(dir, name), 'utf8')) }; } catch { return { file: join(dir, name), revision: loose[0] }; }
 }
-function writeRecordTimeout(flags, repoRoot, revision, said, commit) {
+function writeRecordTimeout(flags, repoRoot, revision, said, commit, proof = null) {
   if (!revision) return null;
   const file = join(recordTimeoutDir(flags, repoRoot), `${revision}.json`);
   const pinned = /^[0-9a-f]{40,64}$/.test(String(commit || '')) ? String(commit) : null;
   const body = { revision, at: nowIso(), said: String(said || '').split('\n')[0] };
   // The state this revision had when the hook gave up, as the store commit whose
-  // tree holds it. Its absence is not a missing field: it is the truth that this
-  // revision's state was never captured, and then no later state may be recorded
-  // as it. The command is only a way back to a state that exists.
-  if (pinned) { body.commit = pinned; body.command = rerunRecordLine(flags, repoRoot, revision); }
+  // tree holds it, WITH the evidence that proved it: the export pair - the
+  // database's signal, the commit it paired with that signal, and when - that was
+  // standing before the hook looked at the database. A marker without that
+  // evidence is a state that was never proved to be this revision's, whichever
+  // release wrote it, and no later state may be recorded as it either. The
+  // command is only a way back to a state that exists.
+  const proved = pinned && proof && proof.commit === pinned && typeof proof.signal === 'string' && proof.signal;
+  if (proved) {
+    body.commit = pinned;
+    body.pair = { signal: proof.signal, commit: pinned, at: new Date(proof.at).toISOString() };
+    body.command = rerunRecordLine(flags, repoRoot, revision);
+  }
   writeAtomic(file, `${JSON.stringify(body, null, 2)}\n`);
   return file;
 }
@@ -2565,6 +2688,15 @@ const rerunRecordLine = (flags, repoRoot, revision) =>
  * next one, so the bound is short and the outcome is a marker, not silence. */
 const HOOK_LOCK_WAIT_MS = 8000;
 const HOOK_RECORD_ATTEMPTS = 3;
+// The timeout path does NOT wait for the pair an export under way is about to
+// write, though it could: the export reads the database a moment after it reads
+// the signal, so a pair written after the hook's own look can hold a tracker
+// write made after it, and a state later than the commit's own is exactly what
+// this mechanism must never record. Measured on the sequence in
+// test/tracker-recording-recovery ('a blocked watcher's export ...'): the export
+// a blocked watcher owes lands 0.4-2 s after the store is released, and the wait
+// would catch it - but only by giving up the proof, so the marker keeps no commit
+// instead and the redo says how to get out.
 async function recordWithRetries(opts) {
   HOOK_RECORD = true;
   LOCK_WAIT_MS = HOOK_LOCK_WAIT_MS;
@@ -2574,7 +2706,14 @@ async function recordWithRetries(opts) {
   // the commit, so a marker written below can never name a state later than the
   // commit's own.
   const rev = await canonicalRevision(await recordedRevision(opts), opts.checkout ? resolve(opts.checkout) : CURRENT.repoRoot);
-  const storeCommit = await storeStateCommit();
+  // The database's own change signal, read before any lock wait and lock-free,
+  // beside the revision: the marker names a store commit only when the head is
+  // exactly the state this value describes (see exactStateCommit). A recipe that
+  // declares no signal, and a read that failed, both land here as null, and null
+  // proves nothing for ever.
+  const readAt = Date.now();
+  const signalPaths = changeSignalPaths();
+  const signalAtStart = signalPaths ? readChangeSignal(signalPaths) : null;
   const pinned = { ...opts, resolvedRevision: rev };
   let last = null;
   for (let attempt = 1; attempt <= HOOK_RECORD_ATTEMPTS; attempt++) {
@@ -2595,9 +2734,14 @@ async function recordWithRetries(opts) {
   // timeout could only name a later state - or outlive a recording another run
   // has already made. Both are checked here and again after the write, because a
   // marker is written without the store lock the record holds.
+  // What the head is exactly, or null: the commit the last export paired with the
+  // signal this hook found standing, when that pair was already there before this
+  // hook looked (see exactStateCommit).
+  const exact = await exactStateCommit(signalAtStart, readAt);
+  const storeCommit = exact ? exact.commit : null;
   const before = rev ? findRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev) : null;
   const recorded = rev ? existsSync(recordingPathOf(rev)) : false;
-  const file = before ? before.file : recorded ? null : writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message, storeCommit);
+  const file = before ? before.file : recorded ? null : writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message, storeCommit, exact);
   const kept = before && typeof before.commit === 'string' ? before.commit : storeCommit;
   if (file && existsSync(recordingPathOf(rev))) rmSync(file, { force: true });
   die(1, `the recording of ${rev ? String(rev).slice(0, 12) : 'this revision'} timed out on the store lock after ${HOOK_RECORD_ATTEMPTS} attempts (${last.message.split(';')[0]}); `
@@ -3051,7 +3195,7 @@ async function exportRun(flags, pos) {
         const pinned = await timeoutPinnedState(CURRENT.flags, CURRENT.repoRoot, await canonicalRevision(at));
         die(1, pinned
           ? `${when}; the state that revision had then is kept in store commit ${pinned.slice(0, 12)}, and no later state is recorded as it. Redo it with: ${timedOut.command || rerunRecordLine(CURRENT.flags, CURRENT.repoRoot, at)}`
-          : `${when}; ${noSnapshotWaysOut(at)}`);
+          : `${when}; ${noSnapshotWaysOut(at, timedOut.commit)}`);
       }
       die(1, `no recording for ${at}: the store never recorded that revision, so its state is unknown and is not guessed from a later state`);
     }
@@ -3144,11 +3288,23 @@ async function watchRun(flags) {
       // and happens with the lock released, so a claim or a record from another
       // session is never made to wait on the watcher's network.
       let digest = null;
+      // What this tick's flush proved: the signal read under the lock immediately
+      // before the flush, and either nothing to commit - so the head is that
+      // state already - or the digest that is about to be committed as it.
+      let exportSignalNow = null;
+      let flushProved = false;
       let exported = false;
       try {
         digest = await locked(async () => {
-          await flushDatabase();
-          if (!(await hasUncommittedState())) return null;
+          exportSignalNow = exportSignal();
+          const flushed = await flushDatabase();
+          // A flush the tracker refused does not prove the state files are the
+          // database's, so this tick proves nothing even when it commits nothing.
+          flushProved = !!(flushed && flushed.ok && !flushed.nothing && !flushed.merged);
+          if (!(await hasUncommittedState())) {
+            pairExportState(flushProved ? exportSignalNow : null, await headOid());
+            return null;
+          }
           return stateDigest();
         }, 20000, { skipOnTimeout: true });
         exported = true;
@@ -3174,7 +3330,15 @@ async function watchRun(flags) {
       if (ready) {
         let oid;
         try {
-          oid = await locked(async () => commitState(`tracker store: ${nowIso()}`, [await headOid()]), 20000, { skipOnTimeout: true });
+          oid = await locked(async () => {
+            // The commit is a second section, so the lock was free in between: the
+            // pair is proved again under THIS one - the database has not moved
+            // since the flush read it, and the state about to be committed is the
+            // state that flush produced - and a tick that cannot prove both
+            // commits without a claim instead of a false one.
+            const proved = flushProved && exportSignalNow !== null && exportSignal() === exportSignalNow && stateDigest() === digest;
+            return commitState(`tracker store: ${nowIso()}`, [await headOid()], { signal: proved ? exportSignalNow : null });
+          }, 20000, { skipOnTimeout: true });
         } catch (e) {
           if (e.lockTimeout) { onLockTimeout(e); await sleep(1000); continue; }
           throw e;
