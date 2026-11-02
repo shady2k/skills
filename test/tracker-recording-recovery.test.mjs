@@ -295,3 +295,34 @@ test('a linked checkout’s marker is found at the revision it was written for',
     rmSync(ctx.scratch, { recursive: true, force: true });
   }
 });
+
+test('a repeated timeout keeps the first state, and no marker outlives a recording', async () => {
+  const ctx = newCtx('recording-timeout-repeated');
+  try {
+    ok(bringUp(ctx, 'A'), 'bring up');
+    const store = storeOf(ctx, 'A');
+    const revision = git(ctx.codeA, 'rev-parse', 'HEAD');
+    const first = git(store, 'rev-parse', 'HEAD');
+    let release = holdLock(ctx);
+    try { mech(ctx, 'record', ['--hook', '--revision', revision, '--checkout', ctx.codeA]); } finally { release(); }
+    assert.equal(JSON.parse(readFileSync(markerOf(ctx, revision), 'utf8')).commit, first);
+    // The store moves on, and the hook is asked again: the second timeout names
+    // the state NOW, and must not replace the earlier evidence with it.
+    writeLaterState(ctx, 'later state between two timeouts');
+    assert.notEqual(git(store, 'rev-parse', 'HEAD'), first);
+    release = holdLock(ctx);
+    try { mech(ctx, 'record', ['--hook', '--revision', revision, '--checkout', ctx.codeA]); } finally { release(); }
+    assert.equal(JSON.parse(readFileSync(markerOf(ctx, revision), 'utf8')).commit, first,
+      'the first marker is the evidence closest to the commit, and a later one may not replace it');
+    // A recording made once needs no marker, and a hook that times out afterwards
+    // must not leave one behind it.
+    ok(mech(ctx, 'record', ['--revision', revision, '--checkout', ctx.codeA]), 'the redo');
+    assert.equal(existsSync(markerOf(ctx, revision)), false);
+    release = holdLock(ctx);
+    try { mech(ctx, 'record', ['--hook', '--revision', revision, '--checkout', ctx.codeA]); } finally { release(); }
+    assert.equal(existsSync(markerOf(ctx, revision)), false, 'a marker must not outlive a recording another run already made');
+  } finally {
+    await stopAllWatchers(ctx);
+    rmSync(ctx.scratch, { recursive: true, force: true });
+  }
+});

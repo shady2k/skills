@@ -2395,6 +2395,19 @@ async function recordRun({ revision, checkout, fromTree, resolvedRevision }) {
       // computes: a projection of the working tree's parts would not read back when
       // the commit holds a declared file the working tree does not (#49 review).
       writeFileSync(file, recordingText(written, await stateTextAt(written)));
+      // A marker can be written in the instant between the check above and this
+      // write: a hook that gave up takes no store lock. It is still the state at
+      // commit time and still earlier than this run's capture, so the recording
+      // is rewritten to it before anything is committed.
+      const late = requested ? findRecordTimeout(CURRENT.flags, CURRENT.repoRoot, requested) : null;
+      if (late) {
+        const pinnedLate = await timeoutPinnedState(CURRENT.flags, CURRENT.repoRoot, requested);
+        if (!pinnedLate) die(1, `the recording of ${String(rev).slice(0, 12)} timed out at commit time and ${noSnapshotWaysOut(rev)}`);
+        if (pinnedLate !== written) {
+          captured.oid = pinnedLate;
+          writeFileSync(file, recordingText(pinnedLate, await stateTextAt(pinnedLate)));
+        }
+      }
       return { oid: await commitState(`tracker store: record ${String(rev).slice(0, 12)}`, [await headOid()]) };
     });
     if (step.already) {
@@ -2447,6 +2460,8 @@ async function recordRun({ revision, checkout, fromTree, resolvedRevision }) {
  * refuses a redo instead of inventing one.
  */
 const recordTimeoutDir = (flags, repoRoot) => join(machineDir(flags, repoRoot), 'record-timeouts');
+/** The recording of a revision in the live store, whoever wrote it. */
+const recordingPathOf = (rev) => join(CURRENT.store, '.tracker-sync', 'recordings', `${rev}.jsonl`);
 /** A revision's full object id, or the name as given when it does not resolve.
  *
  * A marker is keyed by the full id, so a hook that writes `rev-parse HEAD` and a
@@ -2575,13 +2590,24 @@ async function recordWithRetries(opts) {
       }
     }
   }
-  const file = writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message, storeCommit);
+  // Two things a marker must never do: replace an older marker of the same
+  // revision - the first one is the evidence closest to the commit, and a later
+  // timeout could only name a later state - or outlive a recording another run
+  // has already made. Both are checked here and again after the write, because a
+  // marker is written without the store lock the record holds.
+  const before = rev ? findRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev) : null;
+  const recorded = rev ? existsSync(recordingPathOf(rev)) : false;
+  const file = before ? before.file : recorded ? null : writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message, storeCommit);
+  const kept = before && typeof before.commit === 'string' ? before.commit : storeCommit;
+  if (file && existsSync(recordingPathOf(rev))) rmSync(file, { force: true });
   die(1, `the recording of ${rev ? String(rev).slice(0, 12) : 'this revision'} timed out on the store lock after ${HOOK_RECORD_ATTEMPTS} attempts (${last.message.split(';')[0]}); `
-    + `${file
-      ? `a marker is kept at ${file}, so the next push names the timeout instead of a missing recording; ${storeCommit
-        ? `it names store commit ${storeCommit.slice(0, 12)}, the state this revision had when it was cut, and running record again records exactly that state`
-        : 'the state this revision had could not be read, so record will refuse to write a later state as it'}`
-      : `${storeCommit ? `the state was at store commit ${storeCommit.slice(0, 12)}; a person must rerun record` : 'a person must rerun record'}`}`);
+    + `${file || before
+      ? `a marker is kept at ${file || before.file}, so the next push names the timeout instead of a missing recording; ${kept
+        ? `it names store commit ${kept.slice(0, 12)}, the state this revision had when it was cut, and running record again records exactly that state`
+        : 'the state this revision had was not captured, so record will refuse to write a later state as it'}`
+      : recorded
+        ? 'it is recorded now, so nothing is missing'
+        : `${kept ? `the state was at store commit ${kept.slice(0, 12)}; a person must rerun record` : 'a person must rerun record'}`}`);
 }
 /** The revision this run is about, read the way record reads it. */
 async function recordedRevision(opts) {
