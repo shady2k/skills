@@ -2147,12 +2147,22 @@ const CASES = {
     mkdirSync(blockingDir, { recursive: true });
     cpSync(ctx.fake, join(blockingDir, 'fake.mjs'));
     const blocking = join(blockingDir, 'recipe.mjs');
-    writeFileSync(blocking, readFileSync(ctx.recipe, 'utf8').replace(/import: `[^`]*`,/, "import: 'sleep 25',"));
+    // The candidate's FOLDER appears before its sparse checkout has written the
+    // files a write reads, so measuring it there measured a half-built candidate
+    // and once saw 1 KB with a whole recording still held (a red main CI run on
+    // 2026-11-01). The import command is the boundary: it runs inside the
+    // candidate once its contents are there, so it reports where it runs and
+    // then holds, and the measurement happens after that line.
+    const importReady = join(ctx.scratch, 'candidate-import-ready');
+    const pauseImport = `printf '%s' "$PWD" > '${importReady.replaceAll("'", "'\\''")}'; sleep 25`;
+    writeFileSync(blocking, readFileSync(ctx.recipe, 'utf8').replace(/import: `[^`]*`,/, `import: ${JSON.stringify(pauseImport)},`));
     const blockedLog = join(ctx.scratch, 'blocked-record.log');
     const blockedFd = openSync(blockedLog, 'w');
     const killed = spawn(process.execPath, [ctx.mech, 'record', '--revision', rev, '--checkout', ctx.codeA,
       '--recipe', blocking, '--state', stateDir, '--repo', ctx.codeA], { cwd: ctx.scratch, stdio: ['ignore', blockedFd, blockedFd] });
-    const stood = await waitUntil(() => (candidateDirs(stateDir).length ? candidateDirs(stateDir)[0] : null), 20000, 100);
+    // Directory creation precedes sparse checkout. The import is the boundary at
+    // which the candidate's contents are ready to measure.
+    const stood = await waitUntil(() => (existsSync(importReady) && readFileSync(importReady, 'utf8') ? readFileSync(importReady, 'utf8') : null), 20000, 100);
     const candidate = stood.value;
     let candidateBytes = -1; let holdsBackup = null; let holdsRecordingState = null;
     if (candidate) {
