@@ -491,8 +491,8 @@ const BREAKS = [
     cases: ['38-a-hook-record-that-times-out-is-named'],
     apply: (s) => ({
       mech: breakByLiteral('hook-no-marker', s.mech,
-        'const file = writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message, storeCommit);',
-        'const file = null; void writeRecordTimeout; /* deliberate break: the timeout leaves no marker */'),
+        'writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message, storeCommit)',
+        'null /* deliberate break: the timeout leaves no marker */'),
     }),
   },
   {
