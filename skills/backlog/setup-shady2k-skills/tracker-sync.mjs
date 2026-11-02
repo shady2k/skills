@@ -2273,8 +2273,13 @@ async function recordedStateCommit(parts, oid, rev) {
   return made;
 }
 
-async function recordRun({ revision, checkout, fromTree }) {
+async function recordRun({ revision, checkout, fromTree, resolvedRevision }) {
   const ck = checkout ? resolve(checkout) : CURRENT.repoRoot;
+  // The revision is resolved once, in the checkout the person asked about, and
+  // carried through every attempt: a hook waits for the lock, HEAD may move
+  // meanwhile, and the marker, the recording and the refusal must all be about
+  // the same revision.
+  const requested = resolvedRevision || await canonicalRevision(await recordedRevision({ revision, checkout }), ck);
   let captured;
   for (let attempt = 0; attempt < 3; attempt++) {
     const remote = await fetchRemote();
@@ -2290,12 +2295,22 @@ async function recordRun({ revision, checkout, fromTree }) {
       await migrateStore();
       await pruneSettledCandidates(remote.tip);
     });
-    const step = await isolatedCandidate('record', revision || 'HEAD', async (before) => {
+    const step = await isolatedCandidate('record', requested || 'HEAD', async (before) => {
       const ck2 = ck;
-      let rev = revision;
+      // A revision named by abbreviation keeps the name it was asked with: a
+      // recording already made under it must be replayed, not written again
+      // under the full id.
+      let rev = revision || requested;
       let parts;
       if (!captured) {
-        if (fromTree) {
+        // A timed-out hook's marker names the store commit this revision's state
+        // had when the hook gave up: that state IS the revision's history, and a
+        // redo records it instead of the state standing now.
+        const pinned = await timeoutPinnedState(CURRENT.flags, CURRENT.repoRoot, requested);
+        if (pinned) {
+          parts = await stateFrom(pinned);
+          captured = { rev, parts, oid: pinned };
+        } else if (fromTree) {
           rev = rev || (await gitOk(['rev-parse', 'HEAD'], { cwd: ck2 })).trim();
           if ((await git(['cat-file', '-e', `${rev}^{commit}`], { cwd: CURRENT.store })).code !== 0)
             die(1, `${rev} is not a revision of this repository`);
@@ -2359,20 +2374,34 @@ async function recordRun({ revision, checkout, fromTree }) {
       const stateOid = await recordedStateCommit(parts, captured.oid, rev);
       captured.oid = stateOid;
       if (!remote.noRef) await mergeAndCommit(remote.tip);
+      // Check at the write, under the candidate's own lock: a hook's record of
+      // this revision may have given up while this run fetched or waited. A
+      // marker that names a store commit is that revision's state, and it is
+      // recorded instead of this run's own, later capture; a marker that names
+      // none is a state that was never captured, and today's state must not
+      // become that revision's history.
+      const arrival = requested ? findRecordTimeout(CURRENT.flags, CURRENT.repoRoot, requested) : null;
+      let written = stateOid;
+      if (arrival) {
+        const pinned = await timeoutPinnedState(CURRENT.flags, CURRENT.repoRoot, requested);
+        if (!pinned) die(1, `the recording of ${String(rev).slice(0, 12)} timed out at commit time and ${noSnapshotWaysOut(rev)}`);
+        if (pinned !== stateOid) captured.oid = pinned;
+        written = pinned;
+      }
       mkdirSync(dirname(file), { recursive: true });
       // A reference, not a copy: the store's history already holds this state, and
       // a copy per revision grew one store to 5 GB against 10 MB of items (#45).
       // The digest covers the state the commit exports, which is what every reader
       // computes: a projection of the working tree's parts would not read back when
       // the commit holds a declared file the working tree does not (#49 review).
-      writeFileSync(file, recordingText(stateOid, await stateTextAt(stateOid)));
+      writeFileSync(file, recordingText(written, await stateTextAt(written)));
       return { oid: await commitState(`tracker store: record ${String(rev).slice(0, 12)}`, [await headOid()]) };
     });
     if (step.already) {
       settleDiagnostic(step.diagnostic);
       // This revision IS recorded now: a marker a hook's timed-out record left
       // must not outlive it, or the next push would name a timeout that is over.
-      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, await canonicalRevision(captured.rev));
+      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, requested);
       writeConfig(CURRENT.flags, CURRENT.repoRoot, { lastRecord: nowIso() });
       say(`tracker-sync: ${step.already} is already recorded ${step.where}; a recording is written once and never moved, so nothing was written`);
       return;
@@ -2383,7 +2412,7 @@ async function recordRun({ revision, checkout, fromTree }) {
     if (step.pushed.ok) {
       await integrateCandidate(step);
       settleDiagnostic(step.diagnostic);
-      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, await canonicalRevision(captured.rev));
+      clearRecordTimeout(CURRENT.flags, CURRENT.repoRoot, requested);
       writeConfig(CURRENT.flags, CURRENT.repoRoot, { lastRecord: nowIso() });
       say(`tracker-sync: recorded the store at ${String(captured.rev).slice(0, 12)}`);
       return;
@@ -2404,8 +2433,18 @@ async function recordRun({ revision, checkout, fromTree }) {
  * recorded that revision" - which names the wrong cause (#57). So a record run
  * started by a hook that still cannot take the lock keeps a marker per revision
  * in the machine's own state (never in the tree): the push that reads the
- * missing recording names the timeout and the command that redoes it, and a
- * later successful record of that revision removes the marker.
+ * missing recording names the timeout, and a later successful record of that
+ * revision removes the marker.
+ *
+ * The marker also keeps the store commit whose tree holds the state that
+ * revision had when the hook gave up. Retrying the record later would otherwise
+ * record the tracker AS IT IS THEN under the old revision, and a recording is
+ * the one history that revision will ever have (the gate reads it with --at, and
+ * the baseline under block-new compares against it): a write made after the
+ * commit would become that revision's permanent history and could make a new
+ * violation look like old debt. So the redo records exactly that commit, and a
+ * marker written before this field existed - a state that was never captured -
+ * refuses a redo instead of inventing one.
  */
 const recordTimeoutDir = (flags, repoRoot) => join(machineDir(flags, repoRoot), 'record-timeouts');
 /** A revision's full object id, or the name as given when it does not resolve.
@@ -2414,14 +2453,53 @@ const recordTimeoutDir = (flags, repoRoot) => join(machineDir(flags, repoRoot), 
  * reader that asks with an abbreviation name the same marker, and two revisions
  * that begin alike can never be confused: one marker file per revision, matched
  * exactly. */
-async function canonicalRevision(rev) {
+async function canonicalRevision(rev, ck = CURRENT.repoRoot || CURRENT.store) {
   const name = String(rev || '');
   if (!name) return null;
-  const ck = CURRENT.repoRoot || CURRENT.store;
   const r = await git(['rev-parse', '--verify', `${name}^{commit}`], { cwd: ck });
   const oid = r.code === 0 ? r.stdout.trim() : '';
   return /^[0-9a-f]{40,64}$/.test(oid) ? oid : name;
 }
+
+/** The store commit whose tree is the state this machine has published, read
+ * without the store lock: a ref read takes none, so a hook that cannot take the
+ * lock can still name it.
+ *
+ * That commit is the one a recording references (`recordedStateCommit` names the
+ * candidate's base, which is this head), so it is exactly what the state at a
+ * revision would have been recorded against. What it cannot hold is a write the
+ * watcher had not exported yet at the moment it was read: the watcher publishes
+ * after `--debounce` seconds of quiet or `--max-age` seconds at most (2 and 5 by
+ * default), so a tracker write made within that window before the read is in no
+ * commit yet. A write the lock holder was exporting at that moment lands in a
+ * LATER store commit, and a recording may not name that one either: a state
+ * later than the revision's is what this whole mechanism must not invent. */
+async function storeStateCommit() {
+  const r = await git(['rev-parse', '--verify', 'HEAD^{commit}'], { cwd: CURRENT.store });
+  const oid = r.code === 0 ? r.stdout.trim() : '';
+  return /^[0-9a-f]{40,64}$/.test(oid) ? oid : null;
+}
+
+/** The store commit a timeout marker pinned, verified in this store.
+ *
+ * A recording may only name a commit the store still holds and that the store's
+ * head builds on - the store ref's history is append-only - so a pinned commit
+ * is checked both ways before it is used. A marker without a commit (one this
+ * release's predecessor wrote) has no state to give: null, never a guess. */
+async function timeoutPinnedState(flags, repoRoot, revision) {
+  const marker = revision ? findRecordTimeout(flags, repoRoot, revision) : null;
+  const oid = typeof marker?.commit === 'string' && /^[0-9a-f]{40,64}$/.test(marker.commit) ? marker.commit : null;
+  if (!oid) return null;
+  if ((await git(['cat-file', '-e', `${oid}^{commit}`], { cwd: CURRENT.store })).code !== 0)
+    die(1, `the timeout marker of ${String(revision).slice(0, 12)} names store commit ${oid.slice(0, 12)}, which this store does not hold: the store ref's history is append-only, so the state that revision had is not guessed from a later one`);
+  if ((await git(['merge-base', '--is-ancestor', oid, await headOid()], { cwd: CURRENT.store })).code !== 0)
+    die(1, `the timeout marker of ${String(revision).slice(0, 12)} names store commit ${oid.slice(0, 12)}, which is not in the store head's history, so that state is not that revision's`);
+  return oid;
+}
+
+/** What a person can do about a marker that holds no state, in plain words. */
+const noSnapshotWaysOut = (rev) =>
+  `its state at that commit was never captured, and a later state is not guessed to be it: make a new commit (or amend this one) and its hook records that fresh revision, or sync, if another machine has already recorded ${String(rev || 'that revision').slice(0, 12)}`;
 // A revision's full name and a short one name the same marker: the hook writes
 // the name git gives it, and a reader may ask with either.
 function findRecordTimeout(flags, repoRoot, at) {
@@ -2441,10 +2519,16 @@ function findRecordTimeout(flags, repoRoot, at) {
   const name = `${loose[0]}.json`;
   try { return { file: join(dir, name), ...JSON.parse(readFileSync(join(dir, name), 'utf8')) }; } catch { return { file: join(dir, name), revision: loose[0] }; }
 }
-function writeRecordTimeout(flags, repoRoot, revision, said) {
+function writeRecordTimeout(flags, repoRoot, revision, said, commit) {
   if (!revision) return null;
   const file = join(recordTimeoutDir(flags, repoRoot), `${revision}.json`);
-  const body = { revision, at: nowIso(), said: String(said || '').split('\n')[0], command: rerunRecordLine(flags, repoRoot, revision) };
+  const pinned = /^[0-9a-f]{40,64}$/.test(String(commit || '')) ? String(commit) : null;
+  const body = { revision, at: nowIso(), said: String(said || '').split('\n')[0] };
+  // The state this revision had when the hook gave up, as the store commit whose
+  // tree holds it. Its absence is not a missing field: it is the truth that this
+  // revision's state was never captured, and then no later state may be recorded
+  // as it. The command is only a way back to a state that exists.
+  if (pinned) { body.commit = pinned; body.command = rerunRecordLine(flags, repoRoot, revision); }
   writeAtomic(file, `${JSON.stringify(body, null, 2)}\n`);
   return file;
 }
@@ -2469,10 +2553,18 @@ const HOOK_RECORD_ATTEMPTS = 3;
 async function recordWithRetries(opts) {
   HOOK_RECORD = true;
   LOCK_WAIT_MS = HOOK_LOCK_WAIT_MS;
+  // Both read once, before any wait, and both lock-free: the revision this hook
+  // is about, and the store commit whose tree is the state it had when the commit
+  // was cut. A ref read takes no lock, and this is the closest lock-free point to
+  // the commit, so a marker written below can never name a state later than the
+  // commit's own.
+  const rev = await canonicalRevision(await recordedRevision(opts), opts.checkout ? resolve(opts.checkout) : CURRENT.repoRoot);
+  const storeCommit = await storeStateCommit();
+  const pinned = { ...opts, resolvedRevision: rev };
   let last = null;
   for (let attempt = 1; attempt <= HOOK_RECORD_ATTEMPTS; attempt++) {
     try {
-      await recordRun(opts);
+      await recordRun(pinned);
       return;
     } catch (e) {
       if (!e.lockTimeout) throw e;
@@ -2483,10 +2575,13 @@ async function recordWithRetries(opts) {
       }
     }
   }
-  const rev = await canonicalRevision(await recordedRevision(opts));
-  const file = writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message);
+  const file = writeRecordTimeout(CURRENT.flags, CURRENT.repoRoot, rev, last.message, storeCommit);
   die(1, `the recording of ${rev ? String(rev).slice(0, 12) : 'this revision'} timed out on the store lock after ${HOOK_RECORD_ATTEMPTS} attempts (${last.message.split(';')[0]}); `
-    + `${file ? `a marker is kept at ${file}, so the next push names it as a timeout instead of a missing recording, and running record again removes it` : 'a person must rerun record'}`);
+    + `${file
+      ? `a marker is kept at ${file}, so the next push names the timeout instead of a missing recording; ${storeCommit
+        ? `it names store commit ${storeCommit.slice(0, 12)}, the state this revision had when it was cut, and running record again records exactly that state`
+        : 'the state this revision had could not be read, so record will refuse to write a later state as it'}`
+      : `${storeCommit ? `the state was at store commit ${storeCommit.slice(0, 12)}; a person must rerun record` : 'a person must rerun record'}`}`);
 }
 /** The revision this run is about, read the way record reads it. */
 async function recordedRevision(opts) {
@@ -2925,8 +3020,13 @@ async function exportRun(flags, pos) {
       // it, never "the store never recorded that revision", which is not what
       // happened and leaves the reader with no way to see it was a timeout (#57).
       const timedOut = findRecordTimeout(CURRENT.flags, CURRENT.repoRoot, await canonicalRevision(at));
-      if (timedOut)
-        die(1, `the recording of ${at} timed out at commit time: the store was locked (${timedOut.said || 'the lock was held elsewhere'}), and record gave up after its bounds at ${timedOut.at || 'commit time'}; the state is not lost, it was never written. Redo it with: ${timedOut.command || rerunRecordLine(CURRENT.flags, CURRENT.repoRoot, at)}`);
+      if (timedOut) {
+        const when = `the recording of ${at} timed out at commit time: the store was locked (${timedOut.said || 'the lock was held elsewhere'}), and record gave up after its bounds at ${timedOut.at || 'commit time'}`;
+        const pinned = await timeoutPinnedState(CURRENT.flags, CURRENT.repoRoot, await canonicalRevision(at));
+        die(1, pinned
+          ? `${when}; the state that revision had then is kept in store commit ${pinned.slice(0, 12)}, and no later state is recorded as it. Redo it with: ${timedOut.command || rerunRecordLine(CURRENT.flags, CURRENT.repoRoot, at)}`
+          : `${when}; ${noSnapshotWaysOut(at)}`);
+      }
       die(1, `no recording for ${at}: the store never recorded that revision, so its state is unknown and is not guessed from a later state`);
     }
     // A recording holds a reference to the store commit whose state it records, so
