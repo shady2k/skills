@@ -1012,19 +1012,58 @@ async function mergeAndCommit(tip, { flushed: done } = {}) {
   }
   // recordings travel beside the tracker items and are immutable: two different
   // states for one revision are a refusal, never a newer-wins choice.
-  const listIn = async (rev) => (await git(['ls-tree', '-r', '--name-only', rev, '--', '.tracker-sync/recordings'], { cwd: CURRENT.store })).stdout.split('\n').filter(Boolean);
-  const [a, b] = [await listIn(head), await listIn(tip)];
-  for (const p of new Set([...a, ...b])) {
-    const ca = a.includes(p) ? (await git(['show', `${head}:${p}`], { cwd: CURRENT.store })).stdout : null;
-    const cb = b.includes(p) ? (await git(['show', `${tip}:${p}`], { cwd: CURRENT.store })).stdout : null;
-    // A recording holds a reference, so the two sides are compared as the STATES
-    // they stand for: two references to commits with the same state are one
-    // recording, and only states that differ are a refusal for a person.
-    const sa = ca === null ? null : (await recordingState(ca, `the recording of ${basename(p)} in ${head.slice(0, 12)}`)).text;
-    const sb = cb === null ? null : (await recordingState(cb, `the recording of ${basename(p)} in ${tip.slice(0, 12)}`)).text;
-    if (sa !== null && sb !== null && sa !== sb)
+  //
+  // A merge costs what it changes (#skills-rntd): the two sides are listed once,
+  // with the blob id of every recording, so a recording that is the same file on
+  // both sides is one lookup and reads no state, and one held on one side only is
+  // copied without a state read. Two different files that both hold a reference
+  // are compared by the blobs of the commits they name - a tree, never a file -
+  // and only a real difference reads the two states, to refuse with the sentence
+  // it refused with before. Reading a state per recording on both sides is what
+  // made one commit on a store of 216 recordings cost about 170 s of CPU and
+  // 1.49 GB, and it grew by one recording per commit.
+  const recordingsIn = async (rev) => {
+    const out = new Map();
+    for (const line of (await gitOk(['ls-tree', '-r', rev, '--', '.tracker-sync/recordings'], { cwd: CURRENT.store })).split('\n')) {
+      const m = /^\d+ blob ([0-9a-f]+)\t(.*)$/.exec(line);
+      if (m) out.set(m[2], m[1]);
+    }
+    return out;
+  };
+  const [a, b] = [await recordingsIn(head), await recordingsIn(tip)];
+  // A referenced commit's state blobs, read once per merge however many
+  // recordings name it.
+  const stateBlobsOf = new Map();
+  const blobsAt = async (oid) => {
+    const key = String(oid);
+    if (!stateBlobsOf.has(key)) stateBlobsOf.set(key, await stateBlobsAt(key));
+    return stateBlobsOf.get(key);
+  };
+  for (const p of new Set([...a.keys(), ...b.keys()])) {
+    const [oa, ob] = [a.get(p), b.get(p)];
+    const whereA = `the recording of ${basename(p)} in ${String(head).slice(0, 12)}`;
+    const whereB = `the recording of ${basename(p)} in ${String(tip).slice(0, 12)}`;
+    if (oa && ob && oa === ob) continue; // the same file on both sides: one state, and nothing to read
+    if (!oa) {
+      // Held on the remote's side only: the file travels as it is, and no state
+      // is read for it.
+      const cb = (await git(['show', `${tip}:${p}`], { cwd: CURRENT.store })).stdout;
+      if (cb !== null) { mkdirSync(dirname(join(CURRENT.store, p)), { recursive: true }); writeFileSync(join(CURRENT.store, p), cb); }
+      continue;
+    }
+    if (!ob) continue; // ours only: ours stays, as it always did
+    // Two different files. A recording holds a reference, so the two sides are
+    // compared as the STATES they stand for: two references whose commits hold
+    // the same state are one recording, and the trees answer that without either
+    // state being read.
+    const [ca, cb] = [(await git(['show', `${head}:${p}`], { cwd: CURRENT.store })).stdout, (await git(['show', `${tip}:${p}`], { cwd: CURRENT.store })).stdout];
+    if (ca === null || cb === null) continue;
+    const [ra, rb] = [parseRecording(ca), parseRecording(cb)];
+    if (ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue;
+    const sa = (await recordingState(ca, whereA)).text;
+    const sb = (await recordingState(cb, whereB)).text;
+    if (sa !== sb)
       die(1, `two different recordings for ${basename(p)}: ${head.slice(0, 12)} and ${tip.slice(0, 12)} recorded different states for one revision, so neither is moved; a person must decide`);
-    if (ca === null) { mkdirSync(dirname(join(CURRENT.store, p)), { recursive: true }); writeFileSync(join(CURRENT.store, p), cb); }
   }
   await recipeIsland(head, tip);
   keepIdentity();

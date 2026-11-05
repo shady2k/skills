@@ -90,7 +90,10 @@ async function waitUntil(fn, timeoutMs, pollMs = 50) {
 
 // ------------------------------------------------------------------ helpers
 function sh(cmd, args, opts = {}) {
-  const r = spawnSync(cmd, args, { cwd: opts.cwd, env: { ...process.env, ...(opts.env || {}) }, encoding: 'utf8' });
+  // `timeoutMs` bounds a call a case expects to be slow or to hang: a proof about a
+  // merge that reads a state per recording must not spend the case's whole budget
+  // waiting for the answer it already knows is wrong.
+  const r = spawnSync(cmd, args, { cwd: opts.cwd, env: { ...process.env, ...(opts.env || {}) }, encoding: 'utf8', ...(opts.timeoutMs ? { timeout: opts.timeoutMs } : {}) });
   return { code: r.status ?? 127, out: (r.stdout || '') + (r.stderr || ''), stdout: r.stdout || '', stderr: r.stderr || '' };
 }
 function git(ctx, args, opts = {}) {
@@ -439,6 +442,89 @@ function seedStoreItems(m, items) {
   writeFileSync(join(store, 'fake', 'db.json'), JSON.stringify({ records: items }, null, 1) + '\n');
 }
 const count = (text, re) => (text.match(re) || []).length;
+
+// -------------------------------- a merge's cost, and a read that was killed
+// #skills-rntd: a merge read every recording's whole state on both sides, so one
+// commit on a store of 216 recordings cost about 170 s of CPU and 1.49 GB, and it
+// grew by one recording per commit. #skills-by6c: a `git show` that failed was
+// taken for a file the commit does not hold. Both are proved against the git that
+// already answers a host (#62) and writes down every call it is given, and against
+// two real stores built here: nothing outside this scratch folder is read.
+const STATE_PATH = 'fake/items.jsonl';
+/** Items that make one state file the size a tracker export of long histories has. */
+const padLines = (n) => Array.from({ length: n }, (_, i) => JSON.stringify({ id: 'pad-' + i, title: 'a tracker item that takes up space in a state '.repeat(8), status: 'open', comments: [{ by: 'proof', text: 'a comment a tracker keeps beside it '.repeat(4) }] })).join('\n') + '\n';
+/** A git in the store that the project's own hooks do not see, exactly as the
+ * mechanism runs one: a commit made here must be the commit this proof made, not
+ * one a record hook rewrote. */
+function inStore(store) {
+  const noHooks = join(dirname(store), 'nohooks-proof');
+  mkdirSync(noHooks, { recursive: true });
+  return (args) => sh('git', ['-C', store, '-c', `core.hooksPath=${noHooks}`, ...args]);
+}
+function commitInStore(store, paths, message) {
+  const g = inStore(store);
+  g(['add', '--', ...paths]);
+  return g(['-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '-qm', message]);
+}
+/** A recording of a store commit, in the mechanism's own format: what record
+ * writes, without five hundred record runs to write five hundred of them. The
+ * digest is taken over the state text the commit exports, as record takes it. */
+function recordingOf(store, oid, statePath = STATE_PATH) {
+  const body = sh('git', ['-C', store, 'cat-file', '-p', oid + ':' + statePath]).stdout;
+  const txt = `=== ${statePath}\n${body}`;
+  return JSON.stringify({ format: 'tracker-sync-recording/1', store: oid, digest: 'sha256:' + createHash('sha256').update(txt, 'utf8').digest('hex') }, null, 2) + '\n';
+}
+const revisionNames = (n) => Array.from({ length: n }, (_, i) => 'r' + String(i).padStart(39, '0'));
+/** Every `git show <rev>:<path>` a run made: how a state is read, as opposed to a
+ * tree (`ls-tree`) or a hash (`hash-object`). */
+function stateShows(dir, statePath = STATE_PATH) {
+  return shimLog(dir).split('\n').filter((l) => {
+    const m = /(?:^|\s)show\s+(\S+)$/.exec(l.trim());
+    return !!m && m[1].endsWith(':' + statePath);
+  }).length;
+}
+/** The peak resident memory the kernel measured for a run, written as it exits. */
+function peakMeter(dir) {
+  const out = join(dir, 'peak.txt');
+  const f = join(dir, 'peak.mjs');
+  writeFileSync(f, 'import { readFileSync, writeFileSync } from "node:fs";\n'
+    + 'process.on("exit", () => { try { const m = /VmHWM:\\s+(\\d+) kB/.exec(readFileSync("/proc/self/status", "utf8")); if (m && process.env.PROOF_PEAK_OUT) writeFileSync(process.env.PROOF_PEAK_OUT, String(Number(m[1]) * 1024)); } catch {} });\n');
+  return { arg: f, out };
+}
+/** A case's own pair of machines, running the mechanism the case was given: a
+ * mutation's copy is the one that must be met, so the override travels. */
+function twoMachines(parentCtx, tag) {
+  const c = newCtx(tag, { mech: parentCtx.mech, recipe: parentCtx.recipe, fake: parentCtx.fake });
+  const a = bringUp(c, 'A');
+  if (a.code !== 0) return { error: 'bring-up A: ' + a.out.split('\n').slice(0, 3).join(' | ') };
+  const b = bringUp(c, 'B');
+  if (b.code !== 0) return { error: 'bring-up B: ' + b.out.split('\n').slice(0, 3).join(' | ') };
+  // Connect on the second machine records and pushes what it meets, so the first
+  // one is brought in step before anything here commits in its store.
+  const inStep = mech(c, 'sync', [], { machine: 'A' });
+  if (inStep.code !== 0) return { error: 'sync A: ' + said(inStep).split('\n')[0].slice(0, 160) };
+  return { ctx: c, storeA: storeOf(c, 'A'), storeB: storeOf(c, 'B') };
+}
+/** A write the fake tracker keeps in its database, flushed into the state file by
+ * the tracker's own export: a state one machine holds and the other does not. */
+function stateCommitOf(ctx, machine, itemId, text, message) {
+  const store = storeOf(ctx, machine);
+  if (post(ctx, machine, itemId, text).code !== 0) return null;
+  if (sh('node', [ctx.fake, 'export'], { cwd: store }).code !== 0) return null;
+  if (commitInStore(store, [STATE_PATH], message).code !== 0) return null;
+  return sh('git', ['-C', store, 'rev-parse', 'HEAD']).stdout.trim();
+}
+const headOf = (store) => sh('git', ['-C', store, 'rev-parse', 'HEAD']).stdout.trim();
+/** A commit this harness made in the store, pushed to the store's ref: the
+ * mechanism publishes what IT commits, so a commit made here travels this way. */
+const pushStore = (store) => inStore(store)(['push', '-q', 'origin', 'HEAD:refs/tracker/state']);
+const itemsSaid = (ctx, machine) => storeItems(ctx, machine).map((x) => JSON.stringify(x)).join(' ');
+/** The merge B meets, read through a git that writes down every call. */
+function mergeOnB(ctx, { name = 'merge', shim: given = null, timeoutMs = 0, nodeArgs = [], env = {} } = {}) {
+  const shim = given || gitHost(ctx, name, {});
+  const r = mech(ctx, 'sync', [], { machine: 'B', shim, timeoutMs, nodeArgs, env });
+  return { r, shim, shows: stateShows(shim), out: said(r) };
+}
 
 // The answers a host gives a clone with no write rights, as the reporter met
 // them (#62): each one is a REFUSAL, and none of them is a broken connection.
@@ -936,6 +1022,27 @@ const BREAKS = [
     apply: (s) => ({ mech: breakByLiteral('connect-pushes-early', s.mech,
       '      ordinalOid = await commitState(`tracker store: this machine takes its ordinal`, [await headOid()]);',
       '      ordinalOid = await commitState(`tracker store: this machine takes its ordinal`, [await headOid()]);\n      await pushOid(ordinalOid, { quiet: true }); /* deliberate break: pushed before the hooks */') }),
+  },  {
+    name: 'a-merge-reads-every-recording',
+    cases: ['51-a-merge-costs-what-it-changes'],
+    // The fix undone, both halves: no listing shortcut and no blob comparison, so
+    // every recording on both sides is read as the state it stands for - the loop
+    // that cost 170 s and 1.49 GB on 216 recordings (#skills-rntd).
+    apply: (s) => ({ mech: breakByLiteral('merge-reads-every-recording',
+      breakByLiteral('merge-reads-every-state', s.mech,
+        '    if (oa && ob && oa === ob) continue; // the same file on both sides: one state, and nothing to read',
+        '    if (false && oa && ob && oa === ob) continue; /* deliberate break: the same file is read as a state */'),
+      '    if (ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue;',
+      '    if (false && ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue; /* deliberate break: two references to one state are read as two states */') }),
+  },
+  {
+    name: 'two-references-to-one-state-are-read',
+    cases: ['52-two-references-to-one-state-do-not-refuse'],
+    // The fix undone: the states two references name are read and digested even
+    // when their trees are the same, which is the cost the item is about.
+    apply: (s) => ({ mech: breakByLiteral('no-blob-comparison', s.mech,
+      '    if (ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue;',
+      '    if (false && ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue; /* deliberate break: the same state is read as two */') }),
   },
 ];
 
@@ -3155,6 +3262,203 @@ console.log(JSON.stringify({ pid: process.pid, whileHeld, afterRelease }));
       `status cannotPublish: ${j && j.cannotPublish}; the line says it: ${/cannot publish/.test(String(j && j.publishRefused && j.publishRefused.said))}`);
   },
 
+  // 51. #skills-rntd: a merge costs what it changes. Two stores of the field's
+  // shape - hundreds of recordings, the same file on both sides, over a state of
+  // megabytes - meet in one merge, one item changed on each side. What that merge
+  // read is counted, and its time and peak memory are measured at 50 and at 500
+  // recordings: none of them may grow with the number of recordings.
+  '51-a-merge-costs-what-it-changes': async (ctx) => {
+    const mergeAt = (tag, n, { heapMB = 0, timeoutMs = 0 } = {}) => {
+      const up = twoMachines(ctx, tag);
+      if (up.error) return { error: up.error };
+      const c = up.ctx;
+      fsAppend(join(up.storeA, STATE_PATH), padLines(6000));
+      commitInStore(up.storeA, [STATE_PATH], 'a state with size');
+      let pub = pushStore(up.storeA);
+      let sy = mech(c, 'sync', [], { machine: 'B' });
+      if (pub.code !== 0 || sy.code !== 0) return { error: 'the padded state did not reach both machines: ' + said(pub) + said(sy) };
+      // `n` recordings of that one state, written once and held on both sides: the
+      // shape of a store that gained one recording per commit.
+      const oid = headOf(up.storeA);
+      const recDir = join(up.storeA, '.tracker-sync', 'recordings');
+      mkdirSync(recDir, { recursive: true });
+      const text = recordingOf(up.storeA, oid);
+      for (const name of revisionNames(n)) writeFileSync(join(recDir, name + '.jsonl'), text);
+      commitInStore(up.storeA, ['.tracker-sync/recordings'], n + ' recordings');
+      pub = pushStore(up.storeA);
+      sy = mech(c, 'sync', [], { machine: 'B' });
+      if (pub.code !== 0 || sy.code !== 0) return { error: 'the recordings did not reach both machines: ' + said(pub) + said(sy) };
+      // one item changed on each side, the collision a merge exists for
+      if (post(c, 'A', 'i-1', 'a change from A').code !== 0) return { error: 'the write on A failed' };
+      if (mech(c, 'publish', [], { machine: 'A' }).code !== 0) return { error: 'the write on A was not published' };
+      if (post(c, 'B', 'i-2', 'a change from B').code !== 0) return { error: 'the write on B failed' };
+      const peak = peakMeter(c.scratch);
+      const nodeArgs = [...(heapMB ? ['--max-old-space-size=' + heapMB] : []), '--import', peak.arg];
+      const t0 = Date.now();
+      const m = mergeOnB(c, { timeoutMs, nodeArgs, env: { PROOF_PEAK_OUT: peak.out } });
+      const ms = Date.now() - t0;
+      const merged = itemsSaid(c, 'B');
+      const stateFile = join(storeOf(c, 'B'), STATE_PATH);
+      return {
+        n, shows: m.shows, ms, code: m.r.code, out: m.out,
+        peak: existsSync(peak.out) ? Number(readFileSync(peak.out, 'utf8')) : null,
+        both: /a change from A/.test(merged) && /a change from B/.test(merged),
+        stateBytes: existsSync(stateFile) ? Buffer.byteLength(readFileSync(stateFile, 'utf8')) : 0,
+      };
+    };
+    const small = mergeAt('51-small', 50, {});
+    if (small.error) { record('51-a-merge-costs-what-it-changes', false, small.error); return; }
+    const stateKB = Math.round(small.stateBytes / 1024);
+    const clean = small.code === 0 && small.shows <= 4 && small.both;
+    record('51-no-recording-reads-a-state', clean,
+      'one merge over a state of ' + stateKB + ' KB and 50 recordings read the state ' + small.shows + ' time(s) (the merge\'s own base and theirs reads: a constant), exit ' + small.code + ', both changes in the merged store: ' + small.both);
+    if (!clean) {
+      for (const id of ['51-no-recording-reads-a-state-at-500', '51-time-does-not-grow-with-the-count', '51-memory-does-not-grow-with-the-count'])
+        record(id, false, 'not measured: the 50-recording merge already failed');
+      return;
+    }
+    // 500 recordings, and a heap that no store of 500 read states would fit in:
+    // the old loop held one state per recording, which is the 1.49 GB of the item.
+    const big = mergeAt('51-big', 500, { heapMB: 128, timeoutMs: 180000 });
+    if (big.error) { record('51-a-merge-costs-what-it-changes', false, big.error); return; }
+    record('51-no-recording-reads-a-state-at-500', big.code === 0 && big.shows === small.shows && big.both,
+      'the same merge over 500 recordings read the state ' + big.shows + ' time(s), as at 50 (' + small.shows + '), exit ' + big.code + ', both changes merged: ' + big.both);
+    record('51-time-does-not-grow-with-the-count', big.ms <= small.ms * 1.5 + 500,
+      '50 recordings: ' + small.ms + ' ms; 500: ' + big.ms + ' ms (a bound of 1.5x + 500 ms)');
+    const memoryOk = big.code === 0 && (small.peak === null || big.peak === null || big.peak <= small.peak * 1.5);
+    record('51-memory-does-not-grow-with-the-count', memoryOk,
+      'peak memory 50 recordings: ' + (small.peak === null ? 'not measured' : Math.round(small.peak / 1048576) + ' MB') + '; 500: ' + (big.peak === null ? 'not measured' : Math.round(big.peak / 1048576) + ' MB') + ', in a 128 MB heap, exit ' + big.code);
+  },
+
+  // 52. #skills-rntd rule: two references to the same state are one recording. A
+  // store of the same items at two commits, each side recording the revision with
+  // its own reference: no refusal, and no state read to answer it.
+  '52-two-references-to-one-state-do-not-refuse': async (ctx) => {
+    const up = twoMachines(ctx, '52');
+    if (up.error) { record('52-two-references-to-one-state-do-not-refuse', false, up.error); return; }
+    const c = up.ctx;
+    const first = headOf(up.storeA);
+    const empty = inStore(up.storeA)(['-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '--allow-empty', '-qm', 'a second commit of the same state']);
+    const second = headOf(up.storeA);
+    const pushed = pushStore(up.storeA);
+    const sy = mech(c, 'sync', [], { machine: 'B' });
+    if (empty.code !== 0 || pushed.code !== 0 || sy.code !== 0) {
+      record('52-two-references-to-one-state-do-not-refuse', false, 'two commits of one state: ' + empty.out + pushed.out + said(sy));
+      return;
+    }
+    const rev = 'r' + '0'.repeat(39);
+    const recA = join(up.storeA, '.tracker-sync', 'recordings');
+    const recB = join(up.storeB, '.tracker-sync', 'recordings');
+    mkdirSync(recA, { recursive: true }); mkdirSync(recB, { recursive: true });
+    writeFileSync(join(recA, rev + '.jsonl'), recordingOf(up.storeA, first));
+    commitInStore(up.storeA, ['.tracker-sync/recordings'], 'the revision, recorded against the first commit');
+    writeFileSync(join(recB, rev + '.jsonl'), recordingOf(up.storeB, second));
+    commitInStore(up.storeB, ['.tracker-sync/recordings'], 'the revision, recorded against the second commit');
+    const pub = pushStore(up.storeA);
+    const m = mergeOnB(c, { name: 'merge52' });
+    const exported = exportAt(c, 'B', rev);
+    const refused = /two different recordings/.test(m.out);
+    record('52-two-references-to-one-state-do-not-refuse',
+      pub.code === 0 && m.r.code === 0 && !refused && m.shows === 0 && exported.code === 0 && exported.stdout.startsWith('=== '),
+      'merge exit ' + m.r.code + ', state reads ' + m.shows + ' (the merge changes no state, so it reads none), a refusal was claimed: ' + refused + (refused ? ' (' + m.out.split('\n')[0].slice(0, 120) + ')' : '') + ', the recording still exports: ' + exported.code);
+  },
+
+  // 53. #skills-rntd rule: two different states for one revision still refuse,
+  // with the sentence they refused with before, and nothing moves.
+  '53-two-different-states-still-refuse': async (ctx) => {
+    const up = twoMachines(ctx, '53');
+    if (up.error) { record('53-two-different-states-still-refuse', false, up.error); return; }
+    const c = up.ctx;
+    const oidA = stateCommitOf(c, 'A', 'i-1', 'a change from A', "A's state");
+    const oidB = stateCommitOf(c, 'B', 'i-2', 'a change from B', "B's state");
+    if (!oidA || !oidB) { record('53-two-different-states-still-refuse', false, 'a state commit could not be made on one side'); return; }
+    const rev = 'r' + '1'.repeat(39);
+    const recA = join(up.storeA, '.tracker-sync', 'recordings');
+    const recB = join(up.storeB, '.tracker-sync', 'recordings');
+    mkdirSync(recA, { recursive: true }); mkdirSync(recB, { recursive: true });
+    writeFileSync(join(recA, rev + '.jsonl'), recordingOf(up.storeA, oidA));
+    commitInStore(up.storeA, ['.tracker-sync/recordings'], 'the revision, recorded against A\'s state');
+    writeFileSync(join(recB, rev + '.jsonl'), recordingOf(up.storeB, oidB));
+    commitInStore(up.storeB, ['.tracker-sync/recordings'], 'the revision, recorded against B\'s state');
+    const pub = pushStore(up.storeA);
+    const headBefore = headOf(up.storeB);
+    const tipBefore = remoteTip(c);
+    const m = mergeOnB(c, { name: 'merge53' });
+    const named = /two different recordings for r1+\.jsonl/.test(m.out) && /a person must decide/.test(m.out);
+    record('53-two-different-states-still-refuse',
+      pub.code === 0 && m.r.code === 1 && named && headOf(up.storeB) === headBefore && remoteTip(c) === tipBefore,
+      'merge exit ' + m.r.code + ', the sentence: ' + named + ', the store moved: ' + (headOf(up.storeB) !== headBefore) + ', the remote moved: ' + (remoteTip(c) !== tipBefore) + ' — ' + m.out.split('\n')[0].slice(0, 160));
+  },
+
+  // 54. #skills-rntd rule: a recording held on one side only arrives, and costs no
+  // state read to arrive.
+  '54-a-recording-held-on-one-side-only-arrives': async (ctx) => {
+    const up = twoMachines(ctx, '54');
+    if (up.error) { record('54-a-recording-held-on-one-side-only-arrives', false, up.error); return; }
+    const c = up.ctx;
+    const rev = 'r' + '2'.repeat(39);
+    const recA = join(up.storeA, '.tracker-sync', 'recordings');
+    mkdirSync(recA, { recursive: true });
+    writeFileSync(join(recA, rev + '.jsonl'), recordingOf(up.storeA, headOf(up.storeA)));
+    commitInStore(up.storeA, ['.tracker-sync/recordings'], 'a recording only this machine holds');
+    const pub = pushStore(up.storeA);
+    if (!stateCommitOf(c, 'B', 'i-2', 'a change from B', "B's own state")) {
+      record('54-a-recording-held-on-one-side-only-arrives', false, 'the write on B failed');
+      return;
+    }
+    const before = existsSync(join(up.storeB, '.tracker-sync', 'recordings', rev + '.jsonl'));
+    const listing = (() => { try { return readdirSync(join(up.storeB, '.tracker-sync', 'recordings')).join(','); } catch (e) { return 'none:' + e.code; } })();
+    const m = mergeOnB(c, { name: 'merge54' });
+    const there = join(up.storeB, '.tracker-sync', 'recordings', rev + '.jsonl');
+    const arrived = existsSync(there) && readFileSync(there, 'utf8') === readFileSync(join(recA, rev + '.jsonl'), 'utf8');
+    const exported = exportAt(c, 'B', rev);
+    record('54-a-recording-held-on-one-side-only-arrives',
+      pub.code === 0 && !before && m.r.code === 0 && arrived && m.shows === 0 && exported.code === 0,
+      'publish A exit ' + pub.code + ' (' + said(pub).split('\n')[0].slice(0, 120) + '), the recording was absent on B before the merge: ' + !before + ' (' + listing + '), stores ' + up.storeA + ' / ' + up.storeB + ', merge exit ' + m.r.code + ', the recording arrived byte for byte: ' + arrived + ', state reads to copy it: ' + m.shows + ', it exports: ' + exported.code);
+  },
+
+  // 55. #skills-rntd rule: a whole-copy recording keeps today's behaviour - it
+  // travels as its own bytes, it exports those bytes, and two different copies of
+  // one revision are refused as they always were.
+  '55-a-whole-copy-recording-keeps-its-behaviour': async (ctx) => {
+    const up = twoMachines(ctx, '55');
+    if (up.error) { record('55-a-whole-copy-recording-keeps-its-behaviour', false, up.error); return; }
+    const c = up.ctx;
+    const state = stateTextOf(c, 'A');
+    const rev = 'w' + '3'.repeat(39);
+    const recA = join(up.storeA, '.tracker-sync', 'recordings');
+    mkdirSync(recA, { recursive: true });
+    writeFileSync(join(recA, rev + '.jsonl'), state);
+    commitInStore(up.storeA, ['.tracker-sync/recordings'], 'a whole copy, as a release before references wrote them');
+    const pub = pushStore(up.storeA);
+    if (!stateCommitOf(c, 'B', 'i-2', 'a change from B', "B's own state")) {
+      record('55-a-whole-copy-recording-keeps-its-behaviour', false, 'the write on B failed');
+      return;
+    }
+    const m = mergeOnB(c, { name: 'merge55a' });
+    const there = join(up.storeB, '.tracker-sync', 'recordings', rev + '.jsonl');
+    const arrived = existsSync(there) && readFileSync(there, 'utf8') === state;
+    const exported = exportAt(c, 'B', rev);
+    record('55-a-whole-copy-recording-arrives-and-exports',
+      pub.code === 0 && m.r.code === 0 && arrived && m.shows === 0 && exported.code === 0 && exported.stdout === state,
+      'merge exit ' + m.r.code + ', the copy arrived byte for byte: ' + arrived + ', state reads: ' + m.shows + ', it exports its own bytes: ' + (exported.stdout === state));
+    // two different copies of one revision: refused, as before. The first merge is
+    // on the remote now, so A is brought in step before it commits again.
+    const inStep = mech(c, 'sync', [], { machine: 'A' });
+    const divergent = 'w' + '4'.repeat(39);
+    const recB = join(up.storeB, '.tracker-sync', 'recordings');
+    mkdirSync(recB, { recursive: true });
+    writeFileSync(join(recA, divergent + '.jsonl'), '=== fake/items.jsonl\n{"copy":"A"}\n');
+    commitInStore(up.storeA, ['.tracker-sync/recordings'], 'a copy of one revision, as A had it');
+    writeFileSync(join(recB, divergent + '.jsonl'), '=== fake/items.jsonl\n{"copy":"B"}\n');
+    commitInStore(up.storeB, ['.tracker-sync/recordings'], 'a copy of one revision, as B had it');
+    const pub2 = pushStore(up.storeA);
+    const m2 = mergeOnB(c, { name: 'merge55b' });
+    const refused = /two different recordings for w4+\.jsonl/.test(m2.out);
+    record('55-two-different-whole-copies-still-refuse',
+      pub2.code === 0 && m2.r.code === 1 && refused,
+      'merge exit ' + m2.r.code + ', the sentence: ' + refused + ' — ' + m2.out.split('\n')[0].slice(0, 140));
+  },
 
 };
 
