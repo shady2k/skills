@@ -482,6 +482,38 @@ function recordingOf(store, oid, statePath = STATE_PATH) {
   const txt = `=== ${statePath}\n${body}`;
   return JSON.stringify({ format: 'tracker-sync-recording/1', store: oid, digest: 'sha256:' + createHash('sha256').update(txt, 'utf8').digest('hex') }, null, 2) + '\n';
 }
+/** A recording naming a store commit, written the way record writes one: the
+ * digest is taken over the state text the commit exports. `body` is the bytes of
+ * the state file, or null for a commit that holds no state file at all, whose
+ * exported state text is empty. Used where the commit named is one this store does
+ * not hold: what an outside rewrite of the store ref leaves in place (#skills-ppvr). */
+function recordingNaming(oid, body) {
+  const txt = body === null ? '' : `=== ${STATE_PATH}\n${body}`;
+  return JSON.stringify({ format: 'tracker-sync-recording/1', store: oid, digest: 'sha256:' + createHash('sha256').update(txt, 'utf8').digest('hex') }, null, 2) + '\n';
+}
+/** Make the commit at HEAD also carry `carried` as its second parent, its tree
+ * unchanged: the push of this branch then transports a commit this store holds that
+ * its first-parent history does not reach, which is what a store commit made before
+ * the tracker's first export leaves behind. Nothing in the worktree moves. */
+function carryCommit(store, carried, parent) {
+  const g = inStore(store);
+  const head = headOf(store);
+  const tree = g(['rev-parse', head + '^{tree}']).stdout.trim();
+  const made = g(['-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit-tree', tree,
+    '-p', parent, '-p', carried, '-m', 'the revision, recorded beside a commit that holds no state file']).stdout.trim();
+  if (!made || g(['update-ref', 'HEAD', made]).code !== 0) return null;
+  return made;
+}
+/** A commit this store holds whose tree holds no state file: the initial commit of
+ * a store before the tracker's first export, made here with an empty tree. */
+function emptyStateCommit(store, message) {
+  const g = inStore(store);
+  const tree = g(['mktree']).stdout.trim();
+  const made = g(['-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit-tree', tree, '-m', message]);
+  const oid = made.stdout.trim();
+  if (!oid || g(['cat-file', '-e', oid + '^{commit}']).code !== 0) return null;
+  return oid;
+}
 const revisionNames = (n) => Array.from({ length: n }, (_, i) => 'r' + String(i).padStart(39, '0'));
 /** Every `git show <rev>:<path>` a run made: how a state is read, as opposed to a
  * tree (`ls-tree`) or a hash (`hash-object`). */
@@ -1046,8 +1078,8 @@ const BREAKS = [
       breakByLiteral('merge-reads-every-state', s.mech,
         '    if (oa && ob && oa === ob) continue; // the same file on both sides: one state, and nothing to read',
         '    if (false && oa && ob && oa === ob) continue; /* deliberate break: the same file is read as a state */'),
-      '    if (ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue;',
-      '    if (false && ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue; /* deliberate break: two references to one state are read as two states */') }),
+      '    if (blobsA && blobsA.size && sameBlobs(blobsA, blobsB)) continue;',
+      '    if (false && sameBlobs(blobsA, blobsB)) continue; /* deliberate break: two references to one state are read as two states */') }),
   },
   {
     name: 'two-references-to-one-state-are-read',
@@ -1055,8 +1087,18 @@ const BREAKS = [
     // The fix undone: the states two references name are read and digested even
     // when their trees are the same, which is the cost the item is about.
     apply: (s) => ({ mech: breakByLiteral('no-blob-comparison', s.mech,
-      '    if (ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue;',
-      '    if (false && ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue; /* deliberate break: the same state is read as two */') }),
+      '    if (blobsA && blobsA.size && sameBlobs(blobsA, blobsB)) continue;',
+      '    if (false && sameBlobs(blobsA, blobsB)) continue; /* deliberate break: the same state is read as two */') }),
+  },
+  {
+    name: 'an-unread-tree-is-one-state',
+    cases: ['60a-two-commits-the-store-does-not-hold-stop-the-merge'],
+    // The defect itself (#skills-ppvr): the emptiness guard is gone, so a pair of
+    // empty blob maps - a commit this store does not hold on both sides - answers
+    // "one state" and the merge continues with ours.
+    apply: (s) => ({ mech: breakByLiteral('unread-tree-is-one-state', s.mech,
+      '    if (blobsA && blobsA.size && sameBlobs(blobsA, blobsB)) continue;',
+      '    if (blobsA && sameBlobs(blobsA, blobsB)) continue; /* deliberate break: a tree that was not read is one state */') }),
   },
   {
     name: 'a-killed-read-is-an-absent-file',
@@ -3745,6 +3787,137 @@ console.log(JSON.stringify({ pid: process.pid, whileHeld, afterRelease }));
     record('59-a-clone-whose-rights-return-publishes-what-it-kept',
       r.code === 0 && keptHere && sentence && back.code === 0 && onRemote && !/cannot publish/.test(said(after)) && (!j || j.cannotPublish !== true),
       'connect exit ' + r.code + ', the write kept here: ' + keptHere + ', the sentence says what happens: ' + sentence + ' (' + (said(refusedPublish).split('\n')[0] || '').slice(0, 140) + '), the push that landed: ' + back.code + ', the write on the remote: ' + onRemote + ', the mark cleared: ' + !/cannot publish/.test(said(after)) + ', status cannotPublish: ' + (j && j.cannotPublish));
+  },
+
+  // 60. #skills-ppvr: equal trees prove one state only where both trees were read.
+  // Two different recordings of one revision, each naming a store commit, are
+  // compared by the state blobs of those commits; stateBlobsAt answers an empty map
+  // for a commit this store does not hold - and for a commit it does hold that
+  // carries no state file - and two empty maps were read as one state, so the merge
+  // continued and ours stayed. Before 0.136.0 this case stopped and named the
+  // commit. (a) both name commits this store does not hold: the merge stops, names
+  // one, and neither head nor remote moves. (b) one held, one not: still stops.
+  // (c) both held with no state file: no false refusal.
+  '60a-two-commits-the-store-does-not-hold-stop-the-merge': async (ctx) => {
+    const id = '60a-two-commits-the-store-does-not-hold-stop-the-merge';
+    const up = twoMachines(ctx, '60a');
+    if (up.error) { record(id, false, up.error); return; }
+    const c = up.ctx;
+    const rev = 'r' + '5'.repeat(39);
+    // Two commits, each named by one side and neither held by either store: what a
+    // rewrite of the store ref outside the mechanism leaves behind (#skills-ppvr).
+    const missingA = 'dead' + 'a'.repeat(36);
+    const missingB = 'beef' + 'b'.repeat(36);
+    const recA = join(up.storeA, '.tracker-sync', 'recordings');
+    const recB = join(up.storeB, '.tracker-sync', 'recordings');
+    mkdirSync(recA, { recursive: true }); mkdirSync(recB, { recursive: true });
+    writeFileSync(join(recA, rev + '.jsonl'), recordingNaming(missingA, ''));
+    commitInStore(up.storeA, ['.tracker-sync/recordings'], "one revision, recorded against a commit A's store does not hold");
+    writeFileSync(join(recB, rev + '.jsonl'), recordingNaming(missingB, ''));
+    commitInStore(up.storeB, ['.tracker-sync/recordings'], "the same revision, recorded against a commit B's store does not hold");
+    const pub = pushStore(up.storeA);
+    const headBefore = headOf(up.storeB);
+    const tipBefore = remoteTip(c);
+    const m = mergeOnB(c, { name: 'merge60a' });
+    const held = sh('git', ['-C', up.storeB, 'cat-file', '-e', missingB + '^{commit}']).code === 0;
+    const named = m.out.includes('names store commit ' + missingB.slice(0, 12))
+      || m.out.includes('names store commit ' + missingA.slice(0, 12));
+    const doesNotHold = /which this store does not hold/.test(m.out);
+    record(id,
+      pub.code === 0 && !held && m.r.code === 1 && named && doesNotHold
+        && headOf(up.storeB) === headBefore && remoteTip(c) === tipBefore
+        && !/two different recordings/.test(m.out),
+      'publish A exit ' + pub.code + ', the commit is not in the store: ' + !held + ', merge exit ' + m.r.code
+        + ', it names the commit it does not hold: ' + named + ' and says so: ' + doesNotHold
+        + ', the store head moved: ' + (headOf(up.storeB) !== headBefore)
+        + ', the remote moved: ' + (remoteTip(c) !== tipBefore)
+        + ' — ' + (m.out.split('\n')[0] || '').slice(0, 200));
+  },
+
+  // 60b. The same comparison where one of the two commits IS here: the pair is not
+  // empty, and the merge must still stop at the commit this store does not hold.
+  '60b-one-commit-the-store-does-not-hold-still-stops': async (ctx) => {
+    const id = '60b-one-commit-the-store-does-not-hold-still-stops';
+    const up = twoMachines(ctx, '60b');
+    if (up.error) { record(id, false, up.error); return; }
+    const c = up.ctx;
+    const held = stateCommitOf(c, 'B', 'i-2', 'a write on B', "B's state");
+    if (!held) { record(id, false, 'the state commit on B could not be made'); return; }
+    const rev = 'r' + '7'.repeat(39);
+    const missing = 'cafe' + 'c'.repeat(36);
+    const recA = join(up.storeA, '.tracker-sync', 'recordings');
+    const recB = join(up.storeB, '.tracker-sync', 'recordings');
+    mkdirSync(recA, { recursive: true }); mkdirSync(recB, { recursive: true });
+    writeFileSync(join(recA, rev + '.jsonl'), recordingNaming(missing, ''));
+    commitInStore(up.storeA, ['.tracker-sync/recordings'], "one revision, recorded against a commit A's store does not hold");
+    writeFileSync(join(recB, rev + '.jsonl'), recordingOf(up.storeB, held));
+    commitInStore(up.storeB, ['.tracker-sync/recordings'], 'the same revision, recorded against a state this store holds');
+    const pub = pushStore(up.storeA);
+    const headBefore = headOf(up.storeB);
+    const tipBefore = remoteTip(c);
+    const m = mergeOnB(c, { name: 'merge60b' });
+    const named = m.out.includes('names store commit ' + missing.slice(0, 12));
+    record(id,
+      pub.code === 0 && m.r.code === 1 && named && /which this store does not hold/.test(m.out)
+        && headOf(up.storeB) === headBefore && remoteTip(c) === tipBefore,
+      'publish A exit ' + pub.code + ', merge exit ' + m.r.code + ', it names the commit it does not hold: ' + named
+        + ', the store head moved: ' + (headOf(up.storeB) !== headBefore)
+        + ', the remote moved: ' + (remoteTip(c) !== tipBefore)
+        + ' — ' + (m.out.split('\n')[0] || '').slice(0, 200));
+  },
+
+  // 60c. Both commits are here and neither holds a state file, so both blob maps are
+  // empty for an honest reason. That is not a difference: the merge must go through
+  // without a refusal. The setup is the closest real one: each side's recording names
+  // a store commit whose tree holds no state file - a store commit made before the
+  // tracker's first export - which is present in the store that merges (the remote's
+  // is carried into the push as a second parent, so the merge's fetch brings it) and
+  // is not reachable from either first-parent history, so the state the merge reads
+  // is untouched. Both named commits are asserted held by the merging store, both
+  // asserted to hold no state file, and the two recording files asserted to differ:
+  // otherwise the empty pair could be answered by the "same file on both sides"
+  // shortcut, and the case would prove nothing about the comparison under test.
+  '60c-two-commits-with-no-state-file-do-not-refuse': async (ctx) => {
+    const id = '60c-two-commits-with-no-state-file-do-not-refuse';
+    const up = twoMachines(ctx, '60c');
+    if (up.error) { record(id, false, up.error); return; }
+    const c = up.ctx;
+    const emptyA = emptyStateCommit(up.storeA, 'a store commit before the first export, on A');
+    const emptyB = emptyStateCommit(up.storeB, 'a store commit before the first export, on B');
+    if (!emptyA || !emptyB) { record(id, false, 'a commit that holds no state file could not be made: ' + emptyA + ' / ' + emptyB); return; }
+    const rev = 'r' + '6'.repeat(39);
+    const recA = join(up.storeA, '.tracker-sync', 'recordings');
+    const recB = join(up.storeB, '.tracker-sync', 'recordings');
+    mkdirSync(recA, { recursive: true }); mkdirSync(recB, { recursive: true });
+    const headA = headOf(up.storeA);
+    writeFileSync(join(recA, rev + '.jsonl'), recordingNaming(emptyA, null));
+    commitInStore(up.storeA, ['.tracker-sync/recordings'], "one revision, recorded against a commit that holds no state file");
+    const carried = carryCommit(up.storeA, emptyA, headA);
+    writeFileSync(join(recB, rev + '.jsonl'), recordingNaming(emptyB, null));
+    commitInStore(up.storeB, ['.tracker-sync/recordings'], 'the same revision, recorded against a commit that holds no state file');
+    const pub = pushStore(up.storeA);
+    const different = readFileSync(join(recA, rev + '.jsonl'), 'utf8') !== readFileSync(join(recB, rev + '.jsonl'), 'utf8');
+    const itemsBefore = storeItems(c, 'B').length;
+    // The merge's own fetch is what brings the remote's carried commit here, so both
+    // commits are asked for after it: the comparison is the merge's, in this store.
+    const m = mergeOnB(c, { name: 'merge60c' });
+    const inStoreB = (oid) => sh('git', ['-C', up.storeB, 'cat-file', '-e', oid + '^{commit}']).code === 0;
+    const filesOf = (oid) => sh('git', ['-C', up.storeB, 'ls-tree', '-r', '--name-only', oid]).stdout.trim();
+    const held = inStoreB(emptyA) && inStoreB(emptyB);
+    const noStateFile = !filesOf(emptyA) && !filesOf(emptyB);
+    const refused = /two different recordings/.test(m.out) || /does not hold/.test(m.out) || /no longer holds/.test(m.out);
+    const exported = exportAt(c, 'B', rev);
+    record(id,
+      pub.code === 0 && !!carried && held && noStateFile && different && m.r.code === 0 && !refused
+        && storeItems(c, 'B').length === itemsBefore && exported.code === 0 && exported.stdout === '',
+      'publish A exit ' + pub.code + ', the remote\'s commit carried into the push: ' + !!carried
+        + ', both commits held here: ' + held + ' (' + emptyA.slice(0, 8) + '=' + inStoreB(emptyA) + ', ' + emptyB.slice(0, 8) + '=' + inStoreB(emptyB) + ')'
+        + ', neither holds a state file: ' + noStateFile
+        + ', the two recording files differ: ' + different
+        + ', merge exit ' + m.r.code + ', a refusal was claimed: ' + refused
+        + ', the items are still there: ' + (storeItems(c, 'B').length === itemsBefore)
+        + ', the recording exports the empty state: ' + (exported.code === 0 && exported.stdout === '')
+        + ' — ' + (m.out.split('\n')[0] || '').slice(0, 200));
   },
 
 };
