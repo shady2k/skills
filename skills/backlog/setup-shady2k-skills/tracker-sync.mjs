@@ -1029,12 +1029,14 @@ async function mergeAndCommit(tip, { flushed: done } = {}) {
   await recipeIsland(head, tip);
   keepIdentity();
   if (mustImport) await importState(held);
-  // A merge that changes nothing is not a commit. Without this, every tick of a
-  // watcher in a clone whose head cannot reach the remote's tip - the ordinary
-  // read-only clone, whose local recordings are commits of their own - adds one
-  // merge commit of the same two states, for ever, and a head nobody can publish
-  // grows without a change (#62).
-  if (!(await hasUncommittedState())) return head;
+  // A merge that changes nothing is not a commit - unless the head does not hold
+  // the remote's tip yet, because this commit is also what makes the push a
+  // fast-forward of that tip: skipping it there left a head that could never be
+  // pushed, and a write that never left the machine. With the tip already in the
+  // head, a tick of a watcher in a clone that cannot publish would otherwise add
+  // one merge commit of the same two states per tick, for ever (#62).
+  const containsTip = (await git(['merge-base', '--is-ancestor', tip, head], { cwd: CURRENT.store })).code === 0;
+  if (containsTip && !(await hasUncommittedState())) return head;
   return commitState(`tracker store: merge ${head.slice(0, 12)} and ${tip.slice(0, 12)} per item`, [head, tip]);
 }
 /** The mechanism's own files under .tracker-sync travel beside the state. */
