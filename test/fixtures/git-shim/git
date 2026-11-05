@@ -11,6 +11,12 @@
 #                 which is how a slow but working fetch is written. `<sub>.seen` is
 #                 touched when the answer is taken, so a case can kill a call in
 #                 flight.
+#                 `<sub>.fail-at` holds call numbers (space separated) that fail
+#                 instead of running: the call exits 137 without output, which is
+#                 how a read killed mid-way or one lost to memory presents itself.
+#                 `<sub>.only` narrows that to the calls whose arguments contain
+#                 the string in it, so a proof can fail the read of one path and
+#                 leave the rest, and `<sub>.count` holds how many were counted.
 #   GITSHIM_REAL  the real git to fall through to (the proofs pass the git they
 #                 resolved before putting this folder on PATH).
 #   GITSHIM_LOG   every invocation is appended here, so a case can count what the
@@ -32,6 +38,25 @@ sub=$(
   done
 )
 if [ -n "${GITSHIM_DIR:-}" ] && [ -n "$sub" ]; then
+  if [ -f "$GITSHIM_DIR/$sub.fail-at" ]; then
+    matched=1
+    if [ -f "$GITSHIM_DIR/$sub.only" ]; then
+      case "$*" in
+        *"$(cat "$GITSHIM_DIR/$sub.only")"*) matched=0 ;;
+      esac
+    fi
+    if [ "$matched" = 0 ]; then
+      n=$(cat "$GITSHIM_DIR/$sub.count" 2>/dev/null)
+      n=$(( ${n:-0} + 1 ))
+      printf '%s' "$n" > "$GITSHIM_DIR/$sub.count"
+      case " $(cat "$GITSHIM_DIR/$sub.fail-at") " in
+        *" $n "*)
+          : > "$GITSHIM_DIR/$sub.seen"
+          printf '%s\n' "fatal: unable to read the object: the read was killed" >&2
+          exit 137 ;;
+      esac
+    fi
+  fi
   answer="$GITSHIM_DIR/$sub"
   if [ -f "$GITSHIM_DIR/$sub.once" ]; then
     # One call takes the answer, and it must be taken by THIS call: the file is
