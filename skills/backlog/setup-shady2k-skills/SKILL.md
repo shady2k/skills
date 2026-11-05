@@ -198,8 +198,19 @@ mechanism is what meets them, and this skill installs it:
   it. A failure that is not the lock - an unreachable remote, a
   recipe that failed - is said and kept as it was: this bound is the lock's. Reachability is whether the
   remote answers: a remote whose `HEAD` names a branch that does not exist answers
-  and is reachable, and only a remote that does not answer makes a read refuse (or
-  connect says to pass `--offline` and publish when it does).
+  and is reachable, and only a remote that does not answer makes a read refuse.
+  Connect then writes nothing, and offers `--offline` only where this clone
+  already holds the store's ref: `--offline` with no ref here is refused, because
+  it could only guess between a first store and a store it could not fetch. A
+  store ref the remote holds is fetched whole before anything is written, with a
+  bound that fits a large store; a fetch that fails stops connect, naming the ref
+  and the fetch, because an empty tracker presented as the real one is worse than
+  a connect a person reruns. A clone that can read the remote and cannot write to
+  it is a legitimate clone: connect says in one sentence that it cannot publish,
+  keeps the checkout's pointer and its record hooks, and exits 0; a commit's
+  record step keeps its recording in this clone, and `status` says the same.
+  Nothing promises a later publication, because a refusal is about rights and
+  not about a moment.
 - **Say what the no-code-CI property is.** The ref is not a branch and not a
   tag, which is why a push to it is expected to start no code CI; the host's
   documented behaviour is cited in the mechanism's own notes, and the proof that
