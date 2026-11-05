@@ -1135,7 +1135,14 @@ async function mergeAndCommit(tip, { flushed: done } = {}) {
     const [ca, cb] = [await showAt(head, p, whereA), await showAt(tip, p, whereB)];
     if (ca === null || cb === null) continue;
     const [ra, rb] = [parseRecording(ca), parseRecording(cb)];
-    if (ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue;
+    // Equal trees prove one state only where both trees were read. A tree read
+    // that answered nothing proves nothing: stateBlobsAt answers an empty map both
+    // for a commit this store does not hold and for a commit that holds no state
+    // file, and two empty maps are not one state. An empty pair therefore takes
+    // the state-reading path below, where recordingState names the commit this
+    // store does not hold (#skills-ppvr).
+    const [blobsA, blobsB] = ra && rb ? [await blobsAt(ra.store), await blobsAt(rb.store)] : [null, null];
+    if (blobsA && blobsA.size && sameBlobs(blobsA, blobsB)) continue;
     const sa = (await recordingState(ca, whereA)).text;
     const sb = (await recordingState(cb, whereB)).text;
     if (sa !== sb)
