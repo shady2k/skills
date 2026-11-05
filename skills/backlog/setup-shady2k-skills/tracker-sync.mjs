@@ -134,6 +134,22 @@ function readVersion() {
 let THROW_ERRORS = false;
 const die = (code, msg) => { if (THROW_ERRORS) throw Object.assign(new Error(msg), {exitCode:code}); process.stderr.write(`tracker-sync: ${msg}\n`); process.exit(code); };
 const say = (msg) => process.stdout.write(`${msg}\n`);
+/** A stop that arrives while this process is reading the store. The supervisor
+ * signals the whole group (systemd's default KillMode=control-group), so the git
+ * children of a merge are killed with it; that is a stop, not a failure and not a
+ * fact about the store. Nothing here has committed anything by then, so the round
+ * is abandoned and the next start continues (#skills-by6c). */
+let STOPPING = false;
+function stopNow(what) {
+  die(0, `stopped while ${what}; nothing was committed by that round and the next start continues`);
+}
+/** One read of a path in a commit that is over: a stopped process exits as a
+ * stop, and anything else is named as a failed read, never taken for a file the
+ * commit does not hold. */
+function readFailed(what, r) {
+  if (STOPPING) stopNow(`reading ${what}`);
+  die(1, `could not read ${what}: ${text(r).split('\n')[0] || `git exited ${r.code}`}; this is a failed read, not a file the commit does not hold, so nothing is decided from it`);
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const nowIso = () => new Date().toISOString();
 
@@ -695,13 +711,35 @@ async function comparableStateFiles() {
   return comparableFiles;
 }
 
+/** The text of a path in a commit, or null where that commit does not hold the
+ * path. A `git show` that fails and a commit that does not hold a file are two
+ * different answers that both leave no output: stateFrom took the first for the
+ * second, so a read killed when a supervisor stopped the watcher - or one that
+ * failed for lack of memory - gave a state missing a file, and the digest check
+ * then reported that the store ref's history had been rewritten (#skills-by6c).
+ * An answer is asked of the commit's own tree: only a tree without the path is an
+ * absent file. Anything else is one bounded retry and then a failed read. */
+async function showAt(rev, path, where) {
+  const r = await git(['show', `${rev}:${path}`], { cwd: CURRENT.store });
+  if (r.code === 0) return r.stdout;
+  // A stop that reached this read is a stop, not a fact about the commit: the
+  // supervisor signals the whole group, so the git child died with this process.
+  if (STOPPING) stopNow(`reading ${where || `${path} of ${String(rev).slice(0, 12)}`}`);
+  const tree = await git(['ls-tree', '-r', '--name-only', rev, '--', path], { cwd: CURRENT.store });
+  if (tree.code !== 0) readFailed(where || `${path} of ${String(rev).slice(0, 12)}`, r);
+  if (!tree.stdout.split('\n').map((l) => l.trim()).includes(path)) return null;
+  const again = await git(['show', `${rev}:${path}`], { cwd: CURRENT.store });
+  if (again.code === 0) return again.stdout;
+  readFailed(where || `${path} of ${String(rev).slice(0, 12)}`, again);
+}
+
 /** Write one state file into the store from a revision's tree, or from nowhere. */
-async function stateFrom(rev) {
+/** `where` names the read in a failure: a recording's state read says which
+ * recording it was, never only a store commit a person cannot place. */
+async function stateFrom(rev, where = null) {
   const out = [];
-  for (const p of stateFiles()) {
-    const r = await git(['show', `${rev}:${p}`], { cwd: CURRENT.store });
-    out.push([p, r.code === 0 ? r.stdout : null]);
-  }
+  for (const p of stateFiles())
+    out.push([p, await showAt(rev, p, where ? `${where} (${p})` : `the state file ${p} of ${String(rev).slice(0, 12)}`)]);
   return out;
 }
 const sideText = (parts) => parts.filter(([, c]) => c !== null).map(([p, c]) => `=== ${p}\n${c}`).join('\n');
@@ -846,13 +884,15 @@ async function pushFailureKind(r) {
 /** The one sentence a clone without write rights is owed, and the state that
  * keeps it from being said again per tick or per commit. A refusal is a fact
  * about rights, not a moment: it is remembered in the machine's own config so
- * that status can show it, it is said the first time and not after, and nothing
- * here promises that a later attempt publishes the write. A read-only clone is
- * legitimate: its local work, its hooks and its reads are kept. */
+ * that status can show it, it is said the first time and not after, and the
+ * sentence names what does happen: the write stays here, and a push that lands
+ * carries it - rights granted later, or a credential renewed, heal by themselves,
+ * and a push that lands clears the mark. A read-only clone is legitimate: its
+ * local work, its hooks and its reads are kept. */
 let PUSH_REFUSED = null;
 function refusalLine(said) {
   const line = String(said || '').split('\n').map((s) => s.trim()).filter(Boolean)[0] || 'no answer';
-  return `the remote refuses this clone's writes (${line}); this clone cannot publish, so the write stays here and no later attempt publishes it`;
+  return `the remote refuses this clone's writes (${line}); this clone cannot publish now, so the write stays here, and the next push that lands - a sync, or any later run - carries it`;
 }
 function noteRefusal(r) {
   const line = refusalLine(text(r));
@@ -1023,8 +1063,10 @@ async function mergeAndCommit(tip, { flushed: done } = {}) {
   // made one commit on a store of 216 recordings cost about 170 s of CPU and
   // 1.49 GB, and it grew by one recording per commit.
   const recordingsIn = async (rev) => {
+    const r = await git(['ls-tree', '-r', rev, '--', '.tracker-sync/recordings'], { cwd: CURRENT.store });
+    if (r.code !== 0) readFailed(`the recordings of ${String(rev).slice(0, 12)}`, r);
     const out = new Map();
-    for (const line of (await gitOk(['ls-tree', '-r', rev, '--', '.tracker-sync/recordings'], { cwd: CURRENT.store })).split('\n')) {
+    for (const line of r.stdout.split('\n')) {
       const m = /^\d+ blob ([0-9a-f]+)\t(.*)$/.exec(line);
       if (m) out.set(m[2], m[1]);
     }
@@ -1047,7 +1089,7 @@ async function mergeAndCommit(tip, { flushed: done } = {}) {
     if (!oa) {
       // Held on the remote's side only: the file travels as it is, and no state
       // is read for it.
-      const cb = (await git(['show', `${tip}:${p}`], { cwd: CURRENT.store })).stdout;
+      const cb = await showAt(tip, p, whereB);
       if (cb !== null) { mkdirSync(dirname(join(CURRENT.store, p)), { recursive: true }); writeFileSync(join(CURRENT.store, p), cb); }
       continue;
     }
@@ -1056,7 +1098,7 @@ async function mergeAndCommit(tip, { flushed: done } = {}) {
     // compared as the STATES they stand for: two references whose commits hold
     // the same state are one recording, and the trees answer that without either
     // state being read.
-    const [ca, cb] = [(await git(['show', `${head}:${p}`], { cwd: CURRENT.store })).stdout, (await git(['show', `${tip}:${p}`], { cwd: CURRENT.store })).stdout];
+    const [ca, cb] = [await showAt(head, p, whereA), await showAt(tip, p, whereB)];
     if (ca === null || cb === null) continue;
     const [ra, rb] = [parseRecording(ca), parseRecording(cb)];
     if (ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue;
@@ -1083,7 +1125,9 @@ async function recipeIsland(head, tip) {
   const names = (await git(['ls-tree', '-r', '--name-only', tip, '--', '.tracker-sync'], { cwd: CURRENT.store }))
     .stdout.split('\n').filter((n) => n && !n.startsWith('.tracker-sync/recordings/'));
   for (const n of names) {
-    const theirs = (await git(['show', `${tip}:${n}`], { cwd: CURRENT.store })).stdout;
+    // A read that failed is named, never taken for an empty file the two sides
+    // disagree about (#skills-by6c).
+    const theirs = (await showAt(tip, n, `${n} of ${String(tip).slice(0, 12)}`)) ?? '';
     requireRegularFile(join(CURRENT.store, n), 'a file the mechanism carries beside the state');
     const mine = existsSync(join(CURRENT.store, n)) ? readFileSync(join(CURRENT.store, n), 'utf8') : null;
     if (mine === null) { mkdirSync(dirname(join(CURRENT.store, n)), { recursive: true }); writeFileSync(join(CURRENT.store, n), theirs); continue; }
@@ -1657,7 +1701,7 @@ const recordingText = (oid, state) => `${JSON.stringify({ format: RECORDING_FORM
 async function stateTextAt(oid, where = 'the recording') {
   if ((await git(['cat-file', '-e', `${oid}^{commit}`], { cwd: CURRENT.store })).code !== 0)
     die(1, `${where} names store commit ${String(oid).slice(0, 12)}, which this store does not hold. The store ref's history is append-only and is never rewritten, so a referenced commit is either here or the ref was rewritten outside this mechanism: the state of that revision is not guessed from a later one`);
-  return sideText(await stateFrom(oid));
+  return sideText(await stateFrom(oid, where));
 }
 
 /** What a recording file stands for, as state text: a reference is read through
@@ -1689,9 +1733,24 @@ async function recordingState(text, where) {
  * cheap. A declared file the store's git ignores is not asked for: no commit of
  * any revision holds it, and listing it would answer nothing. */
 async function stateBlobsAt(oid) {
-  const r = await git(['ls-tree', '-r', oid, '--', ...(await comparableStateFiles())], { cwd: CURRENT.store });
+  const files = await comparableStateFiles();
+  const read = () => git(['ls-tree', '-r', oid, '--', ...files], { cwd: CURRENT.store });
+  let r = await read();
+  if (r.code !== 0) {
+    // A tree this store could not read is not a commit holding no state files: the
+    // merge reads it to decide whether the remote moved anything, and an empty map
+    // there would say "nothing moved" and skip the merge whole. A commit this store
+    // does not hold is answered the way it always was - by the reads that name it -
+    // so only a commit that IS here is a failed read, retried once (#skills-by6c).
+    if (STOPPING) stopNow(`reading the state tree of ${String(oid).slice(0, 12)}`);
+    if ((await git(['cat-file', '-e', `${oid}^{commit}`], { cwd: CURRENT.store })).code !== 0) return new Map();
+    r = await read();
+    if (r.code !== 0) {
+      if ((await git(['cat-file', '-e', `${oid}^{commit}`], { cwd: CURRENT.store })).code !== 0) return new Map();
+      readFailed(`the state tree of ${String(oid).slice(0, 12)}`, r);
+    }
+  }
   const out = new Map();
-  if (r.code !== 0) return out;
   for (const line of r.stdout.split('\n')) {
     const m = /^\d+ blob ([0-9a-f]+)\t(.*)$/.exec(line);
     if (m) out.set(m[2], m[1]);
@@ -2574,8 +2633,12 @@ async function recordRun({ revision, checkout, fromTree, resolvedRevision }) {
       // "already recorded": a recording this machine kept while the remote's publish
       // of the same revision was refused is exactly where two different states for
       // one revision meet, and that is a refusal for a person, never a success.
+      // A recording the remote does not hold is an empty read, and a read that
+      // failed is neither: a killed show is retried once, then named as a failed
+      // read, so a stop cannot look like "the remote never recorded this revision"
+      // and cannot overwrite the remote's recording with ours (#skills-by6c).
       const there = remote.ok && !remote.noRef
-        ? (await git(['show', `${remote.tip}:.tracker-sync/recordings/${rev}.jsonl`], { cwd: CURRENT.store })).stdout
+        ? (await showAt(remote.tip, `.tracker-sync/recordings/${rev}.jsonl`, `the remote's recording of ${String(rev).slice(0, 12)}`)) ?? ''
         : '';
       // A recording is a reference, and two references to commits holding the SAME
       // state are not two different recordings: what a revision's state was is the
@@ -3499,7 +3562,10 @@ async function watchRun(flags) {
   mkdirSync(machineDir(flags, CURRENT.repoRoot), { recursive: true });
   writeFileSync(pidPath(flags, CURRENT.repoRoot), String(process.pid));
   let stop = false;
-  const onStop = () => { stop = true; };
+  // The stop is also visible to the reads a tick is in: a git child signalled with
+  // this process leaves a read that failed, and that is a stop - said as one, with
+  // nothing committed - never a fact about the store (#skills-by6c).
+  const onStop = () => { stop = true; STOPPING = true; };
   process.on('SIGINT', onStop); process.on('SIGTERM', onStop);
   say(`tracker-sync: watching ${CURRENT.store} (publish after ${debounce}s of quiet or ${maxAge}s at most, sync every ${interval}s)`);
   let firstChange = null; let lastChange = null; let lastDigest = '';

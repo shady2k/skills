@@ -25,6 +25,9 @@ const WORKTREE = resolve(join(dirname(fileURLToPath(import.meta.url)), '..'));
 const MECH_SRC = join(WORKTREE, 'skills/backlog/setup-shady2k-skills/tracker-sync.mjs');
 const FIXTURES = join(WORKTREE, 'test/fixtures/tracker');
 const RECIPE_SRC = join(FIXTURES, 'recipe.mjs');
+// The fake's recipe with a declared state file no command writes: the shape of a
+// project whose policy file was declared after revisions had been recorded (#57).
+const POLICY_RECIPE = join(FIXTURES, 'recipe-policy.mjs');
 const FAKE_SRC = join(FIXTURES, 'fake.mjs');
 const UNIT_SRC = join(WORKTREE, 'skills/backlog/setup-shady2k-skills/supervisors/systemd-user/tracker-sync.service');
 const BR_RECIPE = join(WORKTREE, 'skills/backlog/setup-shady2k-skills/trackers/br.mjs');
@@ -413,6 +416,11 @@ function gitHost(ctx, name, answers) {
     if (a.lines || a.code !== undefined) writeFileSync(join(dir, sub), [String(a.code ?? 1), ...(a.lines || [])].join('\n') + '\n');
     if (a.once) { renameSync(join(dir, sub), join(dir, sub + '.once')); }
     if (a.sleep) writeFileSync(join(dir, sub + '.sleep'), String(a.sleep));
+    // `failAt: '1 2'` fails those calls of this subcommand instead of running them,
+    // and `only` narrows the count to the calls whose arguments contain it: a proof
+    // fails the read of one path - a state file, a recording - and leaves the rest.
+    if (a.failAt) writeFileSync(join(dir, sub + '.fail-at'), String(a.failAt));
+    if (a.only) writeFileSync(join(dir, sub + '.only'), String(a.only));
   }
   return dir;
 }
@@ -546,6 +554,8 @@ const CASE_OVERRIDES = {
   // #52: what the tracker itself is asked to do for one change is the proof, so
   // the case runs the shipped recipe against br.
   '30-br-work-follows-the-change': { recipe: BR_RECIPE, br: true },
+  // #skills-by6c: a declared state file no commit of this store holds.
+  '57-an-absent-state-file-is-still-absent': { recipe: POLICY_RECIPE },
 };
 function waitForRemoteOnce(ctx) {
   for (let i = 0; i < 50; i++) { const tip = remoteTip(ctx); if (tip) return tip; }
@@ -592,10 +602,14 @@ function makeBrokenEnv(breakName, apply, breakDef = {}) {
   // cannot load it fails at bring-up, and a case failing at bring-up proves
   // nothing about the break.
   cpSync(REGULAR_FILE_MODULE, join(dir, 'regular-file.mjs'));
+  // A case whose recipe stands on the fake's own (a second declared state file, for
+  // instance) is copied beside the broken copy, so the recipe the mechanism is given
+  // still loads: it imports './recipe.mjs', which is the plain copy written above.
+  for (const [name, from] of Object.entries(breakDef.recipeParts || {})) cpSync(from, join(dir, name));
   checkSyntax(breakName, mechPath);
   checkSyntax(breakName, recipePath);
   checkSyntax(breakName, fakePath);
-  return { mech: mechPath, recipe: recipePath, fake: fakePath };
+  return { mech: mechPath, recipe: breakDef.recipeEntry ? join(dir, breakDef.recipeEntry) : recipePath, fake: fakePath };
 }
 
 const BREAKS = [
@@ -1043,6 +1057,57 @@ const BREAKS = [
     apply: (s) => ({ mech: breakByLiteral('no-blob-comparison', s.mech,
       '    if (ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue;',
       '    if (false && ra && rb && sameBlobs(await blobsAt(ra.store), await blobsAt(rb.store))) continue; /* deliberate break: the same state is read as two */') }),
+  },
+  {
+    name: 'a-killed-read-is-an-absent-file',
+    cases: ['56-a-killed-read-is-not-an-absent-file'],
+    // The defect itself: a failed `git show` answers "the commit does not hold it",
+    // which is what reported a stopped watcher as a rewritten history (#skills-by6c).
+    apply: (s) => ({ mech: breakByLiteral('killed-read-is-absent', s.mech,
+      "  const r = await git(['show', `${rev}:${path}`], { cwd: CURRENT.store });\n  if (r.code === 0) return r.stdout;",
+      "  const r = await git(['show', `${rev}:${path}`], { cwd: CURRENT.store });\n  if (r.code !== 0) return null; /* deliberate break: a failed read is an absent file */\n  if (r.code === 0) return r.stdout;") }),
+  },
+  {
+    name: 'an-absent-state-file-is-a-failed-read',
+    cases: ['57-an-absent-state-file-is-still-absent'],
+    // This case's recipe declares a second state file, so the mutant runs that one.
+    recipeParts: { 'recipe-policy.mjs': POLICY_RECIPE },
+    recipeEntry: 'recipe-policy.mjs',
+    // The other half of the rule: a file the commit truly does not hold must stay
+    // absent, and a fix that refuses every absent file stops a merge that is fine.
+    apply: (s) => ({ mech: breakByLiteral('absent-is-a-failure', s.mech,
+      "  if (!tree.stdout.split('\\n').map((l) => l.trim()).includes(path)) return null;",
+      "  if (false) return null; /* deliberate break: an absent file is a failed read */") }),
+  },
+  {
+    name: 'a-killed-tree-read-is-no-state-at-all',
+    cases: ['56-a-killed-read-is-not-an-absent-file'],
+    // The same defect one level down: the trees the merge reads decide whether a
+    // side moved, and an empty answer for a killed read says nothing moved.
+    apply: (s) => ({ mech: breakByLiteral('a-killed-tree-read-is-empty', s.mech,
+      "  if (r.code !== 0) {\n    // A tree this store could not read",
+      "  if (r.code !== 0) return new Map(); /* deliberate break: a failed tree read is a state with no files */\n  if (false) {\n    // A tree this store could not read") }),
+  },
+  {
+    name: 'a-stop-is-a-failed-read',
+    cases: ['58-a-stop-in-a-merge-ends-as-a-stop'],
+    // The fix undone: a stop is not recognized in the read, so a signalled merge
+    // reports a failed read instead of ending as a stop.
+    apply: (s) => ({ mech: breakByLiteral('stop-not-recognized-in-the-read',
+      breakByLiteral('stop-not-recognized', s.mech,
+        "  if (STOPPING) stopNow(`reading ${where || `${path} of ${String(rev).slice(0, 12)}`}`);",
+        '  if (false) stopNow(`deliberate break: the stop is not seen`);'),
+      '  if (STOPPING) stopNow(`reading ${what}`);',
+      '  /* deliberate break: the stop is not seen */') }),
+  },
+  {
+    name: 'a-refused-clone-is-told-it-never-publishes',
+    cases: ['59-a-clone-whose-rights-return-publishes-what-it-kept'],
+    // The wording that was not true: a push is still tried, and one that lands
+    // carries the kept write and clears the mark.
+    apply: (s) => ({ mech: breakByLiteral('refusal-promises-nothing', s.mech,
+      'this clone cannot publish now, so the write stays here, and the next push that lands - a sync, or any later run - carries it',
+      'this clone cannot publish, so the write stays here and no later attempt publishes it') }),
   },
 ];
 
@@ -3458,6 +3523,199 @@ console.log(JSON.stringify({ pid: process.pid, whileHeld, afterRelease }));
     record('55-two-different-whole-copies-still-refuse',
       pub2.code === 0 && m2.r.code === 1 && refused,
       'merge exit ' + m2.r.code + ', the sentence: ' + refused + ' — ' + m2.out.split('\n')[0].slice(0, 140));
+  },
+
+  // 56. #skills-by6c: a read that failed is never a file the commit does not hold.
+  // The git the merge runs through fails the read of one path - the state a base,
+  // a theirs or a recording names, or the recording file itself - and the merge may
+  // neither claim the history was rewritten nor leave a merge commit behind. One
+  // failure is a moment, and the one bounded retry answers it.
+  '56-a-killed-read-is-not-an-absent-file': async (ctx) => {
+    const mergeParents = (store) => sh('git', ['-C', store, 'rev-list', '--parents', '-n', '1', 'HEAD']).stdout.trim().split(/\s+/).filter(Boolean).length;
+    const failedRead = (w) => w.r.code !== 0 && /could not read/.test(w.out) && /a failed read, not a file the commit does not hold/.test(w.out)
+      && !/rewritten/.test(w.out) && !/history was rewritten/.test(w.out);
+    const failRun = (c, name, { sub = 'show', only, failAt }) => {
+      const shim = gitHost(c, name, { [sub]: { failAt, only } });
+      const r = mech(c, 'sync', [], { machine: 'B', shim });
+      return { r, out: said(r) };
+    };
+    // ---- a merge of two states, one on each side: the base and theirs reads
+    let up = twoMachines(ctx, '56a');
+    if (up.error) { record('56-a-killed-read-is-not-an-absent-file', false, up.error); return; }
+    let c = up.ctx;
+    if (post(c, 'A', 'i-1', 'a change from A').code !== 0 || mech(c, 'publish', [], { machine: 'A' }).code !== 0) {
+      record('56-a-killed-read-is-not-an-absent-file', false, 'the write on A failed');
+      return;
+    }
+    if (!stateCommitOf(c, 'B', 'i-2', 'a change from B', "B's own state")) {
+      record('56-a-killed-read-is-not-an-absent-file', false, 'the state commit on B failed');
+      return;
+    }
+    const headBefore = headOf(up.storeB);
+    // the first state read is the theirs side and the second the base; each is
+    // asked twice, so the read and its one retry both fail
+    // what each run left: the head it started from, and its parents (a merge
+    // commit has two, and none may be left behind by a run that failed)
+    const mine = (w) => ({ ...w, headSame: headOf(up.storeB) === headBefore, parents: mergeParents(up.storeB) });
+    const theirs = mine(failRun(c, '56-theirs', { only: ':' + STATE_PATH, failAt: '1 2' }));
+    const base = mine(failRun(c, '56-base', { only: ':' + STATE_PATH, failAt: '2 3' }));
+    record('56-a-killed-theirs-read-is-a-failed-read',
+      failedRead(theirs) && theirs.headSame && theirs.parents === 2,
+      'merge exit ' + theirs.r.code + ', named as a failed read: ' + /a failed read/.test(theirs.out) + ', a rewritten history claimed: ' + /rewritten/.test(theirs.out) + ', the head it met: ' + theirs.headSame + ', its parents: ' + theirs.parents + ' — ' + theirs.out.split('\n')[0].slice(0, 150));
+    record('56-a-killed-base-read-is-a-failed-read',
+      failedRead(base) && base.headSame && base.parents === 2,
+      'merge exit ' + base.r.code + ', named as a failed read: ' + /a failed read/.test(base.out) + ', a rewritten history claimed: ' + /rewritten/.test(base.out) + ', the head it met: ' + base.headSame + ', its parents: ' + base.parents + ' — ' + base.out.split('\n')[0].slice(0, 150));
+    // the trees the merge reads to decide whether a side moved are reads too: a
+    // killed one must not read as "this commit holds no state file", which would
+    // say nothing moved and skip the merge whole
+    const tree = failRun(c, '56-tree', { sub: 'ls-tree', only: 'fake/items.jsonl', failAt: '1 2' });
+    record('56-a-killed-tree-read-is-a-failed-read',
+      tree.r.code !== 0 && /could not read the state tree of/.test(tree.out) && !/rewritten/.test(tree.out) && headOf(up.storeB) === headBefore,
+      'merge exit ' + tree.r.code + ', named as a failed read of the tree: ' + /could not read the state tree of/.test(tree.out) + ', a rewritten history claimed: ' + /rewritten/.test(tree.out) + ', the head it met: ' + (headOf(up.storeB) === headBefore) + ' — ' + tree.out.split('\n')[0].slice(0, 150));
+    // one failure is a moment: the retry reads it, the merge lands, and nothing of
+    // either side is lost
+    const once = failRun(c, '56-retry', { only: ':' + STATE_PATH, failAt: '1' });
+    const merged = itemsSaid(c, 'B');
+    const both = /a change from A/.test(merged) && /a change from B/.test(merged);
+    record('56-one-failed-read-is-retried',
+      once.r.code === 0 && both && !/rewritten/.test(once.out),
+      'merge exit ' + once.r.code + ' after one failed read, both changes in the merged store: ' + both + ', a rewritten history claimed: ' + /rewritten/.test(once.out));
+    // ---- a revision recorded on both sides with two different states: the merge
+    // reads the recordings themselves, and the states they name, so a killed read
+    // of either is proved here too - and it may not become "the remote never
+    // recorded this revision" or a missing state.
+    up = twoMachines(ctx, '56b');
+    if (up.error) { record('56-a-killed-recording-read-is-a-failed-read', false, up.error); return; }
+    c = up.ctx;
+    const oidA = stateCommitOf(c, 'A', 'i-1', 'a change from A', "A's state");
+    const oidB = stateCommitOf(c, 'B', 'i-2', 'a change from B', "B's state");
+    if (!oidA || !oidB) { record('56-a-killed-recording-read-is-a-failed-read', false, 'a state commit could not be made'); return; }
+    const rev = 'r' + '5'.repeat(39);
+    const recA = join(up.storeA, '.tracker-sync', 'recordings');
+    const recB = join(up.storeB, '.tracker-sync', 'recordings');
+    mkdirSync(recA, { recursive: true }); mkdirSync(recB, { recursive: true });
+    writeFileSync(join(recA, rev + '.jsonl'), recordingOf(up.storeA, oidA));
+    commitInStore(up.storeA, ['.tracker-sync/recordings'], "the revision against A's state");
+    writeFileSync(join(recB, rev + '.jsonl'), recordingOf(up.storeB, oidB));
+    commitInStore(up.storeB, ['.tracker-sync/recordings'], "the revision against B's state");
+    const pub = pushStore(up.storeA);
+    const headB = headOf(up.storeB);
+    const fileRead = failRun(c, '56-recording-file', { only: '.tracker-sync/recordings', failAt: '1 2' });
+    const stateRead = failRun(c, '56-recording-state', { only: ':' + STATE_PATH, failAt: '3 4' });
+    record('56-a-killed-recording-read-is-a-failed-read',
+      pub.code === 0 && failedRead(fileRead) && /the recording of r5+\.jsonl/.test(fileRead.out) && headOf(up.storeB) === headB,
+      'merge exit ' + fileRead.r.code + ', named as a failed read of the recording: ' + /the recording of r5+\.jsonl/.test(fileRead.out) + ', a rewritten history claimed: ' + /rewritten/.test(fileRead.out) + ', the store moved: ' + (headOf(up.storeB) !== headB) + ' — ' + fileRead.out.split('\n')[0].slice(0, 150));
+    record('56-a-killed-read-of-a-recorded-state-is-a-failed-read',
+      pub.code === 0 && failedRead(stateRead) && /the recording of r5+\.jsonl/.test(stateRead.out) && headOf(up.storeB) === headB,
+      'merge exit ' + stateRead.r.code + ', named as a failed read of the recording: ' + /the recording of r5+\.jsonl/.test(stateRead.out) + ', a rewritten history claimed: ' + /rewritten/.test(stateRead.out) + ', the store moved: ' + (headOf(up.storeB) !== headB) + ' — ' + stateRead.out.split('\n')[0].slice(0, 150));
+  },
+
+  // 57. #skills-by6c rule: a file a commit truly does not hold is still absent.
+  // This store's recipe declares a state file no command writes, so every commit -
+  // the merge's base included - holds no copy of it: the field's older revision.
+  '57-an-absent-state-file-is-still-absent': async (ctx) => {
+    const up = twoMachines(ctx, '57');
+    if (up.error) { record('57-an-absent-state-file-is-still-absent', false, up.error); return; }
+    const c = up.ctx;
+    if (post(c, 'A', 'i-1', 'a change from A').code !== 0 || mech(c, 'publish', [], { machine: 'A' }).code !== 0) {
+      record('57-an-absent-state-file-is-still-absent', false, 'the write on A failed');
+      return;
+    }
+    // B's own state is a commit of its own, so the merge is a per-item merge: both
+    // sides moved, and the base and theirs states are read. A write the tracker
+    // only kept in its database would let the sync fast-forward instead, and then
+    // no base is read and this case would prove nothing.
+    const oidB = stateCommitOf(c, 'B', 'i-2', 'a change from B', "B's own state");
+    if (!oidB) {
+      record('57-an-absent-state-file-is-still-absent', false, 'the state commit on B failed');
+      return;
+    }
+    // the merge's base - B's head, which A's tip is built on - and what it holds
+    const base = headOf(up.storeB);
+    const absentInBase = !!base && sh('git', ['-C', up.storeB, 'cat-file', '-e', base + ':fake/policy.json']).code !== 0;
+    const held = !!base && sh('git', ['-C', up.storeB, 'cat-file', '-e', base + ':' + STATE_PATH]).code === 0;
+    const m = mergeOnB(c, { name: 'merge57' });
+    const merged = itemsSaid(c, 'B');
+    const both = /a change from A/.test(merged) && /a change from B/.test(merged);
+    record('57-an-absent-state-file-is-still-absent',
+      absentInBase && held && m.r.code === 0 && !/could not read/.test(m.out) && !/rewritten/.test(m.out) && both,
+      'the base ' + String(base).slice(0, 12) + ' holds no fake/policy.json: ' + absentInBase + ' (and holds ' + STATE_PATH + ': ' + held + '), merge exit ' + m.r.code + ', a failed read was claimed: ' + /could not read/.test(m.out) + ', both changes merged: ' + both);
+  },
+
+  // 58. #skills-by6c rule: a stop that interrupts work ends as a stop. The systemd
+  // unit signals the whole group, so the watcher's git children are signalled with
+  // it; the tick may not report a rewritten history, may not leave a commit behind,
+  // and the next start must merge.
+  '58-a-stop-in-a-merge-ends-as-a-stop': async (ctx) => {
+    const up = twoMachines(ctx, '58');
+    if (up.error) { record('58-a-stop-in-a-merge-ends-as-a-stop', false, up.error); return; }
+    const c = up.ctx;
+    if (post(c, 'A', 'i-1', 'a change from A').code !== 0 || mech(c, 'publish', [], { machine: 'A' }).code !== 0) {
+      record('58-a-stop-in-a-merge-ends-as-a-stop', false, 'the write on A failed');
+      return;
+    }
+    if (post(c, 'B', 'i-2', 'a change from B').code !== 0) {
+      record('58-a-stop-in-a-merge-ends-as-a-stop', false, 'the write on B failed');
+      return;
+    }
+    const headBefore = headOf(up.storeB);
+    const stateBefore = readFileSync(join(up.storeB, STATE_PATH), 'utf8');
+    // every state read takes three seconds, so the stop lands inside a read
+    const shim = gitHost(c, 'stop', { show: { sleep: 3 } });
+    const logPath = join(c.scratch, 'watch-stop.log');
+    const logFd = openSync(logPath, 'w');
+    const child = spawn('node', [c.mech, 'watch', '--interval', '1', '--debounce', '1', '--max-age', '2', '--recipe', c.recipe, '--state', c.stateB, '--repo', c.codeB],
+      { cwd: c.scratch, detached: true, stdio: ['ignore', logFd, logFd],
+        env: { ...process.env, TRACKER_RECIPE: c.recipe, PATH: shim + ':' + process.env.PATH, GITSHIM_DIR: shim, GITSHIM_REAL: REAL_GIT, GITSHIM_LOG: join(shim, 'git-shim.log') } });
+    const exited = new Promise((res) => child.once('close', (code, signal) => res({ code, signal })));
+    const started = await waitUntil(() => stateShows(shim) > 0, 30000, 100);
+    let stopped = null;
+    if (started.value) {
+      try { process.kill(-child.pid, 'SIGTERM'); } catch { /* already gone */ }
+      stopped = await Promise.race([exited, sleep(20000).then(() => ({ code: null, signal: null, hung: true }))]);
+    }
+    if (stopped && stopped.hung) { try { process.kill(-child.pid, 'SIGKILL'); } catch {} }
+    const log = (() => { try { return readFileSync(logPath, 'utf8'); } catch { return ''; } })();
+    const gone = !!stopped && !stopped.hung;
+    record('58-a-stop-in-a-merge-ends-as-a-stop',
+      !!started.value && gone && stopped.code === 0 && /stopped while reading/.test(log) && !/rewritten/.test(log) && !/the sync failed/.test(log) && !/the export failed/.test(log),
+      'the merge was in a state read: ' + !!started.value + ', the watcher exited: ' + (gone ? 'code ' + stopped.code : 'not in 20 s') + ', said as a stop: ' + /stopped while reading/.test(log) + ', a rewritten history claimed: ' + /rewritten/.test(log) + ', a failed round claimed: ' + (/the sync failed|the export failed/.test(log)) + ' — ' + log.split('\n').filter((l) => l.trim()).slice(-2).join(' | ').slice(0, 200));
+    record('58-a-stop-leaves-no-commit-half-made',
+      gone && headOf(up.storeB) === headBefore && existsSync(join(up.storeB, STATE_PATH)) && readFileSync(join(up.storeB, STATE_PATH), 'utf8').length >= stateBefore.length / 2,
+      'the head moved: ' + (headOf(up.storeB) !== headBefore) + ', the state file is still there: ' + existsSync(join(up.storeB, STATE_PATH)));
+    // the next start continues: the tick that was stopped is the work it repeats
+    const next = mech(c, 'sync', [], { machine: 'B' });
+    const merged = itemsSaid(c, 'B');
+    record('58-the-next-start-continues',
+      next.code === 0 && /a change from A/.test(merged) && /a change from B/.test(merged),
+      'the next sync exit ' + next.code + ', both changes merged: ' + (/a change from A/.test(merged) && /a change from B/.test(merged)));
+  },
+
+  // 59. The sentence a clone without write rights is owed (#62): it says what does
+  // happen, and what does happen is that a push which lands carries the kept write
+  // and clears the mark - rights granted later or a credential renewed heal.
+  '59-a-clone-whose-rights-return-publishes-what-it-kept': async (ctx) => {
+    const up = bringUp(ctx, 'A');
+    if (up.code !== 0) { record('59-a-clone-whose-rights-return-publishes-what-it-kept', false, 'bring-up: ' + said(up).split('\n').slice(0, 3).join(' | ')); return; }
+    const m = anotherMachine(ctx, 'rights');
+    const refusing = gitHost(ctx, 'rights-refused', { push: { code: 1, lines: HOST_ANSWERS['https-403'] } });
+    const r = mech(ctx, 'connect', ['--machine', 'B', '--checkout', m.code], { repo: m.code, state: m.state, shim: refusing });
+    seedStoreItems(m, [item1(), item2()]);
+    const refusedPublish = mech(ctx, 'publish', [], { repo: m.code, state: m.state, shim: refusing });
+    const headKept = sh('git', ['-C', storeDir(m), 'rev-parse', 'HEAD']).stdout.trim();
+    const keptHere = !!headKept && headKept !== remoteTip(ctx);
+    const sentence = /cannot publish now/.test(said(refusedPublish)) && /stays here/.test(said(refusedPublish)) && /carries it/.test(said(refusedPublish)) && !/no later attempt/.test(said(refusedPublish));
+    const marked = mech(ctx, 'status', ['--json'], { repo: m.code, state: m.state, shim: refusing });
+    // the rights come back: nothing about the mechanism changes, and the push of the
+    // next run carries the write it kept - a sync pushes the commit it could not
+    // publish, and the push that lands clears the mark
+    const back = mech(ctx, 'sync', [], { repo: m.code, state: m.state });
+    const onRemote = remoteItems(ctx).length >= 2;
+    const after = mech(ctx, 'status', ['--json'], { repo: m.code, state: m.state });
+    let j = null; try { j = JSON.parse(after.stdout); } catch { /* the assertion says so */ }
+    record('59-a-clone-whose-rights-return-publishes-what-it-kept',
+      r.code === 0 && keptHere && sentence && back.code === 0 && onRemote && !/cannot publish/.test(said(after)) && (!j || j.cannotPublish !== true),
+      'connect exit ' + r.code + ', the write kept here: ' + keptHere + ', the sentence says what happens: ' + sentence + ' (' + (said(refusedPublish).split('\n')[0] || '').slice(0, 140) + '), the push that landed: ' + back.code + ', the write on the remote: ' + onRemote + ', the mark cleared: ' + !/cannot publish/.test(said(after)) + ', status cannotPublish: ' + (j && j.cannotPublish));
   },
 
 };
