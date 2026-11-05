@@ -150,6 +150,32 @@ function readFailed(what, r) {
   if (STOPPING) stopNow(`reading ${what}`);
   die(1, `could not read ${what}: ${text(r).split('\n')[0] || `git exited ${r.code}`}; this is a failed read, not a file the commit does not hold, so nothing is decided from it`);
 }
+/** Git's own answer for an object it does not have, and the only answer that is a
+ * commit this store does not hold: a `cat-file` that was killed says nothing
+ * about whether the object is here (#skills-by6c). */
+const MISSING_OBJECT = /not a valid object name|invalid object name|does not exist|bad object|Needed a single revision/i;
+async function commitHere(oid, where) {
+  const said = where || `store commit ${String(oid).slice(0, 12)}`;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const r = await git(['cat-file', '-e', `${oid}^{commit}`], { cwd: CURRENT.store });
+    if (r.code === 0) return true;
+    if (STOPPING) stopNow(`reading ${said}`);
+    if (attempt === 0) continue;
+    if (MISSING_OBJECT.test(text(r))) return false;
+    readFailed(said, r);
+  }
+}
+/** The names a commit holds under a path, in one read. A listing that failed is a
+ * failed read, never a commit that holds nothing underneath (#skills-by6c). */
+async function treeNames(rev, path, where) {
+  const said = where || `the files of ${String(rev).slice(0, 12)} under ${path}`;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const r = await git(['ls-tree', '-r', '--name-only', rev, '--', path], { cwd: CURRENT.store });
+    if (r.code === 0) return r.stdout.split('\n').map((l) => l.trim()).filter(Boolean);
+    if (STOPPING) stopNow(`reading ${said}`);
+    if (attempt === 1) readFailed(said, r);
+  }
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const nowIso = () => new Date().toISOString();
 
@@ -1063,14 +1089,22 @@ async function mergeAndCommit(tip, { flushed: done } = {}) {
   // made one commit on a store of 216 recordings cost about 170 s of CPU and
   // 1.49 GB, and it grew by one recording per commit.
   const recordingsIn = async (rev) => {
-    const r = await git(['ls-tree', '-r', rev, '--', '.tracker-sync/recordings'], { cwd: CURRENT.store });
-    if (r.code !== 0) readFailed(`the recordings of ${String(rev).slice(0, 12)}`, r);
-    const out = new Map();
-    for (const line of r.stdout.split('\n')) {
-      const m = /^\d+ blob ([0-9a-f]+)\t(.*)$/.exec(line);
-      if (m) out.set(m[2], m[1]);
+    const said = `the recordings of ${String(rev).slice(0, 12)}`;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const r = await git(['ls-tree', '-r', rev, '--', '.tracker-sync/recordings'], { cwd: CURRENT.store });
+      if (r.code !== 0) {
+        if (STOPPING) stopNow(`reading ${said}`);
+        if (attempt === 1) readFailed(said, r);
+        continue;
+      }
+      const out = new Map();
+      for (const line of r.stdout.split('\n')) {
+        const m = /^\d+ blob ([0-9a-f]+)\t(.*)$/.exec(line);
+        if (m) out.set(m[2], m[1]);
+      }
+      return out;
     }
-    return out;
+    return new Map();
   };
   const [a, b] = [await recordingsIn(head), await recordingsIn(tip)];
   // A referenced commit's state blobs, read once per merge however many
@@ -1122,8 +1156,8 @@ async function mergeAndCommit(tip, { flushed: done } = {}) {
 }
 /** The mechanism's own files under .tracker-sync travel beside the state. */
 async function recipeIsland(head, tip) {
-  const names = (await git(['ls-tree', '-r', '--name-only', tip, '--', '.tracker-sync'], { cwd: CURRENT.store }))
-    .stdout.split('\n').filter((n) => n && !n.startsWith('.tracker-sync/recordings/'));
+  const names = (await treeNames(tip, '.tracker-sync', `the mechanism's own files of ${String(tip).slice(0, 12)}`))
+    .filter((n) => n && !n.startsWith('.tracker-sync/recordings/'));
   for (const n of names) {
     // A read that failed is named, never taken for an empty file the two sides
     // disagree about (#skills-by6c).
@@ -1699,7 +1733,7 @@ const recordingText = (oid, state) => `${JSON.stringify({ format: RECORDING_FORM
 /** The state files as a commit holds them, in the shape a snapshot writes: the
  * one shape both kinds of recording produce, so `export --at` is one read. */
 async function stateTextAt(oid, where = 'the recording') {
-  if ((await git(['cat-file', '-e', `${oid}^{commit}`], { cwd: CURRENT.store })).code !== 0)
+  if (!(await commitHere(oid, `the store commit ${String(oid).slice(0, 12)} that ${where} names`)))
     die(1, `${where} names store commit ${String(oid).slice(0, 12)}, which this store does not hold. The store ref's history is append-only and is never rewritten, so a referenced commit is either here or the ref was rewritten outside this mechanism: the state of that revision is not guessed from a later one`);
   return sideText(await stateFrom(oid, where));
 }
@@ -1743,10 +1777,10 @@ async function stateBlobsAt(oid) {
     // does not hold is answered the way it always was - by the reads that name it -
     // so only a commit that IS here is a failed read, retried once (#skills-by6c).
     if (STOPPING) stopNow(`reading the state tree of ${String(oid).slice(0, 12)}`);
-    if ((await git(['cat-file', '-e', `${oid}^{commit}`], { cwd: CURRENT.store })).code !== 0) return new Map();
+    if (!(await commitHere(oid, `the state tree of ${String(oid).slice(0, 12)}`))) return new Map();
     r = await read();
     if (r.code !== 0) {
-      if ((await git(['cat-file', '-e', `${oid}^{commit}`], { cwd: CURRENT.store })).code !== 0) return new Map();
+      if (!(await commitHere(oid, `the state tree of ${String(oid).slice(0, 12)}`))) return new Map();
       readFailed(`the state tree of ${String(oid).slice(0, 12)}`, r);
     }
   }

@@ -1080,6 +1080,23 @@ const BREAKS = [
       "  if (false) return null; /* deliberate break: an absent file is a failed read */") }),
   },
   {
+    name: 'a-killed-commit-check-is-a-missing-commit',
+    cases: ['56-a-killed-read-is-not-an-absent-file'],
+    // The claim about history one level down: a check that the commit is here,
+    // answered "no" when its read was killed.
+    apply: (s) => ({ mech: breakByLiteral('killed-commit-check-is-missing', s.mech,
+      "    if (r.code === 0) return true;\n    if (STOPPING) stopNow(`reading ${said}`);\n    if (attempt === 0) continue;",
+      "    if (r.code === 0) return true;\n    return false; /* deliberate break: a failed check is a missing commit */") }),
+  },
+  {
+    name: 'a-killed-listing-is-no-files',
+    cases: ['56-a-killed-read-is-not-an-absent-file'],
+    // A listing answered empty for a killed read: the merge then compares nothing.
+    apply: (s) => ({ mech: breakByLiteral('killed-listing-is-empty', s.mech,
+      "      if (r.code !== 0) {\n        if (STOPPING) stopNow(`reading ${said}`);\n        if (attempt === 1) readFailed(said, r);\n        continue;\n      }",
+      "      if (r.code !== 0) return new Map(); /* deliberate break: a failed listing is no recordings */") }),
+  },
+  {
     name: 'a-killed-tree-read-is-no-state-at-all',
     cases: ['56-a-killed-read-is-not-an-absent-file'],
     // The same defect one level down: the trees the merge reads decide whether a
@@ -3572,6 +3589,12 @@ console.log(JSON.stringify({ pid: process.pid, whileHeld, afterRelease }));
     record('56-a-killed-tree-read-is-a-failed-read',
       tree.r.code !== 0 && /could not read the state tree of/.test(tree.out) && !/rewritten/.test(tree.out) && headOf(up.storeB) === headBefore,
       'merge exit ' + tree.r.code + ', named as a failed read of the tree: ' + /could not read the state tree of/.test(tree.out) + ', a rewritten history claimed: ' + /rewritten/.test(tree.out) + ', the head it met: ' + (headOf(up.storeB) === headBefore) + ' — ' + tree.out.split('\n')[0].slice(0, 150));
+    // the recordings listing is a read too: a killed one must not read as "this
+    // commit holds no recordings", which would skip the whole comparison
+    const listings = failRun(c, '56-listings', { sub: 'ls-tree', only: '.tracker-sync', failAt: '1 2' });
+    record('56-a-killed-listing-is-a-failed-read',
+      listings.r.code !== 0 && /could not read the recordings of/.test(listings.out) && !/rewritten/.test(listings.out) && headOf(up.storeB) === headBefore,
+      'merge exit ' + listings.r.code + ', named as a failed read of the listing: ' + /could not read the recordings of/.test(listings.out) + ', a rewritten history claimed: ' + /rewritten/.test(listings.out) + ', the head it met: ' + (headOf(up.storeB) === headBefore) + ' — ' + listings.out.split('\n')[0].slice(0, 150));
     // one failure is a moment: the retry reads it, the merge lands, and nothing of
     // either side is lost
     const once = failRun(c, '56-retry', { only: ':' + STATE_PATH, failAt: '1' });
@@ -3605,6 +3628,12 @@ console.log(JSON.stringify({ pid: process.pid, whileHeld, afterRelease }));
     record('56-a-killed-recording-read-is-a-failed-read',
       pub.code === 0 && failedRead(fileRead) && /the recording of r5+\.jsonl/.test(fileRead.out) && headOf(up.storeB) === headB,
       'merge exit ' + fileRead.r.code + ', named as a failed read of the recording: ' + /the recording of r5+\.jsonl/.test(fileRead.out) + ', a rewritten history claimed: ' + /rewritten/.test(fileRead.out) + ', the store moved: ' + (headOf(up.storeB) !== headB) + ' — ' + fileRead.out.split('\n')[0].slice(0, 150));
+    // the check that a referenced commit is here is a read too: killed, it must not
+    // become the claim that the store's history was rewritten
+    const commitCheck = failRun(c, '56-commit', { sub: 'cat-file', only: '^{commit}', failAt: '1 2' });
+    record('56-a-killed-commit-check-is-not-a-missing-commit',
+      pub.code === 0 && commitCheck.r.code !== 0 && /could not read the store commit/.test(commitCheck.out) && !/rewritten/.test(commitCheck.out) && headOf(up.storeB) === headB,
+      'merge exit ' + commitCheck.r.code + ', named as a failed read of the commit: ' + /could not read the store commit/.test(commitCheck.out) + ', a rewritten history claimed: ' + /rewritten/.test(commitCheck.out) + ', the store moved: ' + (headOf(up.storeB) !== headB) + ' — ' + commitCheck.out.split('\n')[0].slice(0, 150));
     record('56-a-killed-read-of-a-recorded-state-is-a-failed-read',
       pub.code === 0 && failedRead(stateRead) && /the recording of r5+\.jsonl/.test(stateRead.out) && headOf(up.storeB) === headB,
       'merge exit ' + stateRead.r.code + ', named as a failed read of the recording: ' + /the recording of r5+\.jsonl/.test(stateRead.out) + ', a rewritten history claimed: ' + /rewritten/.test(stateRead.out) + ', the store moved: ' + (headOf(up.storeB) !== headB) + ' — ' + stateRead.out.split('\n')[0].slice(0, 150));
