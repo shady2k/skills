@@ -1,0 +1,61 @@
+#!/bin/sh
+# A git that answers the way a host does, for the proofs of a clone without write
+# rights (#62). Everything it is not told to answer runs the real git.
+#
+#   GITSHIM_DIR   a folder holding one answer file per subcommand, named after the
+#                 subcommand: `push`, `fetch`, `ls-remote`. The first line is the
+#                 exit status, every later line is printed to stderr as the host's
+#                 own answer. `<sub>.once` is used for one call and then renamed
+#                 `<sub>.once.done`. `<sub>.sleep` holds a number of seconds to
+#                 wait first - with no answer file the call then runs the real git,
+#                 which is how a slow but working fetch is written. `<sub>.seen` is
+#                 touched when the answer is taken, so a case can kill a call in
+#                 flight.
+#   GITSHIM_REAL  the real git to fall through to (the proofs pass the git they
+#                 resolved before putting this folder on PATH).
+#   GITSHIM_LOG   every invocation is appended here, so a case can count what the
+#                 mechanism actually asked.
+#
+# A subcommand is found by skipping git's option prefixes (-c <k=v>, -C <dir>,
+# --git-dir=..., --work-tree=...), in a subshell so the passthrough keeps its own
+# arguments byte for byte.
+log="${GITSHIM_LOG:-/dev/null}"
+printf '%s\n' "git $*" >> "$log" 2>/dev/null || true
+sub=$(
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -c|-C|--git-dir|--work-tree) shift 2 2>/dev/null || exit 0 ;;
+      --) shift; [ $# -gt 0 ] && printf '%s' "$1"; exit 0 ;;
+      -*) shift ;;
+      *) printf '%s' "$1"; exit 0 ;;
+    esac
+  done
+)
+if [ -n "${GITSHIM_DIR:-}" ] && [ -n "$sub" ]; then
+  answer="$GITSHIM_DIR/$sub"
+  if [ -f "$GITSHIM_DIR/$sub.once" ]; then
+    # One call takes the answer, and it must be taken by THIS call: the file is
+    # moved aside and read from where it now lies, never left looking gone.
+    mv "$GITSHIM_DIR/$sub.once" "$GITSHIM_DIR/$sub.once.done"
+    answer="$GITSHIM_DIR/$sub.once.done"
+  fi
+  if [ -f "$answer" ]; then
+    : > "$GITSHIM_DIR/$sub.seen"
+    [ -f "$GITSHIM_DIR/$sub.sleep" ] && sleep "$(cat "$GITSHIM_DIR/$sub.sleep")"
+    code=$(sed -n '1p' "$answer")
+    sed -n '2,$p' "$answer" >&2
+    exit "${code:-1}"
+  fi
+  if [ -f "$GITSHIM_DIR/$sub.sleep" ]; then
+    # A delay with no answer: the real git starts at once and its answer is held
+    # back. A kill during that wait is then a kill with a real git in flight, and
+    # the leftovers a rerun has to survive are a real fetch's.
+    : > "$GITSHIM_DIR/$sub.seen"
+    "${GITSHIM_REAL:-git}" "$@" &
+    real=$!
+    sleep "$(cat "$GITSHIM_DIR/$sub.sleep")"
+    wait "$real"
+    exit $?
+  fi
+fi
+exec "${GITSHIM_REAL:-git}" "$@"

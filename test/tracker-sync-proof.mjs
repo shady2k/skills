@@ -101,10 +101,10 @@ function git(ctx, args, opts = {}) {
 function mech(ctx, sub, args, opts = {}) {
   const machine = opts.machine || 'A';
   const env = { ...process.env, TRACKER_RECIPE: ctx.recipe, ...(opts.env || {}) };
-  const repo = machine === 'A' ? ctx.codeA : ctx.codeB;
-  const state = machine === 'A' ? ctx.stateA : ctx.stateB;
-  const shim = ctx.gitShim || (ctx.tag.startsWith('4-refused-push') ? '/tmp/gitshim' : null);
-  const shimEnv = shim ? { PATH: shim + ':' + process.env.PATH, GITSHIM_LOG: join(ctx.scratch, 'git-shim.log') } : {};
+  const repo = opts.repo || (machine === 'A' ? ctx.codeA : ctx.codeB);
+  const state = opts.state || (machine === 'A' ? ctx.stateA : ctx.stateB);
+  const shim = opts.shim || ctx.gitShim || (ctx.tag.startsWith('4-refused-push') ? '/tmp/gitshim' : null);
+  const shimEnv = shim ? { PATH: shim + ':' + process.env.PATH, GITSHIM_DIR: shim, GITSHIM_REAL: REAL_GIT, GITSHIM_LOG: join(shim, 'git-shim.log') } : {};
   // `nodeArgs` are the runtime's own switches (a heap bound, for a proof that a
   // store of any size is read in bounded memory), never an option of the mechanism.
   return sh('node', [...(opts.nodeArgs || []), ctx.mech, sub, '--recipe', ctx.recipe, '--state', state, '--repo', repo, ...args],
@@ -128,11 +128,12 @@ function oldMech(ctx, sub, args, opts = {}) {
   return sh('node', [...(opts.nodeArgs || []), OLD_MECH_0121, sub, '--recipe', ctx.recipe, '--state', ctx.stateA, '--repo', ctx.codeA, ...args],
     { ...opts, env, cwd: opts.cwd || ctx.scratch });
 }
-function watcher(ctx, machine, args = ['--interval', '1', '--debounce', '2']) {
+function watcher(ctx, machine, args = ['--interval', '1', '--debounce', '2'], opts = {}) {
   const logPath = join(ctx.scratch, 'watch-' + machine + '-' + ctx.watchers.length + '.log');
   const logFd = openSync(logPath, 'w');
-  const child = spawn('node', [ctx.mech, 'watch', '--recipe', ctx.recipe, ...args, '--state', machine === 'A' ? ctx.stateA : ctx.stateB, '--repo', machine === 'A' ? ctx.codeA : ctx.codeB],
-    { cwd: ctx.scratch, env: { ...process.env, TRACKER_RECIPE: ctx.recipe, ...(ctx.gitShim ? { PATH: ctx.gitShim + ':' + process.env.PATH, GITSHIM_LOG: join(ctx.scratch, 'git-shim.log') } : {}), ...(ctx.debugEnv || {}) }, stdio: ['ignore', logFd, logFd] });
+  const shim = opts.shim || ctx.gitShim;
+  const child = spawn('node', [ctx.mech, 'watch', '--recipe', ctx.recipe, ...args, '--state', opts.state || (machine === 'A' ? ctx.stateA : ctx.stateB), '--repo', opts.repo || (machine === 'A' ? ctx.codeA : ctx.codeB)],
+    { cwd: ctx.scratch, env: { ...process.env, TRACKER_RECIPE: ctx.recipe, ...(shim ? { PATH: shim + ':' + process.env.PATH, GITSHIM_DIR: shim, GITSHIM_REAL: REAL_GIT, GITSHIM_LOG: join(shim, 'git-shim.log') } : {}), ...(ctx.debugEnv || {}) }, stdio: ['ignore', logFd, logFd] });
   child.logPath = logPath;
   ctx.watchers.push(child);
   return child;
@@ -387,6 +388,68 @@ function bringUp(ctx, machine) {
 const cacheKey = (m) => (m === 'A' ? 'storeA' : 'storeB');
 // A case that proves the tracker's own recipe runs the br recipe; the neutral
 // fake is the default. A broken copy of that recipe replaces it in a mutation.
+
+// ------------------------------------------- a host that answers, not a network
+// #62: a clone that can read a remote and cannot push to it. The answers a host
+// gives such a clone are fed through a git that answers instead of a network
+// (test/fixtures/git-shim/git), and everything else is a real bare remote, a real
+// store and the real mechanism: what the proofs read is what the mechanism did.
+const SHIM_SRC = join(WORKTREE, 'test/fixtures/git-shim/git');
+const REAL_GIT = (sh('sh', ['-c', 'command -v git']).stdout || '').trim();
+if (!REAL_GIT) throw new Error('the proofs need a real git on PATH');
+/** A git that answers the way a host does, in a folder of this case's own.
+ * `answers.push = { code, lines, sleep, once }`: the exit status, the lines the
+ * host prints, seconds to wait first, and whether one call takes it. */
+function gitHost(ctx, name, answers) {
+  const dir = join(ctx.scratch, 'shim-' + name);
+  rmSync(dir, { recursive: true, force: true });
+  mkdirSync(dir, { recursive: true });
+  cpSync(SHIM_SRC, join(dir, 'git'));
+  sh('chmod', ['755', join(dir, 'git')]);
+  for (const [sub, a] of Object.entries(answers)) {
+    if (a.lines || a.code !== undefined) writeFileSync(join(dir, sub), [String(a.code ?? 1), ...(a.lines || [])].join('\n') + '\n');
+    if (a.once) { renameSync(join(dir, sub), join(dir, sub + '.once')); }
+    if (a.sleep) writeFileSync(join(dir, sub + '.sleep'), String(a.sleep));
+  }
+  return dir;
+}
+const shimLog = (dir) => { try { return readFileSync(join(dir, 'git-shim.log'), 'utf8'); } catch { return ''; } };
+/** How many times the mechanism asked the remote this: the read a probe spends is
+ * visible in the log, and a proof about "no probe" is a proof about this count. */
+const shimCalls = (dir, sub) => shimLog(dir).split('\n').filter((l) => new RegExp('git (?:-c \\S+ )*' + sub + '\\b').test(l)).length;
+
+/** Another clone of the same remote, with its own machine state: one run of
+ * connect, in a context that is already up (a store on the remote, a reader). */
+function anotherMachine(ctx, name) {
+  const code = join(ctx.scratch, 'code-' + name);
+  const state = join(ctx.scratch, 'state-' + name);
+  sh('git', ['clone', ctx.remote, code]);
+  return { code, state };
+}
+/** What a machine's own state folder holds after a connect. */
+const storeDir = (m) => join(m.state, 'tracker');
+const configOf = (m) => join(m.state, 'config.json');
+const HOOKS = ['post-commit', 'post-merge', 'post-checkout'];
+const hooksInstalled = (m) => HOOKS.every((h) => existsSync(join(m.code, '.git', 'hooks', h)));
+const said = (r) => r.out + (r.stderr || '');
+function seedStoreItems(m, items) {
+  const store = join(m.state, 'tracker');
+  mkdirSync(join(store, 'fake'), { recursive: true });
+  writeFileSync(join(store, 'fake', 'items.jsonl'), items.map((r) => JSON.stringify(r)).join('\n') + '\n');
+  writeFileSync(join(store, 'fake', 'db.json'), JSON.stringify({ records: items }, null, 1) + '\n');
+}
+const count = (text, re) => (text.match(re) || []).length;
+
+// The answers a host gives a clone with no write rights, as the reporter met
+// them (#62): each one is a REFUSAL, and none of them is a broken connection.
+const HOST_ANSWERS = {
+  'https-with-prompts-disabled': ["fatal: could not read Username for 'https://host': terminal prompts disabled"],
+  'https-403': ["remote: Permission to o/r.git denied to u.", "fatal: unable to access 'https://host/o/r.git/': The requested URL returned error: 403"],
+  'ssh-denied': ['ERROR: Permission to o/r.git denied to u.', 'fatal: Could not read from remote repository.'],
+  'a-key-marked-read-only': ['ERROR: The key you are authenticating with has been marked as read only.', 'fatal: Could not read from remote repository.'],
+  'no-anonymous-write-access': ['remote: No anonymous write access.', "fatal: Authentication failed for 'https://host/o/r.git/'"],
+};
+
 const CASE_OVERRIDES = {
   '18-br-settings-survive-the-move': { recipe: BR_RECIPE, br: true },
   '19-br-relink-after-a-pre-move-branch': { recipe: BR_RECIPE, br: true },
@@ -845,6 +908,34 @@ const BREAKS = [
     apply: (s) => ({ mech: breakByLiteral('migration-none', s.mech,
       'if (!isReferenceFile(file)) { snapshots.push(n); continue; }',
       'if (false) { snapshots.push(n); continue; } /* deliberate break: nothing is converted */') }),
+  },
+  // ---- #62: a clone that can read the remote and cannot push to it ----------
+  {
+    name: 'a-failed-store-fetch-is-not-read',
+    cases: ['41-a-store-that-could-not-be-fetched'],
+    // the fix undone: the fetch's result is ignored, so any failed fetch of a ref
+    // the remote holds takes the first-store path and presents an empty store.
+    apply: (s) => ({ mech: breakByLiteral('store-fetch-ignored', s.mech,
+      '  if (holds)',
+      '  if (false && holds) /* deliberate break: a ref the remote holds is not asked about */') }),
+  },
+  {
+    name: 'a-refusal-read-as-an-unreachable-remote',
+    cases: ['44-a-refused-clone-connects-and-says-so'],
+    // the fix undone: the ambiguous answers are not asked about, so a clone with
+    // no write rights reads as an unreachable remote and connect stops.
+    apply: (s) => ({ mech: breakByLiteral('classify-no-probe', s.mech,
+      "    if (readConfig(CURRENT.flags, CURRENT.repoRoot).publishRefused) return 'refused';\n    return (await remoteAnswersReads(CURRENT.store)) ? 'refused' : 'unreachable';",
+      "    return 'unreachable'; /* deliberate break: the outcome is not asked */") }),
+  },
+  {
+    name: 'connect-pushes-before-the-hooks',
+    cases: ['44-a-refused-clone-connects-and-says-so'],
+    // the fix undone: the ordinal is pushed where it is taken, before the pointer,
+    // the hooks and the config, so a refusal leaves a half-connected checkout.
+    apply: (s) => ({ mech: breakByLiteral('connect-pushes-early', s.mech,
+      '      ordinalOid = await commitState(`tracker store: this machine takes its ordinal`, [await headOid()]);',
+      '      ordinalOid = await commitState(`tracker store: this machine takes its ordinal`, [await headOid()]);\n      await pushOid(ordinalOid, { quiet: true }); /* deliberate break: pushed before the hooks */') }),
   },
 ];
 
@@ -2822,6 +2913,248 @@ console.log(JSON.stringify({ pid: process.pid, whileHeld, afterRelease }));
     record('30-a-skip-the-tracker-would-make-is-foreseen', s3.code === 0 && tried === 0 && rebuilds() === 1,
       'partial imports tried for a change br skips: ' + tried + ', rebuilds: ' + rebuilds());
   },
+
+  // ---- #62: a clone that can read the remote and cannot push to it -----------
+  // (a) A ref the remote holds and this clone could not fetch stops connect,
+  // names the ref and the failed fetch, and writes nothing: no ref, no worktree,
+  // no config. Only a remote that answers WITHOUT the ref gets a new store.
+  '41-a-store-that-could-not-be-fetched': async (ctx) => {
+    const up = bringUp(ctx, 'A');
+    if (up.code !== 0) return record('41-a-store-that-could-not-be-fetched', false, 'bring-up failed: ' + said(up).split('\n').slice(0, 3).join(' | '));
+    const wanted = storeItems(ctx, 'A').length;
+    const held = remoteTip(ctx);
+    const m = anotherMachine(ctx, 'fetch-fails');
+    const shim = gitHost(ctx, 'fetch-fails', { fetch: { code: 128, lines: ["fatal: unable to access 'https://host/o/r.git/': Operation timed out after 300000 milliseconds with 0 bytes received"] } });
+    const r = mech(ctx, 'connect', ['--machine', 'B', '--checkout', m.code], { repo: m.code, state: m.state, shim });
+    const written = existsSync(storeDir(m)) || existsSync(configOf(m));
+    const refHere = sh('git', ['-C', m.code, 'rev-parse', '--verify', '--quiet', 'refs/tracker/state']);
+    record('41-a-fetch-that-failed-on-a-ref-the-remote-holds-stops-connect',
+      r.code === 4 && /refs\/tracker\/state/.test(said(r)) && /could not fetch it/.test(said(r)) && !written && refHere.code !== 0,
+      `exit ${r.code}; a store or a config written: ${written}; the ref is here: ${refHere.code === 0}; it said: ${said(r).split('\n')[0]}`);
+    // The same clone with the fetch working: the store is built ON the remote's
+    // state, not on an empty commit of its own.
+    const again = mech(ctx, 'connect', ['--machine', 'B', '--checkout', m.code], { repo: m.code, state: m.state });
+    const ancestor = sh('git', ['-C', storeDir(m), 'merge-base', '--is-ancestor', held, 'HEAD']);
+    const itemsThere = sh('git', ['-C', storeDir(m), 'show', held + ':fake/items.jsonl']).stdout.split('\n').filter(Boolean).length;
+    record('41-a-second-connect-takes-the-whole-store',
+      again.code === 0 && ancestor.code === 0 && itemsThere === wanted && wanted > 0,
+      `exit ${again.code}; the remote's tip is in the store's history: ${ancestor.code === 0}; the store holds ${itemsThere} of ${wanted} items`);
+  },
+
+  // (b) The store's fetch is bound by the recipe timeout's floor, not by a
+  // moment's bound: a 22 s fetch (past the old 20 s) arrives, and a fetch killed
+  // in flight leaves a clone a rerun connects from.
+  '42-a-fetch-a-moment-bound-would-cut': async (ctx) => {
+    const up = bringUp(ctx, 'A');
+    if (up.code !== 0) return record('42-a-fetch-a-moment-bound-would-cut', false, 'bring-up failed: ' + said(up).split('\n').slice(0, 3).join(' | '));
+    const held = remoteTip(ctx);
+    const m = anotherMachine(ctx, 'slow-fetch');
+    const shim = gitHost(ctx, 'slow-fetch', { fetch: { sleep: 22 } });
+    const t0 = Date.now();
+    const r = mech(ctx, 'connect', ['--machine', 'B', '--checkout', m.code], { repo: m.code, state: m.state, shim });
+    const took = (Date.now() - t0) / 1000;
+    const ancestor = sh('git', ['-C', storeDir(m), 'merge-base', '--is-ancestor', held, 'HEAD']);
+    record('42-a-fetch-past-the-old-bound-arrives', r.code === 0 && ancestor.code === 0 && took > 21,
+      `connect exit ${r.code} after ${took.toFixed(1)} s; the remote's tip is in the store's history: ${ancestor.code === 0}`);
+
+    // Killed in flight: the clone holds no ref, nothing was written, and a rerun
+    // with the fetch working succeeds from there.
+    const m2 = anotherMachine(ctx, 'killed-fetch');
+    const slam = gitHost(ctx, 'killed-fetch', { fetch: { sleep: 6 } });
+    const child = spawn('node', [ctx.mech, 'connect', '--recipe', ctx.recipe, '--state', m2.state, '--repo', m2.code, '--machine', 'B', '--checkout', m2.code],
+      { cwd: ctx.scratch, env: { ...process.env, TRACKER_RECIPE: ctx.recipe, PATH: slam + ':' + process.env.PATH, GITSHIM_DIR: slam, GITSHIM_REAL: REAL_GIT, GITSHIM_LOG: join(ctx.scratch, 'git-shim.log') }, stdio: 'ignore' });
+    const began = await waitUntil(() => existsSync(join(slam, 'fetch.seen')), 30000, 100);
+    try { child.kill('SIGKILL'); } catch { /* already gone */ }
+    await stopWatcher(child);
+    const after = mech(ctx, 'connect', ['--machine', 'B', '--checkout', m2.code], { repo: m2.code, state: m2.state });
+    const ancestor2 = sh('git', ['-C', storeDir(m2), 'merge-base', '--is-ancestor', remoteTip(ctx), 'HEAD']);
+    record('42-a-killed-fetch-leaves-a-clone-a-rerun-connects',
+      !!began.value && after.code === 0 && ancestor2.code === 0,
+      `the fetch began: ${!!began.value}; the rerun exited ${after.code}; the remote's tip is in the store's history: ${ancestor2.code === 0}`);
+  },
+
+  // (c) A remote that answers and holds no store ref is the normal first connect:
+  // it still gets its first store.
+  '43-a-remote-that-answers-without-the-ref': async (ctx) => {
+    const m = { code: ctx.codeA, state: ctx.stateA };
+    const r = mech(ctx, 'connect', ['--machine', 'A', '--checkout', m.code], { repo: m.code, state: m.state });
+    record('43-a-first-store-still-comes-from-a-remote-without-the-ref',
+      r.code === 0 && existsSync(join(storeDir(m), 'fake')) && /holds no refs\/tracker\/state/.test(said(r)),
+      `exit ${r.code}; the store exists: ${existsSync(join(storeDir(m), 'fake'))}; it said: ${said(r).split('\n')[0]}`);
+  },
+
+  // (d) Every answer a host gives a clone with no write rights, with reads
+  // working: connect exits 0, the pointer, the hooks and the config are in place,
+  // the sentence appears once and never as "published later", and a following
+  // commit runs its record step and is not blocked.
+  '44-a-refused-clone-connects-and-says-so': async (ctx) => {
+    const up = bringUp(ctx, 'A');
+    if (up.code !== 0) return record('44-a-refused-clone-connects-and-says-so', false, 'bring-up failed: ' + said(up).split('\n').slice(0, 3).join(' | '));
+    for (const [name, lines] of Object.entries(HOST_ANSWERS)) {
+      const m = anotherMachine(ctx, 'ro-' + name);
+      const shim = gitHost(ctx, 'ro-' + name, { push: { code: 1, lines } });
+      const r = mech(ctx, 'connect', ['--machine', 'B', '--checkout', m.code], { repo: m.code, state: m.state, shim });
+      const hooks = hooksInstalled(m);
+      const cfg = existsSync(configOf(m));
+      const once = count(said(r), /cannot publish/g) === 1;
+      const promise = /published when/.test(said(r));
+      // The commit's own record step, with the same host answering: the commit is
+      // not blocked, and the recording it made stays in this clone.
+      const commit = sh('git', ['-C', m.code, '-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '--allow-empty', '-m', 'a code change'],
+        { env: { PATH: shim + ':' + process.env.PATH, GITSHIM_DIR: shim, GITSHIM_REAL: REAL_GIT, GITSHIM_LOG: join(shim, 'git-shim.log') } });
+      const rev = sh('git', ['-C', m.code, 'rev-parse', 'HEAD']).stdout.trim();
+      const recorded = existsSync(join(storeDir(m), '.tracker-sync', 'recordings', rev + '.jsonl'));
+      record('44-' + name,
+        r.code === 0 && hooks && cfg && once && !promise && commit.code === 0 && recorded,
+        `exit ${r.code}; hooks ${hooks}; config ${cfg}; the sentence once ${once}; "published when": ${promise}; the commit exited ${commit.code}; recorded ${recorded}${commit.code !== 0 ? ': ' + said(commit).split('\n')[0] : ''}`);
+    }
+  },
+
+  // (e) The same answers, with the remote's reads failing too: nobody answered,
+  // so nothing about rights is known and it is an unreachable remote - not a
+  // refusal, and connect makes no promise about writing later.
+  '45-the-same-answers-without-reads-are-unreachable': async (ctx) => {
+    const up = bringUp(ctx, 'A');
+    if (up.code !== 0) return record('45-the-same-answers-without-reads-are-unreachable', false, 'bring-up failed: ' + said(up).split('\n').slice(0, 3).join(' | '));
+    for (const [name, lines] of Object.entries(HOST_ANSWERS)) {
+      const m = anotherMachine(ctx, 'outage-' + name);
+      // The first read answers - connect's own reachability check - and every
+      // read after it does not: the push failure is all the remote said.
+      const shim = gitHost(ctx, 'outage-' + name, {
+        push: { code: 1, lines },
+        'ls-remote.once': { code: 0 },
+        'ls-remote': { code: 128, lines: ["fatal: unable to access 'https://host/o/r.git/': Could not resolve host: host"] },
+      });
+      const r = mech(ctx, 'connect', ['--machine', 'B', '--checkout', m.code], { repo: m.code, state: m.state, shim });
+      const hooks = hooksInstalled(m);
+      const cfg = existsSync(configOf(m));
+      record('45-' + name,
+        r.code === 4 && hooks && cfg && !/cannot publish/.test(said(r)) && shimCalls(shim, 'ls-remote') >= 2,
+        `exit ${r.code}; hooks ${hooks}; config ${cfg}; a refusal was claimed: ${/cannot publish/.test(said(r))}; reads asked: ${shimCalls(shim, 'ls-remote')}`);
+    }
+  },
+
+  // (f) An outage is never a refusal: an HTTP 5xx is the network answering, and
+  // no probe is spent asking a remote that could not take a write.
+  '46-an-outage-is-not-a-refusal': async (ctx) => {
+    const up = bringUp(ctx, 'A');
+    if (up.code !== 0) return record('46-an-outage-is-not-a-refusal', false, 'bring-up failed: ' + said(up).split('\n').slice(0, 3).join(' | '));
+    const m = anotherMachine(ctx, 'outage-503');
+    const shim = gitHost(ctx, 'outage-503', { push: { code: 1, lines: ["fatal: unable to access 'https://host/o/r.git/': The requested URL returned error: 503"] } });
+    const r = mech(ctx, 'connect', ['--machine', 'B', '--checkout', m.code], { repo: m.code, state: m.state, shim });
+    record('46-a-5xx-is-unreachable-with-no-probe',
+      r.code === 4 && hooksInstalled(m) && existsSync(configOf(m)) && !/cannot publish/.test(said(r)) && shimCalls(shim, 'ls-remote') === 1,
+      `exit ${r.code}; hooks ${hooksInstalled(m)}; a refusal was claimed: ${/cannot publish/.test(said(r))}; reads asked: ${shimCalls(shim, 'ls-remote')} (the reachability check is one)`);
+  },
+
+  // (g) A push the remote declined because it moved is not a refusal: it still
+  // fetches, merges and pushes again, and the merge lands.
+  '47-a-moved-ref-still-merges': async (ctx) => {
+    const up = bringUp(ctx, 'A');
+    if (up.code !== 0) return record('47-a-moved-ref-still-merges', false, 'bring-up failed: ' + said(up).split('\n').slice(0, 3).join(' | '));
+    const m = anotherMachine(ctx, 'moved');
+    const shim = gitHost(ctx, 'moved', { 'push.once': { code: 1, lines: ["To https://host/o/r.git", ' ! [rejected]        refs/tracker/state -> refs/tracker/state (non-fast-forward)', "error: failed to push some refs to 'https://host/o/r.git'"] } });
+    const r = mech(ctx, 'connect', ['--machine', 'B', '--checkout', m.code], { repo: m.code, state: m.state, shim });
+    const ordinals = sh('git', ['-C', ctx.remote, 'cat-file', '-p', remoteTip(ctx) + ':.tracker-sync/machines.json']);
+    record('47-a-moved-ref-is-merged-and-pushed',
+      r.code === 0 && ordinals.code === 0 && /"B"|B/.test(ordinals.stdout) && !/cannot publish/.test(said(r)),
+      `exit ${r.code}; the ordinal B is on the remote: ${/"B"|B/.test(ordinals.stdout)}; it said: ${said(r).split('\n').slice(-1)[0]}`);
+  },
+
+  // (h) and (k) A push failure that is neither an outage nor a refusal is still a
+  // failure, and it comes after the local steps; an object id that happens to
+  // hold 403 is not an HTTP status and is not a refusal.
+  '48-a-failure-that-is-neither': async (ctx) => {
+    const up = bringUp(ctx, 'A');
+    if (up.code !== 0) return record('48-a-failure-that-is-neither', false, 'bring-up failed: ' + said(up).split('\n').slice(0, 3).join(' | '));
+    const cases = {
+      '48-an-unrecognised-push-failure-exits-non-zero': { code: 1, lines: ['error: unpack failed: index-pack unable to resolve delta'] },
+      '48k-an-object-id-holding-403-is-not-a-refusal': { code: 1, lines: ['fatal: push refused: bad object 403c9a1d2e is not a valid object name'] },
+    };
+    for (const [id, answer] of Object.entries(cases)) {
+      const m = anotherMachine(ctx, id);
+      const shim = gitHost(ctx, id, { push: answer });
+      const r = mech(ctx, 'connect', ['--machine', 'B', '--checkout', m.code], { repo: m.code, state: m.state, shim });
+      record(id,
+        r.code === 1 && hooksInstalled(m) && existsSync(configOf(m)) && !/cannot publish/.test(said(r)) && shimCalls(shim, 'ls-remote') === 1,
+        `exit ${r.code}; hooks ${hooksInstalled(m)}; config ${existsSync(configOf(m))}; a refusal was claimed: ${/cannot publish/.test(said(r))}; reads asked: ${shimCalls(shim, 'ls-remote')}`);
+    }
+  },
+
+  // (i) --offline: refused when the store's ref is absent here and a remote is
+  // named (an empty store must not be guessed into being), allowed when the ref
+  // is here, and allowed where there is no remote to ask.
+  '49-offline-needs-the-ref': async (ctx) => {
+    const up = bringUp(ctx, 'A');
+    if (up.code !== 0) return record('49-offline-needs-the-ref', false, 'bring-up failed: ' + said(up).split('\n').slice(0, 3).join(' | '));
+    const empty = anotherMachine(ctx, 'offline-empty');
+    const noRef = mech(ctx, 'connect', ['--machine', 'B', '--checkout', empty.code, '--offline'], { repo: empty.code, state: empty.state });
+    record('49-offline-refuses-a-clone-without-the-ref',
+      noRef.code === 1 && /--offline/.test(said(noRef)) && !existsSync(storeDir(empty)) && !existsSync(configOf(empty)),
+      `exit ${noRef.code}; a store or config written: ${existsSync(storeDir(empty)) || existsSync(configOf(empty))}; it said: ${said(noRef).split('\n')[0]}`);
+
+    const held = anotherMachine(ctx, 'offline-held');
+    sh('git', ['-C', held.code, 'fetch', 'origin', '+refs/tracker/state:refs/tracker/state']);
+    const ok = mech(ctx, 'connect', ['--machine', 'B', '--checkout', held.code, '--offline'], { repo: held.code, state: held.state });
+    const ancestor = sh('git', ['-C', storeDir(held), 'merge-base', '--is-ancestor', remoteTip(ctx), 'HEAD']);
+    record('49-offline-connects-a-clone-that-holds-the-ref', ok.code === 0 && ancestor.code === 0 && hooksInstalled(held),
+      `exit ${ok.code}; the store was built on the ref here: ${ancestor.code === 0}; hooks ${hooksInstalled(held)}`);
+
+    // No remote at all: nothing to ask, so the first store is made - with
+    // --offline and without it.
+    for (const flags of [['--offline'], []]) {
+      const name = 'noremote' + (flags.length ? '-offline' : '');
+      const code = join(ctx.scratch, 'code-' + name);
+      const state = join(ctx.scratch, 'state-' + name);
+      sh('git', ['init', '--initial-branch', 'main', code]);
+      writeFileSync(join(code, 'README.md'), 'no remote here\n');
+      sh('git', ['-C', code, 'add', '.']);
+      sh('git', ['-C', code, '-c', 'user.name=proof', '-c', 'user.email=proof@local', 'commit', '-m', 'seed']);
+      const r = mech(ctx, 'connect', ['--machine', 'B', '--checkout', code, ...flags], { repo: code, state });
+      record('49-a-repository-with-no-remote-gets-its-first-store-' + name,
+        r.code === 0 && existsSync(join(state, 'tracker')) && /no remote/.test(said(r)) && hooksInstalled({ code }),
+        `exit ${r.code}; the store exists: ${existsSync(join(state, 'tracker'))}; hooks ${hooksInstalled({ code })}; it said: ${said(r).split('\n').slice(-2)[0]}`);
+    }
+  },
+
+  // (j) A watcher in a read-only clone: it stays up, its local work is kept, the
+  // sentence is said once rather than per tick, and status says the clone cannot
+  // publish.
+  '50-a-read-only-clone-watches': async (ctx) => {
+    const up = bringUp(ctx, 'A');
+    if (up.code !== 0) return record('50-a-read-only-clone-watches', false, 'bring-up failed: ' + said(up).split('\n').slice(0, 3).join(' | '));
+    const m = anotherMachine(ctx, 'watch');
+    const shim = gitHost(ctx, 'watch', { push: { code: 1, lines: HOST_ANSWERS['https-403'] } });
+    const r = mech(ctx, 'connect', ['--machine', 'B', '--checkout', m.code], { repo: m.code, state: m.state, shim });
+    const w = watcher(ctx, 'A', ['--interval', '1', '--debounce', '1', '--max-age', '2'], { repo: m.code, state: m.state, shim });
+    // A local write the watcher has to publish: it commits it here and cannot
+    // push it, and both of those are what the case reads.
+    await sleep(1500);
+    seedStoreItems(m, [item1(), item2()]);
+    const ran = await waitUntil(() => {
+      const head = sh('git', ['-C', storeDir(m), 'rev-parse', 'HEAD']).stdout.trim();
+      return head && head !== remoteTip(ctx) ? head : null;
+    }, 20000, 200);
+    await sleep(3000);
+    const alive = w.exitCode === null && !w.signalCode;
+    // A refusal is not a loop: once the tick that met it is done, the store's head
+    // stops moving on its own, and what the local write put there stays.
+    const headThen = sh('git', ['-C', storeDir(m), 'rev-parse', 'HEAD']).stdout.trim();
+    await sleep(4000);
+    const headLater = sh('git', ['-C', storeDir(m), 'rev-parse', 'HEAD']).stdout.trim();
+    const kept = readFileSync(join(storeDir(m), 'fake', 'items.jsonl'), 'utf8');
+    const log = (() => { try { return readFileSync(w.logPath, 'utf8'); } catch { return ''; } })();
+    const s = mech(ctx, 'status', ['--json'], { repo: m.code, state: m.state, shim });
+    let j = null; try { j = JSON.parse(s.stdout); } catch { /* the assertion below says so */ }
+    record('50-a-read-only-clone-keeps-its-ticks-and-its-work',
+      r.code === 0 && !!ran.value && alive && /i-1|i-2/.test(kept) && headThen === headLater
+        && count(log, /cannot publish/g) <= 1 && count(said(r) + log, /cannot publish/g) === 1,
+      `connect exit ${r.code}; a local commit the remote does not hold: ${!!ran.value}; the watcher alive: ${alive}; the local write kept: ${/i-1|i-2/.test(kept)}; the head still for 4 s: ${headThen === headLater}; the sentence said ${count(said(r) + log, /cannot publish/g)} time(s)`);
+    record('50-status-says-the-clone-cannot-publish',
+      !!j && j.cannotPublish === true && /cannot publish/.test(String(j.publishRefused && j.publishRefused.said)) && count(mech(ctx, 'status', [], { repo: m.code, state: m.state, shim }).out, /cannot publish/) === 1,
+      `status cannotPublish: ${j && j.cannotPublish}; the line says it: ${/cannot publish/.test(String(j && j.publishRefused && j.publishRefused.said))}`);
+  },
+
 
 };
 
