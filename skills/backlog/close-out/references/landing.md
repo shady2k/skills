@@ -8,11 +8,12 @@ own words. A rule that depends on how a change lands cites the protocol's
 and leaves the particulars here; no rule restates them, and none is the set's
 own choice for every project.
 
-Every practice is a section here, named after it and answering the same six
-questions in the same order: **how work goes**, **who merges**, **what you see
-and when**, **what it costs**, **what it suits**, and **how hard it is to
-leave**. The first section is the practice every project has until it records
-another.
+How this project's work reaches the main line is below, in the words of the
+practice itself, answering six questions in this order: **how work goes**,
+**who merges**, **what you see and when**, **what it costs**, **what it
+suits**, and **how hard it is to leave**. Another practice the set offers
+later takes a section of the same six questions beside it; a project lands by
+the one written here.
 
 ## One pull request per feature, and the owner merges it
 

@@ -25,9 +25,10 @@ cannot be taken in the preflight, and so stops the run after he has gone. A
 preflight that goes unanswered has not been accepted; by [**A decision belongs
 to whoever made it**](speaking.md), every recommendation in it is still the
 agent's own until they say otherwise. The preflight also says how long the run
-will likely take and when to expect its landing, with what the estimate rests
-on; a run longer than the project lets a branch live is split first. It ends
-by saying the feature is ready to run alone, or what it still lacks.
+will likely take and when its landing will be open for review, said as a time
+the owner can hold it to, with what the estimate rests on; a run longer than
+the project lets a branch live is split first. It ends by saying the feature
+is ready to run alone, or what it still lacks.
 
 During the run, a gap the spec did not foresee is decided by the agent when it
 knows what to do; the decision and its assumptions go into the feature's
@@ -158,11 +159,10 @@ words are in [landing.md](landing.md), in the section named after it, answering
 the same six questions in the same order: how work goes, who merges, what you
 see and when, what it costs, what it suits, and how hard it is to leave. So a
 rule that depends on landing — this file's as much as any other — says **this
-project's way of landing** and leaves the particulars there: no rule states a
-practice as the set's, names one, or states the same particular twice. Where
-the record names no practice, this project lands as [landing.md](landing.md)'s
-first section says, which is what every project had before it could record
-another. A run that began under one practice finishes under it, whatever the
+project's way of landing** and leaves the particulars to
+[landing.md](landing.md), whose section holds how this project's work lands: no
+rule states a practice as the set's, names one, or states the same particular
+twice. A run finishes under the way of landing it began with, whatever the
 record says by then.
 
 **Sessions and landing.** The owner opens the agent in the main checkout and
@@ -208,7 +208,7 @@ checkout and each branch down as it makes it, so that it knows which are its
 own; what it did not create is never removed, whatever state it is in, even
 merged. A checkout this run created for a task, and the branch it made for
 that task, go once three things hold, in this order: the task's work is merged
-into the feature branch; what the worker wrote to the tracker in its checkout
+into the run's own branch; what the worker wrote to the tracker in its checkout
 is carried over, or shown to be already in the tracker; and the worker's
 records of its time are posted, since a claim is harder to recover once its
 working copy is gone. A checkout that still holds anything not merged, or not

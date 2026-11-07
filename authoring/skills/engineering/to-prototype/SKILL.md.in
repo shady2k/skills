@@ -69,10 +69,10 @@ kept. Production code goes through tracked work and its normal checks; lifting
 the pure module is no exception.
 
 The prototype itself is **evidence**. To keep it, store it as an artifact
-linked to its task, or as an approved, task-linked commit on a branch of its own, off the main
-line, where this project's way of landing keeps such a branch. Leave a pointer to it: where the project has a backlog
-integration, a comment on the feature issue with the question and the verdict.
-The main line keeps only the decision.
+linked to its task, or as an approved, task-linked commit on its own branch,
+off the main line. Leave a pointer to it: where the project has a backlog integration, a
+comment on the feature issue with the question and the verdict. The main line
+keeps only the decision.
 
 Return to the conversation that raised the question. Label scratch files
 clearly and say where they are. Keeping or discarding them does not permit

@@ -35,25 +35,25 @@ and the next milestone is planned with the results. Each stage keeps the
 tailoring above: the skill a stage carries is offered and sized by what the
 piece of work and the project call for, never by the stage's existence.
 
-**Tailoring is the rule.** The standard above tails its own processes, and
-so does this set: the stages a piece of work passes are chosen by its
-scale, uncertainty and risk, and by what the project is. So are its records:
-what the work must write about how it went is proportionate to it. A small
-task is one acceptance record naming its CI run and its review; what CI and
-the review already hold is read from them, never retyped as records. What
-stays at every size is what the owner's time figures count — the claim and
-the span receipt — and what a stage's or feature's acceptance is judged
-from. The records ride with the work's own landing, by this project's way of landing,
-never as a commit of their own. What the project
-is narrows first — a library publishes and does not deploy; a prototype has
-no operation; an internal tool narrows transition to what reaches its users, often only a merge — and scale,
+**Tailoring is the rule.** The standard above tails its own processes, and so
+does this set: the stages a piece of work passes are chosen by its scale,
+uncertainty and risk, and by what the project is. So are its records: what the
+work must write about how it went is proportionate to it. A small task is one
+acceptance record naming its CI run and its review; what CI and the review
+already hold is read from them, never retyped as records. What stays at every
+size is what the owner's time figures count — the claim and the span receipt —
+and what a stage's or feature's acceptance is judged from. The records ride
+with the work's own landing, by this project's way of landing, never as a
+commit of their own. What the project is narrows first — a library publishes
+and does not deploy; a prototype has no operation; an internal tool narrows
+transition to what reaches its users, often only a merge — and scale,
 uncertainty and risk narrow the rest: a small understood bug goes from
 requirement to regression check; a colour goes to the change and its check
-alone. A skipped or narrowed stage is a stated choice with its reason, said
-in one line where the work is planned — the spec, the charter or the task —
-never a silent omission. This generalizes what `take-task` said of design
-alone: sizing by size, uncertainty and risk was one stage's tailoring, and
-this is the cycle's.
+alone. A skipped or narrowed stage is a stated choice with its reason, said in
+one line where the work is planned — the spec, the charter or the task — never
+a silent omission. This generalizes what `take-task` said of design alone:
+sizing by size, uncertainty and risk was one stage's tailoring, and this is
+the cycle's.
 
 **Depth is read off the change, not off the author's word.** How far a piece
 of work is carried — which stages it passes, whether its spec is short or

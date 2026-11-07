@@ -144,8 +144,8 @@ Before the owner leaves, prepare the run so it needs nobody:
   (`unmeasured-forecast`). Where the forecast passes it,
   these questions lead with what will be late, why, and the two levers, by the
   protocol's **A forecast is checked against the date it serves**;
-- how long the run will likely take and when its landing can be expected,
-  said as a time the owner can hold it to: past it without word the run has
+- how long the run will likely take and when its landing will be open for
+  review, said as a time the owner can hold it to: past it without word the run has
   stopped, by the protocol's **A run that never came back is found**. That
   time is also the supervising session's deadline, by the protocol's
   **Whoever started a run answers for it to the owner**. Give it
@@ -438,7 +438,7 @@ item**.
 
 ## 5. Integrate and handle what the spec did not foresee
 
-Merge each result into the feature branch, resolve conflicts and rerun the
+Merge each result into the run's own branch, resolve conflicts and rerun the
 checks whose inputs merging changed, by the protocol's **A passing result holds
 while what it covers is unchanged**. Record the merged revision and evidence, then
 mark the task `implemented`. Its dependants in this stage can start now;
@@ -552,40 +552,43 @@ after the merge.
 ## 7. Land the change
 
 When every stage is accepted, run the full checks and the feature's end-to-end
-criterion once more on the final branch, and walk the feature's happy path once
-more at the place the spec named: behaviour nothing reaches is not done, however
-green the checks (the protocol's **Reached, not just built**). Run the
+criterion once more on the final branch, and walk the feature's happy path
+once more at the place the spec named: behaviour nothing reaches is not done,
+however green the checks (the protocol's **Reached, not just built**). Run the
 present-documents check against the merge base, by the protocol's **What
 describes the present is kept true**: fix every path this branch left dead in
 the documents, read each document it names to read against the code, and file
 the older drift it lists through `to-backlog` as one debt item, unless one is
-already open. Then bring the
-landing to review, by this project's way of landing, through the project's
-authorized workflow, starting its CI once in the way this repository's CI allows (the
-protocol's **Know what a push starts, and push once**). A stopped or resumed
-run reads the branch, the pull request and the CI run from the forge before it
-pushes or opens anything, by the protocol's **An effect outside this checkout
-is asked of the system that took it**. Move the coordinator's
-own checkout off that branch as soon as the run is submitted, by the protocol's
-**A submitted branch is frozen**. Write its report as the protocol's
-**Autonomy** describes: what users can now do, how to check it yourself as the
-few steps of the walk you made, every decision and assumption made alone,
-departures from the spec, review findings, what is not done, the checkouts and
-branches this run created and left, each with why, and the risks left.
-The yes waits for the owner's own look, by the
-protocol's [**Autonomy**](references/running.md). Wait for its checks to go green, reading its state by the protocol's **A state
-not yet known is not a good one**; fix a red one as part of the run, back in
-progress until the fix is proven locally, by the protocol's **CI is not where
-failures are diagnosed**. Review comments on it are handled by **A reviewer's
-comment is judged, not obeyed**.
+already open. Then bring the landing to review, by this project's way of
+landing, by the protocol's **How this project lands is recorded, and no skill
+assumes one way**, through the project's authorized workflow, starting its CI
+once in the way this repository's CI allows (the protocol's **Know what a push
+starts, and push once**). A stopped or resumed run reads the branch, the pull
+request and the CI run from the forge before it pushes or opens anything, by
+the protocol's **An effect outside this checkout is asked of the system that
+took it**. Move the coordinator's own checkout off that branch as soon as the
+run is submitted, by the protocol's **A submitted branch is frozen**. Write
+its report as the protocol's **Autonomy** describes: what users can now do,
+how to check it yourself as the few steps of the walk you made, every decision
+and assumption made alone, departures from the spec, review findings, what is
+not done, the checkouts and branches this run created and left, each with why,
+and the risks left. The yes waits for the owner's own look, by the protocol's
+[**Autonomy**](references/running.md). Wait for its checks to go green,
+reading its state by the protocol's **A state not yet known is not a good
+one**; fix a red one as part of the run, back in progress until the fix is
+proven locally, by the protocol's **CI is not where failures are diagnosed**.
+Review comments on it are handled by **A reviewer's comment is judged, not
+obeyed**.
 
-Finish the run's record with the landing. Its acceptance is the merge, as this
-project's way of landing has it. A leaf with no stage is closed in the step that reads that merge, on it
-and on the checks it ran, by the protocol's **A leaf with no stage closes at its
-merge**: it has no acceptance of its own to wait for, so `close-out` must not
-find it open afterwards. After it, close the tasks, stages and feature through
-`close-out`, which also reads the run's own record and files what it teaches,
-and remove the checkouts and branches this run created. Where the change reaches its users later than the merge — the
+Finish the run's record with the landing. Its merge is the acceptance, as this
+project's way of landing has it, by **How this project lands is recorded, and
+no skill assumes one way**. A leaf with no stage is closed in the step that
+reads that merge, on it and on the checks it ran, by the protocol's **A leaf
+with no stage closes at its merge**: it has no acceptance of its own to wait
+for, so `close-out` must not find it open afterwards. After it, close the
+tasks, stages and feature through `close-out`, which also reads the run's own
+record and files what it teaches, and remove the checkouts and branches this
+run created. Where the change reaches its users later than the merge — the
 project deploys or publishes — the run ends by naming `ship-release` as the
 next stage, the life cycle's transition, with what reaching them takes here:
 the release is its own ask on the owner's word, and the work this run carried

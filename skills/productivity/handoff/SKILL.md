@@ -94,7 +94,7 @@ note; one that would cost time in other work too is kept by the protocol's
 [**A lesson that outlives the work is kept where every agent
 reads**](references/keeping.md). Where no tracked work in this session can
 carry it, it goes in the note under "Lessons for the agent doc", so the next
-session or `close-out` lands it, by this project's way of landing.
+session or `close-out` lands it.
 
 If the workspace already holds handoff files that were committed, do not add
 to them. Name them to the user as stale instructions and recommend removing

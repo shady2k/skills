@@ -5,11 +5,12 @@ description: "Carry merged, accepted work to its users: version by the project's
 
 # Ship release
 
-The merge is the owner's acceptance of what the code does, where this project's
-way of landing makes the merge the acceptance; the release is
-the stage that takes it to the people who use it — the transition the
-protocol's [life cycle](references/lifecycle.md) names. It publishes and it
-changes what runs for users, so it starts when the user asks for one or
+The merge is the owner's acceptance of what the code does, where this
+project's way of landing makes the merge the acceptance (by the protocol's
+**How this project lands is recorded, and no skill assumes one way**); the
+release is the stage that takes it to the people who use it — the transition
+the protocol's [life cycle](references/lifecycle.md) names. It publishes and
+it changes what runs for users, so it starts when the user asks for one or
 agrees to it, never on its own initiative. Every step that cannot be taken
 back reaches the owner first, worked as a decision with its mechanism by
 [deciding.md](references/deciding.md)'s **A design decision comes with its

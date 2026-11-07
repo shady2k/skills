@@ -40,15 +40,16 @@ Durations are estimates; say so once, revise them when they turn out wrong, and
 answer a doubt by the protocol's **A time told to the owner is measured, and a
 dispute is answered with its basis**.
 
-1. **Look around**: read the project, tracker and existing installation. Agent only.
-2. **Tidy the queue**: agree with the user what is current, what waits and what
-   was abandoned, then clean up reversibly. Needs the user; the long step for a
-   large backlog, short for an empty one.
-3. **Agree the settings**: one recommended profile. Needs the user once.
-4. **Connect the checks**: so that they run on every commit. Agent only.
-5. **Prove it works**: plant violations, watch them rejected, undo. Agent only.
-6. **Finish**: bring the installation into the main line, by this project's way
-   of landing. May need the user's approval to merge.
+1. **Look around**: read the project, tracker and existing installation. Agent
+only. 2. **Tidy the queue**: agree with the user what is current, what waits
+and what was abandoned, then clean up reversibly. Needs the user; the long
+step for a large backlog, short for an empty one. 3. **Agree the settings**:
+one recommended profile. Needs the user once. 4. **Connect the checks**: so
+that they run on every commit. Agent only. 5. **Prove it works**: plant
+violations, watch them rejected, undo. Agent only. 6. **Finish**: bring the
+installation into the main line, by this project's way of landing, by the
+protocol's **How this project lands is recorded, and no skill assumes one
+way**. May need the user's approval to merge.
 
 Give a progress line only where it tells the user something: when a step that
 takes a while finishes or runs long, and when they are needed now. One line:
@@ -265,7 +266,7 @@ with it is in the slice and spends no budget. It stays a leaf: what is found
 during setup is filed beside it, by the protocol's **Only what the milestone
 chose is intake**. An interrupted or failed run leaves its work on
 its branch and its task; the main line keeps its previous installation until
-the landing. If tracker access fails even for this task, stop, report the failure
+landing. If tracker access fails even for this task, stop, report the failure
 and say setup must be rerun.
 
 **A repository already installed at this setup version** needs only this clone
@@ -485,7 +486,7 @@ questionnaire**.
   present-documents check in [documents.md](documents.md), found from the
   project, not asked: a pull request that leaves one naming a path it removed
   is refused, and older drift is reported and filed as debt. Say what that
-  means for the owner: a stale document shows up when a landing is opened for review,
+  means for the owner: a stale document shows up when a change is opened for review,
   with the paths it names that are gone, instead of months later. Where the
   first run already finds old drift, say how much, and that it becomes debt,
   not part of setup.
@@ -672,14 +673,13 @@ enumeration comes back empty although its head differs from its base. Links reso
 tasks, closed ones included. This check is mandatory whatever the backlog's
 strength. Test the parsing on real linked and unlinked messages.
 
-**Wiring the present-documents check:** it runs where a landing is opened for
-review - a pull request, by this project's way of landing - and in CI on every
-such landing, against the merge base, so one opened
+**Wiring the present-documents check:** it runs where a change is opened for
+review, and in CI on every such landing, against the merge base, so one opened
 outside the set is checked too; a refusal names each path and what fixes it.
-Run it once over the main line's history to see what it already reports:
-paths that are not this tree's (routes, generated folders) go into
-`presentIgnores` now, and the older drift it lists is filed as one debt item,
-not fixed in setup.
+Run it once over the main line's history to see what it already reports: paths
+that are not this tree's (routes, generated folders) go into `presentIgnores`
+now, and the older drift it lists is filed as one debt item, not fixed in
+setup.
 
 **Wiring the product-documents check:** it runs in the commit hook on what
 is staged (`--staged`) and in CI on the revision a push or pull request
@@ -928,8 +928,8 @@ earlier answers.
 ## 5. Land and record the verified version
 
 Land through the project's authorized workflow, by this project's way of
-landing, and check from the checkout people use: docs reachable, all five checks run, hooks installed in that
-clone. A separate branch alone is **written and proved, not installed**. Ask
+landing, and check from the checkout people use: docs reachable, all five
+checks run, hooks installed in that clone. A separate branch alone is **written and proved, not installed**. Ask
 only for landing steps not already authorized.
 
 Shared hooks may already run in checkouts without the new files. Let through,

@@ -82,8 +82,8 @@ changes.
 **Features.** A feature is built in one run and reaches the main line as one
 landing, by this project's way of landing (**How this project lands is
 recorded, and no skill assumes one way**), so it must be small enough that its
-branch lives no longer than the project allows. If the stages would not fit, split the outcome into
-features that each land on their own and keep the main line working, and say
+branch lives no longer than the project allows. If the stages would not fit,
+split the outcome into features that each land on their own and keep the main line working, and say
 so to the owner; changing the milestone's outcomes goes through `/to-milestone`.
 
 **Stages.** Each finishes something observable with its own DONE WHEN: a

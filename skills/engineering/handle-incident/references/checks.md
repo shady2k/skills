@@ -6,14 +6,14 @@ How a run treats its checks: red checks, refusing gates, diagnostics, the
 cheapest check and the loop it waits on, reaching the outcome, and CI.
 
 **A red check is this run's work.** Every failure on the way to a landing is
-diagnosed and fixed by the run, whoever wrote the code: all of it is written by
-agents, and the branch cannot land while it is red. "It was already broken"
+diagnosed and fixed by the run, whoever wrote the code: all of it is written
+by agents, and the branch cannot land while it is red. "It was already broken"
 and "our change does not touch that" are never reasons to stop; when a failure
 appeared matters only as a clue to its cause. A failure that also breaks the
-main line is fixed there by its own small landing, since it blocks
-everyone, and the report names it as a fixed earlier failure; such fixes
-that run the same suite share one pull request, not one run apiece. Only a fix
-that needs an architectural change or other decision the [**Autonomy**](running.md) rules
+main line is fixed there by its own small landing, since it blocks everyone,
+and the report names it as a fixed earlier failure; such fixes that run the
+same suite share one landing, not one run apiece. Only a fix that needs an
+architectural change or other decision the [**Autonomy**](running.md) rules
 reserve for the owner stops for them. What the run fixes to make the check
 green is filed as a repair the merge waits on, by the protocol's **Only what
 the milestone chose is intake**, never as a finding.
