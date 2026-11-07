@@ -25,7 +25,11 @@ what is decided, and never invents a second path so it can ship. Where a machine
 in a component, no bare element in a page, no import against the direction of
 dependencies, no reach into a capability except through its one entry point),
 the project makes it a lint rule in the same change, so it
-binds instead of being remembered.
+binds instead of being remembered. The check is scoped by the property it
+guards, never by the folder it was first written for, so code that moves stays
+judged. And it is proved by catching a violation planted outside that first
+place: a check that has never fired where its rule reaches is a folder's
+convention, not the project's architecture fitness function.
 
 ## Code
 

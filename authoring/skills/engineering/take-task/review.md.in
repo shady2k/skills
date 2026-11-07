@@ -78,36 +78,7 @@ Where the list reaches the owner, its findings are numbered, so one can be
 answered by its number, and each says in the owner's words what the code does,
 what goes wrong, the fix, and what happens if it is left.
 
-**One review, then approval with comments.** The reviewer reads the whole
-change once, and the answer is a code review's approval with comments: what
-blocks acceptance, and the rest as comments, trusting the author with the
-minor fixes. Each finding is sorted by what it blocks. **Blocking** is wrong
-behaviour against a criterion or requirement, loss of data, access or money,
-a statement of the present this change made false, changed behaviour no
-check watches, or a change that does not serve the frame it was specified
-from; the rest is **not blocking**, and a style preference never blocks. A
-blocking finding is fixed within scope and then verified against that finding
-on the fix's diff and the behavior or dependencies it affects. A new blocking
-regression introduced by the fix, or a related blocker exposed by the correction,
-blocks acceptance and is verified in that affected scope. Do not silence it
-because it was absent from the first review. Follow the causal impact far enough
-to check the regression; this is targeted verification, not another full review.
-Unrelated findings are filed separately; unrelated nits never restart full review.
-A non-blocking finding is fixed under the run's own checks and
-goes back to the reviewer no more; where it is not fixed now, it is filed as
-further work. A blocker whose fix fails verification twice gets no third
-round: the finding returns to the design — the spec or the split — or to the
-owner as a decision. Never close on a review of an older revision. Say which
-tests were repeated after the fixes and which still-valid evidence was kept.
-
-
-Verification examples (the expected decision is part of this rule):
-
-| Case | Situation | Expected decision |
-| --- | --- | --- |
-| fixed-blocker | Original blocker fixed, affected checks pass | Approve targeted verification |
-| introduced-regression | Repair introduces data loss in its caller | Block affected verification |
-| exposed-regression | Repair exposes an acceptance blocker in its affected dependency | Block affected verification |
-| unrelated-nit | Verification notices unrelated naming style | File separately; no full review restart |
-| twice-failed | Same blocker fix fails verification twice | Return to design or owner |
-| older-revision | Approval describes a revision older than the submitted fix | Verify current revision before closing |
+The rounds converge by the protocol's
+[**One review, then approval with comments**](references/running.md), which
+says what blocks acceptance, what a fix is verified against, how a round ends
+and the decision its verification examples expect.

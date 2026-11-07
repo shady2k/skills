@@ -1,6 +1,6 @@
 ---
 name: take-task
-description: "Run a planned feature on its own, from preflight to one green pull request where that is this project's way of landing, deciding small gaps itself and stopping only for decisions that need the owner. Use when the user asks to run or take a feature, task or bug, or agrees to a proposed run; never start a run unprompted."
+description: "Run a planned feature on its own, from preflight to one green pull request where that is this project's way of landing, deciding small gaps itself and stopping only for decisions that need the owner. Use when the user asks to run or take a feature, task or bug, or agrees to a proposed run, and whenever they ask the agent to coordinate or delegate building to other agents, workers or subagents, which is a run like any other; never start a run unprompted."
 ---
 
 # Take task

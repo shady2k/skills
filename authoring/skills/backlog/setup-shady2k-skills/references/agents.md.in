@@ -86,7 +86,8 @@ Setup proves the chosen way with one real call and records the way and the
 model on the integration's Reviewer line. A recorded way that stops working
 is repaired, never silently replaced: the owner is told, and the recorded
 fallback is used only as agreed. Two agents on the same model are not another
-model.
+model. Whichever model reviews, and wherever the review is asked for, the
+rounds converge by [**One review, then approval with comments**](running.md).
 
 ## What the set needs from an agent
 

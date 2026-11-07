@@ -174,8 +174,12 @@ never as passed, and becomes the first thing the owner is asked to check.
 The evidence of a walk, and of any acceptance, is sampled so the failure
 looked for could appear in it: a sample taken where capturing is easy — one
 viewport, one fixture, one size, the happy path — proves nothing about what
-it could not show. Where the result follows a reference, the comparison
-itself is the evidence, by
+it could not show. Where acceptance is judged on sample input, at least one
+sample is input the builders did not work against — a holdout set, kept apart
+from what the work was developed on — or the acceptance says it is not
+independent: the input the work was tuned on agrees with the work by
+construction, and what arrives next is the only test of it. Where the result
+follows a reference, the comparison itself is the evidence, by
 [deciding.md](deciding.md)'s **A claim reaches only as far as its
 evidence**.
 

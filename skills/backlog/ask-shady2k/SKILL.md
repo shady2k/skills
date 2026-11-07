@@ -142,7 +142,10 @@ with the evidence for each.
   recommendation), abandoned
   work, stranded branches or uncommitted results, leftover checkouts and
   branches of finished work, each with why it stayed, reported as cleanup the
-  owner can approve, and each real blocker with what would release it.
+  owner can approve, and each real blocker with what would release it. Product
+  changes that are landing — recent commits, open branches — with no run open
+  for them are said in one line, as work moving outside a run, and the run that
+  work should be under is the recommendation.
 - **Health and risk:** failing, missing or unrun checks; specs or docs out of
   step with the code, seen through the present-documents check where the
   integration names it (run over the main line, with it as its own base, every
@@ -194,6 +197,7 @@ the list.
 | no milestone, or no charter | `/to-milestone` |
 | work marked as taken but abandoned | return it to the queue, keeping implemented results |
 | new gate errors | their concrete fixes; `groom-backlog` for a broad cleanup |
+| product changes are landing — recent commits, open branches — with no run open for them | the run that work should be under: `/take-task` for it, started on the owner's word, so what is landing is reviewed and accepted by a run instead of by whoever dispatched it; say in one line that it moves with no run open |
 | results await merging or acceptance | resume that stage with `/take-task`; do not redo its tasks |
 | accepted work awaits closure | `close-out` with the acceptance record |
 | merged work whose transition is still outstanding — a project that deploys has not released it, a library has not published it | `/ship-release`: version and notes from the accepted work, migrations with their reverse, rollout by environment with the rollback named before each step, at the scale the project is |
@@ -318,7 +322,9 @@ tracker is not this skill's.
   the owner by the protocol's **How an open question is put**.
 - `take-task`: preflight with the owner, then run a whole feature alone to its
   landing, by the protocol's **How this project lands is recorded, and no skill
-assumes one way**, stopping only for decisions that need the owner.
+assumes one way**, stopping only for decisions that need the owner. It is also
+  the skill for building handed to others: coordinating workers or agents, and
+  having another model review their work, is a run and starts here.
 - `brainstorming`: explore, investigate or decide in conversation; no required
   result.
 - `define-product`: talk an idea through with the person who has it, in plain
