@@ -219,8 +219,8 @@ what something else needs before the end — a task the next run must read, a fi
 the main line is waiting on — and that lands when it is needed. How a change
 lands is this project's way of landing, never part of what the person approves;
 mention it only when they must act, such as merging or approving, after the
-work exists. Once the work's landing is done, the agent closes the work and
-removes the checkouts and branches it created.
+work exists. Once the run's last landing is done, the agent closes the work
+and removes the checkouts and branches it created.
 
 **A run removes the checkouts and branches it created.** A run writes each
 checkout and each branch down as it makes it, so that it knows which are its

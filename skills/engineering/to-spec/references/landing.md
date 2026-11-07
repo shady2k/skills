@@ -153,10 +153,11 @@ the behaviour, and the switch is what keeps that behaviour off the main line
 until the work is whole.
 
 **What it costs.** Checks fast enough to be trusted, since nobody waits at a
-landing; the habit of reverting a bad landing first and repairing it after,
-because nobody read the change before it landed; switch debt, with each switch
-opened to be retired by someone; and small steps instead of one review of a
-whole change.
+landing; the habit of reverting a bad landing first and repairing it after
+where nothing but the checks stood in front of it, and, where a person's
+approval stood in front of it, of judging the repair like any other change,
+the revert theirs to ask for; switch debt, with each switch opened to be
+retired by someone; and small steps instead of one review of a whole change.
 
 **What it suits.** Continuous deployment, one production line, checks that
 finish in minutes and are believed, and a project that would rather revert than

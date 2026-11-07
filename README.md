@@ -899,6 +899,16 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.143.0** makes the set say one thing about a landing nobody read first.
+  Where your checks were the only gate in front of a change that broke your
+  main line, it is still reverted first and repaired by a second landing; where
+  your own approval stood in front of it, the repair is judged like any other
+  change and the revert is yours to ask for. The rule now reads the same whether
+  you land a whole feature as one pull request, one change at a time, or the
+  day's work as it is made, and the same where a check is red. A run also
+  removes the checkouts and branches it created at its last landing, not its
+  first, so the stages still to land keep what they need. No installation has to
+  be redone.
 - **0.142.0** holds building that is handed to other agents to a run's rules.
   When you ask the agent to build by coordinating other agents — dispatching
   workers, taking their results in, asking another model to review — that is a
