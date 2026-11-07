@@ -63,6 +63,16 @@ const mutations = [
     name: `documents-${id}`, file: 'check-docs.mjs', failure: `FAIL  documents/${fixture}:`,
     change: (code) => code.replace('if (condition) violations.push', `if (condition && id !== '${id}') violations.push`),
   })),
+  // The stage rule now walks every stage; stopping at the first that reaches
+  // the person is the state it was widened from, and the later stage's fixture
+  // is what has to notice.
+  { name: 'unobservable-first-stage-later', file: 'check.mjs',
+    failure: 'FAIL  bad/unobservable-first-stage.later-stage.json',
+    change: (code) => code.replace('if (observable(s)) {\n            reached = true;\n            continue;\n          }',
+      'if (observable(s)) return out;') },
+  { name: 'started-without-a-recorded-design', file: 'check.mjs',
+    failure: 'FAIL  bad/started-without-agreement.design-tailored-without-a-reason.json',
+    change: (code) => code.replace('if (!designOf(f)) out.push', 'if (false) out.push') },
   ...['unserved-outcome', 'unforecast-target', 'unmeasured-forecast'].map((id) => ({
     name: id, file: 'check.mjs', failure: `FAIL  bad/${id}.json`,
     // The rule answers to another id, so nothing fires it and its fixture says

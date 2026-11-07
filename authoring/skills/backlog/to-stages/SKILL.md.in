@@ -58,7 +58,11 @@ not one until **The choice is recorded where it will be read again** holds it,
 and the plan agreed here would otherwise be the second design, drawn by
 whoever was breaking the work down. A small bug and a trivial change stay
 outside this, as that rule and the life cycle's **Tailoring is the rule**
-already say.
+already say. Whichever way the reading goes, it leaves one line on the feature
+before the first stage is created — `Design: <where the design is recorded>`,
+or `Design: tailored past — <the reason the step was not owed>` — the same
+one-line shape as the feature's other facts, so the next run, the reviewer and
+the gate read where the design is instead of asking again.
 
 ## 3. Draft
 
@@ -145,12 +149,15 @@ layers behind it wait, is the breakdown to re-cut.
 - Parallel tasks have separate write scopes or isolated checkouts, and a named
   coordinator collects and verifies their results.
 
-The gate binds this: `unobservable-first-stage` refuses the breakdown whose first
-stage does not take the person's path, and `orphaned-outcome` refuses a
-milestone outcome no stage serves. Both read the feature's `Seen at:` line, a
-stage's `Serves:` line and a `Preparatory:` line with its reason. A stage or
-task names the outcomes it serves, because the forecast is computed over the
-exact task set covering them.
+The gate binds this: `unobservable-first-stage` refuses a breakdown whose stage,
+still open, names none of the feature's places in its DONE WHEN and is not the
+one Preparatory stage placed before the first of them — every stage of the
+breakdown, not the first one alone — and `orphaned-outcome` refuses a milestone
+outcome no stage serves. Both read the feature's `Seen at:` line, a stage's
+`Serves:` line and a `Preparatory:` line with its reason; the `Design:` line is
+read by `started-without-agreement`, which refuses a feature whose work started
+without one. A stage or task names the outcomes it serves, because the forecast
+is computed over the exact task set covering them.
 
 **A wide refactor is the exception.** A mechanical change across the whole
 codebase (a renamed column, a retyped shared symbol) breaks every caller at

@@ -11,7 +11,8 @@
     "unobservable-first-stage"
   ],
   "expectViolations": [
-    "unobservable-first-stage|S1|F1"
+    "unobservable-first-stage|S1|F1",
+    "unobservable-first-stage|S2|F1"
   ],
   "issues": [
     {

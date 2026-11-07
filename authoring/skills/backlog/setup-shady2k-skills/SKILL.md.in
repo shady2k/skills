@@ -1058,6 +1058,26 @@ stages that are not broken down yet is now an edge the tracker keeps, on the
 waiting stage, until that stage is broken into tasks — then it moves onto the
 tasks, and the gate refuses it on the stage again.
 
+**What an update to this setup version changes, in the owner's terms.** A
+breakdown is judged stage by stage now, not by its first step alone. Every stage
+still open ends in something you can open — its DONE WHEN naming a place the
+feature already says you reach the outcome in — and the single preparatory stage
+stays allowed, once, and only before the first stage that reaches you; a stage
+already closed is your history and is left alone. A stage that shows nothing
+after the first one that did is the breakdown re-cut, not carried on. A plan also
+stops arriving before its design: the feature says where the design is kept, or
+that this change needed none and why, and a feature whose work started without
+that line is refused. Both rules read what the line says, never whether the
+record behind it is any good; that answer stays with you and with the review.
+This run adds the line to the features already under way whose design is recorded
+and can simply be named, and lists the rest in `agreementExempt` with your
+agreement, as it lists work in flight when time records are adopted: that covers
+the design line alone. The stage rule has no such list — it judges stages that are
+still open, which is where a run can still act on the answer — so a project on
+`block-new` sees its older stages as printed debt and a project on `block` is
+stopped by them until each is named or re-cut, and the gate's next run names
+them by id, so the list is read from it rather than guessed.
+
 An update that brings the store out of the branches tells the owner the move
 is coming and why, in their terms, and how it is done without losing a record:
 snapshot the old state first; start the store; take what is written during the

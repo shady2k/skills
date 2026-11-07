@@ -48,6 +48,7 @@
     "started-without-agreement"
   ],
   "expectViolations": [
+    "started-without-agreement|F1|design",
     "started-without-agreement|F1|plan"
   ]
 }

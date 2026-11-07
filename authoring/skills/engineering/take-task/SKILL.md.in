@@ -94,6 +94,14 @@ Before the owner leaves, prepare the run so it needs nobody:
   breakdown, record both when they agree, and only then leave preflight. A leaf
   with no stage and a trivial change carry no plan, so they carry no record of
   one;
+- **the design is where the work will find it**, by
+  [`references/design.md`](references/design.md)'s **Design runs when the shape
+  changes**: recorded, and the feature saying where, or not owed for this
+  change and the feature saying why, by the life cycle's **Tailoring is the
+  rule**. Put it to the owner as the place the design is kept or as the reason
+  this change needs none; the line it becomes is the same one the run and the
+  reviewer read later, and a breakdown cut before it was cut by whoever
+  reached for the plan first;
 - the feature's spec and its stages exist; later stages may stay coarse, and the
   coordinator breaks them into tasks when it reaches them, within the spec.
   On the shortest path above, the task's line is both, and this step asks

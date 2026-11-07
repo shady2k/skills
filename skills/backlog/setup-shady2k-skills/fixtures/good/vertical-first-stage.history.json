@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-01-31T00:00:00Z",
+  "source": "fixture good/vertical-first-stage.history",
+  "issues": [
+    {
+      "title": "",
+      "type": "epic",
+      "status": "open",
+      "labels": [
+        "transport",
+        "v0-5"
+      ],
+      "parent": null,
+      "blockedBy": [],
+      "body": "DONE WHEN a person gets a first result by answering the questions once.\nSeen at: signup-page",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "F1"
+    },
+    {
+      "title": "",
+      "type": "task",
+      "status": "closed",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "## DONE WHEN\nThe store holds the answers in memory.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "S1",
+      "createdAt": "2026-01-20T00:00:00Z"
+    },
+    {
+      "title": "",
+      "type": "task",
+      "status": "closed",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S1",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "L1"
+    },
+    {
+      "title": "",
+      "type": "task",
+      "status": "open",
+      "labels": [
+        "transport"
+      ],
+      "parent": "F1",
+      "blockedBy": [],
+      "body": "## DONE WHEN\nThe signup-page shows a first result from the answers given.",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "S2",
+      "createdAt": "2026-01-23T00:00:00Z"
+    },
+    {
+      "title": "",
+      "type": "task",
+      "status": "closed",
+      "labels": [
+        "transport"
+      ],
+      "parent": "S2",
+      "blockedBy": [],
+      "body": "",
+      "updatedAt": "2026-01-30T00:00:00Z",
+      "id": "L2"
+    }
+  ],
+  "expect": []
+}

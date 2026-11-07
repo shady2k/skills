@@ -60,6 +60,8 @@ declared only when its value is real text: a value that is only a placeholder
 | a stage (an issue that carries work: it has children, or it is the only child of its feature): `Serves: O1, O2` | the outcome ids this stage serves |
 | a feature: `Seen at: signup-page, receipt-email` | the handles of the places a person reaches this feature's outcome |
 | a stage: `Preparatory: <reason>` | this stage is prefactoring, and why |
+| a feature: `Design: <the decision record>` | where the design of this change is recorded, so the breakdown is cut from the record and not from whoever reached the plan first |
+| a feature: `Design: tailored past — <reason>` | the design step was not owed, and why |
 | a feature: `Agreed direction: <time> — "<the owner's words>"` | the direction was shown and agreed: how the system meets the outcome, with the inventory of what already does that job |
 | a feature: `Agreed plan: <time> — "<the owner's words>"` | the plan was shown and agreed: the stages, what each makes true, their DONE WHEN and their order |
 | a charter or a feature: `Target: <date>` | the date this document promises |
@@ -68,12 +70,19 @@ declared only when its value is real text: a value that is only a placeholder
 An outcome is reached when a live or closed stage serves it; deferred work
 serves nothing (`orphaned-outcome`). A stage whose `Serves:` names an id the
 charter does not declare is the same refusal, named by the unknown id. A
-feature's first stage has a DONE WHEN that names one of its `Seen at:` handles,
-and a stage declared Preparatory is allowed once with the next stage after it
-still required to reach the person (`unobservable-first-stage`). Lines of this
+feature's stages are judged one by one: every stage still live has a DONE WHEN
+naming one of the feature's `Seen at:` handles, and the one stage declared
+Preparatory is allowed with its reason only before the first of those and
+followed at once by it — a preparatory stage after the first observable one, or
+a second one, is refused with the rest (`unobservable-first-stage`). A stage
+already closed is the project's history and is not judged again. A stage the
+breakdown has not reached — coarse, with no work filed under it — is not read as
+a stage until the run breaks it down, and a stage accepted but not yet landed is
+still open and is judged with the rest. Lines of this
 syntax are stripped from the DONE WHEN text before anything is counted against
 it. A feature that names no place is not judged: that is the rule's stated
-limit, and declaring the place is the fix.
+limit, and declaring the place is the fix. What is checked is the declaration
+and never the place itself: the gate cannot open the page a stage names.
 
 ## The two agreements, and when the gate asks for them
 
@@ -83,8 +92,12 @@ without a readable time, or with no quotation of what the person said, declares
 nothing: it is the agent's own decision wearing the record's shape, and it is
 refused exactly like an absent line.
 
-`started-without-agreement` asks for both lines on a feature that carries
-stages once work under it has begun. A stage is the feature's child that carries
+`started-without-agreement` asks for all three lines on a feature that carries
+stages once work under it has begun: the direction, the plan, and `Design:` —
+where the design is recorded, or that the step was tailored past with the reason
+the life cycle's **Tailoring is the rule** gives it. A `Design:` line that names
+nothing, and a tailoring with no reason, declare nothing, exactly as a direction
+with no time does. A stage is the feature's child that carries
 live work of its own: a leaf whose sub-task has closed is a leaf again, so a
 repair filed under one is no breakdown. Begun means one of: a descendant in
 `active`, `submitted` or `implemented`; a descendant carrying a `[shady2k-time`

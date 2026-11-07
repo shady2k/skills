@@ -97,6 +97,13 @@ cannot judge for itself.
 
 ## 5. Hand the design to the stages
 
+The feature says where its design is, in one line the gate reads beside the
+direction it was agreed with: `Design: <the decision record>`, or `Design:
+tailored past — <the reason design was not owed>`, from the reading this step
+started with by the life cycle's **Tailoring is the rule**. Write it before the
+breakdown exists, so that a plan cut later is cut from the record rather than
+from whoever reached for the plan first.
+
 Every automatable scenario becomes an executable check, by **Scenarios
 become checks**. Where the step was called on a written spec, its Decisions
 section is updated first, to record what the design decided; then return to
