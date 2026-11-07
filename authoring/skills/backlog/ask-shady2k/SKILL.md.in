@@ -127,14 +127,18 @@ with the evidence for each.
   it is from the vision.
 - **Progress:** the milestone's outcomes as accepted, in work, not started or
   stalled; the items whose work landed while their status did not move, each
-  with the commit that landed it; what recent work changed for users; the pace,
+  with the commit that landed it; what recent work changed for users; what is
+  built and not yet somewhere a user reaches it, said as built and never as a
+  thing users can do, because what this project's way of landing shows before a
+  landing differs by practice; the pace,
   where history shows it.
   Where runs were recorded, how they went as the records hold it: how many
   stalled and had to be closed, how many stopped for the owner or for missing
   information, what the work took against its forecast, and how much of the
   owner's time a feature cost.
-- **Now:** work in progress, what waits for merging or acceptance, decisions
-  filed for the owner and waiting on them (each by title, with the agent's
+- **Now:** work in progress, what waits for a landing or an acceptance under
+  this project's way of landing — a merge the owner owes, an approval, a review
+  — decisions filed for the owner and waiting on them (each by title, with the agent's
   recommendation), abandoned
   work, stranded branches or uncommitted results, leftover checkouts and
   branches of finished work, each with why it stayed, reported as cleanup the
@@ -304,7 +308,8 @@ tracker is not this skill's.
 ## Routes
 
 - `setup-shady2k-skills`: choose or check the tracker, clean its queue, agree a
-  recommended profile, prove the installation; rerun after updates. A product's
+  recommended profile — how work reaches your main line among its entries,
+  asked once and recorded — prove the installation; rerun after updates. A product's
   code repository keeps no tracker of its own: the product repository's holds
   its tasks.
 - `to-milestone`: agree outcomes, scope and budget.

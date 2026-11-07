@@ -398,21 +398,72 @@ questionnaire**.
   are on, in `notifyPushes`, which turns on only with the owner's yes at
   setup, together with the channel being proved (proof 4). A rerun keeps
   the recorded answer.
-- **How changes reach the main line:** whether it accepts a direct push or
-  requires a pull request, which checks it requires and how long they take.
-  Found by looking, recorded, never asked again. Where CI runs product checks
-  on changes that cannot touch the product (documents, the tracker, the set's
-  own hooks and scripts), or gives unfinished work no way to skip a full run,
-  recommend fixing it as a task filed with the setup task, by the protocol's **Only
-  what the milestone chose is intake**, by the protocol's
-  **Cheapest check first** and **Know what a push starts, and push once**.
+- **How work reaches the main line:** one question, in every repository, empty
+  ones included, by the protocol's **How this project lands is recorded, and no
+  skill assumes one way** and the sections of
+  [landing.md](references/landing.md). It is one entry in the profile, never a
+  questionnaire of its own: the practice, one recommendation, the facts the
+  recommendation rests on, what the project's rules make of it, and the values
+  it derives shown as retained or proposed. The owner accepts the profile or
+  changes this entry by naming another practice. Read the four facts first, and
+  say which were read and which were assumed:
+
+  | fact | what it is read from |
+  | --- | --- |
+  | who is there | commit authors, and whether anyone else reviews |
+  | whether a review gates the main line | protection rules on the main line, a merge queue |
+  | how the project releases | deploy workflow, tags, release branches, the project's own release rule |
+  | what the checks cost | the last twenty runs' duration |
+
+  An empty repository has none of them: say plainly that you assume one person
+  deciding, no approval required and a release on every merge, that the owner
+  may correct any of them, and that a correction can move the recommendation.
+  Recommend **a branch per change, merged as soon as its checks pass** there,
+  and say what the recommendation rests on: with one person deciding and
+  no approval to wait for, a change landing the day it is made is the cheapest
+  thing to review, and its review is the one this set already runs before a
+  change lands, while trunk-based asks for checks the project already trusts
+  and a habit of reverting first, which is grown into rather than started with.
+  Recommend the retained practice where the owner wants to read each whole
+  change before any of it is visible. In an existing repository recommend what
+  the facts fit, name the fact that differs where none fits cleanly, and mark
+  the entry as what it does today where the config holds no value yet.
+
+  Settle three things separately from the practice, and say what the chosen
+  practice becomes under each: may a run push, must a change arrive as a pull
+  request, must a person approve. Only where the rules leave the practice
+  nothing does setup say so: it names the rule, offers the nearest practice the
+  rule allows, records the answer with that constraint named, and offers to
+  prepare the rule's own change as a task with the owner's agreement. Setup
+  never edits protection rules, hooks or queue settings to make a practice
+  possible.
+
+  A rerun keeps the recorded value and does not ask again; it re-reads the four
+  facts, because a rule can change under a recorded answer, and says in one
+  line when one of them now contradicts it. Setup that ends unanswered keeps
+  the retained practice in effect — the config records no practice, which is the
+  retained one — and says so: nothing is written from a default the owner never
+  saw, since silence is not consent and a profile nobody accepted is not a
+  profile.
+
+  Where CI runs product checks on changes that cannot touch the product
+  (documents, the tracker, the set's own hooks and scripts), or gives
+  unfinished work no way to skip a full run, recommend fixing it as a task
+  filed with the setup task, by the protocol's **Only what the milestone chose
+  is intake**, by the protocol's **Cheapest check first** and **Know what a
+  push starts, and push once**.
 - **Diagnosability:** whether the project has recorded conventions for log
   levels, request and trace ids and error causes, and whether its CI shows a
   failure's cause on the first screen and keeps logs and artifacts. Where not,
   recommend recording them, as separate tasks.
 - **How long a branch may live:** read the project's own rule where its docs
-  state one (many prefer merging into the main line often); otherwise recommend
-  a day or two. Feature runs are sized to it.
+  state one (many prefer merging into the main line often); otherwise take the
+  default the chosen practice gives — a day for trunk-based, two for a branch
+  per change, and a day or two for the retained practice. Any bound the project
+  already set survives a change of practice, and the entry shows the bound as
+  retained or proposed with the practice rather than as a question of its own.
+  Feature runs are sized to it, and a stage to it where the practice closes a
+  branch at each stage's landing.
 - **Execution:** which agents and models may do which work (for example, a
   light model only for low-risk tasks, a strong one for security, data or
   concurrency), how many agents work at once, atomic claims or one-at-a-time
@@ -522,6 +573,7 @@ them and propose it instead.
     "runMode": "<inline | subagents | worker-sessions | cloud>",
     "maxBranchDays": 2,
     "landing": "<push | pull-request>",
+    "wayOfWorking": "<feature-branch-pr | github-flow | trunk-based>",
     "maxWorkers": 1,
     "mutationBudgetMinutes": 10,
     "mutationFallback": "<agreed alternative or escalate>",
@@ -963,6 +1015,25 @@ a rerun redoes only what the new setup version needs plus the proofs.
 An update reconciles config, adapter statuses, commands, hooks and documents
 like any other run. Keep earlier answers; put new settings into the recommended
 profile instead of restarting an interview.
+
+**What an update to this setup version changes, in the owner's terms.** Setup
+now asks one question it used to answer by looking: **how work reaches your main
+line.** It decides who presses merge, when a change becomes visible, and what a
+demo can show, and nothing else in setup depends on it. Setup recommends one
+answer and says what the recommendation rests on — who works in the repository,
+whether a review gates the main line, how you release, and what the checks cost
+— and you accept the profile or name another. A repository that keeps what it
+does today answers once and nothing about its runs changes. A repository that
+works another way stops having every run argue with its own rules: a run lands
+as the recorded practice lands, opens one pull request per change instead of
+one per feature where that is the practice, and uses the review the project
+already records. Where one of your rules stops part of a practice — a protected
+branch, a required approval, a merge queue — setup names the rule, offers the
+nearest practice your rule allows, records your answer with the constraint
+named, and changes no protection, hook or queue setting. A run keeps the
+practice it began under, and a resume says in one line where the record has
+moved since. A project that was never asked keeps exactly what it has: one pull
+request per feature, the practice it has always landed by.
 
 **What an update to this setup version changes, in the owner's terms.** Four
 rules are new. The two backlog rules follow the gate's strength: under

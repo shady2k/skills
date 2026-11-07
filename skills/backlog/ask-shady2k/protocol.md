@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.67.0
+Setup version: 0.68.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -74,7 +74,7 @@ ask for one merely because the plugin was updated.
 | --------- | ----------------------------------------------------------------- | ----------------- |
 | Vision    | where the product is going; a document, never an issue           | rarely rewritten  |
 | Milestone | the next slice, with a charter: what is in, what is out, a finding budget | what ships next   |
-| Feature   | a root issue holding one **outcome**                              | one run, one branch, one landing |
+| Feature   | a root issue holding one **outcome**                              | one run; its landings by this project's practice |
 | Stage     | an issue under a feature, with its own DONE WHEN                  | a checkpoint accepted inside the run |
 | Task, bug | a leaf: an issue with no children                                 | one worker's session |
 
@@ -88,12 +88,14 @@ waited for: **A leaf with no stage closes at its merge**.
 An **outcome** is what becomes possible or true, and who observes it: "a person
 creates a connection group", "a rollback takes one command and one minute". Its
 DONE WHEN names the observable behaviour and the check that watches it; a
-regression can make it false again. A feature merges into the main line on its
-own and soon: when its run would keep a branch open longer than the project
-allows, it is split into features that each merge separately and leave the main
-line working (a parallel change: expand, migrate, contract; behind a switch
-where the project allows one). A task that will not fit one worker's session is
-split before it starts. A stage has no session limit: it groups
+regression can make it false again. A feature reaches the main line as this
+project's way of landing lands it, and soon: when its run would keep a branch
+open longer than the project allows, it is split into features that each land
+separately and leave the main line working (a parallel change: expand, migrate,
+contract; behind a switch where the project allows one). A practice that lands a
+change rather than a feature closes each stage's own branch at its own landing,
+so the bound falls on the stage there, and a stage too big for it is split. A
+task that will not fit one worker's session is split before it starts. A stage has no session limit: it groups
 tasks toward a checkpoint that is accepted by checks and review before the
 next stage builds on it.
 

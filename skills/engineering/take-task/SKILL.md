@@ -135,6 +135,16 @@ Before the owner leaves, prepare the run so it needs nobody:
   protocol's **A started session answers to the one that started it**; where
   there is none, say so here with the fallback and its consequence;
 - which agents and models do which tasks, against each task's risk;
+- **how this project lands, read once and written into the run's record**: the
+  practice the config records and the revision of the config it was read at, by
+  the protocol's **How this project lands is recorded, and no skill assumes one
+  way**. They go into the coordinator's own claim note on the
+  feature (`runs.mjs claim --note`, step 3) beside the forecast, so the record
+  is one a resume already reads and no second editable copy exists; the run
+  lands by what it wrote there, never by what the config says later. A resumed run reads that record; where the live config
+  now names another practice it says so in one line to the owner and keeps the
+  one it began under, so a changed choice reaches the next run and never
+  changes the ending of this one;
 - **whether the feature serves a date the owner set from outside the run**
   — a demo, a release, someone outside the project who waits. One question
   among them, and none is invented where the owner has none, by **A question
@@ -159,8 +169,10 @@ Before the owner leaves, prepare the run so it needs nobody:
   is measured, and a dispute is answered with its basis**, starting from the
   measured pace: `pace --tasks <n>`, which also proposes the forecast by phase,
   with the absence named below. The clock past runs lasted, which it prints
-  apart, is no forecast. If that is longer than the project lets a branch
-  live, the feature is too big for one run: split it
+  apart, is no forecast. If that is longer than this project's way of landing lets
+  anything it lands keep a branch alive — the feature's branch where the whole
+  feature lands at once, a stage's branch where each stage lands alone — the
+  feature is too big for one run: split it
   with the owner through `to-stages` (and `/to-milestone` if the outcome
   changes) first;
 - **when the owner expects to be away, and for how long**, by the protocol's
@@ -294,8 +306,11 @@ product check. Keep existing paths, and limit legacy baselines to the affected
 capabilities. Refresh a stale requirement only after reconciling its meaning.
 
 Read execution settings from the gate config and commands from the integration.
-The feature has one coordinator on one branch, which owns every stage's
-integration and acceptance and may also implement. A claim counts only once it
+The feature has one coordinator, which owns every stage's integration and
+acceptance and may also implement. It works in the branches this project's way
+of landing gives the work — the feature's one branch, or each stage's own — and
+whatever it does beside them waits for a landing rather than opening one of its
+own, by **A submitted branch is frozen**. A claim counts only once it
 is on the remote,
 by the protocol's **The tracker stays in step across machines**: fetch, merge,
 write, push. Where the remote already holds another holder, the write is
@@ -557,17 +572,31 @@ after the merge.
 
 ## 7. Land the change
 
-When every stage is accepted, run the full checks and the feature's end-to-end
-criterion once more on the final branch, and walk the feature's happy path
-once more at the place the spec named: behaviour nothing reaches is not done,
-however green the checks (the protocol's **Reached, not just built**). Run the
-present-documents check against the merge base, by the protocol's **What
-describes the present is kept true**: fix every path this branch left dead in
-the documents, read each document it names to read against the code, and file
-the older drift it lists through `to-backlog` as one debt item, unless one is
-already open. Then bring the landing to review, by this project's way of
-landing, by the protocol's **How this project lands is recorded, and no skill
-assumes one way**, through the project's authorized workflow, starting its CI
+**The unit of this step is what this project's way of landing lands.** Where
+the practice lands each change, every accepted stage lands here, on its own,
+and the next stage builds on what landed rather than on its branch; where it
+lands a whole feature, this section runs once, when every stage is accepted.
+The run's record says which practice it began under, and its practice's section
+of [landing.md](references/landing.md) says what lands and when.
+
+Whoever the merge is, at that point: run the full checks and the criterion of what is
+about to land once more on it — the stage's own DONE WHEN where a stage lands
+alone, the feature's end-to-end criterion where the feature lands whole — and
+walk the happy path at the place the spec named, the stage's or the feature's
+as that same rule says, **on the revision this project's way of landing makes
+the accepted one**: on the branch about to land where the owner's merge is the
+acceptance, and on the landed revision where the run merges its own change, so
+that a walk made before such a merge never stands in for it and the closing that
+follows waits for the walk made after it. Behaviour nothing
+reaches is not done, however green the checks (the protocol's **Reached, not
+just built**). Run the present-documents check against the merge base, by the
+protocol's **What describes the present is kept true**: fix every path this
+branch left dead in the documents, read each document it names to read against
+the code, and file the older drift it lists through `to-backlog` as one debt
+item, unless one is already open. Then bring the landing to review, by this
+project's way of landing, by the protocol's **How this project lands is
+recorded, and no skill assumes one way**, through the project's authorized
+workflow, starting its CI
 once in the way this repository's CI allows (the protocol's **Know what a push
 starts, and push once**). A stopped or resumed run reads the branch, the pull
 request and the CI run from the forge before it pushes or opens anything, by
@@ -578,23 +607,36 @@ its report as the protocol's **Autonomy** describes: what users can now do,
 how to check it yourself as the few steps of the walk you made, every decision
 and assumption made alone, departures from the spec, review findings, what is
 not done, the checkouts and branches this run created and left, each with why,
-and the risks left. The yes waits for the owner's own look, by the protocol's
-[**Autonomy**](references/running.md). Wait for its checks to go green,
+and the risks left. A yes the practice asks for waits for the owner's own look — their merge
+where the landing is theirs, their approval where their rule requires one — and
+no further yes is asked where the practice lands the run's own change, by the
+protocol's [**Autonomy**](references/running.md). Wait for its checks to go green,
 reading its state by the protocol's **A state not yet known is not a good
 one**; fix a red one as part of the run, back in progress until the fix is
 proven locally, by the protocol's **CI is not where failures are diagnosed**.
 Review comments on it are handled by **A reviewer's comment is judged, not
 obeyed**.
 
-Finish the run's record with the landing. Its merge is the acceptance, as this
-project's way of landing has it, by **How this project lands is recorded, and
-no skill assumes one way**. A leaf with no stage is closed in the step that
+A landing waits for what this project's review rule records, at the point the
+practice lands: a stage's own review where the stage lands alone, and the run's
+final review where the feature lands whole. The rule, its preference, its
+fallback and its acceptance policy are the project's, by
+[review.md](review.md), and a change of practice acquires no second one.
+
+Finish the run's record with the landing. Where the merge is the owner's, that
+merge is the acceptance; where the practice merges the run's own change, the
+merge is the run's and the acceptance is the review and the checks it waited
+for — either way, by **How this project lands is recorded, and no skill assumes
+one way**. A leaf with no stage is closed in the step that
 reads that merge, on it and on the checks it ran, by the protocol's **A leaf
 with no stage closes at its merge**: it has no acceptance of its own to wait
-for, so `close-out` must not find it open afterwards. After it, close the
-tasks, stages and feature through `close-out`, which also reads the run's own
-record and files what it teaches, and remove the checkouts and branches this
-run created. Where the change reaches its users later than the merge — the
+for, so `close-out` must not find it open afterwards. What one landing closes is
+what it delivered: a stage that landed alone closes through `close-out` then,
+with its tasks, while the feature and the stages still to land stay open; the
+feature, the last of its stages and the run's own record finish at the final
+landing — `close-out` then reads the run's record and files what it teaches —
+and only then are the checkouts and branches this run created removed, because
+the run still needs them while a stage is unlanded. Where the change reaches its users later than the merge — the
 project deploys or publishes — the run ends by naming `ship-release` as the
 next stage, the life cycle's transition, with what reaching them takes here:
 the release is its own ask on the owner's word, and the work this run carried

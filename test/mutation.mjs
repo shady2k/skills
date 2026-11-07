@@ -80,6 +80,17 @@ const mutations = [
     // edit does not once the body is an expression.
     change: (code) => code.replace(`id: '${id}',`, `id: '${id}-not-a-rule',`),
   })),
+  // The practice is one value with one owner. Refusing a name the set does not
+  // describe, and reading an absent one as the retained practice, are the two
+  // halves of that; each is muted in its own copy and the self-test must say so.
+  { name: 'way-of-working-refused', file: 'check.mjs', failure: 'FAIL  cli: the practice "git-flow"',
+    change: (code) => code.replace('if (practice !== undefined && !WAYS_OF_WORKING.includes(practice))', 'if (false)') },
+  { name: 'way-of-working-keeps-what-was-decided', file: 'check.mjs',
+    failure: 'FAIL  a retained config keeps its review rule',
+    change: (code) => code.replace('cfg.execution = { ...(cfg.execution || {}), wayOfWorking:', 'cfg.execution = { wayOfWorking:') },
+  { name: 'way-of-working-retained-when-absent', file: 'check.mjs',
+    failure: 'FAIL  an absent practice is the retained one',
+    change: (code) => code.replace('wayOfWorking: practice === undefined ? RETAINED_WAY_OF_WORKING : practice', 'wayOfWorking: practice') },
   { name: 'purpose-command', file: 'check.mjs', failure: 'FAIL  purpose/T3',
     change: (code) => code.replace('const lines = [`${p.id}: ${p.title}`];', 'const lines = [];') },
   { name: 'documents-mutation-not-made', file: 'check-docs.mjs', failure: 'FAIL  documents/a-mutation-run-that-is-not-made-is-not-a-refusal:',

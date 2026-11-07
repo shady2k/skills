@@ -11,8 +11,10 @@ by agents, and the branch cannot land while it is red. "It was already broken"
 and "our change does not touch that" are never reasons to stop; when a failure
 appeared matters only as a clue to its cause. A failure that also breaks the
 main line is fixed there by its own small landing, since it blocks everyone,
-and the report names it as a fixed earlier failure; such fixes that run the
-same suite share one landing, not one run apiece. Only a fix that needs an
+and the report names it as a fixed earlier failure; where this project's way of
+landing lands a change that nobody read first, the breaking change is reverted
+before anything is repaired, by [landing.md](landing.md)'s practice; such fixes
+that run the same suite share one landing, not one run apiece. Only a fix that needs an
 architectural change or other decision the [**Autonomy**](running.md) rules
 reserve for the owner stops for them. What the run fixes to make the check
 green is filed as a repair the merge waits on, by the protocol's **Only what
@@ -156,10 +158,16 @@ code; the decision is made every time, the rerun only where it is owed.
 **Reached, not just built.** Green checks say the code does what its tests
 assert. They do not say the new behaviour can be reached: code nothing calls, a
 route nobody registered, a switch left off, a command never wired and a screen
-with no way into it all pass every test they have. So an outcome is **seen**
+with no way into it all pass every test they have. A switch left off is what a
+practice that lands unfinished work behind one does on purpose, so the walk is
+made with it on, at the place the spec named, and turned off again where the
+work is not yet whole ([landing.md](landing.md)). So an outcome is **seen**
 before it is accepted. At the place the spec named for it, walk the happy path
-once on the accepted revision, the way a person reaches it and not the way a
-test does, and record what was seen in the words of the outcome. A spec that
+once on the revision this project's way of landing makes the accepted one —
+the landing's revision once it is there, or the change as it stands where that
+practice shows a person the work before it lands, by
+[landing.md](landing.md) — the way a person reaches it and not the way a test
+does, and record what was seen in the words of the outcome. A spec that
 named no place said there is nothing a person can see, and acceptance repeats
 that. A walk that needs what this machine has not got is reported as not made,
 never as passed, and becomes the first thing the owner is asked to check.

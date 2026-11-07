@@ -954,9 +954,16 @@ function bulkClusters(m, threshold) {
 
 // The version of the set these rules shipped with. A project holds a COPY of
 // this file, and this is how anybody tells that the copy has fallen behind.
-const RULES_VERSION = '0.67.0';
+const RULES_VERSION = '0.68.0';
 
 const STRENGTHS = ['block', 'block-new', 'report'];
+
+// How a project's work reaches its main line. The gate needs the value only to
+// refuse one the set does not describe: its rules read the main line and
+// revisions, which every practice records the same way. Nothing here branches
+// on the value, and no rule is added per practice.
+const WAYS_OF_WORKING = ['feature-branch-pr', 'github-flow', 'trunk-based'];
+const RETAINED_WAY_OF_WORKING = 'feature-branch-pr';
 
 /** Thrown for anything that is the caller's mistake; main turns it into exit 2. */
 class Misuse extends Error {}
@@ -984,6 +991,18 @@ function checkedConfig(raw, where) {
     throw new Misuse(`${where}: findingBudget must be a whole number or null`);
   if (cfg.currentMilestone != null && !cfg.milestoneLabels.includes(cfg.currentMilestone))
     throw new Misuse(`${where}: currentMilestone "${cfg.currentMilestone}" is not in milestoneLabels`);
+  // A practice is one value, so a project cannot compose one no source
+  // describes. Absent is the practice every project landed by before the value
+  // existed, which is what keeps an older config working unchanged.
+  if (cfg.execution != null && (typeof cfg.execution !== 'object' || Array.isArray(cfg.execution)))
+    throw new Misuse(`${where}: execution must be an object holding this project's execution settings`);
+  // Absent is the retained practice; a name the set does not describe is
+  // refused. `null` is not absent: a config that carries the key and a value the
+  // set cannot read is broken, and reading it as the retained one would hide that.
+  const practice = cfg.execution?.wayOfWorking;
+  if (practice !== undefined && !WAYS_OF_WORKING.includes(practice))
+    throw new Misuse(`${where}: execution.wayOfWorking ${JSON.stringify(practice)} is not one of ${WAYS_OF_WORKING.map((w) => `"${w}"`).join(', ')}`);
+  cfg.execution = { ...(cfg.execution || {}), wayOfWorking: practice === undefined ? RETAINED_WAY_OF_WORKING : practice };
   return cfg;
 }
 
@@ -1432,6 +1451,43 @@ function runSelftest(cfg, projectConfigPath) {
   say(/config of this checkout/.test(budget) && /main line/.test(budget),
     'a config-driven refusal says it judged by this checkout\'s config, and that the main line may differ');
   say(!/config of this checkout/.test(unreceipted), 'a rule whose verdict reads no config carries no such note');
+
+  // The practice a project records decides who merges, when a landing happens
+  // and what a demo shows. None of that is the gate's to judge: its rules read
+  // the main line's commits and a revision, which every practice records the
+  // same way. So the same three delivered leaves are read under each of the
+  // three practiced configs and have to name the same violation, exactly.
+  for (const practice of WAYS_OF_WORKING) {
+    for (const name of ['merged-but-open.owner-merged.json', 'merged-but-open.run-merged.json', 'merged-but-open.commit-landed.json']) {
+      const backlog = load('bad', name);
+      const got = evaluate(backlog, { ...cfg, execution: { ...(cfg.execution || {}), wayOfWorking: practice } }, null)
+        .results.flatMap((r) => r.violations.map((v) => `${r.id}|${v.id}|${v.ref || ''}`)).sort();
+      const want = backlog.expectViolations.slice().sort();
+      say(got.join(' ') === want.join(' '), `practice ${practice}: ${name} → [${got.join(' ') || 'nothing'}]${got.join(' ') === want.join(' ') ? '' : `  expected [${want.join(' ')}]`}`);
+    }
+  }
+  // One value, one owner: the three practices are accepted, an absent one is
+  // the retained practice, and a fourth name is refused by naming the three.
+  say(checkedConfig({}, 'a config with no practice').execution.wayOfWorking === RETAINED_WAY_OF_WORKING,
+    'an absent practice is the retained one once the config is read, so an older config is unchanged');
+  // Recording a practice changes nothing else a project already decided: the
+  // review rule, its preference and its fallback stay exactly what they were,
+  // which is what a project keeping today's practice must find.
+  const kept = checkedConfig({ execution: { reviewPreference: 'different-model', reviewFallback: 'disclosed self-review', landing: 'pull-request' } }, 'a retained config');
+  say(JSON.stringify(kept.execution) === JSON.stringify({ reviewPreference: 'different-model', reviewFallback: 'disclosed self-review', landing: 'pull-request', wayOfWorking: RETAINED_WAY_OF_WORKING }),
+    'a retained config keeps its review rule, its preference, its fallback and its landing, and gains only the practice it already had');
+  for (const practice of [...WAYS_OF_WORKING, undefined]) {
+    const config = put(`practice-${practice || 'absent'}.json`, { ...cfg, execution: { ...(cfg.execution || {}), ...(practice ? { wayOfWorking: practice } : {}) } });
+    const done = run('--config', config, '--strength', 'block', stale);
+    say(done.status === 1, `cli: a config recording ${practice || 'no practice (the retained one)'} is read and judged → exit ${done.status}`);
+  }
+  for (const wrong of ['git-flow', '', 'GitHub-Flow', 3, null, true]) {
+    const config = put(`practice-wrong.json`, { ...cfg, execution: { wayOfWorking: wrong } });
+    const done = run('--config', config, '--strength', 'block', stale);
+    const says = `${done.stdout}${done.stderr}`;
+    say(done.status === 2 && WAYS_OF_WORKING.every((w) => says.includes(`"${w}"`)),
+      `cli: the practice ${JSON.stringify(wrong)} is refused, naming the three → exit ${done.status}`);
+  }
 
   console.log(failures ? `\n${failures} failure(s)` : '\nall fixtures pass');
   return failures ? 1 : 0;

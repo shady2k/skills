@@ -665,3 +665,121 @@ objection; agreeing at once and renumbering;
 starting the work because the owner disputed the number; a figure built from how
 long past runs lasted on the clock, nights and idle waits inside it; a number
 invented to fill a gap with too little history.
+## 34. An empty repository, and how its work should land
+
+Skill: `setup-shady2k-skills`.
+
+Prompt: "Set this up. It's a new folder — nothing in it yet."
+
+Facts: no repository, no history, no CI, no protection rules, no commit apart
+from whatever setup writes; one person; nothing shipped yet.
+
+Expected: the proposal includes one entry on **how work should reach the main
+line**, in the owner's words — what lands when, who presses merge, what a demo
+can show, what it costs — with one recommendation and what that recommendation
+rests on. The facts the repository cannot supply are stated as assumptions the
+owner may correct — one person deciding, no approval needed, a release on every
+merge — and the message says a correction can move the recommendation. The
+recommendation is a branch per change, merged as soon as its checks pass, and
+the reason given is the cost of review, not the set's preference; the practice
+that waits for a person's merge is offered beside it, and what it gives and
+costs is said in the same words. The entry carries the branch bound it derives,
+marked as proposed, and the owner accepts the whole profile or changes that
+entry.
+
+Fail: answering it by looking and recording a value the owner never saw; a
+series of questions about push, pull request, approval and branch length; the
+config key or the reference's section names in what the owner reads; a practice
+presented as the set's own rule, or a recommendation with no fact behind it; the
+set proceeding with a practice after the profile went unanswered.
+
+## 35. An existing repository that already works in another way
+
+Skill: `setup-shady2k-skills`.
+
+Prompt: "Recheck the installation. We merge a whole feature at a time; I review
+it and press the merge, always."
+
+Facts: the main line refuses a direct push and requires one approval; the last
+sixty merges all came from branches older than a week, each holding a whole
+feature; releases are tagged every few weeks; the checks take twenty minutes;
+the config holds no practice yet, because the set is being updated.
+
+Expected: the owner hears what was read — the protection, the branch ages, the
+release rule, the check time — and the entry is marked as what the project does
+today, not asked as if nothing were known. The recommendation is the practice
+they already work in; if the facts would recommend another, the proposal says
+which fact differs and what it would change, and still records their answer
+where they keep it. The check time is named where a daily-landing practice is
+weighed, because it is what that practice costs here. No other setting is
+reopened because of it.
+
+Fail: proposing a different practice with no fact named behind it; treating the
+absence of the value as "not decided yet" and asking a project that already
+answered in words; changing the protection rule, the hooks or the queue so a
+recommended practice fits; a second question per entry the practice derives.
+
+## 36. The main line's own rules leave a practice nothing
+
+Skill: `setup-shady2k-skills`.
+
+Prompt: "Use your recommended way of landing."
+
+Facts: the main line requires one approval by a person and a merge queue before
+anything lands; there is nobody to approve for weeks; the owner cannot change
+those rules now; nothing in the repository says who else could.
+
+Expected: the practice, its recommendation and its cost are put first, then the
+three things settled separately: the run may push, a change arrives as a pull
+request, a person must approve. Setup says which rule stops what, offers the
+nearest practice the rule allows — landing per change but stopping at the
+approval, rather than landing unattended — records the owner's answer with the
+constraint named, and offers to prepare the rule's own change as a task with
+their agreement. Setup changes no protection, hook or queue setting.
+
+Fail: declaring the practice impossible on one fact; silently recording another
+practice than the one agreed; a value recorded with no mention of the rule that
+constrains it; setup asking for admin rights to switch protection off; a
+recommendation that widens the owner's scope to a rule change they did not agree
+to.
+
+## 37. A run that began under one practice and is resumed after another
+
+Skill: `take-task`.
+
+Prompt: "Pick this feature back up; I changed the setting yesterday."
+
+Facts: the run's record holds the practice it began under and the revision of
+the config it read; the config now names another practice; the work is mid-stage
+and one stage is accepted but not landed.
+
+Expected: the resumed run lands by the record it reads, not by the live config,
+and says in one line that the recorded practice and the live one differ, so the
+change reaches the next run. Where the new practice would have landed the
+accepted stage already, the resume says so and lets the owner decide whether to
+land it now; it does not change its own ending and does not reopen accepted
+work.
+
+Fail: reading the live config for the ending of a run already under way; a
+silent switch of practice mid-run; two editable copies of the value, one in the
+record and one in the config, reconciled by guessing; dropping the discrepancy
+without a word to the owner.
+
+## 38. Silence is not consent
+
+Skill: `setup-shady2k-skills`.
+
+Prompt: nothing after the profile is shown; the owner closes the session.
+
+Facts: the profile was presented with a recommendation on how work reaches the
+main line; no answer came; the project had no practice recorded before.
+
+Expected: the next session finds the retained practice in effect and says in one
+line that it is kept because the profile went unanswered — not that it was
+chosen. The configuration and the project's own rules are unchanged, and the
+question comes back with the next profile rather than being treated as answered
+by the silence.
+
+Fail: recording the recommended practice because it was recommended; reporting
+the profile as accepted; a value written from a default the owner never saw;
+the question silenced permanently on the grounds that it was asked once.
