@@ -162,9 +162,18 @@ are words in one reference, and a rule cites the reference.
 | how work goes | a branch per feature, alive as long as the feature; stages ride in it; one pull request at the end | a branch per change, alive hours to a couple of days; each stage opens its own | the day's work lands the day it is made, from a branch that lives a day or not at all; unfinished work behind a switch |
 | who merges | the owner; their merge is the acceptance | the run, once the required review and checks are green; where approval is required, the owner's approval is the gate | the run, where the main line allows it; otherwise a short-lived pull request approved fast |
 | what you see, when | nothing until the merge, then the feature whole; a demo shows the open pull request or the merge | the main line moves several times a day; a demo shows the newest landed increment | the main line always runs and moves daily; a demo any time |
-| what it costs | the owner's attention per feature; a long branch, conflicts, nothing visible meanwhile | a review-plus-checks cycle per change, on the critical path; a bad change felt at once | fast, trusted checks; a habit of reverting first; switch debt; small steps instead of one review |
+| what it costs | the owner's attention per feature; a long branch, conflicts, nothing visible meanwhile | a review-plus-checks cycle per change, on the critical path; a bad change felt at once | fast, trusted checks; a habit of reverting a bad landing first where the checks were the only gate; switch debt; small steps instead of one review |
 | what it suits | a person who reads each change before it lands; versioned or infrequent releases; a first project | a continuously delivered product, review required, a protected main line | continuous deployment, one production line, checks you trust |
-| leaving it | cheapest: nothing but completed features' commit groups | the habits, not the tools | add a release branch, or slow to a branch per change |
+| leaving it | cheapest: nothing on the main line is made false, and no switch or release branch to undo; the branches open at the change still wait for their one merge each | the habits, not the tools: nothing on the main line is undone, a branch per change stays in the history, and the main line's protection and review stay the project's own settings | a release branch to add where the next practice releases from one, its switches to retire, and less frequent landings |
+
+**Leaving a practice is what it cannot carry, not what it must undo.** Each
+practice's section of the reference says it in the section's own paragraph:
+nothing another practice does makes false what this one left on the main line,
+and what a change of practice cannot carry is the state it cannot undo — the
+branches open at the moment of the change, the switches still open, a release
+branch the next practice wants and this one never made. The main line's own
+settings — its protection and the review that gates it — are the project's, and
+no practice changes them, so a change of practice touches neither.
 
 Nothing else in setup depends on this answer — not the tracker, not the
 checks' commands, not the language, not the review model. That is why it is one
@@ -248,11 +257,18 @@ current values.
   answer the same six questions in the same order. A rule says "this project's
   way of landing" and cites the rule; the rule sends the reader to their
   practice's section. No skill names a practice, and none is forked.
-- **A run pins what it began under.** It writes the recorded value and the
-  config revision it read into its record and decision log, in take-task's step
-  that records what a fresh coordinator needs; a resume reads that record, not
-  the live config, and where they differ says so in one line. No second
-  editable copy of the value exists anywhere.
+- **A run pins what it began under.** It reads the value once, at the
+  preflight, with the revision of the config it read it at, and writes both
+  into the coordinator's own claim note on the feature — the run script's
+  `claim --note`, which take-task's preflight names as the record a fresh
+  coordinator needs — beside the forecast. That note is the record a resume
+  already reads, and the pin belongs there because the run's record is the
+  tracker comments the run script prints: no field of it carries a practice,
+  and a structured field for one line would be a new adapter duty and a new
+  setup version. The note is written once and read as the authority: a resume
+  lands by what it holds, not by the live config, and says in one line where
+  the live config now names another practice. No second editable copy of the
+  value exists anywhere.
 - **A rerun keeps it, and rechecks the facts.** The value is not asked again;
   the facts are read every run, because protection can change under a recorded
   answer, and setup says so in one line when one contradicts it. A change of
@@ -267,19 +283,49 @@ Six, not forty: the rules are already phrased one level above the pull request.
 | --- | --- | --- |
 | the unit that lands | a feature, a stage, or the day's work | running.md **Sessions and landing**, take-task's landing step, to-stages **Features**, close-out, protocol **Levels** |
 | who presses merge, and what their yes means | the run, the owner, or the forge's queue after an approval | running.md **Autonomy**, close-out, ship-release's opening |
-| what a demo may show | the newest landed increment, the open pull request, the plan branch | checks.md **Reached, not just built**, take-task's landing walk, ask-shady2k |
-| where unfinished work hides | a branch, a draft pull request, or a switch | new; only the practices that land before the work is whole |
-| what a red main line triggers | a revert first, or a repair by its own small landing | checks.md **A red check is this run's work** |
-| what a landing waits for | nothing, or one other-model review as the project already records it | take-task's review rule and its recorded fallback |
+| what a demo may show | the newest landed increment, the open pull request, or the change as it stands before it lands | checks.md **Reached, not just built**, take-task's landing walk, ask-shady2k |
+| where unfinished work hides | a branch, a draft pull request, or a switch on the main line | landing.md, each practice's section, and checks.md **Reached, not just built** |
+| what a red main line triggers | a repair by its own small landing, and a revert first only where nothing but the checks stood before the breaking landing | checks.md **A red check is this run's work**, and landing.md, each practice's section |
+| what a landing waits for | the project's own review and checks, an approval, or the owner's merge | take-task's review rule and its recorded fallback, and landing.md, each practice's section |
+
+**The reference's sections answer the last three variation points.** After the
+six questions, every practice's section answers where unfinished work hides,
+what a landing waits for, and what a red main line triggers, in its own words,
+because those are what the rest of the protocol asks most often; checks.md and
+take-task's landing step cite the section and leave the particulars to it.
+
+**Where work hides decides how a landing is walked.** A practice that hides
+unfinished work on a branch shows it as a draft pull request where the
+visibility is wanted. Trunk-based hides it behind a switch on the main line, and
+there the walk an acceptance needs is made with the switch on, in the
+environment the spec named, on the revision that landed: the behaviour exists
+only while the switch is on, and the switch is what keeps it off the main line
+until the work is whole. checks.md's **Reached, not just built** names a switch
+left off among the ways green checks lie, and carries the same rule. That is one
+more site citing the reference, not a duty the reference cannot carry: the §10
+assumption that forty prose sites are one paraphrase each is stretched by one
+site, not broken.
+
+**A red main line is repaired first, and reverted first only where nothing but
+the checks stood before the breaking landing, with no person's approval among
+them.** Every practice's section says
+the main line's failure blocks everyone and is repaired by its own small
+landing ahead of anything else, and checks.md's **A red check is this run's
+work** has the run that meets it do the same. What differs by practice is the
+landing that broke it: where nothing but the checks stood in front of it, it is
+reverted first and repaired by a second landing, because a change is everyone's
+the moment it lands and undoing it is the fastest way back; where a person's
+approval stood in front of it, the repair is judged like any other change and
+the revert is that person's to ask for. Revert-first is therefore a fact of a
+landing nobody read first, not of the set, and no practice reverts a change a
+person approved without that person's word.
 
 **Common, unchanged**: one coordinator per stage; the project's own review
 rule, with the preference, fallback and acceptance policy it records — a
 project keeping today's practice acquires no second model; checks read a
 revision; records ride the work's own landing; remaining work counted from what
-landed; the preflight; the finding budget. Revert-first belongs to the
-practices that land without a person reading the change first, as the price of
-landing unattended; switches belong to trunk-based, expand and contract to a
-change whose data or clients must coexist.
+landed; the preflight; the finding budget. Switches belong to trunk-based, and
+expand and contract to a change whose data or clients must coexist.
 
 **Stage size is not a setting.** "What one run can build and show in about one
 working day of agent time" is what a coordinator can verify in a session; a
@@ -396,87 +442,73 @@ is prose read by an agent; and the six variation points are a claim that the
 sites do collapse that way — kept, to be checked by the increment that cites
 them to the reference.
 
-## 12. Rollout: three increments, two setup versions
+## 12. Rollout: the increments that shipped, and the one that remains
 
-**The checks increment lands first and is finished**: it widens two existing
-gate rules and adds one required fact line, and it carries the setup version
-that is already released. Then:
+**The checks increment shipped first and is finished**: it widened two existing
+gate rules and added the one required line a feature's plan now carries, and it
+shipped before this document was written, in 0.139.0 with setup 0.67.0. Then:
 
-1. **Words, no choice.** Every site of the inventory is rephrased over "this
-   project's way of landing"; the retained practice is the only one written;
-   `references/landing.md` holds its section and no other heading. No key, no
-   question, no change to any check rule, no setup version — a project that
-   updates it reruns nothing, and every run behaves as it did.
-2. **The choice.** The other two sections; the six variation points cited to
-   them; `wayOfWorking` in the config and in `checkedConfig`; setup's question
-   and its facts table; the branch-bound defaults; the fixtures; both READMEs
-   and both manifests. This takes the next setup version: a setting added under
-   a released version reaches nobody, and a project that has just updated must
-   not be sent to setup twice for one change.
-3. **What the first projects teach.** Behaviour fixes the simulations find,
-   with their fixtures, under their own version; text that changes no installed
-   behaviour under none.
+1. **Words, no choice — shipped in 0.140.0.** Every site of the inventory was
+   rephrased over "this project's way of landing"; the retained practice was
+   the only one written; `references/landing.md` held its section and no other
+   heading. No key, no question, no change to any check rule and no new setup
+   version: setup stayed at 0.67.0, a project that updated it reran nothing, and
+   every run behaved as it did.
+2. **The choice — shipped in 0.141.0, setup 0.68.0.** The other two sections;
+   the six variation points cited to them; `wayOfWorking` in the config and in
+   `checkedConfig`; setup's question and its facts table; the branch-bound
+   defaults; the fixtures; both READMEs and both manifests. It took the next
+   setup version, because a setting added under a released version reaches
+   nobody, and a project that had just updated was not sent to setup twice for
+   one change.
+3. **What the first projects teach — the increment that remains.** Behaviour a
+   first project's runs show to be wrong is fixed with its fixture, and the two
+   versions answer different questions: every change to what a skill does raises
+   the plugin version, while the setup version rises only where a project must
+   redo its installation — a changed check rule, a new config setting, a new
+   adapter duty or a new proof. A wording or dialogue change raises the plugin
+   version and never the setup version; a fix that changes what an installed
+   check decides raises both. This increment reads what the scenario matrix and
+   the traces cannot: a practice met by a project whose facts nobody imagined.
 
 ## 13. The test, and the dialogue
 
 **Proof, before the practices are offered.** The acceptance of increment 2 is
-the scenario matrix: setup in an empty repository (S1); a project keeping the
-retained practice, its records and its review fallback unchanged (S2); a main
-line refusing a push or an approval (S4); a change of practice mid-run, resumed
-under the recorded revision (S5). What a test can assert, an existing test
-asserts: the accepted and refused configs and the leaf fixtures; a case that
-records the value and reads it back on resume; one that a retained config's
-review fallback is unchanged. What a test cannot assert, an independent agent
-reads: three short traces, one per practice, judged against that practice's
-promises, with the verdicts in the increment's record. The owner is given no
-reading: a few lines of trade-offs and limits, and only the question below.
+the scenario matrix below, each scenario held by the strongest thing that can
+hold it: a check the set's own tests assert, or an independent agent's reading
+of three short traces where no check can. The traces are written from the
+shipped text only and judged against that practice's promises; all three passed
+at the third round, and the verdicts are in the increment's record. What a test
+can assert, the set's own test and the gate's self-test assert: the accepted and
+refused configs; one delivered open leaf per practice with its closed-leaf
+control; the practice and the config revision a run pinned, written through the
+run script's `claim --note` and read back from the comment it posts; an absent
+value read as the retained practice; and a retained config's review preference,
+fallback and landing unchanged. The owner is given no reading: a few lines of
+trade-offs and limits, and only the question.
 
-**In an empty repository** — nothing found, so the question is the whole of it:
+| # | how it is held now |
+| --- | --- |
+| S1 | The set's own test holds the setup text's contract: the entry is asked for in every repository, empty ones included; an empty repository is told plainly which facts are assumed; a rerun says in one line when a fact now contradicts the record; and nothing is recorded from silence. The four facts read or assumed, and the owner's corrections, are left to a model evaluation over `test/dialogue-scenarios.md` cases 34, 35 and 38: an empty repository, one already working in another way, and a setup left unanswered. |
+| S2 | The gate's self-test reads an absent practice as the retained one, and reads a retained config as keeping its review preference, fallback and landing; the gate's rules judge such a config exactly as before. |
+| S3 | The three traces, one per practice, read by an independent agent against each practice's promises: PASS for all three, in the increment's record. |
+| S4 | The set's own test asserts that setup names the rule, records the answer with the constraint named, and edits no protection, hook or queue setting; the conversation is read by case 36. |
+| S5 | The set's own test holds the pin's text contract and the round trip: the run script's `claim --note` prints the practice and the config revision, and the comment it posts carries both, so a resume has them to read; the resume's one line is left to case 37. |
 
-> One choice before anything is written: **how work should reach your main
-> line.** It decides who presses merge, when you can see a change, and what a
-> demo can show. Nothing else in this setup depends on it.
->
-> I assume: you are the only person deciding; no one else must approve a
-> change; you release on every merge, once there is something to ship. Correct
-> any of that — it can change the recommendation.
->
-> | | what you see | who merges | what it costs you |
-> | --- | --- | --- | --- |
-> | **A branch per change, merged as soon as its checks pass** — recommended | every change on the main line within hours of being written | the run | one review cycle per change; a bad change felt at once |
-> | A branch per feature, one pull request, you merge | nothing until you merge, then the feature whole | you | your attention per feature; nothing visible meanwhile |
-> | Trunk-based: the day's work lands the day it is made | the main line always runs; a demo any time | the run, or you if you add an approval rule | you revert fast and retire switches; checks you trust |
->
-> I recommend the first: with one person deciding, no approval to wait for and
-> a release on every merge, a change arriving the day it is made is the
-> cheapest thing to review — and the review it needs is the one this set already
-> runs before a change lands. Trunk-based asks for checks you already trust and
-> a habit of reverting first, which is a good thing to grow into rather than to
-> start with. Say so and I'll record it; or name another and I'll say what
-> changes.
-
-**In an existing repository** — the look informs it, and it is still a question:
-
-> I read the repository before proposing anything. Your main line is `main`; it
-> refuses a direct push and requires one approval; your last 60 merges all came
-> from branches, none older than three days; your checks take six minutes; you
-> release by tag every few weeks.
->
-> **How work should reach it** — one choice, with my recommendation and its
-> cost:
->
-> - **A branch per change, merged when its checks pass** — recommended, because
->   your history already is this: short branches, one approval, releases from
->   the main line. A run would open one pull request per change instead of one
->   per feature, and stop at your approval, since `main` requires one.
-> - **One pull request per feature, you merge** — what you do today, recorded as
->   it is. Nothing in a run changes.
-> - **Trunk-based: the day's work lands the day it is made** — `main`'s approval
->   requirement does not stop this practice: the run opens a short-lived pull
->   request per increment and waits for your approval, so landings are as fast
->   as you are, and the daily rhythm is yours to keep.
->
-> Say "recommended", name one, or tell me to keep today's.
+**The dialogue is the shape of one profile entry, not a script.** Setup owes the
+owner one entry in the profile, never a questionnaire of its own, and the entry
+has these parts in this order: the practice their work should reach the main
+line by; one recommendation; the four facts the recommendation rests on, each
+said as read or assumed, with what a correction would change; what the project's
+own rules make of the choice, and the nearest practice a rule allows where one
+stops part of it; and the values the practice derives, each marked as retained
+or proposed. The owner accepts the profile whole or changes this entry by naming
+another practice; a correction that moves the recommendation produces one more
+question; and silence records nothing, so the config carries no practice, the
+retained one stays in effect, and the question is put again at the next setup.
+The words are the moment's, governed by the protocol's **Speaking to the owner**
+and **How an open question is put**: a fixed script would age, and what must not
+vary is the entry's content and its order, not its wording.
 
 **What the owner hears about the rest**: the practice, its cost, what the
 project's own rules make of it — and nothing about the mechanism, the
