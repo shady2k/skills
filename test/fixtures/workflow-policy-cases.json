@@ -3,7 +3,7 @@
   "groups": [
     {
       "id": "review",
-      "source": "authoring/skills/engineering/take-task/review.md.in",
+      "source": "authoring/skills/backlog/setup-shady2k-skills/references/running.md.in",
       "clauses": [
         "A new blocking regression introduced by the fix, or a related blocker exposed by the correction, blocks acceptance",
         "Unrelated findings are filed separately; unrelated nits never restart full review.",
