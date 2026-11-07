@@ -94,7 +94,7 @@ note; one that would cost time in other work too is kept by the protocol's
 [**A lesson that outlives the work is kept where every agent
 reads**](references/keeping.md). Where no tracked work in this session can
 carry it, it goes in the note under "Lessons for the agent doc", so the next
-session or `close-out` lands it.
+session or `close-out` lands it, by this project's way of landing.
 
 If the workspace already holds handoff files that were committed, do not add
 to them. Name them to the user as stale instructions and recommend removing
@@ -113,7 +113,7 @@ already the tracker's next step. Then the two or three after it, if known.
 
 ## Not recorded elsewhere
 
-What this session verified beyond what the tracker and the pull request say,
+What this session verified beyond what the tracker and the landing say,
 each with how: a command and its result, a test, a file read. What was only
 reported, assumed or partly checked goes in a separate list headed "not
 verified", by the protocol's [**A claim reaches only as far as its

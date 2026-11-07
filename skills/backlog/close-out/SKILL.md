@@ -1,6 +1,6 @@
 ---
 name: close-out
-description: Record accepted work and preserve pending work. Use after a feature's pull request is merged, on a session ending, or when work is stopped or handed over.
+description: Record accepted work and preserve pending work. Use after a feature's landing is merged, by this project's way of landing, on a session ending, or when work is stopped or handed over.
 ---
 
 # Close out
@@ -25,7 +25,7 @@ Neither `submitted` nor `implemented` means closed, by the protocol's
 for the next coordinator; if acceptance is pending, keep it implemented.
 Name the next action and who owns it.
 
-A leaf with no stage is closed at the merge that delivers it, by the protocol's
+A leaf with no stage is closed at the landing that delivers it, by the protocol's
 **A leaf with no stage closes at its merge**, and a merge may have left one
 open. Close it here with that merge's revision and the check evidence it
 carried — the evidence a stage's tasks are closed on. A leaf under a stage is
@@ -152,9 +152,9 @@ because the owner's time figures count them. The records ride with the
 work's own landing, never as a commit of their own; what this section wrote
 reaches every machine by the store's own synchronization, by the protocol's
 **The tracker stays in step across machines**, and only what a branch delivers
-waits for the merge. A closing that
+waits for the landing. A closing that
 follows a merge and finds work left on the merged branch moves it there too,
-rather than opening a second request for the remainder.
+rather than opening a second landing for the remainder.
 
 Report by name, following the protocol's [**Speaking to the
 owner**](references/speaking.md): what was accepted and on which revision, what

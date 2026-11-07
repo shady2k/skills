@@ -1,6 +1,6 @@
 ---
 name: take-task
-description: "Run a planned feature on its own, from preflight to one green pull request, deciding small gaps itself and stopping only for decisions that need the owner. Use when the user asks to run or take a feature, task or bug, or agrees to a proposed run; never start a run unprompted."
+description: "Run a planned feature on its own, from preflight to one green pull request where that is this project's way of landing, deciding small gaps itself and stopping only for decisions that need the owner. Use when the user asks to run or take a feature, task or bug, or agrees to a proposed run; never start a run unprompted."
 ---
 
 # Take task
@@ -8,7 +8,8 @@ description: "Run a planned feature on its own, from preflight to one green pull
 The owner plans a feature with the agent, then leaves. This skill runs the
 whole feature without them, as the protocol's
 [**Autonomy**](references/running.md) describes: one coordinator carries it
-through all its stages to one pull request, and each worker takes one task. It also takes a single bug or task when that is all the
+through all its stages to the one landing its practice names, and each worker
+takes one task. It also takes a single bug or task when that is all the
 owner asked for; the same rules apply at that size. Where this session hands
 the run to a coordinator in another session and stays with the owner, it keeps
 the owner's side by the protocol's **Whoever started a run answers for it to
@@ -143,7 +144,7 @@ Before the owner leaves, prepare the run so it needs nobody:
   (`unmeasured-forecast`). Where the forecast passes it,
   these questions lead with what will be late, why, and the two levers, by the
   protocol's **A forecast is checked against the date it serves**;
-- how long the run will likely take and when the pull request can be expected,
+- how long the run will likely take and when its landing can be expected,
   said as a time the owner can hold it to: past it without word the run has
   stopped, by the protocol's **A run that never came back is found**. That
   time is also the supervising session's deadline, by the protocol's
@@ -194,8 +195,8 @@ not new scope, spending or weaker acceptance.
 ## 3. Run the feature
 
 On "run", land the conversation's general plan once and start the feature on
-its own branch, named after it, as the protocol's **Sessions and landing**
-says; do not wait for the owner to create or rename anything. Anything he
+the branch this project's way of landing names, as the protocol's **Sessions
+and landing** says; do not wait for the owner to create or rename anything. Anything he
 decided in the conversation that the record does not yet hold lands in that
 same first write, before the branch starts, by the protocol's **A decision the
 owner gives is kept, not only obeyed**.
@@ -253,7 +254,7 @@ end:
   record names its CI run and its review, and what CI and the review already
   hold is read from them, never retyped as records — the records a task needs
   are proportionate to it;
-- when the pull request is ready or the run ends without one: `finish --item
+- when its landing is ready or the run ends without one: `finish --item
   <feature> --result ...`, which prints this session's receipt and the feature's
   summary: the forecast against the work by phase, and how long the work
   occupied, parallel sessions counted once. A summary that says it is partial
@@ -487,8 +488,8 @@ from its log where the agent can do that.
 
 With a stage's results merged, run the project's full required checks and the
 stage's DONE WHEN on the assembled revision, here, through the integration's
-full-check command. Acceptance starts no CI: the pull request stays in progress
-until step 7, and fixes merged after a review stay there too (the protocol's
+full-check command. Acceptance starts no CI: the landing stays in progress until
+step 7, and fixes merged after a review stay there too (the protocol's
 **Know what a push starts, and push once**). Acceptance is a stage boundary:
 the time by phase is read against the forecast the run claimed, and the
 forecast is checked against the target date again, by the protocol's **A
@@ -548,7 +549,7 @@ dependants in the next stage are claimed through the integration's claim
 operation as the protocol's **Ready** allows; they close through `close-out`
 after the merge.
 
-## 7. Open the pull request
+## 7. Land the change
 
 When every stage is accepted, run the full checks and the feature's end-to-end
 criterion once more on the final branch, and walk the feature's happy path once
@@ -559,8 +560,8 @@ describes the present is kept true**: fix every path this branch left dead in
 the documents, read each document it names to read against the code, and file
 the older drift it lists through `to-backlog` as one debt item, unless one is
 already open. Then bring the
-feature's **one pull request** to review through the project's authorized
-workflow, starting its CI once in the way this repository's CI allows (the
+landing to review, by this project's way of landing, through the project's
+authorized workflow, starting its CI once in the way this repository's CI allows (the
 protocol's **Know what a push starts, and push once**). A stopped or resumed
 run reads the branch, the pull request and the CI run from the forge before it
 pushes or opens anything, by the protocol's **An effect outside this checkout
@@ -578,8 +579,8 @@ progress until the fix is proven locally, by the protocol's **CI is not where
 failures are diagnosed**. Review comments on it are handled by **A reviewer's
 comment is judged, not obeyed**.
 
-Finish the run's record with the pull request. The owner's acceptance is the
-merge. A leaf with no stage is closed in the step that reads that merge, on it
+Finish the run's record with the landing. Its acceptance is the merge, as this
+project's way of landing has it. A leaf with no stage is closed in the step that reads that merge, on it
 and on the checks it ran, by the protocol's **A leaf with no stage closes at its
 merge**: it has no acceptance of its own to wait for, so `close-out` must not
 find it open afterwards. After it, close the tasks, stages and feature through

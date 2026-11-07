@@ -47,8 +47,8 @@ dispute is answered with its basis**.
 3. **Agree the settings**: one recommended profile. Needs the user once.
 4. **Connect the checks**: so that they run on every commit. Agent only.
 5. **Prove it works**: plant violations, watch them rejected, undo. Agent only.
-6. **Finish**: bring the installation into the main line. May need the user's
-   approval to merge.
+6. **Finish**: bring the installation into the main line, by this project's way
+   of landing. May need the user's approval to merge.
 
 Give a progress line only where it tells the user something: when a step that
 takes a while finishes or runs long, and when they are needed now. One line:
@@ -265,7 +265,7 @@ with it is in the slice and spends no budget. It stays a leaf: what is found
 during setup is filed beside it, by the protocol's **Only what the milestone
 chose is intake**. An interrupted or failed run leaves its work on
 its branch and its task; the main line keeps its previous installation until
-landing. If tracker access fails even for this task, stop, report the failure
+the landing. If tracker access fails even for this task, stop, report the failure
 and say setup must be rerun.
 
 **A repository already installed at this setup version** needs only this clone
@@ -485,7 +485,7 @@ questionnaire**.
   present-documents check in [documents.md](documents.md), found from the
   project, not asked: a pull request that leaves one naming a path it removed
   is refused, and older drift is reported and filed as debt. Say what that
-  means for the owner: a stale document shows up when a pull request is opened,
+  means for the owner: a stale document shows up when a landing is opened for review,
   with the paths it names that are gone, instead of months later. Where the
   first run already finds old drift, say how much, and that it becomes debt,
   not part of setup.
@@ -672,8 +672,9 @@ enumeration comes back empty although its head differs from its base. Links reso
 tasks, closed ones included. This check is mandatory whatever the backlog's
 strength. Test the parsing on real linked and unlinked messages.
 
-**Wiring the present-documents check:** it runs where a pull request is
-opened and in CI on every pull request, against the merge base, so one opened
+**Wiring the present-documents check:** it runs where a landing is opened for
+review - a pull request, by this project's way of landing - and in CI on every
+such landing, against the merge base, so one opened
 outside the set is checked too; a refusal names each path and what fixes it.
 Run it once over the main line's history to see what it already reports:
 paths that are not this tree's (routes, generated folders) go into
@@ -926,8 +927,8 @@ earlier answers.
 
 ## 5. Land and record the verified version
 
-Land through the project's authorized workflow and check from the checkout
-people use: docs reachable, all five checks run, hooks installed in that
+Land through the project's authorized workflow, by this project's way of
+landing, and check from the checkout people use: docs reachable, all five checks run, hooks installed in that
 clone. A separate branch alone is **written and proved, not installed**. Ask
 only for landing steps not already authorized.
 
@@ -935,8 +936,8 @@ Shared hooks may already run in checkouts without the new files. Let through,
 visibly, only a tree that never had this installation; a missing or broken
 gate in a configured tree is an error, not a bypass.
 
-A required check red on the setup's own pull request is a repair that merge
-waits on, filed with the setup task, by the protocol's **Only what the
+A required check red on the setup's own landing is a repair that merge waits
+on, filed with the setup task, by the protocol's **Only what the
 milestone chose is intake**.
 
 Land once, only after all required proofs (proof 7 only when the document

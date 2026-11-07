@@ -17,6 +17,8 @@ file, read when a step needs it:
   worked material, design decisions, evidence, given decisions, corrections;
 - [running.md](references/running.md): a feature run without the owner —
   preflight, the owner's time, sessions and landing, waits, estimates;
+- [landing.md](references/landing.md): how work reaches this project's main
+  line — the practice it lands by, in that practice's own words;
 - [checks.md](references/checks.md): red checks, refusing gates, diagnostics,
   the cheapest check, reaching the outcome, CI;
 - [building.md](references/building.md): how the product's code is shaped —
@@ -72,7 +74,7 @@ ask for one merely because the plugin was updated.
 | --------- | ----------------------------------------------------------------- | ----------------- |
 | Vision    | where the product is going; a document, never an issue           | rarely rewritten  |
 | Milestone | the next slice, with a charter: what is in, what is out, a finding budget | what ships next   |
-| Feature   | a root issue holding one **outcome**                              | one run, one branch, one PR |
+| Feature   | a root issue holding one **outcome**                              | one run, one branch, one landing |
 | Stage     | an issue under a feature, with its own DONE WHEN                  | a checkpoint accepted inside the run |
 | Task, bug | a leaf: an issue with no children                                 | one worker's session |
 
@@ -144,8 +146,8 @@ the blockers closed".
 **Execution and acceptance.** A worker claims a leaf (takes a hold on it),
 checks its change and records it as `submitted`, with where the result lives
 and its local evidence. Submitted work is neither taken again nor used by
-dependants yet. The stage's single coordinator merges it and marks it
-`implemented`, with the merge revision and check evidence; it is not taken again
+dependants yet. The stage's single coordinator merges it into the run's own line and marks
+it `implemented`, with the merge revision and check evidence; it is not taken again
 and not yet closed.
 
 **A leaf with no stage closes at its merge.** The two middle states are a
@@ -161,8 +163,9 @@ off-path bug is one worker's session and nothing after it. `Submitted` and
 inside a run, and a leaf with no stage is closed at the merge whatever they
 say. A leaf filed with no parent, or under the bug, chore or task
 it was filed with, never takes them at all — a state promising an acceptance
-nothing will give is how such a leaf stayed forever. Where it rides its
-feature's one pull request, that pull request's merge is the one that closes it.
+nothing will give is how such a leaf stayed forever. Where it rides the landing its
+feature makes, by this project's way of landing, that landing's merge is the one
+that closes it.
 
 **Remaining work is counted from what landed.** What remains in a milestone is
 the work whose change is not on the main line yet, not the items whose status
@@ -304,7 +307,7 @@ called, is charged to the work it serves and not to that budget. Two kinds
 are always of that sort:
 
 - **A repair the merge waits on:** a defect a required check catches on the
-  way to a merge. The branch cannot land while it is red, and no version of
+  way to a landing. The branch cannot land while it is red, and no version of
   the milestone skips it. It is filed with the work whose merge it blocked, a
   feature or the setup alike, and closed by the change that lands with it,
   whose record lists it; the report names it as a repair that merge waited on.
@@ -390,7 +393,7 @@ request by [tz-gost.md](references/tz-gost.md), never kept beside them.
 **What describes the present is kept true.** The agent doc, the glossary, the
 current capability specs and the architecture describe the main line as it is
 now, and every agent acts on them without checking. So a change that makes one
-of them false updates it in the same pull request, never in a later one: a
+of them false updates it in the same landing, never in a later one: a
 command renamed, a component moved, a behaviour changed, a lesson whose cause
 was fixed. Review reads the diff against them as it reads it against the
 tests, and a stage is not accepted while one of them is known to be wrong. A

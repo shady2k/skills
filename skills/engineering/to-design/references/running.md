@@ -5,29 +5,29 @@ project, and it wins over a project's restatement.
 How a planned feature runs without the owner: the preflight, the owner's time,
 sessions and landing, waits, runs out of sight, estimates.
 
-**Autonomy.** A feature is planned with the owner and then built without
-them, up to one pull request for the whole feature. Planning ends with a
-**preflight**: the agent reads the spec, the stages and the code, and brings
-every decision the run will need before the owner leaves, each with a
-recommendation, gathered while they are present because asking later means
-stopping the run. How those questions are put is the project's setting, by
+**Autonomy.** A feature is planned with the owner and then built without them,
+up to the one landing its practice names (**How this project lands is
+recorded, and no skill assumes one way**). Planning ends with a **preflight**:
+the agent reads the spec, the stages and the code, and brings every decision
+the run will need before the owner leaves, each with a recommendation,
+gathered while they are present because asking later means stopping the run.
+How those questions are put is the project's setting, by
 [speaking.md](speaking.md)'s **How an open question is put**. An approval the
-end of the run will need is one of those decisions and is taken here, before anything is
-written: what he approves is what the change decides — its kind, its scope, the
-requirements it moves and what it promises to leave alone — and never the
-finished text, which does not exist yet and which he was never going to read.
-A record binds itself to what he approved, so that the agent's own working on
-it afterwards — the reasoning, which check covers which requirement, a rewrite
-after review — does not send anybody back to him, and a change to what he
-decided does. An approval that can only be given at the end cannot be taken
-in the preflight, and so stops the run after he has gone. A preflight that goes
-unanswered has not been accepted; by
-[**A decision belongs to whoever made it**](speaking.md), every recommendation
-in it is still
-the agent's own until they say otherwise. The preflight also says how long the run will likely take
-and when to expect the pull request, with what the estimate rests on; a run
-longer than the project lets a branch live is split first. It ends by saying
-the feature is ready to run alone, or what it still lacks.
+end of the run will need is one of those decisions and is taken here, before
+anything is written: what he approves is what the change decides — its kind,
+its scope, the requirements it moves and what it promises to leave alone — and
+never the finished text, which does not exist yet and which he was never going
+to read. A record binds itself to what he approved, so that the agent's own
+working on it afterwards — the reasoning, which check covers which
+requirement, a rewrite after review — does not send anybody back to him, and a
+change to what he decided does. An approval that can only be given at the end
+cannot be taken in the preflight, and so stops the run after he has gone. A
+preflight that goes unanswered has not been accepted; by [**A decision belongs
+to whoever made it**](speaking.md), every recommendation in it is still the
+agent's own until they say otherwise. The preflight also says how long the run
+will likely take and when to expect its landing, with what the estimate rests
+on; a run longer than the project lets a branch live is split first. It ends
+by saying the feature is ready to run alone, or what it still lacks.
 
 During the run, a gap the spec did not foresee is decided by the agent when it
 knows what to do; the decision and its assumptions go into the feature's
@@ -66,18 +66,19 @@ open is waited for, by [building.md](building.md)'s **A missing input is an
 error**, and what it owes is reported as waiting on the read, never written
 from a guess.
 
-The pull request is where the owner looks. Its report says what users can now
-do; how to check it yourself; every decision and assumption the agent made
-alone, and where it departed from the spec; what review found; what is not
-done; and the risks left. **How to check it yourself** is the walk the run
-already made, as a few steps in the order that matters: what to open, what to
-do, what should happen. It leads with what the agent could not reach and what
-it cannot judge for itself, such as whether this is the right thing in the
-right words; it is not a tour of the feature. It follows [**Speaking to
-the owner**](speaking.md). The owner's acceptance is the merge; the tracker is closed after
-it. The yes is asked after the owner has looked — the **how to check it
-yourself** of the report is that look — or together with how to look: the
-agent's own assessment of the result, however good its evidence, never
+The pull request is where the owner looks, as this project's way of landing
+has it. Its report says what users can now do; how to check it yourself; every
+decision and assumption the agent made alone, and where it departed from the
+spec; what review found; what is not done; and the risks left. **How to check
+it yourself** is the walk the run already made, as a few steps in the order
+that matters: what to open, what to do, what should happen. It leads with what
+the agent could not reach and what it cannot judge for itself, such as whether
+this is the right thing in the right words; it is not a tour of the feature.
+It follows [**Speaking to the owner**](speaking.md). Their merge is the
+acceptance — this project's way of landing makes it so — and the tracker is
+closed after it. The yes is asked after the owner has looked — the **how to
+check it yourself** of the report is that look — or together with how to look:
+the agent's own assessment of the result, however good its evidence, never
 stands in for theirs.
 
 **The owner's time is the scarce one.** A run is cheap to restart; an hour of
@@ -138,15 +139,31 @@ what is being waited for: a wait restarted by its own filler is waited twice.
 What the owner hears meanwhile is [**Waiting is quiet**](speaking.md).
 
 **The path is what the next step consumes.** A step is on a run's critical
-path — the line of steps the pull request waits on — where the next step
-needs its result; everything whose input already exists starts then and runs
-beside the path, by the protocol's **Parallelism**. Being worth doing is not
-being on the path: a check whose result no next step waits on, a measurement,
-a record that can be made now, runs beside review and the walk rather than in
-front of anything that waits on them. Where a phase overruns, a step that
-held the path while nothing consumed its result is where the comparison at
-the boundary reads first, by **A forecast is checked against the date it
-serves**.
+path — the line of steps its landing waits on — where the next step needs its
+result; everything whose input already exists starts then and runs beside the
+path, by the protocol's **Parallelism**. Being worth doing is not being on the
+path: a check whose result no next step waits on, a measurement, a record that
+can be made now, runs beside review and the walk rather than in front of
+anything that waits on them. Where a phase overruns, a step that held the path
+while nothing consumed its result is where the comparison at the boundary
+reads first, by **A forecast is checked against the date it serves**.
+
+**How this project lands is recorded, and no skill assumes one way.** How a
+change reaches the main line — what lands as one thing, who merges it, what a
+demo can show while the work is unfinished, and where the work waits until it
+is whole — is how this project works: recorded at setup from what was found in
+the repository and from the answers the owner gave, and never one way the set
+picks for every project. What it records is a practice, and the practice's own
+words are in [landing.md](landing.md), in the section named after it, answering
+the same six questions in the same order: how work goes, who merges, what you
+see and when, what it costs, what it suits, and how hard it is to leave. So a
+rule that depends on landing — this file's as much as any other — says **this
+project's way of landing** and leaves the particulars there: no rule states a
+practice as the set's, names one, or states the same particular twice. Where
+the record names no practice, this project lands as [landing.md](landing.md)'s
+first section says, which is what every project had before it could record
+another. A run that began under one practice finishes under it, whatever the
+record says by then.
 
 **Sessions and landing.** The owner opens the agent in the main checkout and
 talks; talking changes nothing, and a conversation that keeps nothing leaves
@@ -155,33 +172,36 @@ charter change), the agent moves itself into a separate checkout on a plan
 branch, saying so in one line; where the harness cannot, it asks the owner to
 open one and says how. The main checkout stays clean.
 
-A feature run starts on its own branch, named after the feature from the
-start and created by the agent. Nobody re-briefs it: everything agreed is in
-the spec, the stages and the decision log, which is what the preflight checks
-("could a fresh agent run this without our conversation?").
+A feature run starts on its own branch, created by the agent from the start,
+named as this project's way of landing names it. Nobody re-briefs it:
+everything agreed is in the spec, the stages and the decision log, which is
+what the preflight checks ("could a fresh agent run this without our
+conversation?").
 
-Product code reaches the main line only through its feature's one pull
-request. Everything else a session keeps lands **once, at its end, and all of
-it together**: the charter, the backlog, other features' tasks, a lesson
-written into a document, the records a closing leaves. What belongs to one
-feature rides in that feature's branch, unless that branch is already
-submitted; everything else, and everything the freeze sends off a submitted
-branch, goes on the session's one landing branch, which lands by a direct push
-where the main line accepts one and otherwise by one pull request. Each record
-is committed there as it is made, so nothing is held in a working tree and a
+Product code reaches the main line only through the landing its practice gives
+it, a feature at a time where that is what this project's way of landing
+lands. Everything else a session keeps lands **once, at its end, and all of it
+together**: the charter, the backlog, other features' tasks, a lesson written
+into a document, the records a closing leaves. What belongs to one feature
+rides in that feature's branch, unless that branch is already submitted;
+everything else, and everything the freeze sends off a submitted branch, goes
+on the session's one landing branch, which lands by a direct push where the
+main line accepts one and otherwise by one pull request. Each record is
+committed there as it is made, so nothing is held in a working tree and a
 session that dies loses none of it; only the merge waits. Never a merge per
-small change, and **never a merge for bookkeeping alone**: every merge costs
-the owner a round of attention and the repository a full run of its checks,
-which is more than a record of what already happened is worth. The exception
-is what something else needs before the end — a task the next run must read,
-a fix the main line is waiting on — and that lands when it is needed. How the
-main line accepts changes is
-recorded at setup; if the plan's pull request is not merged yet, the feature
-branch starts from the plan branch instead of waiting. How a change lands is
-decided this way, never asked, and never part of what the person approves;
-mention it only when they must act, such as merging, after the work exists.
-After the owner merges, the agent closes the work and removes the checkouts
-and branches it created.
+small change, and **never a merge for bookkeeping alone**: every merge costs a
+round of attention and the repository a full run of its checks, which is more
+than a record of what already happened is worth. The exception is what
+something else needs before the end — a task the next run must read, a fix the
+main line is waiting on — and that lands when it is needed. How the main line
+accepts changes is recorded at setup, as this project's way of landing, by
+**How this project lands is recorded, and no skill assumes one way**; if the
+plan's pull request is not merged yet, the feature branch starts from the plan
+branch instead of waiting. How a change lands is this project's way of
+landing, never part of what the person approves; mention it only when they
+must act, such as merging, after the work exists. Once that landing has its
+merge, the agent closes the work and removes the checkouts and branches it
+created.
 
 **A run removes the checkouts and branches it created.** A run writes each
 checkout and each branch down as it makes it, so that it knows which are its
@@ -367,20 +387,20 @@ Worked cases, each read against the object the outside system holds:
 - An identity or a requested result that cannot be read leaves the outcome
   unknown: it is reconciled before any retry.
 
-**A submitted branch is frozen.** Once its pull request is open and its run
-has started, a branch carries only what review sends back to it: the fix for
-a red check, or the change a reviewer asked for. Everything else the run makes
+**A submitted branch is frozen.** Once its landing is submitted — a pull
+request open, where this project's way of landing submits one — and its run
+has started, a branch carries only what review sends back to it: the fix for a
+red check, or the change a reviewer asked for. Everything else the run makes
 meanwhile — a tracker record, a document, the next stage's plan, another
 feature's work — waits for the merge or joins the session's landing branch,
 which asks for one merge at the end and not one apiece (**Sessions and
-landing**). A push there
-restarts every job, the case of a wait restarted by its own filler (**A wait is
-filled**), so it costs the owner a whole round on the merge they are
-waiting for, and the check evidence an acceptance names is then a different
-commit's than the one that merges. When the run is submitted, the working
-checkout moves off that branch, so that what is done next cannot land there
-by default; where the harness cannot, every push until the merge names the
-branch it is for.
+landing**). A push there restarts every job, the case of a wait restarted by
+its own filler (**A wait is filled**), so it costs the owner a whole round on
+the merge they are waiting for, and the check evidence an acceptance names is
+then a different commit's than the one that merges. When the run is submitted,
+the working checkout moves off that branch, so that what is done next cannot
+land there by default; where the harness cannot, every push until the merge
+names the branch it is for.
 
 **A reviewer's comment is judged, not obeyed.** A comment quotes a few lines
 and stands for a view of the whole change, so before any of them is acted on

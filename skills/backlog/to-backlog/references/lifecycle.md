@@ -20,9 +20,9 @@ hold before the next, and the skills that do it:
 | Requirements | what the system must do, as its user sees it | the behaviour is agreed, with the scenarios that will be checked and the seams they are checked at | `to-spec`, drafting from the product's own documents where the product keeps them |
 | Architecture and design | how the system will do it | the shape of the change is decided against quality attributes and recorded, by [design.md](design.md); or the work is tailored past this stage with its reason. A feature that will be run also has its direction and then its plan agreed by the owner, in that order, by [speaking.md](speaking.md)'s **An approval covers what was shown**, and both agreements on record | `to-design`, `to-stages` |
 | Implementation | the code exists | workers hand in results with their local checks, on the feature's branch | `take-task` |
-| Integration | the results are one change | every submitted result is merged and the checks its merge touched are rerun on the merge | `take-task` |
+| Integration | the results are one change | every submitted result is integrated into the run's own line and the checks its integration touched are rerun on it | `take-task` |
 | Verification | the change does what the requirements say | the full checks, mutation where the project has one, review and the DONE WHEN hold on the assembled revision | `take-task` |
-| Transition | the change reaches its users | the work lands on the main line and is released the way this project releases | `ship-release` |
+| Transition | the change reaches its users | the work lands on the main line by this project's way of landing, and is released the way this project releases | `ship-release` |
 | Validation | it is the right thing | before release, the outcome is seen at the place the spec named, by [checks.md](checks.md)'s **Reached, not just built**; after release, that it solved the need | before release, that check; after release, the release marks the hypotheses its outcomes settle as waiting on their measures, and their results are read by `define-product` and planned with by `to-milestone` |
 | Operation | it keeps working for its users | the alerts and their runbooks the design's **Scenarios become checks** produced, and, where the product has users, the service level it is judged by | `handle-incident` for what fails in use |
 | Maintenance | faults and debt are taken as they are found | a fault is diagnosed on evidence, and what matters is filed | `diagnose-bug` and `to-backlog`; what runs it looks after itself on `check-upkeep`'s pass |
@@ -43,8 +43,8 @@ task is one acceptance record naming its CI run and its review; what CI and
 the review already hold is read from them, never retyped as records. What
 stays at every size is what the owner's time figures count — the claim and
 the span receipt — and what a stage's or feature's acceptance is judged
-from. The records ride with the work's own landing, never as a commit of
-their own. What the project
+from. The records ride with the work's own landing, by this project's way of landing,
+never as a commit of their own. What the project
 is narrows first — a library publishes and does not deploy; a prototype has
 no operation; an internal tool narrows transition to what reaches its users, often only a merge — and scale,
 uncertainty and risk narrow the rest: a small understood bug goes from

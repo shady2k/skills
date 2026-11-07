@@ -5,7 +5,8 @@ description: "Carry merged, accepted work to its users: version by the project's
 
 # Ship release
 
-The merge is the owner's acceptance of what the code does; the release is
+The merge is the owner's acceptance of what the code does, where this project's
+way of landing makes the merge the acceptance; the release is
 the stage that takes it to the people who use it — the transition the
 protocol's [life cycle](references/lifecycle.md) names. It publishes and it
 changes what runs for users, so it starts when the user asks for one or

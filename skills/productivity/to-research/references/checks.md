@@ -5,12 +5,12 @@ project, and it wins over a project's restatement.
 How a run treats its checks: red checks, refusing gates, diagnostics, the
 cheapest check and the loop it waits on, reaching the outcome, and CI.
 
-**A red check is this run's work.** Every failure on the way to a merge is
+**A red check is this run's work.** Every failure on the way to a landing is
 diagnosed and fixed by the run, whoever wrote the code: all of it is written by
-agents, and the branch cannot merge while it is red. "It was already broken"
+agents, and the branch cannot land while it is red. "It was already broken"
 and "our change does not touch that" are never reasons to stop; when a failure
 appeared matters only as a clue to its cause. A failure that also breaks the
-main line is fixed there by its own small pull request, since it blocks
+main line is fixed there by its own small landing, since it blocks
 everyone, and the report names it as a fixed earlier failure; such fixes
 that run the same suite share one pull request, not one run apiece. Only a fix
 that needs an architectural change or other decision the [**Autonomy**](running.md) rules
@@ -200,9 +200,9 @@ shared: an account's minutes, a spending limit, a queue other people wait in.
 So before the first push, learn what one run costs (its jobs, how long they
 take, what each runner is billed at) and what the account has left, and put
 the number of runs the plan needs into the forecast. The run that starts work
-in parallel holds this count for all of it: every pull request and every
-worker it started draws on the same capacity, and parallel pull requests
-multiply what a round of fixes costs. Where the forecast would not fit what is
+in parallel holds this count for all of it: every landing and every worker it
+started draws on the same capacity, and landings in parallel multiply what a
+round of fixes costs. Where the forecast would not fit what is
 left, CI is an exclusive resource by the protocol's **Parallelism**: the runs
 queue, the work does not stop, and the owner hears the shortfall before it is
 spent, not after.

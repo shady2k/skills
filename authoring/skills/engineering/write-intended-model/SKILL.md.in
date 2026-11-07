@@ -416,12 +416,12 @@ for the files this run created — name them, and never clean a file the run
 did not create. Write nothing outside
 the model folder (`model/`): the views go to `$MODELDIR/views`.
 
-## Updating the model for a pull request
+## Updating the model with the change
 
-The model is updated inside each pull request, by the author's agent,
-from the branch's changes: small increments are cheaper than a later
-catch-up, and the reviewer reads the model's change next to the code's.
-The update is committed in the same pull request as the code.
+The model is updated inside each landing, by the author's agent, from the
+branch's changes: small increments are cheaper than a later catch-up, and the
+reviewer reads the model's change next to the code's. The update is committed
+with the code, in the same landing this project's way of landing makes.
 
 ### 1. Read the inputs
 

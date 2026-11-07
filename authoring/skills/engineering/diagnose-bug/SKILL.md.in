@@ -121,7 +121,7 @@ gives false comfort. **The missing boundary is itself the finding**: say so.
 - Every marked line is gone; throwaway harnesses are deleted.
 - Any approved commit names its task and says which hypothesis was confirmed.
 - Passing local checks do not close the task: hand the result to the stage's
-  merge and final acceptance.
+  integration and final acceptance, by this project's way of landing.
 - Where the project has a backlog integration, file other findings, such as a
   missing boundary, through `to-backlog`. The original bug's task existed
   before the fix; its criterion is the step 1 command.
