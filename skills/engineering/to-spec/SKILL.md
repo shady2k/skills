@@ -82,7 +82,9 @@ left unwatched. The coverage stands on what is established for that level of
 checking, by the protocol's [**A proposal starts from the state of the
 practice**](references/deciding.md), with the one the project already follows
 preferred to a new arrangement. Only a real coverage or risk trade-off needs
-the owner; the test level is the agent's choice. Seams bound acceptance; they do not forbid unit or
+the owner; the test level is the agent's choice. Choose the seams and their
+assertions by the protocol's [**A claim reaches only as far as its
+evidence**](references/deciding.md). Seams bound acceptance; they do not forbid unit or
 integration tests through other stable interfaces.
 
 Include how failures will be seen, as the protocol's [**Failures explain

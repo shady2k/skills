@@ -139,9 +139,9 @@ observed: a count, a span or a coincidence read from part of a record is a
 claim about the whole record, and a cause is a claim that nothing else
 produces the effect. Evidence covers what was observed, and only under the
 conditions it was observed in, so before a claim is made, find where its
-evidence stops. A record is read to its edges — how many entries, the first and
-the last, what ends it and what lies outside it — and the finding comes with
-the span it covers. A cause is established as a controlled experiment
+evidence stops. A record is read to its edges — how many entries, the first
+and the last, what ends it and what lies outside it — and the finding comes
+with the span it covers. A cause is established as a controlled experiment
 establishes one: against a control that differs only in the suspected factor,
 under the conditions the real system works in, replicated, and with the rival
 explanations ruled out as differential diagnosis rules them out, the
@@ -149,20 +149,25 @@ measurement's own artefacts among them. The more a claim explains, the more it
 would cost if it were wrong, and the more it lays the fault on someone else's
 work, the more it is worth the check, and it is checked before it frames
 anything: a task, a document, a message to the owner, anything sent beyond the
-project. A claim not yet checked, one's own or one
-inherited from a record, travels as a hypothesis with what would settle it. One
-found false is corrected by **Correcting yourself is not asking permission**.
-Where work follows a reference — a mockup, a prior version, another product,
-a spec's example output — conformance is shown by comparison, not by
-assertion: reference and result side by side, under the same conditions,
-with a list of the differences, each then fixed or recorded as a departure
-with its reason. "Close to it" without the comparison is not evidence, and
-"a reference, not a target" licenses departures; it does not remove the
-comparison. The evidence is sampled so the failure looked for could appear
-in it: one viewport of a page, one fixture, one size or the happy path
-alone cannot rule out a defect that lives outside the sample, so where a
-surface is judged, the capture covers it whole and the states between the
-happy paths are in it.
+project. A claim not yet checked, one's own or one inherited from a record,
+travels as a hypothesis with what would settle it. One found false is
+corrected by **Correcting yourself is not asking permission**. Where work
+follows a reference — a mockup, a prior version, another product, a spec's
+example output — conformance is shown by comparison, not by assertion:
+reference and result side by side, under the same conditions, with a list of
+the differences, each then fixed or recorded as a departure with its reason.
+"Close to it" without the comparison is not evidence, and "a reference, not a
+target" licenses departures; it does not remove the comparison. What the
+reference is not is the criterion the work is accepted against: a criterion
+comes from what the outcome needs, and "no differences from X" stands as one
+only where the owner chose it in so many words, recorded where the work is
+written. Matching a reference without that choice can
+preserve behaviour the outcome does not need: the comparison is evidence, and
+it does not by itself make the result accepted. The evidence is sampled so the
+failure looked for could appear in it: one viewport of a page, one fixture,
+one size or the happy path alone cannot rule out a defect that lives outside
+the sample, so where a surface is judged, the capture covers it whole and the
+states between the happy paths are in it.
 
 **A decision given is not reopened by better analysis.** When the owner has
 decided, the work resumes, and every later message about it says what is now

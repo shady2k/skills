@@ -456,6 +456,17 @@ run's record, the cause and not the culprit — and with the reforecast, a new
 end worked out from the pace the run now shows; the overrun itself is what
 **Silence is not progress** files, and nothing files it twice.
 
+A stage that is past its forecast by half — half the forecast again over it —
+or whose end has moved twice is not carried on as it stands. Its remaining
+work is cut again into stages that can each be shown and accepted on their
+own, and the owner hears what the re-cut leaves out and what it costs, by
+[**Waiting is quiet**](speaking.md); how it lands is unchanged, by **Sessions
+and landing**. What the stage has already consumed is not an argument for
+finishing it: sunk cost buys no outcome, and the question at a re-cut is what
+the outcome still needs from here, never what a plan once promised. What the
+stage still gives decides which of the re-cut stages comes first; it is never
+a reason to carry the stage on.
+
 Where the forecast passes the target date, the owner hears at once, before
 the date, by [**Waiting is quiet**](speaking.md): what will be late, by how
 much and why, and the two things left to choose, each said with what the

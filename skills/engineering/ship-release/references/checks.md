@@ -3,7 +3,7 @@
 Part of the set's protocol, whose core is `protocol.md`: the same in every
 project, and it wins over a project's restatement.
 How a run treats its checks: red checks, refusing gates, diagnostics, the
-cheapest check, reaching the outcome, and CI.
+cheapest check and the loop it waits on, reaching the outcome, and CI.
 
 **A red check is this run's work.** Every failure on the way to a merge is
 diagnosed and fixed by the run, whoever wrote the code: all of it is written by
@@ -113,17 +113,32 @@ is a finding.
 **Cheapest check first.** Checks follow the test pyramid and narrow scope
 outward from the failure: reading and static checks, then a unit test, then a
 local integration or end-to-end run; the one failing test, then its file or
-package, then what the change touches, then the full local check. Each question
-gets the cheapest check that can answer it. Beyond that: CI and any remote
-machine come last, only for what nothing local can show (another platform, the
-real pipeline), because they spend runner time, money, the owner's wait and
-limits shared with everyone; and where the behaviour has no unit test that
-could catch it, one is written before an end-to-end run is reached for. A
-failure at any step sends the work back to the cheapest check that shows it,
-never to a rerun of the whole. Independent checks run in parallel, within what
-the machine carries while other agents share it.
-A change that cannot touch product code (documents, process tooling) does not
-run the product's suites, and CI is configured to skip them for it.
+package, then what the change touches, then the full local check. Each
+question gets the cheapest check that can answer it. Beyond that: CI and any
+remote machine come last, only for what nothing local can show (another
+platform, the real pipeline), because they spend runner time, money, the
+owner's wait and limits shared with everyone; and where the behaviour has no
+unit test that could catch it, one is written before an end-to-end run is
+reached for. A failure at any step sends the work back to the cheapest check
+that shows it, never to a rerun of the whole. Independent checks run in
+parallel, within what the machine carries while other agents share it. A
+change that cannot touch product code (documents, process tooling) does not
+run the product's suites, and CI is configured to skip them for it. The time a
+change waits on its checks is watched while the work goes, and where that
+waiting outweighs working on the change, shortening the loop is the next piece
+of work, ahead of whatever it holds up — a rerun from a saved state instead of
+from the beginning, the narrowest check that answers the question in hand, a
+smaller real sample of the real input, a measurement of where the time goes
+taken before anything else is changed. The supervising session hears it
+without asking, by running.md's **A cost of the process is the owner's
+information**, because that wait is the owner's money and the run's calendar.
+And no work on real input is tried at full size first: the smallest real
+sample that can answer the question runs first, the whole run's expected
+duration is projected from what that sample showed, by **Estimates are agent
+time**, and a stop bound is set before it starts — past the bound it stops,
+what took the time is measured, and the cause is found before it is started
+again, by **Silence is not progress**. A bound raised because the run was
+nearly done is the defect this rule names, not a way to finish the run.
 
 **A passing result holds while what it covers is unchanged.** Evidence is
 tied to the tree it judged, not to the commit that carried it: a rebase, a

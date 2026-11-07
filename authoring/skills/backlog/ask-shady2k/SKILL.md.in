@@ -199,7 +199,7 @@ the list.
 | new product without direction or first charter | `/to-milestone`, drafted from known decisions |
 | an open decision holds the ground the rest of the milestone stands on | that decision, worked, while the owner is here: `brainstorming`, or `to-spec` where its answer is a contract |
 | a change is not ready by the document check | the concrete gap: missing contract, stale base or open decision; `to-spec` |
-| a live outcome's next stage is due: a decision the design owns, or a breaking down | `to-design` where the change changes the system's shape, by the protocol's [design.md](references/design.md); requirements where the behaviour is not yet written: `to-spec`; breaking down: `to-stages`; no design for a small bug or a trivial change, with the tailoring's reason; `/take-task` picks the route inside a feature |
+| a live outcome's next stage is due: a decision the design owns, or a breaking down | `to-design` where the change changes the system's shape, by the protocol's [design.md](references/design.md); requirements where the behaviour is not yet written: `to-spec`; breaking down: `to-stages`, which starts only on a recorded design where the shape changes and sends the work back to `to-design` without one; no design for a small bug or a trivial change, with the tailoring's reason; `/take-task` picks the route inside a feature |
 | a planned feature is ready | `/take-task` to run the whole feature to one pull request once its direction and then its plan are agreed and recorded on it, which the gate reads — a feature without that record is planned with the owner before anything runs; if its run fits how long the project lets a branch live; otherwise split it first; mention what can run in parallel |
 | a feature is not yet planned enough to run alone | plan it with the owner (`brainstorming`, `to-spec`, `to-stages`), ending in `/take-task`'s preflight |
 | everything left is blocked or held | the result or owner that would unblock it; do not widen the milestone or invent work |
@@ -318,10 +318,12 @@ tracker is not this skill's.
 - `define-product`: talk an idea through with the person who has it, in plain
   words, and write the product's documents up to where an engineer can start.
 - `to-spec`: a short or full change to the living specs, with scenarios.
-- `to-stages`: stages as checkpoints, tasks sized for one worker, real
-  dependencies and parallel tasks.
-- `to-design`: how the system will meet an outcome, decided against quality
-  attributes and existing patterns, and reviewed before building.
+- `to-stages`: stages as checkpoints of about a working day, the thinnest
+  end-to-end path first on real input, tasks sized for one worker, real
+  dependencies and parallel tasks; a change of shape is designed before it.
+- `to-design`: how the system will meet an outcome, the prior art read before
+  the options, decided against quality attributes and existing patterns, and
+  reviewed before building.
 - `diagnose-bug`: find a cause with evidence; fixing needs a tracked task.
 - `to-prototype`: a bounded runnable experiment.
 - `to-research`: a bounded investigation of primary sources, with citations.

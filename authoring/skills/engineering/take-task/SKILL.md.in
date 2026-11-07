@@ -310,6 +310,12 @@ the task, as it starts, how to resume it and where its log is. A worker's task f
 isolated checkouts where concurrent writes could collide, and coordinate
 shared generated files, migrations and dependency locks.
 
+**The brief carries the loop the task will wait on.** Each worker's brief names
+the check that answers each of its questions, cites the protocol's
+[**Cheapest check first**](references/checks.md), and says that a worker finding
+itself waiting more than working says so at once, so the loop is shortened
+while the task is in hand and not in its report.
+
 **The brief carries the bar the review will apply**, so the review finds what
 a bar cannot catch instead of teaching it one round at a time. Fill it from the
 integration and the project's recorded conventions: how errors and logs are

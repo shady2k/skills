@@ -45,6 +45,8 @@ what exists comes before any option too, by **Inventory before options** —
 every implementation of the job the change adds or replaces, what the project's
 recorded decisions already settled about them, and its result written into what
 the owner reads, since a proposal that carries no inventory is not put to them.
+Gather the prior art at this step too, by design.md's **Prior art before
+options**.
 Constraints are gathered by **Drivers before options**. What is material and
 unknown goes to `brainstorming`, `to-research` or `to-prototype`, never into a
 guess. This step ends only on the owner's confirmation of the frame and its

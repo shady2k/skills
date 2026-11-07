@@ -65,6 +65,26 @@ settled about those implementations; an option that would contradict one names
 it and what it would replace, rather than being drawn as if the decision were
 not there.
 
+**Prior art before options.** The inventory answers what this project already
+has, and that is not the whole of what exists. Before any option, how other
+products, libraries and standards solve the same problem is read from primary
+sources — their own code, their own documentation, the specification that
+covers the job — a survey, an article or a vendor's summary being a lead to
+confirm there and never the finding, and `to-research` where available. For
+each: what it does first, what it costs the people who run it, and what it
+leaves out. What is found is part of the material, so adopting one of them or
+copying a part of it is among the options, drawn by **Options from named
+patterns** like any other; and a mechanism built here while a usable one
+exists says what that one fails on, recorded with the decision by **The choice
+is recorded where it will be read again**. Where every candidate is declined,
+the reason is written down the same way: a preference is not a reason, and the
+next reader inherits the mechanism without the comparison that once chose it.
+This is [deciding.md](deciding.md)'s **A proposal starts from the state of the
+practice** at the step that draws the options, and it is
+[building.md](building.md)'s **The smallest complete change** reached a step
+earlier: a whole job already answered by something that exists is the first
+answer, and what is written here is the least that works.
+
 **Options from named patterns.** At least two options are built from named
 patterns and tactics, not from habit: the patterns of enterprise
 application architecture (PoEAA) and of integration (EIP, and POSA) for

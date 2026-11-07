@@ -56,6 +56,17 @@ Settle any question whose answer changes the breakdown first, through
 
 Look for the **prefactor**: the change that, made first, makes the rest easy.
 
+Where [design.md](references/design.md)'s **Design runs when the shape
+changes** holds for this outcome and no design is recorded, the breakdown does
+not start: it goes to `to-design` first, whoever called this skill. A run
+through `take-task` is no exemption, and what makes a design recorded is that
+rule's own test: a direction agreed in conversation or sketched in a note is
+not one until **The choice is recorded where it will be read again** holds it,
+and the plan agreed here would otherwise be the second design, drawn by
+whoever was breaking the work down. A small bug and a trivial change stay
+outside this, as that rule and the life cycle's **Tailoring is the rule**
+already say.
+
 ## 3. Draft
 
 An outcome that already has stages keeps them. Decompose only the **stages
@@ -74,16 +85,46 @@ so to the owner; changing the milestone's outcomes goes through `/to-milestone`.
 checkpoint that full checks, mutation testing and review accept before the
 next stage builds on it. Observable means seen: carry the spec's place of
 observation down to the stage that first makes the outcome reachable there, so
-the walk happens inside the run and not only at its end. A stage has no
-session limit; its tasks do. Together they meet the feature's end-to-end
-criterion; they need not form a sequence, and independent stages and features
-run concurrently. Add a dependency only for a real required result,
-conflicting write or exclusive resource, on the affected task — or between two
-stages while the later one is not broken down: it has no task to carry the
-order yet, and the tracker's ready list reads a stage that waits. Breaking that
-stage down moves the order onto its tasks in the same step, and the gate
-refuses an order left on a stage that already has tasks (`nonleaf-dependency`).
-A dependency kept in a comment is one the ready list never reads.
+the walk happens inside the run and not only at its end. A stage has a size:
+what one run can build and show in about one working day of agent time, its
+tasks and its acceptance inside that, by the protocol's
+[**A time told to the owner is measured, and a dispute is answered with its basis**](references/running.md).
+A plan whose stage forecast runs past that day is cut into stages here, at the
+breakdown; a stage that turns out larger later is not lengthened to fit what
+the work became, but re-cut by
+[**A forecast is checked against the date it serves**](references/running.md).
+Every stage but the one allowed Preparatory stage ends in something a person
+can open, and its DONE WHEN names what they open and what they see there; a
+step no one can reach is a task inside a stage, never the stage itself. Together they meet the feature's
+end-to-end criterion; they need not form a sequence, and independent stages
+and features run concurrently. Add a dependency only for a real required
+result, conflicting write or exclusive resource, on the affected task — or
+between two stages while the later one is not broken down: it has no task to
+carry the order yet, and the tracker's ready list reads a stage that waits.
+Breaking that stage down moves the order onto its tasks in the same step, and
+the gate refuses an order left on a stage that already has tasks
+(`nonleaf-dependency`). A dependency kept in a comment is one the ready list
+never reads.
+
+**The first increment is a walking skeleton.** The first stage whose result a
+person can see is the thinnest path through every layer the outcome touches,
+each part doing the least its job needs, joined end to end, and run on the
+real input the product will meet — a fixture shows the path is
+joined, and the real input shows it runs. This is the tracer bullet, and the
+vertical slice below taken at the size of a stage: each later stage widens the
+same path with the second case, the fuller result and the states that are not
+the happy one. No stage takes all of one layer across with the next to follow,
+which is a slice of the plan and not of the product, and no later stage is
+where the path first meets reality. Where the spec says the outcome is
+internal and a person sees nothing, the skeleton is that path walked by the
+feature's end-to-end check on real input, and the stages after it widen what
+that check covers. It sits beside **Prefactoring first**: what the path cannot
+be built without is prefactoring, cut as its own task inside this stage, or
+carried by the one Preparatory stage the gate allows and followed at once by
+this one — a preparatory stage is ground moved before the path can run,
+allowed once because the person sees nothing in it, and the stage after it is
+this one. A path built only on fixtures, or one layer finished while the
+layers behind it wait, is the breakdown to re-cut.
 
 **Tasks**, for the stages starting now only:
 
@@ -101,7 +142,9 @@ A dependency kept in a comment is one the ready list never reads.
 - The title is a sentence the work can be understood from, naming each part by
   the glossary's name for it (the protocol's **One thing, one name**).
 - The criterion is an **assertion** a stranger can run or look at and get yes
-  or no. Every "fails when" has a paired "and normally it succeeds".
+  or no. Every "fails when" has a paired "and normally it succeeds". Choose it
+  by [deciding.md](references/deciding.md)'s **A claim reaches only as far as
+  its evidence**.
 - Dependencies follow the protocol: the required result or conflict and what
   releases it. None from list order or parentage.
 - Each result has an integration point and related checks, so dependants in

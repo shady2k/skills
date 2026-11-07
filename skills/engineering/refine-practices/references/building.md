@@ -54,8 +54,9 @@ it; a dependency already installed; and only then the least new code that
 works. A dependency is never added for what a few lines or the platform do.
 Small is about the solution, never about the change: every caller, test and
 fixture the change breaks is part of it, and validation at a trust boundary,
-handling that prevents data loss, security and accessibility are never what
-is cut. A one-liner that has to be decoded is not small.
+handling that prevents data loss, security and accessibility are never what is
+cut. A one-liner that has to be decoded is not small. For a mechanism, this order also
+follows [design.md](design.md)'s **Prior art before options**.
 
 **One surface per capability.** A capability has one way in: one screen, one
 endpoint, one command, one settings file, one script, one store, one worker, one
