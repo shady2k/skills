@@ -57,8 +57,13 @@ performed again.
    a current starter template (checked, not remembered), the main boundaries,
    who owns which data — are put to the owner by the protocol's [**A design
    decision comes with its mechanism**](deciding.md), recorded as decision records, and drawn
-   in the architecture document. The glossary starts with the names these
-   decisions gave the parts.
+   in the architecture document. The principles of how the system is to work
+   are written into its `Solution strategy` section, each with its consequence
+   in practice and the decision that carries it, short enough to travel whole,
+   and the owner confirms the consequences rather than the wording, by
+   [design.md](design.md)'s **The strategy is the target, and the views are
+   the present** and **A design decision comes with its mechanism**. The
+   glossary starts with the names these decisions gave the parts.
 7. **The walking skeleton is the first feature** (`to-spec`, `to-stages`,
    `take-task`): the thinnest path through every part the architecture names,
    from the starter where there is one, built, tested and run by CI end to end,

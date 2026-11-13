@@ -1,6 +1,6 @@
 # The backlog protocol
 
-Setup version: 0.68.0
+Setup version: 0.69.0
 
 These rules are the same in every project and ship with every skill that uses
 them, so they update with the set. If a project's own document restates them,
@@ -394,7 +394,11 @@ request by [tz-gost.md](references/tz-gost.md), never kept beside them.
 
 **What describes the present is kept true.** The agent doc, the glossary, the
 current capability specs and the architecture describe the main line as it is
-now, and every agent acts on them without checking. So a change that makes one
+now, and every agent acts on them without checking. The architecture document's
+`Solution strategy` is not one of these: it is the target, it changes only by
+the owner's decision, and where the present departs from it the code is fixed,
+by [design.md](references/design.md)'s **The strategy is the target, and the
+views are the present**. So a change that makes one
 of them false updates it in the same landing, never in a later one: a
 command renamed, a component moved, a behaviour changed, a lesson whose cause
 was fixed. Review reads the diff against them as it reads it against the

@@ -327,13 +327,123 @@ const recordMismatch = (s, r) => r.digest !== setDigest(r.tasks) ||
 const recordComputed = (r) => typeof r.enough === 'boolean' && Number.isFinite(r.runs)
   && (r.enough ? Number.isFinite(r.low) && Number.isFinite(r.high) && r.runs >= 3 : r.runs < 3);
 
+
+// ---------------------------------------- the project's target architecture
+/**
+ * The project's target architecture, read from the architecture document the
+ * config names, at the moment a brief is written: the Solution strategy
+ * section, one entry per principle (its short name, its consequence in
+ * practice, and the decision record that carries it). Copied nowhere — a copy
+ * in a brief would be the strategy of the day the brief was written.
+ *
+ * Null means the document has no such section, so nothing is recorded; `none:
+ * true` means the section says the owner confirmed there are no principles. A
+ * section holding anything else that is neither a principle nor that line is a
+ * misuse with its file and line, never a silent empty: a brief that carries no
+ * strategy because the document could not be read is how the work is built on
+ * principles nobody stated.
+ */
+export function readStrategy(path) {
+  let text;
+  try {
+    text = readFileSync(path, 'utf8');
+  } catch {
+    throw new Misuse(`${path}: the config names this architecture document as architectureDocument and it cannot be read`);
+  }
+  const lines = text.split('\n');
+  const start = lines.findIndex((l) => /^##\s+Solution strategy\s*$/i.test(l));
+  if (start < 0) return null;
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) if (/^##\s/.test(lines[i])) { end = i; break; }
+  // A placeholder is the template's own shape, not a principle: it is written as
+  // <...>, sometimes across several lines, and a document still holding it has
+  // recorded nothing.
+  let inPlaceholder = false;
+  let placeholderLine = 0;
+  const entries = [];
+  let none = false;
+  let current = null;
+  for (let i = start + 1; i < end; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (inPlaceholder) {
+      if (/^[-*+]\s/.test(trimmed))
+        throw new Misuse(`${path}:${i + 1}: a principle begins inside a placeholder that is still open, so it would be read as neither: close it with ">" first`);
+      if (trimmed.includes('>')) inPlaceholder = false;
+      continue;
+    }
+    if (!trimmed) continue;
+    if (trimmed.startsWith('<')) {
+      // A placeholder may run over several lines; it is finished on the line
+      // that closes it with ">".
+      if (!trimmed.includes('>')) { inPlaceholder = true; placeholderLine = i + 1; }
+      continue;
+    }
+    const item = /^\s*[-*+]\s+(.*)$/.exec(line);
+    if (item) {
+      current = { text: item[1].trim(), line: i + 1 };
+      entries.push(current);
+      continue;
+    }
+    if (current && /^\s+\S/.test(line)) {
+      current.text += ` ${line.trim()}`;
+      continue;
+    }
+    // The owner's answer is recorded in one line that starts "None:" or "No
+    // principles:"; a sentence that merely opens with the word is not an answer.
+    if (!current && /^\s*(?:none|no principles)\s*:/i.test(line)) {
+      none = true;
+      continue;
+    }
+    throw new Misuse(`${path}:${i + 1}: the Solution strategy section holds a line that is neither a principle nor "None:"; every principle is a list item, and a project with none says so in one line starting "None:"`);
+  }
+  // A placeholder left open to the end of the section is a document nobody
+  // finished: read as nothing recorded, it would hand every brief an empty
+  // strategy instead of saying the document needs an edit.
+  if (inPlaceholder)
+    throw new Misuse(`${path}:${placeholderLine}: a placeholder opens here and is never closed with ">", so the section reads as neither principles nor "None:"`);
+  if (none && entries.length)
+    throw new Misuse(`${path}:${entries[0].line}: the section records both that there are no principles and a principle; the owner's answer is one or the other`);
+  if (!entries.length) return { path, principles: [], none };
+  // The template's own entry is skipped only when its name is a whole
+  // placeholder; a name an author started and never finished is read as the
+  // damaged principle it is, not dropped.
+  const kept = entries.filter((e) => !/^\*\*<[^>]*>\*\*/.test(e.text));
+  if (kept.length > 15)
+    throw new Misuse(`${path}:${kept[15].line}: the strategy holds more than fifteen principles; it travels whole into every brief, so it stays short — ten to fifteen, each one a principle the work is judged by`);
+  const principles = kept.map((e) => {
+    const name = (/^\*\*([^*]+)\*\*/.exec(e.text) || [])[1];
+    if (name && (name.includes('<') || name.includes('>')))
+      throw new Misuse(`${path}:${e.line}: this principle's name is a placeholder an author started and never finished; a short name goes between the bold marks`);
+    if (!name || !name.trim())
+      throw new Misuse(`${path}:${e.line}: a principle opens with its short name in bold, then the owner's words for it`);
+    const words = (/^\*\*[^*]+\*\*([\s\S]*?)In practice:/i.exec(e.text) || [])[1] || '';
+    if ((words.match(/[\p{L}\p{N}]{2,}/gu) || []).length < 3)
+      throw new Misuse(`${path}:${e.line}: the principle "${name}" carries no owner's words — how they said it, before "In practice:" says what it means to do`);
+    // The consequence stops at the carrying record: an "In practice:" with
+    // nothing before "Carried by:" has no consequence at all.
+    const practice = /In practice:[ \t]*(.+?)(?=[ \t]*Carried by:|$)/i.exec(e.text);
+    if (!practice || /^carried by:/i.test(practice[1].trim())
+      || !/[\p{L}\p{N}]/u.test(practice[1].replace(/<[^>]*>/g, '')))
+      throw new Misuse(`${path}:${e.line}: the principle "${name}" carries no "In practice:" consequence — what one does because of it, in the form "a new X is only Y, no Z"`);
+    if (!/Carried by:\s*\[[^\]]+\]\([^)]+\)/i.test(e.text))
+      throw new Misuse(`${path}:${e.line}: the principle "${name}" names no "Carried by:" decision record — a link to the record that carries it`);
+    return { name: name.trim().replace(/\.$/, ''), consequence: practice[1].replace(/\.\s*$/, '').trim() };
+  });
+  return { path, principles, none: false };
+}
+
 /**
  * The purpose of one task, for the brief a worker is handed: what it serves, in
  * the vision's current wording, whom it serves and where a person sees it. Ids
  * travel down the chain and are expanded here, at read time — a reference, never
  * a copy.
+ *
+ * `strategy` is the project's target architecture, read from the document the
+ * config names at the moment the brief is written (see readStrategy): the whole
+ * list travels with the work, never a part of it.
  */
-export function purposeOf(backlog, taskId) {
+export function purposeOf(backlog, taskId, strategy = null) {
   const m = index(backlog);
   const task = m.by.get(taskId);
   if (!task) throw new Misuse(`purpose: the backlog holds no issue ${taskId}`);
@@ -369,6 +479,7 @@ export function purposeOf(backlog, taskId) {
     // leaves the stage out.
     stage: chain[1] && chain[1].type !== 'epic' ? chain[1] : null,
     under: feature, seenAt: feature ? seenAtOf(feature) : [],
+    strategy,
   };
 }
 
@@ -381,6 +492,15 @@ export function describePurpose(p) {
   for (const u of p.unknown) lines.push(`serves ${u.id}: declared in no vision record this backlog carries`);
   if (!p.serves.length && !p.journeys.length && !p.principles.length && !p.unknown.length)
     lines.push(`serves nothing: no stage or feature above ${p.id} names what it is for`);
+  // The target architecture travels whole: every principle, each with the
+  // consequence the owner confirmed, and never a part of the list.
+  if (!p.strategy) lines.push('target architecture: none recorded');
+  else if (p.strategy.none) lines.push('target architecture: none recorded, as the owner confirmed');
+  else if (!p.strategy.principles.length) lines.push('target architecture: none recorded');
+  else {
+    lines.push(`target architecture: ${p.strategy.path}`);
+    for (const k of p.strategy.principles) lines.push(`strategy ${k.name}: ${k.consequence}`);
+  }
   if (p.stage) lines.push(`stage ${p.stage.id}: ${p.stage.title}`);
   if (p.under) lines.push(`under ${p.under.id}: ${p.under.title}`);
   lines.push(p.seenAt.length ? `seen at ${p.seenAt.join(', ')}` : 'seen at: nowhere declared, so no person reaches it yet');
@@ -954,7 +1074,7 @@ function bulkClusters(m, threshold) {
 
 // The version of the set these rules shipped with. A project holds a COPY of
 // this file, and this is how anybody tells that the copy has fallen behind.
-const RULES_VERSION = '0.68.0';
+const RULES_VERSION = '0.69.0';
 
 const STRENGTHS = ['block', 'block-new', 'report'];
 
@@ -1003,6 +1123,12 @@ function checkedConfig(raw, where) {
   if (practice !== undefined && !WAYS_OF_WORKING.includes(practice))
     throw new Misuse(`${where}: execution.wayOfWorking ${JSON.stringify(practice)} is not one of ${WAYS_OF_WORKING.map((w) => `"${w}"`).join(', ')}`);
   cfg.execution = { ...(cfg.execution || {}), wayOfWorking: practice === undefined ? RETAINED_WAY_OF_WORKING : practice };
+  // Where the target architecture is kept: one document, named by path. The
+  // present-documents list says which documents describe the present and
+  // cannot say which of them holds the strategy. A project with none leaves the
+  // value out, and its briefs then say the target architecture is not recorded.
+  if (cfg.architectureDocument != null && (typeof cfg.architectureDocument !== 'string' || !cfg.architectureDocument.trim()))
+    throw new Misuse(`${where}: architectureDocument must be the path of the project's architecture document, or absent`);
   return cfg;
 }
 
@@ -1335,8 +1461,26 @@ function runSelftest(cfg, projectConfigPath) {
   // its proof is that the text it prints is the text the record holds.
   const purpose = load('.', 'purpose.json');
   for (const c of purpose.cases) {
-    const got = describePurpose(purposeOf(purpose.backlog, c.task));
-    say(got === c.expect.join('\n'), `purpose/${c.task} → ${got === c.expect.join('\n') ? 'the lines a brief carries' : `got ${JSON.stringify(got)}`}`);
+    // The strategy is a real document beside the backlog, read the way the
+    // command reads it: a project's, not this fixture's.
+    const file = c.strategy ? join(dir, 'strategy', c.strategy) : null;
+    const strategy = file ? readStrategy(file) : null;
+    const want = c.expect.map((l) => l.replace('{strategy}', file || '')).join('\n');
+    const got = describePurpose(purposeOf(purpose.backlog, c.task, strategy));
+    say(got === want, `purpose/${c.task}${c.strategy ? ` with strategy/${c.strategy}` : ''} → ${got === want ? 'the lines a brief carries' : `got ${JSON.stringify(got)}`}`);
+  }
+  // A strategy the gate cannot read is refused at its line, never printed as a
+  // brief with no architecture: the work would then be built on principles
+  // nobody stated, which is the failure this reads for.
+  for (const [file, at] of [['malformed.md', 5], ['unfinished.md', 4], ['no-words.md', 5], ['contradiction.md', 7]]) {
+    const what = `strategy/${file.replace('.md', '')}`;
+    try {
+      readStrategy(join(dir, 'strategy', file));
+      say(false, `${what} → read as a strategy it cannot read`);
+    } catch (e) {
+      const said = e instanceof Misuse && e.message.includes(`${file}:${at}:`);
+      say(said, `${what} → refused at its own file and line${said ? '' : `  (said ${e.message})`}`);
+    }
   }
   // The three strengths, on one backlog that violates an error-severity rule.
   // Old debt is the same backlog as its own baseline; a new violation is that
@@ -1421,6 +1565,7 @@ function runSelftest(cfg, projectConfigPath) {
     ['an empty --ages-through, which today skips the ages check and answers green or red without it', 2, ['--config', fixtureCfg, '--strength', 'block', '--ages-through', '', stale], '--ages-through'],
     ['an empty --purpose, which today falls back to a normal run', 2, ['--config', fixtureCfg, '--strength', 'block', '--purpose', '', stale], '--purpose'],
     ['an option instead of the task --purpose asks for', 2, ['--purpose', '--json', stale], '--purpose'],
+    ['a purpose asked for with no config, so the brief would carry no target architecture at all', 2, ['--purpose', 'T3', stale], '--config'],
     ['an option instead of the --config value', 2, ['--config', '--strength', 'block', stale], '--config'],
   ]) {
     const done = run(...argv);
@@ -1538,7 +1683,7 @@ function main() {
         '          [--strength block|block-new|report] [--ages-from <before.json> --ages-through <after.json>]\n' +
         '          [--at <code revision>]\n' +
         '          [--only <id,id>] [--json]\n' +
-        'check.mjs --purpose <task id> <normalized.json>\n' +
+        'check.mjs --purpose <task id> <normalized.json> --config <project config>\n' +
         'check.mjs --selftest [--config <project config>]\n' +
         'check.mjs --version\n\n' +
         'Applies the backlog invariants to the normalized backlog on stdin or at <path>.\n' +
@@ -1550,8 +1695,10 @@ function main() {
         '--baseline-config judges the baseline by the rules of its own day, so a\n' +
         'config change that creates violations shows up as new errors.\n' +
         '--purpose prints the purpose of one task for the brief of whoever does it:\n' +
-        'the vision items it serves in their current wording, whom it serves and where\n' +
-        'a person sees it. One line per fact, and no config: it judges nothing.\n' +
+        'the vision items it serves in their current wording, the project\'s target\n' +
+        'architecture whole — each principle with its consequence — whom it serves\n' +
+        'and where a person sees it. One line per fact, read from the config and the\n' +
+        'architecture document it names; it judges no backlog.\n' +
         'Exit 0 green, 1 red, 2 misuse.\n\n' +
         'Checks: ' + CHECKS.map((c) => c.id).join(', '),
     );
@@ -1564,10 +1711,17 @@ function main() {
   if (args.selftest)
     return runSelftest(checkedConfig(readJson(join(HERE, 'fixtures', 'config.json'), 'the fixture config'), 'fixture config'), args.config);
 
-  // The purpose of a task is read, never judged: it needs the backlog and
-  // nothing else, so a brief can be written in a project whose gate is red.
+  // The purpose of a task is read, never judged: it needs the backlog and the
+  // config that names the architecture document, and judges neither, so a brief
+  // can be written in a project whose gate is red.
   if (args.purpose) {
-    console.log(describePurpose(purposeOf(checkedBacklog(readJson(args.input, 'the backlog'), 'backlog'), args.purpose)));
+    // The strategy is read through the config, which names one document; the
+    // backlog is still only read, never judged.
+    if (!args.config)
+      throw new Misuse('--purpose needs "--config": the project config names the document that holds the target architecture');
+    const purposeCfg = checkedConfig(readJson(args.config, 'the config'), 'config');
+    const strategy = purposeCfg.architectureDocument ? readStrategy(purposeCfg.architectureDocument) : null;
+    console.log(describePurpose(purposeOf(checkedBacklog(readJson(args.input, 'the backlog'), 'backlog'), args.purpose, strategy)));
     return 0;
   }
   if (!args.config) throw new Misuse('--config <project config> is required; the rules carry no project of their own');

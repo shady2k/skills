@@ -73,7 +73,14 @@ owner must decide — only a quality attribute traded for another, by **The
 owner hears only the trade** — is asked here, by the protocol's [**How an
 open question is put**](references/speaking.md), with its mechanism; the rest
 is decided and recorded alone. The chosen direction is confirmed with the owner
-here, before the record is written at length and before the review, not after. The design record lists its constraints in one
+here, before the record is written at length and before the review, not after.
+Where the decision sets or changes how the system as a whole is to work, it is
+a principle of the project's target architecture: its consequence in practice
+is restated for the owner's confirmation, by the protocol's **A design
+decision comes with its mechanism**, and the architecture document's
+`Solution strategy` is updated in the same change, by **The strategy is the
+target, and the views are the present**. The design record lists its
+constraints in one
 closed section, each a requirement with a check (`uncovered-requirement`); a
 constraint about scale names its size, and its check declares the fixture's
 size (`small-fixture`); and it names the kept principles of its area

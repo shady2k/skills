@@ -120,6 +120,24 @@ C4's levels, under 42010's contract), never all of them: the views this
 decision turns on, and elsewhere what the change made false, by the
 protocol's **What describes the present is kept true**.
 
+**The strategy is the target, and the views are the present.** The architecture
+document's `Solution strategy` section — arc42's solution strategy, its section
+4 — holds the project's architecture principles: how the system is to work, as the owner decided it, apart from
+every other section, which describes how it works today. Each principle is one
+entry: a short name, the owner's words for it, its consequence in practice, in
+the form "a new X is only Y, no Z", and the decision record that carries it.
+The list stays short, about ten to fifteen entries, because every piece of work
+carries it whole, and brevity is the condition of that, not a wish. Where the
+present departs from a principle, the departure is a defect in the code: it is
+fixed there, and neither the principle nor the views are rewritten to absorb
+it: the views keep describing what is there until it is fixed, and neither they
+nor the principle are rewritten to make the departure look intended. A
+principle changes only by a decision the owner gives, whose consequence
+they restated and confirmed, by [deciding.md](deciding.md)'s **A design
+decision comes with its mechanism**. Review and acceptance read the work
+against the list as they read it against the decisions, and a departure is not
+accepted until the code is fixed or the owner changes the principle.
+
 **Review before building.** The review's order is validation before
 verification, as V&V and ATAM both have it: first whether the design serves
 the outcome frame the work was specified from — what the change is for, for

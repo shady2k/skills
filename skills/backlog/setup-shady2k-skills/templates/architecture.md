@@ -22,8 +22,17 @@ flowchart LR
 ```
 
 ## Solution strategy
-<The key decisions — paradigm, stack or starter, main boundaries — each linking
-its decision record.>
+<The project's target architecture: how the system is to work, as the owner
+decided it, in a short list apart from the sections that follow, which describe
+the present. Each principle is one entry: a short name, the owner's words for
+it, its consequence in practice, and the decision record that carries it. The
+list stays short, about ten to fifteen entries, because every piece of work
+carries it whole. Where the code departs from a principle, the code is fixed;
+the principle changes only by the owner's decision. A project with no
+principles says so here in one line starting "None:".>
+
+- **<A short name.>** <The owner's words for it.> In practice: a new <X> is only
+  <Y>, no <Z>. Carried by: [<the decision's title>](<the decision record>).
 
 ## Building blocks
 <Containers (deployable units and stores) and, where useful, their components:

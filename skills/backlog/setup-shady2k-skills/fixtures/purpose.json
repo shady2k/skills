@@ -91,6 +91,7 @@
         "serves O1: a person reaches a first result by answering the questions once",
         "serves J1: A person gathers the general picture first, each pass building on the last.",
         "principle P1: Knowledge is gathered from the general to the specific.",
+        "target architecture: none recorded",
         "stage T1: Issue T1",
         "under E1: Issue E1",
         "seen at signup-page"
@@ -101,6 +102,7 @@
       "expect": [
         "T2: Issue T2",
         "serves nothing: no stage or feature above T2 names what it is for",
+        "target architecture: none recorded",
         "seen at: nowhere declared, so no person reaches it yet"
       ]
     },
@@ -111,8 +113,55 @@
         "serves O1: a person reaches a first result by answering the questions once",
         "serves J1: A person gathers the general picture first, each pass building on the last.",
         "principle P1: Knowledge is gathered from the general to the specific.",
+        "target architecture: none recorded",
         "under E1: Issue E1",
         "seen at signup-page"
+      ]
+    },
+    {
+      "task": "T3",
+      "strategy": "full.md",
+      "expect": [
+        "T3: Issue T3",
+        "serves O1: a person reaches a first result by answering the questions once",
+        "serves J1: A person gathers the general picture first, each pass building on the last.",
+        "principle P1: Knowledge is gathered from the general to the specific.",
+        "target architecture: {strategy}",
+        "strategy One owner per store: a new field is only a change in its owner's model, no second writer",
+        "strategy Dependencies point one way: a new call is only downward, no callback",
+        "stage T1: Issue T1",
+        "under E1: Issue E1",
+        "seen at signup-page"
+      ]
+    },
+    {
+      "task": "T2",
+      "strategy": "none.md",
+      "expect": [
+        "T2: Issue T2",
+        "serves nothing: no stage or feature above T2 names what it is for",
+        "target architecture: none recorded",
+        "seen at: nowhere declared, so no person reaches it yet"
+      ]
+    },
+    {
+      "task": "T2",
+      "strategy": "confirmed-none.md",
+      "expect": [
+        "T2: Issue T2",
+        "serves nothing: no stage or feature above T2 names what it is for",
+        "target architecture: none recorded, as the owner confirmed",
+        "seen at: nowhere declared, so no person reaches it yet"
+      ]
+    },
+    {
+      "task": "T2",
+      "strategy": "placeholder.md",
+      "expect": [
+        "T2: Issue T2",
+        "serves nothing: no stage or feature above T2 names what it is for",
+        "target architecture: none recorded",
+        "seen at: nowhere declared, so no person reaches it yet"
       ]
     }
   ]

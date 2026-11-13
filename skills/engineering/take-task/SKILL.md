@@ -109,6 +109,16 @@ Before the owner leaves, prepare the run so it needs nobody:
   this change needs none; the line it becomes is the same one the run and the
   reviewer read later, and a breakdown cut before it was cut by whoever
   reached for the plan first;
+- **the project's target architecture is recorded**, by
+  [`references/design.md`](references/design.md)'s **The strategy is the
+  target, and the views are the present**: where the purpose command says none
+  is recorded and does not say the owner confirmed there are none, draft the
+  principles from the project's decision records, its vision and the code and
+  put them to the owner as one list, each with its consequence in practice, as
+  setup does; record what they confirm, correct by name, or answer as none, in
+  the architecture document, before the run leaves preflight — an answer of
+  none is recorded there too, so no later run asks again. A run that builds on principles nobody recorded meets them as
+  corrections, one instance at a time;
 - the feature's spec and its stages exist; later stages may stay coarse, and the
   coordinator breaks them into tasks when it reaches them, within the spec.
   On the shortest path above, the task's line is both, and this step asks
@@ -332,10 +342,12 @@ Give each worker its task and criterion, the relevant spec, the glossary's
 entries for the parts it touches, dependencies, base revision, owned scope,
 local check commands, the TDD setting, the commands for its claim and its
 receipt (this script's path and the adapter's export), and where its report
-goes and what it holds. Every brief carries the output of the purpose
-command for its task, so the vision items it serves, whom it serves and
-where it is seen travel with the work, by **A started session answers to the one that started
-it**; record in
+goes and what it holds. Every brief carries the output of the purpose command
+for its task, given the project's config, so the vision items it serves, the
+project's target architecture whole — every principle with its consequence, by
+[design.md](references/design.md)'s **The strategy is the target, and the
+views are the present** - whom it serves and where it is seen travel with the
+work, by **A started session answers to the one that started it**; record in
 the task, as it starts, how to resume it and where its log is. A worker's task fits one session; split one that will not. Use
 isolated checkouts where concurrent writes could collide, and coordinate
 shared generated files, migrations and dependency locks.
@@ -546,7 +558,11 @@ settled: a stage that contradicts a decision, or that opens a second way into a
 capability the project already reaches — a second entry point, store, worker or
 pipeline for the same job — is not accepted until it is fixed or the owner
 changes the decision, by [review.md](review.md)'s **The design the change builds
-on** and building.md's **One surface per capability**. Get a
+on** and building.md's **One surface per capability**. The stage is read
+against the project's target architecture too, by **The strategy is the
+target, and the views are the present**: a stage that departs from a principle
+of the architecture document's `Solution strategy` section is not accepted
+until the code is fixed or the owner changes the principle. Get a
 review following [`review.md`](review.md), preferably from a reviewer on another
 model the set can reach from here ([`agents.md`](references/agents.md)); the
 review answers "matches the design: yes/no, divergences"

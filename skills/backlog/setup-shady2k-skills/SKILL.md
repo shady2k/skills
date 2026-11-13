@@ -544,6 +544,24 @@ questionnaire**.
   Choose how **every commit** names its task, setup, documentation, research
   and prototypes included, and how merge and revert commits keep that link;
   they are not silent exemptions.
+- **The target architecture.** The project's architecture document keeps its
+  architecture principles in a `Solution strategy` section, by the protocol's
+  [**The strategy is the target, and the views are the present**](references/design.md),
+  each entry written the way that rule says one reads. Name that document in the
+  config as
+  `architectureDocument`: the purpose command reads the list from it for every
+  brief, so the list is copied nowhere. Where the document has no such section,
+  the section still holds the template's placeholders, or the project has no
+  architecture document, draft the principles from what the project already
+  holds — its decision records, its vision, the code — and
+  bring them to the owner as **one list, each with its consequence**, for one
+  acceptance: they confirm it, correct it by name, or answer that there are no
+  principles, which is recorded in the section in one line starting `None:`.
+  Setup does not finish until one of those is recorded. Say what the list is
+  for in their terms: every piece of work, and the review of it, is judged
+  against it, and where the code has drifted from it the code is fixed, never
+  the principle. Do not make them word a principle: the wording is the agent's
+  draft, the consequence is what they confirm.
 
 ## 3. Write or repair the integration
 
@@ -567,6 +585,7 @@ them and propose it instead.
   "timeRecordsExempt": [],
   "codePaths": ["<the paths in this project that are code>"],
   "presentDocuments": ["<the agent doc, glossary, architecture, current specs>"],
+  "architectureDocument": "<the architecture document, which holds the target architecture>",
   "presentAreas": [""], "presentIgnores": [], "presentChurnCommits": 20,
   "execution": {
     "development": "<tdd | test-after>",
@@ -609,6 +628,9 @@ that check's input, so a path outside it — a document, a tracker export, a
 change record — is never code and no commit that touches one is refused. An
 empty list counts nothing as code, which is the honest answer for a project
 that has not decided yet.
+`architectureDocument` names the one document that holds the project's target
+architecture. A project without an architecture document leaves it out, and the
+briefs then say the target architecture is not recorded.
 
 `notifyPushes` is the project's only note about the owner's channel: the
 channel itself — the command and wherever it keeps its token — is the
@@ -1149,6 +1171,14 @@ still open, which is where a run can still act on the answer — so a project on
 `block-new` sees its older stages as printed debt and a project on `block` is
 stopped by them until each is named or re-cut, and the gate's next run names
 them by id, so the list is read from it rather than guessed.
+
+**What an update to this setup version changes, in the owner's terms.** Your
+project's target architecture — how you said the system is to work, each
+principle with what one will do because of it — now travels with every piece of
+work and is judged at review and acceptance; where the code has drifted from
+it, the code is fixed, not the principle. Where the project records none, this
+run asks once, showing a drafted list for you to confirm, correct by name, or
+decline.
 
 An update that brings the store out of the branches tells the owner the move
 is coming and why, in their terms, and how it is done without losing a record:

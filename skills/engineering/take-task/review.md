@@ -54,7 +54,12 @@ Cover both sides, with parallel reviewers where useful:
   capability** and **Find before writing**. A second way in beside the one a
   decision put there, or a retirement the plan promised and the revision does
   not carry, is a blocking finding, and so is a change that contradicts a
-  recorded decision without saying so.
+  recorded decision without saying so. The same reading is made against the
+  project's target architecture, the `Solution strategy` section of its
+  architecture document: the reviewer names any principle the change departs
+  from, by [`references/design.md`](references/design.md)'s **The strategy is
+  the target, and the views are the present**, and a departure is a blocking
+  finding unless the code is fixed or the owner has changed the principle.
 - **Diagnosability:** whether failures explain themselves: errors carry their
   causes, logs follow the project's levels and carry request and trace ids
   where requests cross components, no secrets or personal data are logged, and

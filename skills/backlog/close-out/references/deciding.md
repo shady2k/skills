@@ -131,6 +131,13 @@ built, what would be rebuilt and what survives either way. Work already done is
 never a reason to finish it: that is the sunk-cost fallacy. When the answer
 comes back from outside every option offered, that is the frame's fault and not
 late insight: it cost a round for every message that held the mechanism back.
+A decision that sets how the system as a whole is to work is a principle of its
+target architecture, and it is confirmed by its consequence, not by its
+wording: the agent reads it back to them — what one will do because of it, in
+the form "a new X is only Y, no Z" — and the owner confirms or corrects that
+sentence, which is what the principle is recorded as. A yes to the abstract formulation has
+confirmed nothing anyone can act on, and the difference shows only when the
+first work built on it goes the other way.
 All of this is for a decision that is **open**: once it is given, there are no
 options to offer.
 

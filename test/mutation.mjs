@@ -93,6 +93,19 @@ const mutations = [
     change: (code) => code.replace('wayOfWorking: practice === undefined ? RETAINED_WAY_OF_WORKING : practice', 'wayOfWorking: practice') },
   { name: 'purpose-command', file: 'check.mjs', failure: 'FAIL  purpose/T3',
     change: (code) => code.replace('const lines = [`${p.id}: ${p.title}`];', 'const lines = [];') },
+  // The target architecture travels whole into every brief, and a strategy the
+  // gate cannot read is refused instead of printed as none: each is muted in its
+  // own copy, and the fixture written for it has to catch it.
+  { name: 'strategy-carried-whole', file: 'check.mjs', failure: 'FAIL  purpose/T3 with strategy/full.md',
+    change: (code) => code.replace('for (const k of p.strategy.principles) lines.push', 'for (const k of p.strategy.principles.slice(0, 1)) lines.push') },
+  { name: 'strategy-malformed-refused', file: 'check.mjs', failure: 'FAIL  strategy/malformed',
+    change: (code) => code.replace('    if (!/Carried by:', '    if (false && !/Carried by:') },
+  { name: 'strategy-unfinished-placeholder', file: 'check.mjs', failure: 'FAIL  strategy/unfinished',
+    change: (code) => code.replace('  if (inPlaceholder)\n', '  if (false)\n') },
+  { name: 'strategy-none-contradicts-a-principle', file: 'check.mjs', failure: 'FAIL  strategy/contradiction',
+    change: (code) => code.replace('  if (none && entries.length)\n', '  if (false)\n') },
+  { name: 'strategy-needs-the-owners-words', file: 'check.mjs', failure: 'FAIL  strategy/no-words',
+    change: (code) => code.replace('      throw new Misuse(`${path}:${e.line}: the principle "${name}" carries no owner\'s words', '      void (`${path}:${e.line}: the principle "${name}" carries no owner\'s words') },
   { name: 'documents-mutation-not-made', file: 'check-docs.mjs', failure: 'FAIL  documents/a-mutation-run-that-is-not-made-is-not-a-refusal:',
     change: (code) => code.replace("kindOf.get(id) === 'mutation'", 'false') },
   { name: 'documents-applies-to', file: 'check-docs.mjs', failure: 'FAIL  documents/check-for-other-kind:',

@@ -90,6 +90,12 @@ locks you in, who owns which data, a deliberate step off the obvious path, a
 constraint the code cannot show, an alternative rejected for a non-obvious
 reason.
 
+A record that sets how the system as a whole is to work also sets a principle:
+restate its consequence in practice for the owner's confirmation and write it
+into the architecture document's `Solution strategy` with the record, by
+[design.md](references/design.md)'s **The strategy is the target, and the views
+are the present** and **A design decision comes with its mechanism**.
+
 The record follows MADR, the common decision-record format; a small decision
 keeps each section to a line or two:
 
