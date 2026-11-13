@@ -120,13 +120,13 @@
     },
     {
       "task": "T3",
-      "strategy": "full.md",
+      "root": "full",
       "expect": [
         "T3: Issue T3",
         "serves O1: a person reaches a first result by answering the questions once",
         "serves J1: A person gathers the general picture first, each pass building on the last.",
         "principle P1: Knowledge is gathered from the general to the specific.",
-        "target architecture: {strategy}",
+        "target architecture: docs/system/architecture.md",
         "strategy One owner per store: a new field is only a change in its owner's model, no second writer",
         "strategy Dependencies point one way: a new call is only downward, no callback",
         "stage T1: Issue T1",
@@ -135,8 +135,35 @@
       ]
     },
     {
+      "task": "T3",
+      "root": "elsewhere",
+      "expect": [
+        "T3: Issue T3",
+        "serves O1: a person reaches a first result by answering the questions once",
+        "serves J1: A person gathers the general picture first, each pass building on the last.",
+        "principle P1: Knowledge is gathered from the general to the specific.",
+        "target architecture: docs/system/architecture/index.md",
+        "strategy One owner per store: a new field is only a change in its owner's model, no second writer",
+        "stage T1: Issue T1",
+        "under E1: Issue E1",
+        "seen at signup-page"
+      ]
+    },
+    {
       "task": "T2",
-      "strategy": "none.md",
+      "root": "fallback",
+      "expect": [
+        "T2: Issue T2",
+        "serves nothing: no stage or feature above T2 names what it is for",
+        "target architecture: docs/system/architecture.md",
+        "strategy One owner per store: a new field is only a change in its owner's model, no second writer",
+        "strategy Dependencies point one way: a new call is only downward, no callback",
+        "seen at: nowhere declared, so no person reaches it yet"
+      ]
+    },
+    {
+      "task": "T2",
+      "root": "none",
       "expect": [
         "T2: Issue T2",
         "serves nothing: no stage or feature above T2 names what it is for",
@@ -146,7 +173,17 @@
     },
     {
       "task": "T2",
-      "strategy": "confirmed-none.md",
+      "root": "absent",
+      "expect": [
+        "T2: Issue T2",
+        "serves nothing: no stage or feature above T2 names what it is for",
+        "target architecture: none recorded",
+        "seen at: nowhere declared, so no person reaches it yet"
+      ]
+    },
+    {
+      "task": "T2",
+      "root": "confirmed-none",
       "expect": [
         "T2: Issue T2",
         "serves nothing: no stage or feature above T2 names what it is for",
@@ -156,12 +193,46 @@
     },
     {
       "task": "T2",
-      "strategy": "placeholder.md",
+      "root": "crlf",
       "expect": [
         "T2: Issue T2",
         "serves nothing: no stage or feature above T2 names what it is for",
-        "target architecture: none recorded",
+        "target architecture: docs/system/architecture.md",
+        "strategy One owner per store: a new field is only a change in its owner's model, no second writer",
         "seen at: nowhere declared, so no person reaches it yet"
+      ]
+    }
+  ],
+  "refusals": [
+    {
+      "root": "twice",
+      "says": [
+        "docs/system/architecture.md",
+        "docs/decisions/0001-one-way-in.md"
+      ]
+    },
+    {
+      "root": "malformed",
+      "says": [
+        "docs/system/architecture.md:5:"
+      ]
+    },
+    {
+      "root": "unfinished",
+      "says": [
+        "docs/system/architecture.md:4:"
+      ]
+    },
+    {
+      "root": "no-words",
+      "says": [
+        "docs/system/architecture.md:5:"
+      ]
+    },
+    {
+      "root": "contradiction",
+      "says": [
+        "docs/system/architecture.md:7:"
       ]
     }
   ]

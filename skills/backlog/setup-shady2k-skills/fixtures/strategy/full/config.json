@@ -1,0 +1,6 @@
+{
+  "presentDocuments": [
+    "AGENTS.md",
+    "docs/**/*.md"
+  ]
+}

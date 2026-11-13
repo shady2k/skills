@@ -544,13 +544,15 @@ questionnaire**.
   Choose how **every commit** names its task, setup, documentation, research
   and prototypes included, and how merge and revert commits keep that link;
   they are not silent exemptions.
-- **The target architecture.** The project's architecture document keeps its
-  architecture principles in a `Solution strategy` section, by the protocol's
+- **The target architecture.** The architecture document the present documents
+  already name — the layout's `docs/system/architecture.md` where the project
+  names none — keeps the project's architecture principles in a `Solution
+  strategy` section, by the protocol's
   [**The strategy is the target, and the views are the present**](references/design.md),
-  each entry written the way that rule says one reads. Name that document in the
-  config as
-  `architectureDocument`: the purpose command reads the list from it for every
-  brief, so the list is copied nowhere. Where the document has no such section,
+  each entry written the way that rule says one reads. No setting names it: the
+  purpose command reads the list from that section for every brief, so the list
+  is copied nowhere and the place is named once, with the documents that
+  describe the present. Where the document has no such section,
   the section still holds the template's placeholders, or the project has no
   architecture document, draft the principles from what the project already
   holds — its decision records, its vision, the code — and
@@ -585,7 +587,6 @@ them and propose it instead.
   "timeRecordsExempt": [],
   "codePaths": ["<the paths in this project that are code>"],
   "presentDocuments": ["<the agent doc, glossary, architecture, current specs>"],
-  "architectureDocument": "<the architecture document, which holds the target architecture>",
   "presentAreas": [""], "presentIgnores": [], "presentChurnCommits": 20,
   "execution": {
     "development": "<tdd | test-after>",
@@ -628,9 +629,12 @@ that check's input, so a path outside it — a document, a tracker export, a
 change record — is never code and no commit that touches one is refused. An
 empty list counts nothing as code, which is the honest answer for a project
 that has not decided yet.
-`architectureDocument` names the one document that holds the project's target
-architecture. A project without an architecture document leaves it out, and the
-briefs then say the target architecture is not recorded.
+`presentDocuments` is also where the target architecture is read: the purpose
+command takes the documents it names and reads the `Solution strategy` section
+of the one that holds it, so a project names the place once. A project that
+names no present documents is read at the layout's place,
+`docs/system/architecture.md`; a project with neither has no target architecture
+recorded, and its briefs say so.
 
 `notifyPushes` is the project's only note about the owner's channel: the
 channel itself — the command and wherever it keeps its token — is the
@@ -643,7 +647,10 @@ installation state: the installed checks' versions on the main line are the
 repository's installation, and each person's plugin, hooks and runtime are
 their own, checked directly. An older config's `setupStatus`,
 `setupVersion` and `setupVerifiedAt` are removed in this setup's landing,
-silently, by the protocol's **Speaking to the owner** (never show the kitchen).
+silently, by the protocol's **Speaking to the owner** (never show the kitchen),
+and so is `architectureDocument`: nothing reads it, and a key naming the
+architecture beside the present documents that already name it would say the
+place is still a setting.
 
 **Adapter:** read [model.md](model.md) in full before writing or changing it.
 It exports every status, closed, `submitted` and `implemented` included, real

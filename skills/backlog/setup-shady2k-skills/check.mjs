@@ -66,6 +66,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pathMatcher } from './document-format.mjs';
 import { spansOf } from './time-format.mjs';
 import { ValueNeeded, valueOf } from './argv.mjs';
 
@@ -329,29 +330,104 @@ const recordComputed = (r) => typeof r.enough === 'boolean' && Number.isFinite(r
 
 
 // ---------------------------------------- the project's target architecture
+
+// Where the document structure already puts the architecture document
+// (documents.md): read where a project names no present documents, so no
+// setting names a place the structure does. A product repository's places are
+// its layout's, and this is the same one.
+const ARCHITECTURE_PLACE = 'docs/system/architecture.md';
+
+// The section's heading, read in one place: what makes a document the one that
+// holds the strategy, and where the section starts in it.
+const STRATEGY_HEADING = /^##[ \t]+Solution strategy[ \t]*$/i;
+
+// A document's lines, read the same way whichever line ending its author's
+// editor wrote: a carriage return left on every line is not a heading that
+// differs, and a project whose files are CRLF has the same strategy as one
+// whose are LF.
+const linesOf = (text) => String(text).replace(/\r\n/g, '\n').split('\n');
+
 /**
- * The project's target architecture, read from the architecture document the
- * config names, at the moment a brief is written: the Solution strategy
- * section, one entry per principle (its short name, its consequence in
- * practice, and the decision record that carries it). Copied nowhere — a copy
- * in a brief would be the strategy of the day the brief was written.
+ * The files a project's present documents name, under `root`. The entries are
+ * the config's `presentDocuments` — path patterns — and they are resolved by
+ * the matcher check-present.mjs resolves the same list with, so a pattern means
+ * one thing to both.
+ */
+function presentFiles(root, patterns) {
+  const matches = patterns.map((pattern) => {
+    try {
+      return pathMatcher(pattern);
+    } catch (e) {
+      throw new Misuse(`presentDocuments: ${e.message}`);
+    }
+  });
+  const found = [];
+  const walk = (folder) => {
+    let entries;
+    try {
+      entries = readdirSync(folder ? join(root, folder) : root, { withFileTypes: true });
+    } catch (e) {
+      throw new Misuse(`${folder || '.'}: the folder a present document could be in cannot be read (${e.message})`);
+    }
+    for (const entry of entries) {
+      // A repository's own metadata and its dependencies hold no document of
+      // the project's; a symbolic link is neither listed nor followed, so no
+      // link can lead the walk out of the tree or around itself.
+      if (entry.name === '.git' || entry.name === 'node_modules') continue;
+      const path = folder ? `${folder}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) walk(path);
+      else if (entry.isFile() && matches.some((m) => m(path))) found.push(path);
+    }
+  };
+  walk('');
+  return found.sort();
+}
+
+/**
+ * The project's target architecture, found where the document structure
+ * already names it, at the moment a brief is written: the Solution strategy
+ * section of the one document among the config's `presentDocuments` that holds
+ * it — one entry per principle, its short name, its consequence in practice,
+ * and the decision record that carries it. A project that names no present
+ * documents is read at the layout's place for the architecture document.
+ * Copied nowhere — a copy in a brief would be the strategy of the day the brief
+ * was written.
  *
- * Null means the document has no such section, so nothing is recorded; `none:
+ * Null means no document has such a section, so nothing is recorded; `none:
  * true` means the section says the owner confirmed there are no principles. A
  * section holding anything else that is neither a principle nor that line is a
  * misuse with its file and line, never a silent empty: a brief that carries no
  * strategy because the document could not be read is how the work is built on
- * principles nobody stated.
+ * principles nobody stated. Two documents holding the section is a misuse too:
+ * the strategy is one, and picking one of them would be guessing which.
  */
-export function readStrategy(path) {
-  let text;
-  try {
-    text = readFileSync(path, 'utf8');
-  } catch {
-    throw new Misuse(`${path}: the config names this architecture document as architectureDocument and it cannot be read`);
+export function findStrategy(root, presentDocuments) {
+  if (presentDocuments != null
+    && (!Array.isArray(presentDocuments) || !presentDocuments.length
+      || presentDocuments.some((p) => typeof p !== 'string' || !p.trim())))
+    throw new Misuse('presentDocuments must be a non-empty list of path patterns, or absent');
+  const holding = [];
+  for (const path of presentFiles(root, presentDocuments ?? [ARCHITECTURE_PLACE])) {
+    let text;
+    try {
+      text = readFileSync(join(root, path), 'utf8');
+    } catch (e) {
+      throw new Misuse(`${path}: a present document cannot be read (${e.message})`);
+    }
+    if (linesOf(text).some((line) => STRATEGY_HEADING.test(line))) holding.push({ path, text });
   }
-  const lines = text.split('\n');
-  const start = lines.findIndex((l) => /^##\s+Solution strategy\s*$/i.test(l));
+  if (holding.length > 1)
+    throw new Misuse(`${holding.map((h) => h.path).join(', ')}: ${holding.length} present documents hold a "## Solution strategy" section, and the target architecture is kept in one; name one of them in presentDocuments or move the section into the one that is the project\'s architecture`);
+  return holding.length ? readStrategy(holding[0].text, holding[0].path) : null;
+}
+
+/**
+ * The strategy one document's text holds, named by its repository-relative
+ * path in everything it prints and refuses.
+ */
+export function readStrategy(text, path) {
+  const lines = linesOf(text);
+  const start = lines.findIndex((l) => STRATEGY_HEADING.test(l));
   if (start < 0) return null;
   let end = lines.length;
   for (let i = start + 1; i < lines.length; i++) if (/^##\s/.test(lines[i])) { end = i; break; }
@@ -439,9 +515,9 @@ export function readStrategy(path) {
  * travel down the chain and are expanded here, at read time — a reference, never
  * a copy.
  *
- * `strategy` is the project's target architecture, read from the document the
- * config names at the moment the brief is written (see readStrategy): the whole
- * list travels with the work, never a part of it.
+ * `strategy` is the project's target architecture, found where the document
+ * structure puts it at the moment the brief is written (see findStrategy): the
+ * whole list travels with the work, never a part of it.
  */
 export function purposeOf(backlog, taskId, strategy = null) {
   const m = index(backlog);
@@ -1074,7 +1150,7 @@ function bulkClusters(m, threshold) {
 
 // The version of the set these rules shipped with. A project holds a COPY of
 // this file, and this is how anybody tells that the copy has fallen behind.
-const RULES_VERSION = '0.69.0';
+const RULES_VERSION = '0.70.0';
 
 const STRENGTHS = ['block', 'block-new', 'report'];
 
@@ -1123,12 +1199,6 @@ function checkedConfig(raw, where) {
   if (practice !== undefined && !WAYS_OF_WORKING.includes(practice))
     throw new Misuse(`${where}: execution.wayOfWorking ${JSON.stringify(practice)} is not one of ${WAYS_OF_WORKING.map((w) => `"${w}"`).join(', ')}`);
   cfg.execution = { ...(cfg.execution || {}), wayOfWorking: practice === undefined ? RETAINED_WAY_OF_WORKING : practice };
-  // Where the target architecture is kept: one document, named by path. The
-  // present-documents list says which documents describe the present and
-  // cannot say which of them holds the strategy. A project with none leaves the
-  // value out, and its briefs then say the target architecture is not recorded.
-  if (cfg.architectureDocument != null && (typeof cfg.architectureDocument !== 'string' || !cfg.architectureDocument.trim()))
-    throw new Misuse(`${where}: architectureDocument must be the path of the project's architecture document, or absent`);
   return cfg;
 }
 
@@ -1458,28 +1528,36 @@ function runSelftest(cfg, projectConfigPath) {
 
   // The purpose command is proven on its own fixture: the exact lines a brief
   // carries, the vision's own wording and all. It reads and judges nothing, so
-  // its proof is that the text it prints is the text the record holds.
+  // its proof is that the text it prints is the text the record holds; the
+  // strategy is a fixture repository's own document, found the way the command
+  // finds it, among the documents that repository names as describing the
+  // present.
   const purpose = load('.', 'purpose.json');
+  const readFixture = (root) => JSON.parse(readFileSync(join(dir, 'strategy', root, 'config.json'), 'utf8'));
   for (const c of purpose.cases) {
-    // The strategy is a real document beside the backlog, read the way the
-    // command reads it: a project's, not this fixture's.
-    const file = c.strategy ? join(dir, 'strategy', c.strategy) : null;
-    const strategy = file ? readStrategy(file) : null;
-    const want = c.expect.map((l) => l.replace('{strategy}', file || '')).join('\n');
-    const got = describePurpose(purposeOf(purpose.backlog, c.task, strategy));
-    say(got === want, `purpose/${c.task}${c.strategy ? ` with strategy/${c.strategy}` : ''} → ${got === want ? 'the lines a brief carries' : `got ${JSON.stringify(got)}`}`);
-  }
-  // A strategy the gate cannot read is refused at its line, never printed as a
-  // brief with no architecture: the work would then be built on principles
-  // nobody stated, which is the failure this reads for.
-  for (const [file, at] of [['malformed.md', 5], ['unfinished.md', 4], ['no-words.md', 5], ['contradiction.md', 7]]) {
-    const what = `strategy/${file.replace('.md', '')}`;
+    const root = c.root ? join(dir, 'strategy', c.root) : null;
+    const want = c.expect.join('\n');
+    let got;
     try {
-      readStrategy(join(dir, 'strategy', file));
+      const strategy = root ? findStrategy(root, readFixture(c.root).presentDocuments) : null;
+      got = describePurpose(purposeOf(purpose.backlog, c.task, strategy));
+    } catch (e) {
+      got = `refused: ${e.message}`;
+    }
+    say(got === want, `purpose/${c.task}${c.root ? ` with strategy/${c.root}` : ''} → ${got === want ? 'the lines a brief carries' : `got ${JSON.stringify(got)}`}`);
+  }
+  // A section the gate cannot read, or one two documents hold, is refused by
+  // name, never printed as a brief with no architecture: the work would then be
+  // built on principles nobody stated, which is the failure this reads for.
+  for (const c of purpose.refusals) {
+    const root = join(dir, 'strategy', c.root);
+    const what = `strategy/${c.root}`;
+    try {
+      findStrategy(root, readFixture(c.root).presentDocuments);
       say(false, `${what} → read as a strategy it cannot read`);
     } catch (e) {
-      const said = e instanceof Misuse && e.message.includes(`${file}:${at}:`);
-      say(said, `${what} → refused at its own file and line${said ? '' : `  (said ${e.message})`}`);
+      const said = e instanceof Misuse && c.says.every((s) => e.message.includes(s));
+      say(said, `${what} → refused by name${said ? '' : `  (said ${e.message})`}`);
     }
   }
   // The three strengths, on one backlog that violates an error-severity rule.
@@ -1697,8 +1775,11 @@ function main() {
         '--purpose prints the purpose of one task for the brief of whoever does it:\n' +
         'the vision items it serves in their current wording, the project\'s target\n' +
         'architecture whole — each principle with its consequence — whom it serves\n' +
-        'and where a person sees it. One line per fact, read from the config and the\n' +
-        'architecture document it names; it judges no backlog.\n' +
+        'and where a person sees it. One line per fact, read from the backlog and\n' +
+        'this checkout: the strategy is the `Solution strategy` section of the one\n' +
+        'document among the config\'s presentDocuments that holds it, or of the\n' +
+        'layout\'s docs/system/architecture.md where the config names none. It\n' +
+        'judges no backlog.\n' +
         'Exit 0 green, 1 red, 2 misuse.\n\n' +
         'Checks: ' + CHECKS.map((c) => c.id).join(', '),
     );
@@ -1712,15 +1793,14 @@ function main() {
     return runSelftest(checkedConfig(readJson(join(HERE, 'fixtures', 'config.json'), 'the fixture config'), 'fixture config'), args.config);
 
   // The purpose of a task is read, never judged: it needs the backlog and the
-  // config that names the architecture document, and judges neither, so a brief
-  // can be written in a project whose gate is red.
+  // config that names the documents describing the present, and judges neither,
+  // so a brief can be written in a project whose gate is red. The documents are
+  // read where the command runs, which is the repository root.
   if (args.purpose) {
-    // The strategy is read through the config, which names one document; the
-    // backlog is still only read, never judged.
     if (!args.config)
-      throw new Misuse('--purpose needs "--config": the project config names the document that holds the target architecture');
+      throw new Misuse('--purpose needs "--config": the config says which documents describe the present, and the target architecture is read from them');
     const purposeCfg = checkedConfig(readJson(args.config, 'the config'), 'config');
-    const strategy = purposeCfg.architectureDocument ? readStrategy(purposeCfg.architectureDocument) : null;
+    const strategy = findStrategy(process.cwd(), purposeCfg.presentDocuments);
     console.log(describePurpose(purposeOf(checkedBacklog(readJson(args.input, 'the backlog'), 'backlog'), args.purpose, strategy)));
     return 0;
   }

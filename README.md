@@ -899,6 +899,16 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.145.0** reads the target architecture from the architecture document your
+  project already keeps, with nothing new to set. The strategy is found in the
+  one document your configuration already lists among the documents that
+  describe the present — or in `docs/system/architecture.md` where you listed
+  none — so the place is named once, by the project's own document structure,
+  and every brief carries the same list as before. Where two of your documents
+  hold a solution strategy, the purpose command stops and names both instead of
+  choosing one for you. **Everyone who updates runs setup once**, because the
+  installed check changed and setup drops the setting that used to name the
+  document.
 - **0.144.0** keeps the architecture you decided in front of every piece of work.
   How you said the system is to work — each principle with the consequence it
   has in practice, what one does because of it and what nobody does — now stands
