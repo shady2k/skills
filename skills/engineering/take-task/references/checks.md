@@ -31,6 +31,22 @@ The first move is to read the assertion that failed, at the file and line the
 check names, and the code that moves each value it asserts on. A match with a
 known issue is not a cause: it explains nothing and buys no pass.
 
+A broken machine is not a flaky check. A failure belongs to the environment
+only when its cause is named, lies outside the change, and the diff bears it
+out — the change touched no dependency, environment, build file or CI script
+that would produce it: a binary absent from `PATH`, `exit 127`, a `HOME`,
+`TMPDIR` or writable path the run does not have, a runner that went away. Such
+a check has judged no code, and reading the code answers nothing. The breakage
+is repaired where it is found — within **Autonomy**: where the repair is CI
+minutes or a quota the run would have to buy, **CI capacity is a budget the
+whole run shares** is read first — and the check is started again only once
+that cause is gone. A runner that went away is read from what the forge says,
+by **A state not yet known is not a good one**, before anything is started.
+Mending the run's own ground is not the rerun this rule forbids, which repeats
+what already ran to guess at a cause; within **Autonomy** it is no reason to
+hold the stage, and no decision is waiting behind it. A failure that comes
+back unchanged after the repair is a red check like any other.
+
 **A gate that refuses is not routed around.** A check stands for work, and it is
 satisfied only by doing that work: any move that changes the measurement instead
 defeats it, which is Goodhart's law. A refusal names what this run still owes,
