@@ -899,6 +899,19 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.145.1** makes two protocol rules cost what the decision is worth. A small,
+  reversible fix that is useful whatever the history — a leaked resource closed
+  in `finally` — lands on its own check, its review and its pull request, and
+  the cause of the fault stays a hypothesis until something establishes it. The
+  controlled experiment, with the rival explanations ruled out, is owed where a
+  decision is expensive, contested, risky or irreversible, or where the choice
+  of code turns on its answer. A check that fails because its machine is missing
+  something — no binary in `PATH`, `exit 127`, a `HOME` or `TMPDIR` the run
+  cannot use, a runner that went away — counts as the environment's only when
+  the cause is named and the diff shows the change did not touch it: the
+  environment is repaired and the check run again once that cause is gone, and
+  a failure that returns unchanged is an ordinary red check. No installation
+  changes: no setup rerun.
 - **0.145.0** reads the target architecture from the architecture document your
   project already keeps, with nothing new to set. The strategy is found in the
   one document your configuration already lists among the documents that

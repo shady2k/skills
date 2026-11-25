@@ -152,12 +152,19 @@ with the span it covers. A cause is established as a controlled experiment
 establishes one: against a control that differs only in the suspected factor,
 under the conditions the real system works in, replicated, and with the rival
 explanations ruled out as differential diagnosis rules them out, the
-measurement's own artefacts among them. The more a claim explains, the more it
-would cost if it were wrong, and the more it lays the fault on someone else's
-work, the more it is worth the check, and it is checked before it frames
-anything: a task, a document, a message to the owner, anything sent beyond the
-project. A claim not yet checked, one's own or one inherited from a record,
-travels as a hypothesis with what would settle it. One found false is
+measurement's own artefacts among them. Depth follows the stakes, and that
+experiment is owed only where its answer decides something: a decision that is
+expensive, contested, risky or irreversible, and a finding on which the choice
+of code turns. A small, reversible fix that is worth having whatever the
+history — a resource closed in `finally` — is not held to it: its own check,
+review and a pull request are the evidence it needs, so the fix lands while
+what caused the fault is still a hypothesis, named as one rather than reported
+as established. The more a claim explains, the more it would cost if it were
+wrong, and the more it lays the fault on someone else's work, the more it is
+worth testing before it frames anything: a task, a document, a message to the
+owner, anything sent beyond the project. A claim not yet checked, one's own or
+one inherited from a record, travels as a hypothesis with what would settle it.
+One found false is
 corrected by **Correcting yourself is not asking permission**. Where work
 follows a reference — a mockup, a prior version, another product, a spec's
 example output — conformance is shown by comparison, not by assertion:
