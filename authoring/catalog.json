@@ -40,7 +40,8 @@
     "skills/backlog/setup-shady2k-skills/protocol.md": "authoring/skills/backlog/setup-shady2k-skills/protocol.md.in",
     "skills/backlog/setup-shady2k-skills/references/model-environment.md": "authoring/skills/backlog/setup-shady2k-skills/references/model-environment.md.in",
     "skills/engineering/take-task/review.md": "authoring/skills/engineering/take-task/review.md.in",
-    "skills/backlog/setup-shady2k-skills/references/landing.md": "authoring/skills/backlog/setup-shady2k-skills/references/landing.md.in"
+    "skills/backlog/setup-shady2k-skills/references/landing.md": "authoring/skills/backlog/setup-shady2k-skills/references/landing.md.in",
+    "skills/backlog/setup-shady2k-skills/references/okr.md": "authoring/skills/backlog/setup-shady2k-skills/references/okr.md.in"
   },
   "fragments": {
     "backlog-prerequisite-protocol-contents": {

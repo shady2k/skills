@@ -39,9 +39,9 @@ issue that already covers it.
 | what arrived | lane |
 | --- | --- |
 | an idea, a wish, a "what if" | the **ideas** lane, with a review date |
-| a bug or debt on the current milestone's path | **finding**: under the stage it serves, with the finding label and the current milestone's label; step 3 first |
+| a bug or debt on the current milestone's path, and it moves or protects one of the goal's key results | **finding**: under the stage it serves, with the finding label and the current milestone's label; step 3 first |
 | a defect a required check caught on the way to a merge, fixed to make it green; or a fault in the set's own checks, hooks, connect command or their CI wiring | not a finding, by the protocol's **Only what the milestone chose is intake**: with the work whose merge it blocks, or with the setup task: under it where it is a container, beside it where it is a leaf. What the work leaves unfixed is a finding |
-| a bug or debt off that path | deferred, under its feature, or with no parent if it has none |
+| a bug or debt that moves no key result | deferred, under its feature, or with no parent if it has none |
 | planned work the charter already names | `to-stages` when breaking it down is authorized; otherwise send it that way. A fix needed to meet an agreed criterion is part of that work, not a finding |
 | work for a later milestone | deferred, with that milestone's label, as a feature title only |
 | a question that blocks building | work, under the stage it blocks; it is not an idea |
@@ -51,6 +51,15 @@ issue that already covers it.
 A lane may file a bug or debt under no stage: it is closed by the merge that
 delivers it, by the protocol's **A leaf with no stage closes at its merge**, and
 needs no stage made for it.
+
+What a finding is worth reading is the key result it moves or protects, by the
+protocol's [**A project's goal is its key results, and every piece of work names
+the one it moves**](references/okr.md): a fault that keeps work for a key result
+from landing, or that costs a person what the result counts, is on the queue; a
+fault of an area nobody's key result touches waits where the rest of that area
+waits. Where the contribution cannot be stated, the item says so and the owner
+is asked — filing it need not wait for the answer, and a key result named to
+qualify it is worse than none.
 
 A finding that needs its own feature is a scope decision for the owner: join
 the current milestone by an explicit scope and budget change, or wait deferred.
@@ -85,6 +94,12 @@ owner**](references/speaking.md) says.
 
 - A **title that is a sentence**: the work is clear from it alone, and each
   part is called by the glossary's name for it.
+- **The key result it moves or protects**, in a `Moves:` line, where the project
+  has a goal.
+- **The size it will be taken at**: one short pull request and hours of agent
+  work, by the protocol's **The queue and the breakdown follow the key
+  results**. A result bigger than that is filed as the outcome it belongs to,
+  and `to-stages` cuts it — never as one task that nobody may split.
 - **Exactly one area label**, for the area that owns the behaviour.
 - An observable criterion and what would disprove it. For a bug: what a person
   does, what happens, what should happen, and the requirement it breaks, if any.

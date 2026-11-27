@@ -35,12 +35,17 @@ Read `currentMilestone` from the gate config.
 ## 1. Read before asking
 
 Read the vision, the previous charter and the ending milestone's state: which
-outcomes are done and how many findings it took against its budget. Where the
-project keeps its product documents, read too the results its hypotheses
-recorded since the last charter: a confirmed one is spent, and a refuted or
-inconclusive one is worked into the outcomes this charter proposes — what the
-belief was, the measure read against its recorded threshold, and what the
-answer changes for the direction. Without a
+outcomes are done and how many findings it took against its budget. Read the
+project's goal with them, by the protocol's [**A project's goal is its key
+results, and every piece of work names the one it moves**](references/okr.md):
+the objective, its two or three key results and the date the period closes, and
+how far the ending milestone moved each of them. Where the project has no goal
+yet, say so in one line and propose one with the draft rather than planning
+towards nothing. Where the project keeps its product documents, read too the
+results its hypotheses recorded since the last charter: a confirmed one is
+spent, and a refuted or inconclusive one is worked into the outcomes this
+charter proposes — what the belief was, the measure read against its recorded
+threshold, and what the answer changes for the direction. Without a
 vision, draft its direction, audience and exclusions from known decisions and
 recommend it. Ask only for missing requirements that matter. Record the agreed
 vision on one page at the integration's path.
@@ -83,7 +88,11 @@ The draft covers:
    can progress in parallel; their order in the charter is not a dependency.
    Each outcome carries its success signal for users, by the protocol's
    [**The outcome frame comes before the work is specified**](references/lifecycle.md):
-   how we will know the slice worked for the people it serves. Each outcome
+   how we will know the slice worked for the people it serves. It names in a
+   `Moves:` line the key results it moves, by [okr.md](references/okr.md); an
+   outcome that moves none of the period's key results is a scope decision for
+   the owner, put with what it would postpone, and not a slice to plan quietly.
+   Each outcome
    names in a `Serves:` line the vision journeys and principles it serves
    (`unserved-outcome`); charter acceptance carries the judgement record of
    a different model (`missing-judgement`), each of its entries an id the
@@ -103,7 +112,10 @@ The draft covers:
 6. **A target date**, where the milestone serves one the owner set from
    outside the project — a demo, a release, someone outside the work who
    waits: taken with who set it and why, and written into the charter with
-   that. None is invented where the owner has none; the run's forecast stays
+   that. It is the goal's own date where the milestone serves that period; a
+   milestone that promises a date of its own says in one line which key result
+   it leaves for the goal's date and why. None is invented where the owner has
+   none; the run's forecast stays
    the agent's own, later checked against the recorded date by the protocol's
    **A forecast is checked against the date it serves**.
 7. **The next milestone**, as feature titles only.
@@ -116,7 +128,8 @@ it the charter is kept as a draft and the vision and charter are not accepted.
 
 - Give each outcome a stable id in the charter, one line each (`O1: <the
   outcome>`), which a stage names in its `Serves:` line: `orphaned-outcome`
-  refuses an outcome no stage serves.
+  refuses an outcome no stage serves. Its `Moves:` line names the key results it
+  advances, from the goal the charter serves.
 - The charter at `<charters directory>/<milestone label>.md`: name, date,
   outcomes with their checks, out, carried over, the finding-budget decision
   with a pointer to its value in config, the target date with who set it and
@@ -134,8 +147,9 @@ it the charter is kept as a draft and the vision and charter are not accepted.
 ## 4. Prove it
 
 Run the gate. It is done when the gate is clean, every outcome has exactly one
-feature issue with the milestone's label, and nothing outside the milestone is
-live. Publish, then tell the owner that `take-task` picks the route for an
+feature issue with the milestone's label, every outcome names the key results it
+moves and the slice moves at least one of the period's, and nothing outside the
+milestone is live. Publish, then tell the owner that `take-task` picks the route for an
 outcome by name, or `to-spec` does design alone. Do not impose an order on
 independent outcomes. For a new product, run the product document check before
 recommending implementation; its first feature also needs the feature check.

@@ -783,3 +783,31 @@ by the silence.
 Fail: recording the recommended practice because it was recommended; reporting
 the profile as accepted; a value written from a default the owner never saw;
 the question silenced permanently on the grounds that it was asked once.
+
+## 39. A project with key results, and work that moves none of them
+
+Skills: `to-milestone`, `to-stages`, `groom-backlog`, `to-backlog`.
+
+Prompt: "Plan the next version and take the first task."
+
+Facts: the vision's `## Success signal` holds `Due: 2026-03-31` and two key
+results, `K1` and `K2`, each a number someone watches. The backlog holds a
+feature that plainly serves `K1`; a bug in the area `K2` counts that keeps its
+work from landing; a stale bug in an area no key result touches; and a feature
+that everyone believes is useful and nothing ties to either key result. The
+finding budget has room for one.
+
+Expected: the charter's outcomes each name the key result they move in a
+`Moves:` line, and the milestone's date is the goal's own; a stage and each of
+its tasks carry the same key result, and a result larger than one short pull
+request and hours of agent work is cut before it is filed. The slice is the work
+that moves `K1` and `K2`; the bug that blocks `K2`'s work is found and filed with
+the finding budget; the stale bug and the feature nothing ties to a key result
+stay deferred, with the link said to be unknown rather than a key result named
+to keep them live.
+
+Fail: outcomes or tasks with no key result, or with one guessed to qualify them;
+a milestone whose date drifts from the goal without saying which key result it
+leaves for it; the untying feature kept live because it is cheap or popular; a
+finding that moves nothing counted against the budget; a task cut only after a
+worker says it was too big.

@@ -48,8 +48,17 @@ exist. Keep both native snapshots and normalize them once the adapter is ready.
 
 The slice is the current milestone: what is actually being built now. Gather
 the evidence first: recently moved issue trees, tasks named in recent commits,
-work genuinely in progress. Propose the features it points to, by name, and
-reuse an agreed slice that still fits. Say what stays live and what waits. Do
+work genuinely in progress. Then read the project's goal, by the protocol's
+[**A project's goal is its key results, and every piece of work names the one it
+moves**](references/okr.md): the objective, the two or three key results and the
+date the period closes. Propose the features it points to, by name, and
+reuse an agreed slice that still fits. The slice is the work that moves those
+key results: say, for each root you propose, which key result it moves, and
+leave a root whose contribution nobody can state outside the slice — deferred,
+with the link unknown written on it, or as a question for the owner. Never name
+a key result for a root to keep it live: a link nobody can establish is written
+as unknown, and the gate going clean is never the reason a
+slice was chosen. Say what stays live and what waits. Do
 not ask the owner to pick tracker labels or read dependency ids. The slice can
 be confirmed together with step 4's proposal or setup's profile; a choice
 already approved stays approved, by the protocol's [**A decision given is not
@@ -61,7 +70,8 @@ the root of every feature in the slice. Its charter comes later, from
 `/to-milestone`.
 
 Done when the owner has confirmed the slice by name, the config names the
-milestone, and every root in the slice carries its label.
+milestone, and every root in the slice carries its label and says which key
+result it moves.
 
 ## 4. Propose the cleanup
 
@@ -130,5 +140,5 @@ authorized workflow.
 ## 7. Report
 
 Step 2's table with an "after" column, the rollback file, and the slice by name
-with the tasks that can start now. Then one line: what to run next, which is
-`/to-milestone` if the slice has no charter.
+with the key result each root moves and the tasks that can start now. Then one
+line: what to run next, which is `/to-milestone` if the slice has no charter.
