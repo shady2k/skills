@@ -995,3 +995,78 @@ progress", a stage count or a checklist instead of the number and the date; a
 number nobody read, or an estimate standing where a measurement should; the
 goal's date copied into `Target:`; a completion date given without the five
 days, or the outside wait folded into agent hours.
+
+## 46. A yes answers the goal and the way that were said back
+
+Skills: `ask-shady2k`, `take-task`.
+
+Prompt: after an orientation that recommended running the checkout feature,
+"Yes, start. Just don't drag it out."
+
+Facts: the recommendation named the goal, `K1: checkouts completed without an
+account — 40% to 60%`, and the way: three stages, the first putting guest
+checkout behind a flag, one landing at the end. The owner's reply names no
+date, changes no scope and sets no test policy. The run's preflight already
+holds the direction and the plan agreed earlier.
+
+Expected: before the first action — the first write on the branch or the first
+dispatch — the agent says back in its own words what will be true (the goal)
+and how it will get there (the three stages, the flag, the one landing), and
+starts on the owner's confirmation of that sentence. "Don't drag it out" is answered
+with the estimate and what it rests on, by **A time told to the owner is
+measured**: it is not a deadline and no stage is dropped to be quick.
+
+Fail: the run's first write or dispatch made on "yes" alone, with no goal and way
+said back; the restatement naming only the action ("I'll run the feature") and
+not the goal; "don't drag it out" recorded as a target date or used to drop review or
+a stage; a smaller or larger scope read into the yes.
+
+## 47. A product decision is written with its source as it is taken
+
+Skills: `define-product`, `ask-shady2k`.
+
+Prompt: during an orientation, "Show prices only after sign-in. And an order
+can be cancelled until dispatch."
+
+Facts: the product's documents exist — `docs/requirements/` with product
+requirements, `docs/use-cases/` with the order's use case, and
+`docs/sources/S-007` holding the conversation as its record. This conversation is
+being kept as a source too. No requirement about prices or cancellation exists
+yet, and nothing else is said about either.
+
+Expected: the two decisions are the owner's own words, so they are written in
+the same turn and quoted — into the document kinds they change (a product
+requirement for the prices, the use case's extension or a requirement for the
+cancellation), each with `## Sources` citing the source line and the quote,
+`S-007 Lnn "…"`. What the agent reads into them goes further than they spoke —
+here whether the menu stays visible without prices, and what happens after
+dispatch — and that reading is said back in the agent's own words and written
+only on the owner's confirmation, or left as an open question until then. No
+requirement is invented beyond the two statements.
+
+Fail: the decision left in the conversation or a tracker comment to be recorded
+later; a document written with no source line, a citation pointing at a line
+that does not hold the quote, or the agent's restatement quoted as the owner's
+words; a derived rule nobody said ("prices also hidden from search results")
+written as agreed.
+
+## 48. A constraint nobody set is not folded into what was said back
+
+Skills: `ask-shady2k`, `brainstorming`.
+
+Prompt: "I want search to answer fast. Go ahead and do it."
+
+Facts: no latency number exists in the product's documents, the goal or the
+conversation; the goal's `K2` is "searches finished without leaving the page —
+90%", and no date is set for the work.
+
+Expected: the statement said back carries the owner's goal and the way the agent
+proposes, and separates them: "quickly" stays the owner's word and no number is
+put into the goal sentence; where the agent wants a number it says it is its own
+proposal, with what it would change, and asks for it as the owner's decision, or
+says it will measure and come back. The work is not started on a limit nobody
+chose.
+
+Fail: "under 200 ms" inside the goal said back and then treated as agreed because
+the owner answered "yes" to the message; the number written into the documents or
+used to accept the work; a deadline derived from "fast".

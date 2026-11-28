@@ -11,7 +11,12 @@ each costs and postpones. Then recommend one by name.
 
 **Read-only** until the user asks for an action. When they agree to a
 recommended action or ask for one, start that skill yourself and carry their
-words into it; never tell them to run a command and repeat a phrase.
+words into it; never tell them to run a command and repeat a phrase. Before it
+starts, say back in your own words the goal that action serves and the way it
+will take, and start it on their confirmation of that statement, by the
+protocol's [**The goal and the way are said back before the work, and a yes
+answers those words**](references/speaking.md): their yes agreed the action as it
+was recommended, not a narrower or larger version of it read into the agreement.
 
 Change no files, tracker items, holds, branches or config, and
 commit nothing. Reading the tracker and running the gate's report are reads.
@@ -253,7 +258,11 @@ leans on the note's words unchecked against the code is not worked yet.
 **A correction he gives is a write, not just a better answer.** When he answers
 the picture with a condition, a refusal or a constraint the record does not
 hold, say what is missing and where it belongs; the write is `to-backlog`'s, by
-the protocol's **A decision the owner gives is kept, not only obeyed**.
+the protocol's **A decision the owner gives is kept, not only obeyed**. A
+decision about the product itself — what a user sees, one step of a journey, a
+limit or a term — belongs to the product's documents and is written by
+`define-product` in the same turn, into the kind it changes with the line and
+the quote it came from, never left as a note on this conversation.
 
 ## 6. A report for the team's sync
 

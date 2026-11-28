@@ -108,6 +108,19 @@ runs in it as the product's code repository.
   belongs to the specs, later.
 - Write only what was said or agreed. An idea of yours the person did not take
   stays out; one they took is quoted from the line where they took it.
+- **A decision taken is written then.** A decision about the product made after
+  the documents exist — in an orientation, a run's preflight, or any
+  conversation that is not this one — is written here in the same turn, by the
+  protocol's **A decision the owner gives is kept, not only obeyed**: the kind
+  it changes, the source line and the quote, and no wait for a shaping session.
+- **What is derived is said back before it is written.** A decision the person
+  states themselves is written at once, quoted, by the rule above. What the
+  agent reads into it is not the same thing: before a requirement, a journey or
+  a story goes past the words they spoke, say back in your own words the goal it
+  serves and the way the product meets it, by the protocol's [**The goal and the
+  way are said back before the work, and a yes answers those
+  words**](references/speaking.md), and write that reading on their confirmation
+  of the sentence; the citation stays the line they spoke, never the restatement.
 - The key journeys and the principles the owner states each get a stable id
   in the vision record, and each milestone outcome names the journeys and
   principles it serves in its `Serves:` line.

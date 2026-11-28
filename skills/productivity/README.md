@@ -18,6 +18,6 @@ Also available directly to the user.
   through dialogue; understand reasoning before disagreeing, no mandatory artifact. A principle you state about how the product must work is written into your vision or decision record at once, in your words, and a proposal that adds or replaces a mechanism carries what the code already does for that job.
 - [define-product](./define-product/SKILL.md): talk a raw idea through with the
   person who has it, in plain words, and write the product's documents an
-  engineer can start from. Your key journeys and principles each get a stable id, and every milestone outcome names the ones it serves.
+  engineer can start from. Your key journeys and principles each get a stable id, and every milestone outcome names the ones it serves. A decision about the product you give in any conversation is written into the document kind it changes as it is taken, with the line and the quote it came from.
 - [to-research](./to-research/SKILL.md): bounded primary-source investigation;
   independent questions may be delegated in parallel; a cited answer need not become a file.

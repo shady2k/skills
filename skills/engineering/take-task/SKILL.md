@@ -238,7 +238,9 @@ protocol's
 The first message opens with what the feature gives users and where it stands,
 by the protocol's **Written for someone who was not there**: the owner may have
 agreed to the run hours ago and read none of what preflight found. Record the
-answers in the feature's decision log. End by saying either "ready to run
+answers in the feature's decision log, and a decision about the product itself
+in the product's documents as it is taken, by the protocol's **A decision the
+owner gives is kept, not only obeyed**. End by saying either "ready to run
 alone" or exactly what is missing. Delegated choices cover routine details,
 not new scope, spending or weaker acceptance.
 
@@ -246,10 +248,19 @@ not new scope, spending or weaker acceptance.
 
 On "run", land the conversation's general plan once and start the feature on
 the branch this project's way of landing names, as the protocol's **Sessions
-and landing** says; do not wait for the owner to create or rename anything. Anything he
+and landing** says; do not wait for the owner to create or rename anything. Before that
+first write, say back in your own words the goal the feature
+serves and the way the run will take, and go on their confirmation of that
+statement, by the protocol's [**The goal and the way are said back before the
+work, and a yes answers those words**](references/speaking.md) — their yes to
+"run" agreed the plan, and this is how the run knows it read the same plan.
+Anything he
 decided in the conversation that the record does not yet hold lands in that
 same first write, before the branch starts, by the protocol's **A decision the
-owner gives is kept, not only obeyed**.
+owner gives is kept, not only obeyed**, and a decision about the product itself
+— what a user sees, one step of a journey, a limit or a term — goes into the
+product's documents in that same write, with the line and the quote it came
+from, by `define-product`'s forms, not only into the decision log.
 
 **Where the project agreed to Jev, it is in your tools**: `jev`, by the
 protocol's [**Jev is a tool the agent sees, not a rule it must
