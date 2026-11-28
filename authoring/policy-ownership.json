@@ -113,8 +113,15 @@
       "id": "quarantine-and-merge-gate",
       "owner": "authoring/skills/backlog/setup-shady2k-skills/references/checks.md.in",
       "required": [
+        "The run repairs reproducible failures of required checks even when their cause predates the change or lies outside its scope, including jobs that run only for matching paths",
+        "In preflight, read the project's recorded quarantine rules",
+        "agree under **Autonomy** on the smallest path that keeps the check running visibly and lets required CI verify the change",
+        "A missing mechanism gives no permission to switch off CI",
+        "Quarantine only a named check with evidence of nondeterminism independent of the change",
+        "confirm that quarantining it leaves coverage for the change",
         "File and link the repair task at once with the cause and evidence",
-        "Keep the assertion intact, keep the quarantined result visible",
+        "Keep running the check with its assertion intact and its result visible, and restore it to required CI when the repair lands",
+        "Quarantine meeting all these conditions is the narrow exception to **A gate that refuses is not routed around** and **A check changes only with the requirement it encodes**",
         "Use green required CI on the exact revision",
         "Leave the full pre-merge suite to CI",
         "install the artifact built from that revision and use it for the walk"
@@ -123,7 +130,8 @@
       "consumers": {
         "authoring/skills/engineering/take-task/SKILL.md.in": [
           "Apply **An unrelated flaky check goes into quarantine with a repair task**",
-          "Use **CI supplies the pre-merge checks** for the submitted revision"
+          "Use **CI supplies the pre-merge checks** for the submitted revision",
+          "run its end-to-end criterion once on the revision the practice names, using the recorded stage evidence as input"
         ],
         "authoring/skills/backlog/to-stages/SKILL.md.in": [
           "**A stage is accepted once on the assembled result** before its dependants build on it"
@@ -135,6 +143,9 @@
       "owner": "authoring/skills/backlog/setup-shady2k-skills/references/running.md.in",
       "required": [
         "green required CI covering the landed change can proceed to a patch without a separate owner approval when the project's release permissions allow the run to publish it",
+        "Read those permissions from the project's recorded rules",
+        "If patch publishing is needed for the run and those rules do not settle who may publish, resolve that authority in preflight under **Autonomy**",
+        "Publish only with confirmed permission",
         "Release only the approved patch scope",
         "Where publishing is reserved for the owner, prepare the release record for the owner to publish"
       ],

@@ -6,11 +6,12 @@ How a run treats its checks: red checks, refusing gates, diagnostics, the
 cheapest check and the loop it waits on, reaching the outcome, and CI.
 
 **A red check is this run's work.** Diagnose every failure on the way to a
-landing. Repair failures in the change's scope, use **An unrelated flaky check
-goes into quarantine with a repair task** when its criteria hold, and handle
-red CI after review by **One review, then approval with comments**. A failure
-that still blocks the main line is fixed there by its own small landing,
-since it blocks everyone,
+landing. The run repairs reproducible failures of required checks even when
+their cause predates the change or lies outside its scope, including jobs that
+run only for matching paths. Use **An unrelated flaky check goes into quarantine
+with a repair task** when its criteria hold and handle red CI after review by
+**One review, then approval with comments**. A failure that still blocks the
+main line is fixed there by its own small landing, since it blocks everyone,
 and the report names it as a fixed earlier failure; where nothing but the
 checks stood in front of the breaking landing, the breaking change is reverted
 before anything is repaired, by [landing.md](landing.md)'s practice; such fixes
@@ -47,17 +48,24 @@ what already ran to guess at a cause; within **Autonomy** it is no reason to
 hold the stage, and no decision is waiting behind it. A failure that comes
 back unchanged after the repair is a red check like any other.
 
-**An unrelated flaky check goes into quarantine with a repair task.** When
-the evidence identifies nondeterminism in the check independent of the
-change, use the project's quarantine for that named check. The same failure
-on the base revision can show the failure predates the change. Diagnose why
-it is intermittent and confirm that quarantining it leaves coverage for the
-change. File and link the repair task at once with the cause and evidence,
-by the protocol's **Only what the milestone chose is intake**. Keep the
-assertion intact, keep the quarantined result visible, and restore the check
-to required CI when the repair lands. Use **CI supplies the pre-merge checks**
-to land the change without waiting for the repair. A failure that is caused
-by the change or still unexplained follows **A red check is this run's work**.
+**An unrelated flaky check goes into quarantine with a repair task.** In
+preflight, read the project's recorded quarantine rules. If the planned work
+needs quarantine and there is no recorded mechanism, agree under **Autonomy**
+on the smallest path that keeps the check running visibly and lets required CI
+verify the change. A missing mechanism gives no permission to switch off CI.
+
+Quarantine only a named check with evidence of nondeterminism independent of
+the change. The same failure on the base revision can show the failure
+predates the change. Diagnose why it is intermittent and confirm that
+quarantining it leaves coverage for the change. File and link the repair task
+at once with the cause and evidence, by the protocol's **Only what the milestone
+chose is intake**. Keep running the check with its assertion intact and its
+result visible, and restore it to required CI when the repair lands. Quarantine
+meeting all these conditions is the narrow exception to **A gate that refuses
+is not routed around** and **A check changes only with the requirement it
+encodes**. Use **CI supplies the pre-merge checks** to land the change without
+waiting for the repair. A failure that is caused by the change or still
+unexplained follows **A red check is this run's work**.
 
 **A gate that refuses is not routed around.** A check stands for work, and it is
 satisfied only by doing that work: any move that changes the measurement instead

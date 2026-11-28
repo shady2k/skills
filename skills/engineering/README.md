@@ -9,13 +9,15 @@ Tracked work, proportional design and acceptance of an assembled stage.
   and telling them unasked what the run's own overhead is costing. Every date stands beside a forecast the run script computes from the measured pace over the tasks that cover it, a duration it speaks is that measurement with its basis and is not renumbered because the owner doubted it, and every worker's brief carries what its task serves, whom it serves and where you see it. It starts only on the agreement on record — direction, then plan, in the owner's words — and refuses to start without one, and before the run's first write it says back in its own words the goal the feature serves and the way the run will take, going on the owner's confirmation of that sentence; the stage review blocks a second way into a capability the project already reaches, or a retirement the plan promised and the revision lacks.
   The run gets one review for each landing, verifies fixes against its findings
   and relies on required CI for the merge. Acceptance uses the assembled stage
-  and the review records of its landings.
+  and the review records of its landings. The run executes the whole feature's
+  end-to-end criterion once on the accepting revision.
 - [ship-release](./ship-release/SKILL.md): carry merged, accepted work to its
   users — version, release notes, migrations with their reverse, rollout by
   environment with the rollback named before each step; through the project's
-  own pipeline. A merged fix with approved review and green CI can proceed
-  directly to a patch under the project's publishing permissions. For
-  owner-only publishing, prepare the release record for the owner.
+  own pipeline. Start on the user's request or agreement. A merged fix with
+  approved review and green required CI can also proceed directly to a patch
+  when the project permits the run to publish it. For owner-only publishing,
+  prepare the release record for the owner.
 - [handle-incident](./handle-incident/SKILL.md): restore a failing product
   first, then find the cause, then a blameless review whose actions are filed
   as work.

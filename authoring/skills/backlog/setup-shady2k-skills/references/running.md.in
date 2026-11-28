@@ -54,11 +54,14 @@ recommendation and why, and what happens if the answer comes later.
 **A reviewed fix can go straight to a patch release.** A merged fix with an
 approved review and green required CI covering the landed change can proceed
 to a patch without a separate owner approval when the project's release
-permissions allow the run to publish it. Release only the approved patch
-scope, under the project's version scheme and pipeline. Releases outside
-that scope need the owner's request or agreement. Where publishing is reserved
-for the owner, prepare the release record for the owner to publish. The
-decisions reserved by **Autonomy** apply to every release.
+permissions allow the run to publish it. Read those permissions from the
+project's recorded rules. If patch publishing is needed for the run and those
+rules do not settle who may publish, resolve that authority in preflight under
+**Autonomy**. Publish only with confirmed permission. Release only the
+approved patch scope, under the project's version scheme and pipeline.
+Releases outside that scope need the owner's request or agreement. Where
+publishing is reserved for the owner, prepare the release record for the owner
+to publish. The decisions reserved by **Autonomy** apply to every release.
 
 **A blocked action is not handed over.** When the harness or a guard refuses
 an action — a command, a tool call, a read or a write — the refusal is a fact

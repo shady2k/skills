@@ -215,6 +215,9 @@ Before the owner leaves, prepare the run so it needs nobody:
   that the project has never had is work with a cost among them, and an
   approval it needs is taken here, by **Autonomy**, put as one sentence of
   what will be true afterwards that is not true now;
+- **quarantine and patch publishing, when the run needs them**, by
+  [**An unrelated flaky check goes into quarantine with a repair task**](references/checks.md)
+  and [**A reviewed fix can go straight to a patch release**](references/running.md);
 - how to reach the owner when the run stops: the notification channel the
   project records for pushes, if any, naming it as setup proved it; and the
   **cadence** of the pushed progress digest while the run is in flight — the
@@ -672,10 +675,10 @@ by [review.md](review.md) and **One review, then approval with comments**.
 Once review findings are verified and the required CI is green, use **A stage
 is accepted once on the assembled result** on the revision the practice names.
 For a stage accepted on the landed revision, complete that walk after the
-merge. Where the whole feature lands, use its end-to-end criterion and the
-stage evidence already recorded. Finish the run's record with the landing
-and its acceptance evidence. A leaf
-with no stage is closed in the step that
+merge. When accepting the whole feature, run its end-to-end criterion once
+on the revision the practice names, using the recorded stage evidence as
+input. Finish the run's record with the landing and its acceptance evidence.
+A leaf with no stage is closed in the step that
 reads that merge, on it and on the checks it ran, by the protocol's **A leaf
 with no stage closes at its merge**: it has no acceptance of its own to wait
 for, so `close-out` must not find it open afterwards. What one landing closes is
