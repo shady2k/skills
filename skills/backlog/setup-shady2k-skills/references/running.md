@@ -51,6 +51,18 @@ where it came from, what is blocked and what continues, the options compared
 from the product, technical, risk, cost and reversibility sides, its
 recommendation and why, and what happens if the answer comes later.
 
+**A reviewed fix can go straight to a patch release.** A merged fix with an
+approved review and green required CI covering the landed change can proceed
+to a patch without a separate owner approval when the project's release
+permissions allow the run to publish it. Read those permissions from the
+project's recorded rules. If patch publishing is needed for the run and those
+rules do not settle who may publish, resolve that authority in preflight under
+**Autonomy**. Publish only with confirmed permission. Release only the
+approved patch scope, under the project's version scheme and pipeline.
+Releases outside that scope need the owner's request or agreement. Where
+publishing is reserved for the owner, prepare the release record for the owner
+to publish. The decisions reserved by **Autonomy** apply to every release.
+
 **A blocked action is not handed over.** When the harness or a guard refuses
 an action — a command, a tool call, a read or a write — the refusal is a fact
 about that action, not a reason to move it into the person's hands. Least
@@ -421,27 +433,29 @@ the working checkout moves off that branch, so that what is done next cannot
 land there by default; where the harness cannot, every push until the merge
 names the branch it is for.
 
-**One review, then approval with comments.** The reviewer reads the whole
-change once, and the answer is a code review's approval with comments: what
-blocks acceptance, and the rest as comments, trusting the author with the
-minor fixes. Each finding is sorted by what it blocks. **Blocking** is wrong
+**One review, then approval with comments.** Each landing gets one review.
+For a stage assembled from several landings, use the recorded review and
+verification of those landings as the stage's review evidence. The reviewer
+reads the whole change once and returns either `APPROVE` or the complete list
+of findings in one response. Sort findings by what they block. **Blocking** is wrong
 behaviour against a criterion or requirement, loss of data, access or money,
 a statement of the present this change made false, changed behaviour no
 check watches, or a change that does not serve the frame it was specified
 from; the rest is **not blocking**, and a style preference never blocks. A
-blocking finding is fixed within scope and then verified against that finding
-on the fix's diff and the behavior or dependencies it affects. A new blocking
-regression introduced by the fix, or a related blocker exposed by the correction,
+blocking finding is fixed within scope. The run lead verifies the fix's diff
+against each finding and reads the required CI on the corrected revision. A
+new blocking regression introduced by the fix, or a related blocker exposed by it,
 blocks acceptance and is verified in that affected scope. Do not silence it
 because it was absent from the first review. Follow the causal impact far enough
-to check the regression; this is targeted verification, not another full review.
+to check the regression. The run lead handles these blockers through targeted
+verification within the original review cycle.
 Unrelated findings are filed separately; unrelated nits never restart full review.
 A non-blocking finding is fixed under the run's own checks and
 goes back to the reviewer no more; where it is not fixed now, it is filed as
 further work. A blocker whose fix fails verification twice gets no third
 round: the finding returns to the design — the spec or the split — or to the
-owner as a decision. Never close on a review of an older revision. Say which
-tests were repeated after the fixes and which still-valid evidence was kept.
+owner as a decision. Before closing, record how the lead verified the final
+revision, which tests were repeated and which evidence still holds.
 
 
 Verification examples (the expected decision is part of this rule):
@@ -454,6 +468,16 @@ Verification examples (the expected decision is part of this rule):
 | unrelated-nit | Verification notices unrelated naming style | File separately; no full review restart |
 | twice-failed | Same blocker fix fails verification twice | Return to design or owner |
 | older-revision | Approval describes a revision older than the submitted fix | Verify current revision before closing |
+
+If required CI stays red after a review fix, the run lead owns the decision.
+Repair failures in the change's scope. Where confirmed parts can land on
+their own, split off the unverified work, keeping its findings and evidence
+with it. Use [checks.md](checks.md)'s **An unrelated flaky check goes into
+quarantine with a repair task** when the failure qualifies. If the remaining
+choice belongs to the owner, send it as a worked decision by **Autonomy**.
+Keep unverified work open and apply **CI supplies the pre-merge checks** to
+whatever lands. The lead records the decision and resolves verification in the
+affected scope within this review cycle.
 
 **A reviewer's comment is judged, not obeyed.** A comment quotes a few lines
 and stands for a view of the whole change, so before any of them is acted on

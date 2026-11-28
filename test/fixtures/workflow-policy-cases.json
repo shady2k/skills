@@ -5,10 +5,10 @@
       "id": "review",
       "source": "authoring/skills/backlog/setup-shady2k-skills/references/running.md.in",
       "clauses": [
-        "A new blocking regression introduced by the fix, or a related blocker exposed by the correction, blocks acceptance",
+        "A new blocking regression introduced by the fix, or a related blocker exposed by it, blocks acceptance",
         "Unrelated findings are filed separately; unrelated nits never restart full review.",
         "A blocker whose fix fails verification twice gets no third round",
-        "Never close on a review of an older revision."
+        "Before closing, record how the lead verified the final revision"
       ],
       "cases": [
         {

@@ -215,6 +215,9 @@ Before the owner leaves, prepare the run so it needs nobody:
   that the project has never had is work with a cost among them, and an
   approval it needs is taken here, by **Autonomy**, put as one sentence of
   what will be true afterwards that is not true now;
+- **quarantine and patch publishing, when the run needs them**, by
+  [**An unrelated flaky check goes into quarantine with a repair task**](references/checks.md)
+  and [**A reviewed fix can go straight to a patch release**](references/running.md);
 - how to reach the owner when the run stops: the notification channel the
   project records for pushes, if any, naming it as setup proved it; and the
   **cadence** of the pushed progress digest while the run is in flight — the
@@ -497,9 +500,9 @@ a failing check.
 Workers run static checks and the tests related to their change, including
 neighbouring behaviour it affects, from the narrowest scope outward as the
 protocol's [**Cheapest check first**](references/checks.md) says; a failing
-test is iterated on alone, not with its suite. The full suite, the stage's
-mutation run and the final review happen at stage acceptance. A shared change can
-rightly widen a worker's related tests.
+test is iterated on alone, not with its suite. Use **CI supplies the pre-merge
+checks** at landing. A shared change can rightly widen a worker's related
+tests.
 
 A worker's report holds the task, its linked commits, the changed behaviour, check
 commands and results, open doubts, decisions it made and integration notes.
@@ -547,37 +550,29 @@ from its log where the agent can do that.
   and notes than you would read at once, sorting them by cause or by whether
   they touch this stage is Jev's shape, by **The agent decides where Jev
   helps**.
-- A red check, including one that looks older than this work, follows the
-  protocol's **A red check is this run's work** and **A check is never rerun to
-  find out why it failed**. Its repair rides with this work by **A repair the
-  merge waits on is not intake**, and a gate that refuses the commit carrying it
-  is read by **A gate that refuses is not routed around**; where the gate itself
-  demands what the work does not owe, it is the code under diagnosis, by **The
-  gate is the project's code, and an agent wrote it**.
+- A red check follows the protocol's **A red check is this run's work** and
+  **A check is never rerun to find out why it failed**. Apply **An unrelated
+  flaky check goes into quarantine with a repair task** when its criteria hold.
+  A repair that still blocks the change follows **A repair the merge waits on
+  is not intake**. Read a gate refusal by **A gate that refuses is not routed
+  around**.
 - An action the harness or a guard blocks — a command it refuses, a file it
   will not read, a write it will not let through — follows the protocol's
   **A blocked action is not handed over**.
 
 ## 6. Accept each stage
 
-With a stage's results merged, run the project's full required checks and the
-stage's DONE WHEN on the assembled revision, here, through the integration's
-full-check command. Acceptance starts no CI: the landing stays in progress until
-step 7, and fixes merged after a review stay there too (the protocol's
-**Know what a push starts, and push once**). Acceptance is a stage boundary:
+With the stage's results assembled, prepare the evidence for **A stage is
+accepted once on the assembled result**. Acceptance is a stage boundary:
 the time by phase is read against the forecast the run claimed, and the
 forecast is checked against the target date again, by the protocol's **A
 forecast is checked against the date it serves**. The stage's report carries the
 number and the date too, by [**A report carries the number and the date, not a
 status**](references/okr.md): the key results the stage moved, read after it,
-against the goal's `Due:`. Where the stage carries the spec's
-place of observation, walk the happy path there yourself the way a person
-reaches it, and record what you saw; a walk you could not make is recorded as
-not made. Where the stage's result follows a reference, acceptance's
-evidence is the comparison deciding.md's [**A claim reaches only as far as
-its evidence**](references/deciding.md) asks for, at the breadth checks.md's
-[**Reached, not just built**](references/checks.md) sets. Mutation testing on the stage's changed logic starts once, here, as soon as
-the revision is assembled, and runs beside the walk and the review, off the
+against the goal's `Due:`. Where the stage's result follows a reference, use the evidence
+deciding.md's [**A claim reaches only as far as its evidence**](references/deciding.md)
+asks for. Mutation testing on the stage's changed logic starts once, here, as soon as
+the revision is assembled, and runs alongside independent work, off the
 run's path: it measures how strong the tests are, not whether the change is
 right, and no next step consumes its result, so nothing waits on it, by
 **The path is what the next step consumes** — a worker reports without it
@@ -606,20 +601,22 @@ on** and building.md's **One surface per capability**. The stage is read
 against the project's target architecture too, by **The strategy is the
 target, and the views are the present**: a stage that departs from a principle
 of the architecture document's `Solution strategy` section is not accepted
-until the code is fixed or the owner changes the principle. Get a
-review following [`review.md`](review.md), preferably from a reviewer on another
-model the set can reach from here ([`agents.md`](references/agents.md)); the
-review answers "matches the design: yes/no, divergences"
-(`design-divergence`). The rounds converge by **One review, then approval with comments** — one full
-review, then targeted verification under that rule, the rest held by the checks. Fix valid findings within scope and repeat the affected checks. If
-a fix changes code after the full run, rerun the full checks on the final
-revision. Review is repeated where a fix invalidated it. A later fix reuses
+until the code is fixed or the owner changes the principle. For the change
+that will land, get the review following [review.md](review.md), preferably
+from another model the set can reach ([agents.md](references/agents.md)). Record
+whether the change matches the design and any divergences
+(`design-divergence`). Resolve findings by **One review, then approval with
+comments**. A later fix reuses
 the mutation result by **A passing result holds while what it covers is
 unchanged**: only a fix that changed the logic itself invalidates it, and
 touching other code reruns nothing.
 
+For a stage inside a feature that lands whole, accept the assembled stage
+when its evidence is ready so dependants can start. For a stage landing by
+itself, complete its acceptance in step 7 on the revision its practice uses.
 Record the stage's base and final revisions, included tasks, criteria, test and
-mutation results, and review findings with what was done about each. For
+mutation results, and evidence from the reviews of its landings by **One review,
+then approval with comments**. For
 non-code work, use the project's equivalent evidence and say which checks do
 not apply. Get the evidence at the integration's level and run the acceptance
 document check. At the protected level, "passed" written by an agent is not a
@@ -639,17 +636,8 @@ lands a whole feature, this section runs once, when every stage is accepted.
 The run's record says which practice it began under, and its practice's section
 of [landing.md](references/landing.md) says what lands and when.
 
-Whoever the merge is, at that point: run the full checks and the criterion of what is
-about to land once more on it — the stage's own DONE WHEN where a stage lands
-alone, the feature's end-to-end criterion where the feature lands whole — and
-walk the happy path at the place the spec named, the stage's or the feature's
-as that same rule says, **on the revision this project's way of landing makes
-the accepted one**: on the branch about to land where the owner's merge is the
-acceptance, and on the landed revision where the run merges its own change, so
-that a walk made before such a merge never stands in for it and the closing that
-follows waits for the walk made after it. Behaviour nothing
-reaches is not done, however green the checks (the protocol's **Reached, not
-just built**). Run the present-documents check against the merge base, by the
+Use **CI supplies the pre-merge checks** for the submitted revision.
+Run the present-documents check against the merge base, by the
 protocol's **What describes the present is kept true**: fix every path this
 branch left dead in the documents, read each document it names to read against
 the code, and file the older drift it lists through `to-backlog` as one debt
@@ -676,20 +664,21 @@ protocol's [**Autonomy**](references/running.md). Wait for its checks to go gree
 reading its state by the protocol's **A state not yet known is not a good
 one**; fix a red one as part of the run, back in progress until the fix is
 proven locally, by the protocol's **CI is not where failures are diagnosed**.
+Resolve red CI after a review fix by **One review, then approval with
+comments**.
 Review comments on it are handled by **A reviewer's comment is judged, not
 obeyed**.
 
-A landing waits for what this project's review rule records, at the point the
-practice lands: a stage's own review where the stage lands alone, and the run's
-final review where the feature lands whole. The rule, its preference, its
-fallback and its acceptance policy are the project's, by
-[review.md](review.md), and a change of practice acquires no second one.
+A landing waits for the review record the project requires for that change,
+by [review.md](review.md) and **One review, then approval with comments**.
 
-Finish the run's record with the landing. Where the merge is the owner's, that
-merge is the acceptance; where the practice merges the run's own change, the
-merge is the run's and the acceptance is the review and the checks it waited
-for — either way, by **How this project lands is recorded, and no skill assumes
-one way**. A leaf with no stage is closed in the step that
+Once review findings are verified and the required CI is green, use **A stage
+is accepted once on the assembled result** on the revision the practice names.
+For a stage accepted on the landed revision, complete that walk after the
+merge. When accepting the whole feature, run its end-to-end criterion once
+on the revision the practice names, using the recorded stage evidence as
+input. Finish the run's record with the landing and its acceptance evidence.
+A leaf with no stage is closed in the step that
 reads that merge, on it and on the checks it ran, by the protocol's **A leaf
 with no stage closes at its merge**: it has no acceptance of its own to wait
 for, so `close-out` must not find it open afterwards. What one landing closes is
@@ -700,8 +689,8 @@ landing — `close-out` then reads the run's record and files what it teaches �
 and only then are the checkouts and branches this run created removed, because
 the run still needs them while a stage is unlanded. Where the change reaches its users later than the merge — the
 project deploys or publishes — the run ends by naming `ship-release` as the
-next stage, the life cycle's transition, with what reaching them takes here:
-the release is its own ask on the owner's word, and the work this run carried
-is done. A run that stops or hands over settles its worker sessions by **A
-started session answers to the one that started it**. Commit links and a clean
+next stage, the life cycle's transition. Use **A reviewed fix can go straight
+to a patch release** to determine whether it can begin. A run that stops or
+hands over settles its worker sessions by **A started session answers to the
+one that started it**. Commit links and a clean
 backlog are required but never replace checking the behaviour.

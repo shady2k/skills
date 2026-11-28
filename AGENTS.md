@@ -78,10 +78,13 @@ Every skill can be started by the agent, because a user asks in words as often
 as by command: "yes, do it" must be enough, never "run this command and say
 this phrase". What differs is **who may start it**. Skills that change scope,
 run work, install, hand over or publish (`ask-shady2k`, setup, `to-milestone`,
-`take-task`, `handoff`, `report-to-shady2k`, `ship-release`,
+`take-task`, `handoff`, `report-to-shady2k`,
 `handle-incident`) start **only on the user's request
-or agreement**, and their descriptions say so; the others start when the work
-calls for them. Descriptions are model-facing with their triggers;
+or agreement**, and their descriptions say so. `ship-release` starts on the
+user's request or agreement, or for an eligible patch under
+[**A reviewed fix can go straight to a patch release**](skills/backlog/setup-shady2k-skills/references/running.md).
+The others start when the work calls for them. Descriptions are model-facing
+with their triggers;
 `disable-model-invocation` is not used, and `policy.allow_implicit_invocation`
 in `agents/openai.yaml` stays `true` in step with it. When a skill recommends
 another and the user agrees, start it; do not send them to type it.

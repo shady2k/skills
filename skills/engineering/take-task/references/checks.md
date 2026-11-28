@@ -5,11 +5,12 @@ project, and it wins over a project's restatement.
 How a run treats its checks: red checks, refusing gates, diagnostics, the
 cheapest check and the loop it waits on, reaching the outcome, and CI.
 
-**A red check is this run's work.** Every failure on the way to a landing is
-diagnosed and fixed by the run, whoever wrote the code: all of it is written
-by agents, and the branch cannot land while it is red. "It was already broken"
-and "our change does not touch that" are never reasons to stop; when a failure
-appeared matters only as a clue to its cause. A failure that also breaks the
+**A red check is this run's work.** Diagnose every failure on the way to a
+landing. The run repairs reproducible failures of required checks even when
+their cause predates the change or lies outside its scope, including jobs that
+run only for matching paths. Use **An unrelated flaky check goes into quarantine
+with a repair task** when its criteria hold and handle red CI after review by
+**One review, then approval with comments**. A failure that still blocks the
 main line is fixed there by its own small landing, since it blocks everyone,
 and the report names it as a fixed earlier failure; where nothing but the
 checks stood in front of the breaking landing, the breaking change is reverted
@@ -46,6 +47,25 @@ Mending the run's own ground is not the rerun this rule forbids, which repeats
 what already ran to guess at a cause; within **Autonomy** it is no reason to
 hold the stage, and no decision is waiting behind it. A failure that comes
 back unchanged after the repair is a red check like any other.
+
+**An unrelated flaky check goes into quarantine with a repair task.** In
+preflight, read the project's recorded quarantine rules. If the planned work
+needs quarantine and there is no recorded mechanism, agree under **Autonomy**
+on the smallest path that keeps the check running visibly and lets required CI
+verify the change. A missing mechanism gives no permission to switch off CI.
+
+Quarantine only a named check with evidence of nondeterminism independent of
+the change. The same failure on the base revision can show the failure
+predates the change. Diagnose why it is intermittent and confirm that
+quarantining it leaves coverage for the change. File and link the repair task
+at once with the cause and evidence, by the protocol's **Only what the milestone
+chose is intake**. Keep running the check with its assertion intact and its
+result visible, and restore it to required CI when the repair lands. Quarantine
+meeting all these conditions is the narrow exception to **A gate that refuses
+is not routed around** and **A check changes only with the requirement it
+encodes**. Use **CI supplies the pre-merge checks** to land the change without
+waiting for the repair. A failure that is caused by the change or still
+unexplained follows **A red check is this run's work**.
 
 **A gate that refuses is not routed around.** A check stands for work, and it is
 satisfied only by doing that work: any move that changes the measurement instead
@@ -131,13 +151,11 @@ is a finding.
 **Cheapest check first.** Checks follow the test pyramid and narrow scope
 outward from the failure: reading and static checks, then a unit test, then a
 local integration or end-to-end run; the one failing test, then its file or
-package, then what the change touches, then the full local check. Each
-question gets the cheapest check that can answer it. Beyond that: CI and any
-remote machine come last, only for what nothing local can show (another
-platform, the real pipeline), because they spend runner time, money, the
-owner's wait and limits shared with everyone; and where the behaviour has no
-unit test that could catch it, one is written before an end-to-end run is
-reached for. A failure at any step sends the work back to the cheapest check
+package, then what the change touches. Each question gets the cheapest check
+that can answer it. Use CI for **CI supplies the pre-merge checks** and use a
+remote machine for development questions that need it, such as a different
+platform. Where the behaviour has no unit test that could catch it, write
+one before reaching for an end-to-end run. A failure at any step sends the work back to the cheapest check
 that shows it, never to a rerun of the whole. Independent checks run in
 parallel, within what the machine carries while other agents share it. A
 change that cannot touch product code (documents, process tooling) does not
@@ -164,12 +182,31 @@ merge or an amend that leaves a check's inputs as they were leaves its result
 standing, and a new commit id alone invalidates nothing. What does invalidate
 it is a change to those inputs: the code and tests it runs, the dependencies
 and configuration it reads, a conflict resolved inside them, base commits that
-touch the behaviour or the tests in question. So before every push that
-changes code, decide which results still cover the final tree and run only
-the ones that do not; where that run causes a fix, decide again. "It is a new
+touch the behaviour or the tests in question. When preparing a push, decide
+which results still cover the change and run the targeted development checks
+needed for the changed inputs. The final pre-merge check follows the rule
+below. "It is a new
 head, so run everything" spends a run on a known answer, and "nothing
 conflicted, so it all still holds" keeps a green that no longer describes the
 code; the decision is made every time, the rerun only where it is owed.
+
+**CI supplies the pre-merge checks.** Use green required CI on the exact
+revision the project's landing workflow will merge as the test evidence for
+that merge. The project's review, permissions and branch protections still
+apply. Use targeted checks while developing and diagnosing fixes. Leave the
+full pre-merge suite to CI, including after a review fix, an exclusion through
+quarantine or a split. Read missing or unfinished checks by **A state not yet
+known is not a good one**.
+
+**A stage is accepted once on the assembled result.** After its included work
+and fixes are verified, run the stage's DONE WHEN and the walk in **Reached,
+not just built** once on the assembled revision the project's landing practice
+uses for acceptance. For a product used through an installation, install the
+artifact built from that revision and use it for the walk. Record the revision
+and what was observed. Individual changes and targeted verification of review
+fixes do not call for a stage walk. If a later correction affects evidence the
+stage relied on, verify the affected criterion and record which evidence still
+holds by **A passing result holds while what it covers is unchanged**.
 
 **Reached, not just built.** Green checks say the code does what its tests
 assert. They do not say the new behaviour can be reached: code nothing calls, a

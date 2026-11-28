@@ -10,8 +10,9 @@ description: Record accepted work and preserve pending work. Use after a feature
 ## 1. Tell done from accepted
 
 For work claimed complete, read the stage's acceptance record: the assembled
-revision, included tasks, criteria, full checks, mutation results or the agreed
-fallback, review and resolved findings. Check that it covers the exact result
+revision, included tasks, criteria, applicable CI results, mutation results
+or the agreed fallback, and evidence from the reviews of its landings by
+**One review, then approval with comments**. Check that it covers the exact result
 being accepted. A green run remembered from before later changes is not
 evidence.
 
@@ -177,6 +178,7 @@ next action with its time and risk, by the protocol's [**A time told to the
 owner is measured, and a dispute is answered with its basis**](references/running.md).
 Where this project's users receive the change later than the merge — it deploys or publishes — that next action is
 the life cycle's transition: name `ship-release`, with what reaching them
-takes here, and the release starts on the owner's word. Do not ask the owner to read check internals
+takes here. Use **A reviewed fix can go straight to a patch release** to
+determine whether it can begin. Do not ask the owner to read check internals
 or approve each routine closure. "Use defaults" does not waive an open
 acceptance limitation.
