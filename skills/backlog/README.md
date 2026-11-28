@@ -15,6 +15,7 @@ Skills that keep the queue usable and stage acceptance honest.
   action; or a report for the team's sync over a period. When you agree to the
   action it recommends, it says back in its own words the goal and the way and
   starts on your confirmation of that sentence.
+  Its routes include patch releases for eligible fixes.
 - [to-milestone](./to-milestone/SKILL.md): agree independent outcomes and budget. Each outcome names the vision journeys and principles it serves, and the charter's acceptance carries another model's judgement of what it serves and breaks, each entry an id the vision declares and a passage quoted from the charter.
 
 ## Started when the work calls for it
@@ -23,6 +24,7 @@ Also available directly to the user.
 
 - [to-stages](./to-stages/SKILL.md): stages as checkpoints and tasks sized for one
   worker, parallel except for concrete prerequisites or conflicts. A stage or task names the outcomes it serves, since the forecast is computed over the exact tasks covering them. The breakdown reaches the owner and is recorded in their words before anything is published, a replacement retires the old mechanism inside the same feature unless they say otherwise, and a standing decision the breakdown would contradict is put to them. An order between two stages not broken down yet sits on the waiting stage and moves onto its tasks in the same step.
+  Each assembled stage has one acceptance.
 - [groom-backlog](./groom-backlog/SKILL.md): reversible cleanup, including setup bootstrap.
 - [to-backlog](./to-backlog/SKILL.md): register work and discoveries; separate filing
   from admission, with the filing shared as soon as it is made.
@@ -30,6 +32,7 @@ Also available directly to the user.
   before closure, close a bug or task that waits for no stage on the merge that
   delivered it, keep the records proportionate to the task and preserve
   pending implementation/publication results.
+  Read CI and the assembled stage’s acceptance evidence before closing.
 - [check-upkeep](./check-upkeep/SKILL.md): the recurring pass over what runs the
   product — dependencies, vulnerabilities, expiries, deprecated features,
   checks — reading and filing, never upgrading.

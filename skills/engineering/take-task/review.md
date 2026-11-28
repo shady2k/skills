@@ -1,7 +1,7 @@
-# Final review of a stage
+# Review the assembled change
 
-Review the assembled stage after its tests and full checks, not each worker
-separately. The stage's mutation run goes beside this review, not before it —
+Review the assembled change for the landing after its targeted tests. The
+stage's mutation run goes beside this review, not before it —
 its results are a reading of test strength, not a gate the review waits
 behind, by **The path is what the next step consumes**. Give reviewers the
 base and final revisions, the combined diff, the
@@ -83,7 +83,6 @@ Where the list reaches the owner, its findings are numbered, so one can be
 answered by its number, and each says in the owner's words what the code does,
 what goes wrong, the fix, and what happens if it is left.
 
-The rounds converge by the protocol's
-[**One review, then approval with comments**](references/running.md), which
-says what blocks acceptance, what a fix is verified against, how a round ends
-and the decision its verification examples expect.
+Return the verdict under [running.md](references/running.md)'s **One review,
+then approval with comments**. Hand the findings and their verification
+evidence to the run lead.

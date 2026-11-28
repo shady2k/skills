@@ -106,9 +106,9 @@ into features that each land on their own and keep the main line working, and
 say so to the owner; changing the milestone's outcomes goes through
 `/to-milestone`.
 
-**Stages.** Each finishes something observable with its own DONE WHEN: a
-checkpoint that full checks, mutation testing and review accept before the
-next stage builds on it. Observable means seen: carry the spec's place of
+**Stages.** Each finishes something observable with its own DONE WHEN. Use
+**A stage is accepted once on the assembled result** before its dependants
+build on it. Carry the spec's place of
 observation down to the stage that first makes the outcome reachable there, so
 the walk happens inside the run and not only at its end. A stage has a size:
 what one run can build and show in about one working day of agent time, its

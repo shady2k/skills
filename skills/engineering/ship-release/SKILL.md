@@ -1,6 +1,6 @@
 ---
 name: ship-release
-description: "Carry merged, accepted work to its users: version by the project's scheme, release notes written in what users can do, migrations with their reverse, rollout by environment with a check after each step and a rollback decided before any step runs. It goes through the project's own pipeline and invents none. Use when the user asks to release, ship, publish or deploy, or agrees to a release being proposed; it starts only on the user's request or agreement, because it publishes and changes what runs for users."
+description: "Carry merged, accepted work to its users: version by the project's scheme, release notes written in what users can do, migrations with their reverse, rollout by environment with a check after each step and a rollback decided before any step runs. It goes through the project's own pipeline and invents none. Use when the user requests or agrees to a release, or when a merged fix with approved review and green required CI qualifies for a patch under the project's publishing permissions."
 ---
 
 # Ship release
@@ -10,8 +10,9 @@ project's way of landing makes the merge the acceptance (by the protocol's
 **How this project lands is recorded, and no skill assumes one way**); the
 release is the stage that takes it to the people who use it — the transition
 the protocol's [life cycle](references/lifecycle.md) names. It publishes and
-it changes what runs for users, so it starts when the user asks for one or
-agrees to it, never on its own initiative. Every step that cannot be taken
+it changes what runs for users. Start on the user's request or agreement, or
+under [running.md](references/running.md)'s **A reviewed fix can go straight
+to a patch release**. Every step that cannot be taken
 back reaches the owner first, worked as a decision with its mechanism by
 [deciding.md](references/deciding.md)'s **A design decision comes with its
 mechanism**; the irreversible choices of [running.md](references/running.md)'s

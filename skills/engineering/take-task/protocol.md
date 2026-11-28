@@ -248,7 +248,7 @@ close, not the moment they close: they stay open and accepted until the work
 lands on the main line and its current specs are synced. A parent has its own
 criterion too.
 
-**Parallelism.** Independent leaves, stages and features may run at once;
+**Parallelism.** Run independent leaves, stages and features in parallel;
 serialize only for a real prerequisite, a conflicting write or an exclusive
 resource, and never for hierarchy, list order or a shared milestone: the order
 work was listed in is not a dependency. Each stage

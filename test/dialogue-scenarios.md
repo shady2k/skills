@@ -1114,3 +1114,115 @@ chose.
 Fail: "under 200 ms" inside the goal said back and then treated as agreed because
 the owner answered "yes" to the message; the number written into the documents or
 used to accept the work; a deadline derived from "fast".
+
+## 49. One review and verification of its findings
+
+Skills: `take-task`, `take-task/review.md`.
+
+Prompt: "What should happen next on the order cancellation change?"
+
+Facts: the project requires one review and green CI. On `a1f2c3d` the reviewer
+reported a blocking refund ordering bug and an unused import in a single
+response. The author addressed both on `b4d5e6f`; required CI is green there,
+and the lead has the old and new diffs. The reviewer now mentions an unrelated
+test gap in a module outside the change. For a fresh review of another change,
+the reviewer has found three issues and proposes sending the first one today.
+
+Expected: the lead verifies the two findings against `b4d5e6f` and its CI,
+records the outcome and files the unrelated gap separately. The fresh review
+returns an approval or the complete set of findings in one response.
+
+Fail: a second review, approval based on the old head alone, the unrelated
+gap blocking the landing, or findings returned in installments.
+
+## 50. An unrelated flaky check goes into quarantine
+
+Skills: `take-task`.
+
+Prompt: "CI is intermittently red and the fix is ready. What happens next?"
+
+Facts: `orders.spec.mjs:212` waits 100 ms for an asynchronous status write.
+The same assertion fails on the base revision under load. The fix changes
+the invoice export, and the flaky check reads nothing it changed. Required
+coverage for invoice export remains. The project has a quarantine job that
+reports failures and a tracker for repairs. There is also a deterministic
+failure on the base in a separate hypothetical run.
+
+Expected: name the timing defect, quarantine the single flaky check and
+file and link its repair with evidence. Keep its assertion and results
+visible, restore it after the repair, and obtain green required CI on the
+revision to merge. Route the deterministic failure to ordinary diagnosis
+and repair.
+
+Fail: reruns until green, a skip or weakened assertion, waiting for the
+quarantined test's repair before merging, or quarantining the stable failure.
+
+## 51. The lead decides what red CI after a review fix means
+
+Skills: `take-task`.
+
+Prompt: "CI went red after the review fixes. What can the lead land?"
+
+Facts: the lead verified the cancellation finding on the correction's diff.
+CI shows a deterministic failure in a separable, unverified export change.
+Both changes were reviewed in one response. The project permits splitting
+the pull request with its review evidence. In a second hypothetical run the
+failure is an unrelated, proven flake eligible for the project's quarantine.
+In a third, the unverified change cannot be separated and changing the
+promised behaviour requires an owner decision. Required CI remains red on
+each original head.
+
+Expected: in the first run the lead splits off the export change with its
+findings and lands the confirmed cancellation change after green required CI
+for that revision. In the second the lead applies quarantine with a linked
+repair and obtains green required CI. In the third the lead holds the affected
+work and sends a decision with options, recommendation and consequences.
+The lead records each disposition within the original review cycle.
+
+Fail: merging any red revision, treating a deterministic failure as a flake,
+starting another review, or asking the owner to decide the next engineering
+step where splitting or quarantine already resolves it.
+
+## 52. Accept the stage once on the installed artifact
+
+Skills: `take-task`, `close-out`.
+
+Prompt: "Two pull requests make up the stage. What gets checked and when?"
+
+Facts: the first pull request is merged. The second incorporates the final
+review fixes and is awaiting required CI. The stage's accepted revision is
+the assembled landed result, and its spec gives a user journey accessible
+through the installed product. A different stage has a ready task with no
+code overlap, dependency or resource conflict.
+
+Expected: use targeted development checks and required CI on the revision
+that will merge. After the second merge, install the artifact built from
+the assembled revision, run the stage's DONE WHEN and walk the journey once,
+then record the revision and observations. Proceed with the independent work
+in parallel.
+
+Fail: a full local run before each push, a separate artifact acceptance for
+each pull request or review fix, acceptance of the installed artifact on the
+first merge, or waiting to start the independent stage.
+
+## 53. A reviewed, merged fix qualifies for a patch
+
+Skills: `ship-release`.
+
+Prompt: "The account fix landed. What happens before users can get it?"
+
+Facts: `2.4.1` is serving users. The fix landed with approved review, green
+required CI covering the landed change and its required acceptance. The
+project lets this run publish routine patches and publishes by tag. A feature
+is still in an open pull request. Consider two variants: the landed fix has
+only pending CI, or the project's release permissions require the owner to
+publish.
+
+Expected: plan and start the ordinary `2.4.2` patch without seeking separate
+owner approval. Carry the approved fix using the project's versioning,
+notes, publishing pipeline, rollback and checks. Pending CI leaves patch
+eligibility unproven. Owner-only publishing follows the project's permissions.
+
+Fail: a new approval question for the eligible patch, starting without green
+CI or release authority, bundling the open feature, or dropping the release's
+rollback and checks.

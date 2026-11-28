@@ -57,7 +57,7 @@
           "Where the engine is installed, both checkouts must exist; `$REPO` must be a git checkout",
           "status --porcelain` must print nothing for the files you will describe",
           "take `-C`, so they run from anywhere",
-          "runs from `$ENGINE` \u2014 `bun` loads the current directory's `bunfig.toml` and its `preload` runs",
+          "runs from `$ENGINE` — `bun` loads the current directory's `bunfig.toml` and its `preload` runs",
           "do not run the repository's code, start its services or probe it with stubs",
           "if the code is uncommitted, the pin misses what you read. If it is not clean, stop and ask for the code to be committed first"
         ]
@@ -86,6 +86,69 @@
           "A pushed notification never carries the question in one line",
           "it says that a decision is waiting, what it is about in a few words, and what waiting costs; the worked ask waits in the conversation",
           "A run's question that arrives without that material is the supervising session's homework, not the owner's"
+        ]
+      }
+    },
+    {
+      "id": "one-review-round",
+      "owner": "authoring/skills/backlog/setup-shady2k-skills/references/running.md.in",
+      "required": [
+        "returns either `APPROVE` or the complete list of findings in one response",
+        "The run lead verifies the fix's diff against each finding and reads the required CI on the corrected revision",
+        "split off the unverified work, keeping its findings and evidence with it",
+        "apply **CI supplies the pre-merge checks** to whatever lands"
+      ],
+      "exclusive": [],
+      "consumers": {
+        "authoring/skills/engineering/take-task/SKILL.md.in": [
+          "Resolve red CI after a review fix by **One review, then approval with comments**"
+        ],
+        "authoring/skills/engineering/take-task/review.md.in": [
+          "Hand the findings and their verification evidence to the run lead"
+        ]
+      }
+    },
+    {
+      "id": "quarantine-and-merge-gate",
+      "owner": "authoring/skills/backlog/setup-shady2k-skills/references/checks.md.in",
+      "required": [
+        "File and link the repair task at once with the cause and evidence",
+        "Keep the assertion intact, keep the quarantined result visible",
+        "Use green required CI on the exact revision",
+        "Leave the full pre-merge suite to CI",
+        "install the artifact built from that revision and use it for the walk"
+      ],
+      "exclusive": [],
+      "consumers": {
+        "authoring/skills/engineering/take-task/SKILL.md.in": [
+          "Apply **An unrelated flaky check goes into quarantine with a repair task**",
+          "Use **CI supplies the pre-merge checks** for the submitted revision"
+        ],
+        "authoring/skills/backlog/to-stages/SKILL.md.in": [
+          "**A stage is accepted once on the assembled result** before its dependants build on it"
+        ]
+      }
+    },
+    {
+      "id": "patch-release-permission",
+      "owner": "authoring/skills/backlog/setup-shady2k-skills/references/running.md.in",
+      "required": [
+        "green required CI covering the landed change can proceed to a patch without a separate owner approval when the project's release permissions allow the run to publish it",
+        "Release only the approved patch scope"
+      ],
+      "exclusive": [],
+      "consumers": {
+        "authoring/skills/engineering/ship-release/SKILL.md.in": [
+          "**A reviewed fix can go straight to a patch release**"
+        ],
+        "authoring/skills/engineering/take-task/SKILL.md.in": [
+          "**A reviewed fix can go straight to a patch release**"
+        ],
+        "authoring/skills/backlog/ask-shady2k/SKILL.md.in": [
+          "**A reviewed fix can go straight to a patch release**"
+        ],
+        "authoring/skills/backlog/close-out/SKILL.md.in": [
+          "**A reviewed fix can go straight to a patch release**"
         ]
       }
     }

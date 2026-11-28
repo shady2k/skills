@@ -212,7 +212,7 @@ the list.
 | product changes are landing — recent commits, open branches — with no run open for them | the run that work should be under: `/take-task` for it, started on the owner's word, so what is landing is reviewed and accepted by a run instead of by whoever dispatched it; say in one line that it moves with no run open |
 | results await merging or acceptance | resume that stage with `/take-task`; do not redo its tasks |
 | accepted work awaits closure | `close-out` with the acceptance record |
-| merged work whose transition is still outstanding — a project that deploys has not released it, a library has not published it | `/ship-release`: version and notes from the accepted work, migrations with their reverse, rollout by environment with the rollback named before each step, at the scale the project is |
+| merged work whose transition is still outstanding — a project that deploys has not released it, a library has not published it | `/ship-release`: version and notes from the accepted work, migrations with their reverse, rollout by environment with the rollback named before each step. Apply **A reviewed fix can go straight to a patch release**. |
 | a released hypothesis whose measure has come due | `define-product` reads the measure against the threshold the hypothesis recorded and writes the result on it; a refuted one reaches the owner as news |
 | the last retrospective is far enough back — the current milestone is ending, or about five features have closed since it in a project that plans no milestones | `refine-practices`: read how the work has gone since then, and put the practices it finds to you as the project's setting for open questions says |
 | all current outcomes accepted | `/to-milestone` |
@@ -392,7 +392,8 @@ assumes one way**, stopping only for decisions that need the owner. It is also
 - `ship-release`: merged, accepted work reaches its users — version and
   notes, migrations with their reverse, rollout by environment with the
   rollback named first; a library publishes, an internal tool may narrow
-  to its merge.
+  to its merge. **A reviewed fix can go straight to a patch release** sets
+  when the transition can start.
 - `handle-incident`: restore first, then the cause through `diagnose-bug`,
   then a blameless review whose actions are filed as work.
 - `check-upkeep`: the pass over what runs the product — dependencies,
