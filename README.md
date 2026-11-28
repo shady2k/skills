@@ -912,6 +912,15 @@ guard. A local hook or prose instruction is not a tamper-proof boundary.
 
 ## Changelog
 
+- **0.146.2** asks you before a finding waits. When a version's bug budget is
+  spent, the defect people live with now comes to you with what it costs while
+  it waits and what it would displace, and nothing is deferred or made ready
+  until you answer — the agent no longer reads the budget as leave to park it.
+  A finding counts against the version it would join, so one that lands while
+  the next version is being planned is that version's first finding rather than
+  a question about what to displace; a green required check settles nothing
+  about a defect in the product, which is still a finding. No installation
+  changes: no setup rerun.
 - **0.146.1** keeps the goal working when it arrives mid-version. Updating the
   plugin no longer stops a version you already agreed: an outcome, stage or task
   written before the goal existed keeps its approved scope and plan, its missing

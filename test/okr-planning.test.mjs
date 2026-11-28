@@ -93,7 +93,13 @@ const SCENARIOS = [
       'What a finding is worth reading is the key result it moves or protects',
       'Where the contribution cannot be stated, the item says so and the owner is asked',
       'Then read what it costs while it waits, before counting anything',
-      'deferring is not an answer the agent gives itself',
+      'A required check that is green decided nothing about a defect people meet',
+      'Then read the finding budget of the milestone the item would join from the config',
+      'At or over budget the order is fixed',
+      'the item is recorded where it waits',
+      'Only that answer files it deferred or makes it ready',
+      'a run that defers it on its own word has taken the decision',
+      'no number is attached to qualify it for the queue',
       '**The key result it moves or protects**, in a `Moves:` line',
       'one short pull request and hours of agent work',
     ],
@@ -238,6 +244,15 @@ for (const { skill, scenario, needs } of SCENARIOS)
     assert.ok(norm(text).includes(LINK), `${skill} does not link the rule it rests on`);
     requireAll(text, needs, skill);
   });
+
+// The over-budget sentence once read as an instruction to defer the finding, and a
+// run followed it and took the owner's decision. The presence of a step cannot see
+// that: what went wrong is a sentence telling the run to park the item itself.
+test('an over-budget finding is never filed deferred on the run\'s own word', () => {
+  const text = norm(read(SKILLS['to-backlog']));
+  assert.ok(!text.includes('file it as deferred'),
+    'to-backlog: an over-budget finding is filed deferred before the owner answers');
+});
 
 test('the installed folder carries the rule its skill links to', () => {
   const canonical = readFileSync(resolve(root, SETUP, 'references/okr.md'), 'utf8');

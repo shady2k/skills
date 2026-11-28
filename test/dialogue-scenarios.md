@@ -794,36 +794,45 @@ Facts: the vision's `## Outcome` is "a person finds last month's invoice
 without asking anyone", and `## Success signal` holds `Due: 2026-03-31`,
 `K1: median time to find last month's invoice — 60 seconds or less` and
 `K2: workspaces that search at least weekly — 400`, each a number someone
-watches. The current version is ending: its charter admitted three findings and
-it took three, so the budget is spent. The backlog holds a feature that plainly
-serves `K1` (search across invoices); a product defect on that path — signing
-out on one device makes the other device's saved search return nothing, while
-`K2` counts the weekly searches those same workspaces make — that users report
-today; a stale bug in an area no key result touches (the email footer); and a
-feature everyone believes is useful (dark mode) that nothing ties to either key
-result. The required check on the last landing is green, so nothing waits on a
-repair, and no one outside the work set a date.
+watches. The current version is ending and the next one is being planned: its
+charter is already approved with a finding budget of three, and it has taken
+none of them yet. The backlog holds a feature that plainly serves `K1` (search
+across invoices); a product defect on that path — signing out on one device
+makes the other device's saved search return nothing, while `K2` counts the
+weekly searches those same workspaces make — that users report today; a stale
+bug in an area no key result touches (the email footer); and a feature everyone
+believes is useful (dark mode) that nothing ties to either key result. The
+required check on the last landing is green, so nothing waits on a repair, and
+no one outside the work set a date.
 
 Expected: the charter's outcomes each name the key result they move in a
 `Moves:` line; the goal's `Due:` bounds the plan and is not written as the
 version's `Target:`; a stage and each of its tasks carry the same key result,
 and a result larger than one short pull request and hours of agent work is cut
 before it is filed. The slice is the work that moves `K1` and `K2`. The defect
-is a finding whose contribution to `K2` is stated, and because the budget is
-spent you are asked what it displaces or what risk you accept — the cost of
-waiting said first — rather than it being filed deferred; it is not routed as a
-required-check repair, since that check is green. The stale bug and the
+is a finding whose contribution to `K2` is stated, and it joins the version
+being planned against that version's own approved budget — filed as its first
+finding of three, with no question about what it displaces, because the budget
+has room. It is not routed as a required-check repair: that check is green, and
+a green check says nothing about a defect people meet. The stale bug and the
 dark-mode feature stay deferred, each with its link said to be unknown instead
 of a key result named to keep it live.
+
+Branch, on the same scenario once that version has taken its three findings:
+the defect is put to you rather than filed deferred — what it costs while it
+waits said first, then what it displaces or what risk you accept — and nothing
+is filed deferred or made ready before your answer.
 
 Fail: outcomes or tasks with no key result, or with one guessed to qualify them;
 the goal's date copied into `Target:`, or a `Target:` with no forecast behind
 it, or a milestone whose date drifts from the goal without saying which key
 result it leaves for it; the untying feature kept live because it is cheap or
-popular; the defect filed deferred for want of budget, or filed as a
-required-check repair because its area is red somewhere; a finding that moves
-nothing counted against the budget; a task cut only after a worker says it was
-too big.
+popular; the defect held for your decision while the approved budget has room,
+or counted against another version's budget; the defect deferred, or made ready,
+before your answer once the budget is spent; the defect tied to a key result
+invented to keep it in the queue, or filed as a required-check repair because
+its area is red somewhere; a finding that moves nothing counted against the
+budget; a task cut only after a worker says it was too big.
 
 ## 40. The update lands in the middle of an agreed milestone
 
@@ -860,14 +869,18 @@ workspaces reporting it; the finding budget is spent, five of five; the last
 landing's required check is green and no branch waits on anything; three people
 report the loss today.
 
-Expected: filed as a finding with its link written unknown; the cost while it
-waits said first; you are asked what it displaces from the version or what risk
-you accept by shipping it, and nothing is made ready before your answer. It is
-not treated as a check repair, and the spent budget is not the reason it waits.
+Expected: recorded where it waits as the decision the owner holds — an open leaf
+under the feature it concerns, with no finding label and no budget — its link
+written unknown and never filled to qualify it; the cost while it waits said
+first; you are asked what it displaces from the version or what risk you accept
+by shipping it, and it is neither filed deferred nor made ready before your
+answer. It is not treated as a check repair: a green check settles nothing about
+a defect people meet. The spent budget is not the reason it waits.
 
-Fail: filing it deferred because no key result can be named; naming a key result
-to qualify it; routing it as upkeep or as a repair a merge waits on; making it
-ready and reporting the parking afterwards.
+Fail: filing it deferred because no key result can be named, or before the
+answer; naming a key result to qualify it; routing it as upkeep or as a repair a
+merge waits on; making it ready and reporting the parking afterwards; filing it
+as a finding against a budget that is already spent.
 
 ## 42. A new period, and the same number over a different measurement
 

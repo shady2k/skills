@@ -74,28 +74,36 @@ Joining the slice gives a feature no dependencies on other features.
 
 First check it is one: a repair a merge waits on, or upkeep of the installation,
 spends no budget, by the protocol's **Only what the milestone chose is
-intake**. Then read what it costs while it waits, before counting anything, by
+intake**. A required check that is green decided nothing about a defect people
+meet: a defect in the product is a finding, not a check repair, whatever the
+check said. Then read what it costs while it waits, before counting anything, by
 the protocol's **A finding that does not fit is decided, not parked**: where
 people live with the fault now, that is the first sentence, and a counter that
 measures only intake never decides urgency. A fault that costs a person
 something now is a finding whether or not its key result can be named; where it
-cannot, the item says the link is unknown and the owner is asked, and the filing
-does not wait for the answer. Then read the finding budget from the config and
-count the milestone's findings. Within budget, file it and carry on. At or over budget,
-file it as deferred and bring the decision to the owner: leave it for later, or
-replace named planned work and approve the new count. If they replace, update
-the budget in the config and record the decision in the charter with what was
-displaced; the count is of what the milestone took in, as the protocol's
-findings lane says. Do not make an unapproved finding ready; filing it need
-not wait for the decision. Where what it costs while it waits is real — people
-or their data living with the fault now — deferring is not an answer the agent
-gives itself: the owner chooses what it displaces or what risk they accept, by
-that rule.
+cannot, the item says the link is unknown and the owner is asked, and no number
+is attached to qualify it for the queue.
+
+Then read the finding budget of the milestone the item would join from the
+config and count that milestone's findings. Within budget, file it as a finding
+against that milestone and carry on. At or over budget the order is fixed: the
+item is recorded where it waits — by the lane table's decision the owner holds,
+an open leaf under the feature it concerns with no finding label and no
+budget — carrying what it costs while it waits, the key result it moves or that
+the link is unknown, and what it would displace. Then the question goes to the
+owner with the answers that exist and what each costs: hold it until later,
+replace named planned work and approve the new count, or open the next slice
+now. Only that answer files it deferred or makes it ready; a run that defers it
+on its own word has taken the decision, and where people or their data live
+with the fault now, what they live with is the first thing they are told. If
+they replace, update the budget in the config and record the decision in the
+charter with what was displaced; the count is of what the milestone took in, as
+the protocol's findings lane says.
 
 Where the milestone it would join is already closed and the next one does not
 exist, the protocol's **A finding that does not fit is decided, not parked**
 holds: the next slice, opened now through `to-milestone` or knowingly waited
-for, is the third option. The deferred issue holds the finding while the owner
+for, is the third option. The question holds the finding while the owner
 decides; the gate going clean is never the reason it was made.
 
 Recommend what to do: what would ship later, or what risk remains if it waits,
