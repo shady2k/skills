@@ -19,11 +19,27 @@ and a material new problem comes back to the owner.
 The outcome must belong to the current milestone. If it does not, do not
 decompose it, however clear it looks: say so and stop.
 
+It must also name the key results it moves, by the protocol's [**A project's
+goal is its key results, and every piece of work names the one it moves**](references/okr.md).
+An outcome written after the goal was agreed whose line names none is not
+decomposed: it goes back to
+`/to-milestone`, which decides what the slice is for and puts the choice to the
+owner, before any stage exists. An outcome, stage or task that was agreed
+before the goal, or before the line existed, is not that case: its scope and
+plan stand as agreed, its line reads as unknown by [okr.md](references/okr.md)'s
+**An agreed record is not reopened for a missing link** — said once to the
+owner, never filled with a number chosen to keep it live — and the breakdown
+continues. The stages and tasks created from here carry the key result once the
+owner names it; nothing already agreed goes back to planning for the gap.
+
 ## 2. Gather
 
 Read the outcome's spec or short delta, the feature issue, the charter and the
 code it lands in; the conversation the spec came from is best of all. Without
-usable behaviour and criteria, use `to-spec`. For a bug, reuse its requirement
+usable behaviour and criteria, use `to-spec`. Read too the key results the
+charter line for this outcome moves: they are what the stage and task lines
+below repeat, and a stage none of whose tasks moves one has nothing to be. For
+a bug, reuse its requirement
 and regression scenario. Decompose only once the outcome's frame is there, by
 the protocol's
 [**The outcome frame comes before the work is specified**](references/lifecycle.md);
@@ -130,7 +146,15 @@ layers behind it wait, is the breakdown to re-cut.
 
 **Tasks**, for the stages starting now only:
 
-- Small enough for one worker's session, including its local checks.
+- Small enough for one worker's session, including its local checks: one short
+  pull request and hours of agent work, by [okr.md](references/okr.md)'s **The
+  queue and the breakdown follow the key results**. A result that is bigger is
+  cut here until each piece is, and one that cannot be cut without choosing
+  between key results is the owner's decision, put before the breakdown is
+  published.
+- Names the key result it moves in its own `Moves:` line, and so does its stage,
+  taken from the outcome's line; a stage whose tasks all move none of them is
+  not created.
 - A **vertical slice**: a narrow, complete path through every layer the outcome
   touches, never one layer across. Finished, it can be shown or checked alone.
 - A stage or task that replaces a mechanism carries the old one's retirement in
@@ -209,7 +233,10 @@ analysis**](references/deciding.md).
 ## 5. Publish and prove
 
 Create stages under the feature and tasks under their stages with the tracker's
-verbs. Run the gate. It is done when the gate is clean and the ready tasks are
+verbs. Run the gate. It is done when the gate is clean, every stage and task
+carries the key result it moves from the outcome's own line — or says the link
+is unknown, where the outcome predates the goal and the owner has not named it
+yet — and the ready tasks are
 exactly the first ones you expect. Publish and name what is ready to take:
 `take-task` for the stage, with the tasks that can run in parallel. When called
 from an authorized execution workflow whose feature already carries the agreed

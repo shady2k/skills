@@ -66,6 +66,16 @@ practice**](references/deciding.md).
 - **What nobody knows becomes a question**, with who can answer it, never a
   guess written as fact.
 
+The goal comes out of the same walk: question 3 is the objective in the
+person's own words, and question 4 — what would prove the idea right — is its
+two or three key results, each a number somebody would look at,
+the value that counts as reached, and the date the period closes, by the
+protocol's [**A project's goal is its key results, and every piece of work names
+the one it moves**](references/okr.md). Offer the smallest set of numbers that
+would show the objective reached, taken from what the person says they would
+look at; where they give none, the goal has no key results yet, and that is
+said rather than filled in with a number nobody chose.
+
 When a belief is cheaper to try than to discuss, say so and offer
 `to-prototype`; when a fact can be looked up, `to-research`.
 
@@ -101,6 +111,11 @@ runs in it as the product's code repository.
 - The key journeys and the principles the owner states each get a stable id
   in the vision record, and each milestone outcome names the journeys and
   principles it serves in its `Serves:` line.
+- The objective is the vision's `## Outcome`, in one sentence, and its key
+  results are `K1:` lines under `## Success signal`, with the `Due:` date the
+  period closes, by the protocol's rule above. A key result that is still a
+  belief is written as a hypothesis with its measure and threshold, and the key
+  result names that hypothesis.
 
 Run the product-documents check before keeping them and correct what it
 refuses.
@@ -111,6 +126,8 @@ It is done when an engineer could start the first feature. Check, and say what
 is still missing rather than filling it in:
 
 - who uses it, and the problem, with the person's own evidence;
+- the objective in one sentence, and two or three key results with the value
+  that counts as reached and the date the period closes;
 - the first journey, its steps, and what can go wrong at each;
 - the rules a user would notice (limits, times, prices, who sees what);
 - what is out;
@@ -131,7 +148,9 @@ requirement, a cost. The threshold is never moved to fit the measure's
 answer; that asks the belief questions until one gives the wanted one.
 Where the reading is asked for as part of planning the next slice,
 `to-milestone` plans with the results; the reading and the record stay
-this skill's.
+this skill's. A key result written as a hypothesis is read the same way, and
+that reading is the key result's own: the value against the date the goal
+promised.
 
 ## 6. Close in plain words
 

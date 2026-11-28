@@ -19,6 +19,9 @@ file, read when a step needs it:
   preflight, the owner's time, sessions and landing, waits, estimates;
 - [landing.md](references/landing.md): how work reaches this project's main
   line — the practice it lands by, in that practice's own words;
+- [okr.md](references/okr.md): the project's goal — one objective, two or three
+  measured key results and the date the period closes — and how every milestone,
+  stage and task names the key result it moves;
 - [checks.md](references/checks.md): red checks, refusing gates, diagnostics,
   the cheapest check, reaching the outcome, CI;
 - [building.md](references/building.md): how the product's code is shaped —
@@ -95,7 +98,11 @@ separately and leave the main line working (a parallel change: expand, migrate,
 contract; behind a switch where the project allows one). A practice that lands a
 change rather than a feature closes each stage's own branch at its own landing,
 so the bound falls on the stage there, and a stage too big for it is split. A
-task that will not fit one worker's session is split before it starts. A stage has no session limit: it groups
+task that will not fit one worker's session is split before it starts, and a
+session's worth of work is one short pull request and hours of agent work rather
+than a day, by [okr.md](references/okr.md)'s **The queue and the breakdown
+follow the key results**: a result bigger than that is cut before it is filed.
+A stage has no session limit: it groups
 tasks toward a checkpoint that is accepted by checks and review before the
 next stage builds on it.
 
