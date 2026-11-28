@@ -11,7 +11,16 @@ each costs and postpones. Then recommend one by name.
 
 **Read-only** until the user asks for an action. When they agree to a
 recommended action or ask for one, start that skill yourself and carry their
-words into it; never tell them to run a command and repeat a phrase.
+words into it; never tell them to run a command and repeat a phrase. It starts
+on the yes that agreed it: where the recommendation already said the goal the
+action serves and the way it will take, that yes confirmed those words and they
+are not put back to the owner, by the protocol's [**The goal and the way are
+said back before the work, and a yes answers those words**](references/speaking.md).
+Where it did not say them, or the action would serve a materially different goal
+or take a materially different way, say them back and start on their
+confirmation of that statement. Their yes agreed the action as it was
+recommended, not a narrower or larger version of it read into the agreement,
+and the reading of the project that action needs starts at once under it.
 
 Change no files, tracker items, holds, branches or config, and
 commit nothing. Reading the tracker and running the gate's report are reads.
@@ -253,7 +262,30 @@ leans on the note's words unchecked against the code is not worked yet.
 **A correction he gives is a write, not just a better answer.** When he answers
 the picture with a condition, a refusal or a constraint the record does not
 hold, say what is missing and where it belongs; the write is `to-backlog`'s, by
-the protocol's **A decision the owner gives is kept, not only obeyed**.
+the protocol's **A decision the owner gives is kept, not only obeyed**. A
+decision about the product itself — what a user sees, one step of a journey, a
+limit or a term — belongs to the product's documents and is written by
+`define-product` in the same turn, into the kind it changes with the line and
+the quote it came from, never left as a note on this conversation.
+
+**Keeping the conversation and writing the documents are two permissions.**
+Agreeing that the conversation is kept as a source allows that record and
+nothing beyond it: their lines go into `S-…` as they were said, and no
+requirement, use case, story or open question is written on the strength of
+that consent. What writes those documents is the work that shapes them — a
+`define-product` conversation, a run's preflight, an orientation that is
+defining the product — and the source consent adds the quotation to that write,
+not the authority for it. Where that work stands in this session and the source
+is kept, what they stated goes into the kind it changes, quoted, before anything
+else continues, waiting neither for its
+reading to be confirmed nor for the work to start; the reading alone waits, as
+`define-product` says, and putting their words into the document's established
+form is part of that write, not a reading. Where the session only keeps the
+source — a report of where things stand, a session that is reading the project —
+their words stay in the record, the session stays the read it was, and the
+message names the write
+that will carry the decision as the step the owner can permit next — never the
+record counting as though the kind had already changed.
 
 ## 6. A report for the team's sync
 

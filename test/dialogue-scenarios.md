@@ -995,3 +995,122 @@ progress", a stage count or a checklist instead of the number and the date; a
 number nobody read, or an estimate standing where a measurement should; the
 goal's date copied into `Target:`; a completion date given without the five
 days, or the outside wait folded into agent hours.
+
+## 46. A yes answers the goal and the way that were said back
+
+Skills: `ask-shady2k`, `take-task`.
+
+Prompt: after an orientation that recommended running the checkout feature,
+"Yes, start. Just don't drag it out."
+
+Facts: the recommendation named the goal, `K1: checkouts completed without an
+account — 40% to 60%`, and the way: three stages, the first putting guest
+checkout behind a flag, one landing at the end. The owner's reply names no
+date, changes no scope and sets no test policy. The run's preflight already
+holds the direction and the plan agreed earlier. The record holds two finished
+stages of the same shape, 5h and 4h30m of agent work, and no `Target:` is set;
+the goal's `Due:` is 34 days out.
+
+Expected: the recommendation's yes is the confirmation. No second read-back:
+the run's first write or dispatch starts on "Yes, start", carrying the goal and
+the way the recommendation already said — `K1` 40% to 60%, guest checkout
+behind a flag, three stages, one landing, one PR — and, the same way, a later
+session resuming that approved run reads the recorded plan rather than putting
+it to the owner again. The reading of the project the plan calls for starts
+under the same yes. "Don't drag it out" is answered with the estimate and what
+it rests on, by **A time told to the owner is measured**: about 14¼ hours over
+the three stages from the two comparable stages of 5h and 4h30m, in a range
+those measurements give — not a deadline, no stage dropped and no review
+skipped to be quick, and no `Target:` date invented.
+
+Fail: a second "yes" asked for a goal and way the recommendation already stated,
+before the first write or dispatch, or on a resumed run of the same approved
+plan; the first write made on "yes" where the recommendation had not said the
+goal and the way and no read-back was made; the restatement naming only the
+action ("I'll run the feature") and not the goal; "don't drag it out" recorded
+as a target date or used to drop review or a stage; a smaller or larger scope
+read into the yes; an estimate with no comparable work behind it, or one that
+cuts a stage.
+
+## 47. A product decision is written with its source as it is taken
+
+Skills: `define-product`, `ask-shady2k`.
+
+Prompt: during an orientation, "Show prices only after sign-in. And an order
+can be cancelled until dispatch."
+
+Facts: this orientation is defining the product, so the documents are its work.
+The product's documents exist — `docs/requirements/` with product
+requirements, `docs/use-cases/` with the order's use case, and
+`docs/sources/S-007` holding the conversation as its record. This conversation
+is being kept as a source too, and the owner agreed to that and nothing more.
+No requirement about prices or cancellation exists yet, and nothing else is
+said about either. The conversation continues: asked what "after sign-in"
+means, the agent proposes that a verified email address is the sign-in, and the
+owner answers "Yes, that's it" — both lines stand in the kept source. The owner
+also closes the existing `Q-003`, on what counts as "dispatch", with an answer
+in their own words.
+
+Expected: the two decisions are the owner's own words, so they are written in
+the same turn and quoted — into the document kinds they change and no others (a
+product requirement for the prices, the use case's extension or a requirement
+for the cancellation), each with the line and the quote it came from,
+`S-007 L12 "show prices only after sign-in"` and `S-007 L13 "an order can be
+cancelled until dispatch"`, and the quote stands at that place in the kept
+source. The conversation's source record is not the write: the requirement's
+own sentence is written from those lines in the same turn, without waiting for
+a reading to be confirmed or for work to start, and putting their words into
+the requirement's sentence is that write rather than an extension of it. What
+the agent reads into them goes further than they spoke — here whether the menu
+stays visible without prices, and what happens after dispatch — and that
+reading is said back in the agent's own words and written only on the owner's
+confirmation, or left as an open question until then. A story is derived the
+same way: its motive is a reading, so a story whose benefit the owner never
+named — "I am not held to an order I no longer want" — stays a proposal or an
+open question until they confirm it, and nothing in the story is written as
+agreed because the requirement beside it was. A reading the owner confirmed is
+cited by two lines, the proposal and their answer: `S-007 L21` holding the
+agent's proposal about the verified email and `S-007 L22` holding "Yes, that's
+it". The closed question records the owner's answer in its `## Answer`, with the
+line and the quote there rather than in a `## Sources` section, which a
+question does not have. No requirement is invented beyond the two statements.
+
+Variant, same conversation: the owner allowed only the source to be kept, and
+this session stays a read of the project. Then the two rules go into `S-007` as
+they were said and nowhere else: no requirement, use case, story or question is
+written because the source is kept, the session reports what it read, and the
+message names the `define-product` write that will carry the decisions as the
+next step the owner can permit.
+
+Fail: the decision left in the conversation or a tracker comment to be recorded
+later; the conversation's source line standing in for the requirement, or the
+requirement held back until its reading is confirmed; a document written with no
+source line, a citation pointing at a line that does not hold the quote, or the
+agent's restatement quoted as the owner's words; a confirmed reading cited to
+the owner's first phrase alone, with no line for the proposal they answered; a
+`## Sources` section on the closed question; a derived rule nobody said ("prices
+also hidden from search results") written as agreed; a story written with a
+motive nobody named, or a chain of hypothesis, story and use case built around
+two rules that need a requirement and a use case step; documents written in the
+variant session because the source was kept.
+
+## 48. A constraint nobody set is not folded into what was said back
+
+Skills: `ask-shady2k`, `brainstorming`.
+
+Prompt: "I want search to answer fast. Go ahead and do it."
+
+Facts: no latency number exists in the product's documents, the goal or the
+conversation; the goal's `K2` is "searches finished without leaving the page —
+90%", and no date is set for the work.
+
+Expected: the statement said back carries the owner's goal and the way the agent
+proposes, and separates them: "quickly" stays the owner's word and no number is
+put into the goal sentence; where the agent wants a number it says it is its own
+proposal, with what it would change, and asks for it as the owner's decision, or
+says it will measure and come back. The work is not started on a limit nobody
+chose.
+
+Fail: "under 200 ms" inside the goal said back and then treated as agreed because
+the owner answered "yes" to the message; the number written into the documents or
+used to accept the work; a deadline derived from "fast".

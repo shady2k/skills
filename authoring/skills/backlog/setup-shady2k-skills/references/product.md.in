@@ -101,7 +101,11 @@ range in a transcript, `S-001 00:12:30-00:13:05 "the quote"`. Lines are the
 source file's own lines; a transcript marks time as `[hh:mm:ss]` at the start
 of a line. The quote must stand at that place in a kept source. A source kept
 outside the repository (`Kind: outside`, with its `Reference:`) has no record,
-and its quotes are reported as not verified.
+and its quotes are reported as not verified. A quote of a reading the owner
+confirmed carries the proposal and their answer to it, one citation each,
+because their first phrase does not show what they agreed to beyond it. A
+question has no `## Sources`: the decision that closes it is quoted in its
+`## Answer` (below).
 
 **A source is kept with consent.** The record of a conversation keeps the
 person's words as they said them, and is kept only with their agreement. What
@@ -155,7 +159,11 @@ system (no code, module, service or table); *optional* `## Rationale`;
 
 **Open question (`Q-…`).** Fields: `Concerns:` the documents it is about, or
 `VISION`; `Who can answer:`. Sections: `## Question`, `## What settles it`,
-*optional* `## Answer`.
+*optional* `## Answer`. A decision that closes the question is written in
+`## Answer` in the owner's words, and its citation follows it there —
+`S-004 L12 "orders can be cancelled until dispatch"` — since the kind has no
+`## Sources`. An answer set to `Not applicable: <reason>` closes the question
+too; an empty answer leaves it open.
 
 **Prototype (`P-…`).** Fields: `Tests:` hypotheses; `Code:` the folder
 under `prototypes/` that holds it. Sections: `## What it tries`, `## How to

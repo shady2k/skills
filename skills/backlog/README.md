@@ -12,7 +12,9 @@ Skills that keep the queue usable and stage acceptance honest.
   on every invocation without repeating settled questions. Rerunning it after 0.48.0 adds ids to your current vision and charter without changing their text and proposes the new switches.
 - [ask-shady2k](./ask-shady2k/SKILL.md): read-only orientation: picture, progress,
   ways forward with a time measured and its basis, and the recommended next
-  action; or a report for the team's sync over a period.
+  action; or a report for the team's sync over a period. When you agree to the
+  action it recommends, it says back in its own words the goal and the way and
+  starts on your confirmation of that sentence.
 - [to-milestone](./to-milestone/SKILL.md): agree independent outcomes and budget. Each outcome names the vision journeys and principles it serves, and the charter's acceptance carries another model's judgement of what it serves and breaks, each entry an id the vision declares and a passage quoted from the charter.
 
 ## Started when the work calls for it

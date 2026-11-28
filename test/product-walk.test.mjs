@@ -141,6 +141,27 @@ const QUESTION = [
   '',
 ].join('\n');
 
+const CONVERSATION = [
+  '# S-001 — The conversation about unclaimed portions',
+  '',
+  'Kind: conversation',
+  'Date: 2026-10-09',
+  'With: the cafe owner',
+  '',
+  '## Record',
+  '',
+  '**owner:** whoever is at the counter at closing takes them.',
+  '',
+].join('\n');
+
+// A question the owner answered: the decision and the place it came from stand
+// in the answer itself, because a question has no `## Sources` section.
+const ANSWERED = `${QUESTION}## Answer\n\nThe counter takes them: S-001 L9 "whoever is at the counter at closing takes them."\n`;
+
+// The same answer put where the other kinds keep a citation: a section a
+// question's form does not have.
+const ANSWER_WITH_SOURCES = `${QUESTION}## Answer\n\nThe counter takes them.\n\n## Sources\n\n- S-001 L9 "whoever is at the counter at closing takes them."\n`;
+
 // ------------------------------------------------------------------- tests --
 
 test('walk-a-draft-becomes-a-named-product: new makes it, rename names it in place and keeps its id', () => {
@@ -208,6 +229,41 @@ test('walk-a-broken-product-document-is-refused-at-commit: with its file and lin
 
     git(folder, 'commit', '-q', '-m', 'the vision and its first open question');
     assert.equal(git(folder, 'status', '--porcelain'), '', 'the product repository is clean');
+  } finally { done(root); }
+});
+
+test('walk-a-closed-question-keeps-the-quote-in-its-answer', () => {
+  const root = scratch();
+  try {
+    const home = join(root, 'products');
+    const { folder } = makeDraft(home);
+    writeFileSync(join(folder, 'docs', 'vision.md'), VISION);
+    mkdirSync(join(folder, 'docs', 'sources'), { recursive: true });
+    mkdirSync(join(folder, 'docs', 'questions'), { recursive: true });
+    const source = join(folder, 'docs', 'sources', 'S-001-unclaimed-portions.md');
+    const question = join(folder, 'docs', 'questions', 'Q-001-who-collects-unclaimed.md');
+    writeFileSync(source, CONVERSATION);
+
+    // A citation where the other kinds keep one: refused for a question.
+    writeFileSync(question, ANSWER_WITH_SOURCES);
+    git(folder, 'add', 'docs');
+    const refused = runCheck(folder);
+    assert.equal(refused.status, 1, `a question has no sources section: ${refused.out}`);
+    assert.match(refused.out, /docs\/questions\/Q-001-who-collects-unclaimed\.md:\d+: /,
+      'the refusal names the document and the line the section stands on');
+    assert.match(refused.out, /has no section "Sources"/, 'and the form the section is not');
+
+    // The answer holding the decision with its line and its quote passes.
+    writeFileSync(question, ANSWERED);
+    git(folder, 'add', 'docs/questions/Q-001-who-collects-unclaimed.md');
+    const answered = runCheck(folder);
+    assert.equal(answered.status, 0, `a closed question passes: ${answered.out}`);
+    assert.match(answered.out, /clean/, 'and the check says so');
+
+    const kept = readFileSync(question, 'utf8');
+    assert.match(kept, /## Answer\n\nThe counter takes them: S-001 L9 "whoever is at the counter at closing takes them\."/,
+      'the decision and its place stand in the answer');
+    assert.doesNotMatch(kept, /## Sources/, 'and no sources section is added to the question');
   } finally { done(root); }
 });
 

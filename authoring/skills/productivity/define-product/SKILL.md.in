@@ -108,6 +108,36 @@ runs in it as the product's code repository.
   belongs to the specs, later.
 - Write only what was said or agreed. An idea of yours the person did not take
   stays out; one they took is quoted from the line where they took it.
+- **A decision taken is written then.** A decision about the product made after
+  the documents exist — in an orientation, a run's preflight, or any
+  conversation that is not this one — is written here in the same turn, by the
+  protocol's **A decision the owner gives is kept, not only obeyed**: the kind
+  it changes, the source line and the quote, and no wait for a shaping session.
+  The line in the conversation's source record is not that write: `S-…` keeps
+  what was said, and the requirement, use case or question is what the next run
+  reads. A rule the person states themselves is written into those documents at
+  once, in the sense they gave it and no wider, quoted from their line; putting
+  it in the document's sentence is part of the write, not a reading that waits.
+  The direct write touches the kinds the words need and no others — a
+  requirement for what a user sees, the use case's step where a journey changes
+  — instead of building a chain around it.
+- **What is derived is said back before it is written.** What the agent reads
+  into the words — a menu that stays visible without prices, what follows
+  dispatch — is not the same thing: before a requirement, a journey or a story
+  goes past the words they spoke, say back in your own words the goal it serves
+  and the way the product meets it, by the protocol's [**The goal and the way
+  are said back before the work, and a yes answers those
+  words**](references/speaking.md), and write that reading on their confirmation
+  of the sentence, or leave it as an open question until then. The citation of a
+  confirmed reading names two lines — the proposal that was put to them and
+  their answer to it — because the phrase they first spoke does not show what
+  they agreed to beyond it. A story is the case easiest to miss: its `So that:`
+  is a motive, and a motive they never named is a reading like any other, so a
+  story carrying one stays a proposal or an open question until they confirm
+  it, while the words they did say are written as the requirement or use case
+  without it. Rendering their words into the kind's own form — a requirement's
+  sentence, the `As:` and `I want:` lines of a story they described — is not a
+  reading; the line they never spoke is.
 - The key journeys and the principles the owner states each get a stable id
   in the vision record, and each milestone outcome names the journeys and
   principles it serves in its `Serves:` line.
