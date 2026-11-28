@@ -118,6 +118,9 @@ runs in it as the product's code repository.
   reads. A rule the person states themselves is written into those documents at
   once, in the sense they gave it and no wider, quoted from their line; putting
   it in the document's sentence is part of the write, not a reading that waits.
+  The direct write touches the kinds the words need and no others — a
+  requirement for what a user sees, the use case's step where a journey changes
+  — instead of building a chain around it.
 - **What is derived is said back before it is written.** What the agent reads
   into the words — a menu that stays visible without prices, what follows
   dispatch — is not the same thing: before a requirement, a journey or a story
@@ -128,7 +131,13 @@ runs in it as the product's code repository.
   of the sentence, or leave it as an open question until then. The citation of a
   confirmed reading names two lines — the proposal that was put to them and
   their answer to it — because the phrase they first spoke does not show what
-  they agreed to beyond it.
+  they agreed to beyond it. A story is the case easiest to miss: its `So that:`
+  is a motive, and a motive they never named is a reading like any other, so a
+  story carrying one stays a proposal or an open question until they confirm
+  it, while the words they did say are written as the requirement or use case
+  without it. Rendering their words into the kind's own form — a requirement's
+  sentence, the `As:` and `I want:` lines of a story they described — is not a
+  reading; the line they never spoke is.
 - The key journeys and the principles the owner states each get a stable id
   in the vision record, and each milestone outcome names the journeys and
   principles it serves in its `Serves:` line.

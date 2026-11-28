@@ -1039,34 +1039,48 @@ Skills: `define-product`, `ask-shady2k`.
 Prompt: during an orientation, "Show prices only after sign-in. And an order
 can be cancelled until dispatch."
 
-Facts: the product's documents exist — `docs/requirements/` with product
+Facts: this orientation is defining the product, so the documents are its work.
+The product's documents exist — `docs/requirements/` with product
 requirements, `docs/use-cases/` with the order's use case, and
-`docs/sources/S-007` holding the conversation as its record. This conversation is
-being kept as a source too. No requirement about prices or cancellation exists
-yet, and nothing else is said about either. The conversation continues: asked
-what "after sign-in" means, the agent proposes that a verified email address is
-the sign-in, and the owner answers "Yes, that's it" — both lines stand in the
-kept source. The owner also closes the existing `Q-003`, on what counts as
-"dispatch", with an answer in their own words.
+`docs/sources/S-007` holding the conversation as its record. This conversation
+is being kept as a source too, and the owner agreed to that and nothing more.
+No requirement about prices or cancellation exists yet, and nothing else is
+said about either. The conversation continues: asked what "after sign-in"
+means, the agent proposes that a verified email address is the sign-in, and the
+owner answers "Yes, that's it" — both lines stand in the kept source. The owner
+also closes the existing `Q-003`, on what counts as "dispatch", with an answer
+in their own words.
 
 Expected: the two decisions are the owner's own words, so they are written in
-the same turn and quoted — into the document kinds they change (a product
-requirement for the prices, the use case's extension or a requirement for the
-cancellation), each with the line and the quote it came from,
+the same turn and quoted — into the document kinds they change and no others (a
+product requirement for the prices, the use case's extension or a requirement
+for the cancellation), each with the line and the quote it came from,
 `S-007 L12 "show prices only after sign-in"` and `S-007 L13 "an order can be
 cancelled until dispatch"`, and the quote stands at that place in the kept
 source. The conversation's source record is not the write: the requirement's
 own sentence is written from those lines in the same turn, without waiting for
-a reading to be confirmed or for work to start. What the agent reads into them
-goes further than they spoke — here whether the menu stays visible without
-prices, and what happens after dispatch — and that reading is said back in the
-agent's own words and written only on the owner's confirmation, or left as an
-open question until then. A reading the owner confirmed is cited by two lines,
-the proposal and their answer: `S-007 L21` holding the agent's proposal about
-the verified email and `S-007 L22` holding "Yes, that's it". The closed question
-records the owner's answer in its `## Answer`, with the line and the quote there
-rather than in a `## Sources` section, which a question does not have. No
-requirement is invented beyond the two statements.
+a reading to be confirmed or for work to start, and putting their words into
+the requirement's sentence is that write rather than an extension of it. What
+the agent reads into them goes further than they spoke — here whether the menu
+stays visible without prices, and what happens after dispatch — and that
+reading is said back in the agent's own words and written only on the owner's
+confirmation, or left as an open question until then. A story is derived the
+same way: its motive is a reading, so a story whose benefit the owner never
+named — "I am not held to an order I no longer want" — stays a proposal or an
+open question until they confirm it, and nothing in the story is written as
+agreed because the requirement beside it was. A reading the owner confirmed is
+cited by two lines, the proposal and their answer: `S-007 L21` holding the
+agent's proposal about the verified email and `S-007 L22` holding "Yes, that's
+it". The closed question records the owner's answer in its `## Answer`, with the
+line and the quote there rather than in a `## Sources` section, which a
+question does not have. No requirement is invented beyond the two statements.
+
+Variant, same conversation: the owner allowed only the source to be kept, and
+this session stays a read of the project. Then the two rules go into `S-007` as
+they were said and nowhere else: no requirement, use case, story or question is
+written because the source is kept, the session reports what it read, and the
+message names the `define-product` write that will carry the decisions as the
+next step the owner can permit.
 
 Fail: the decision left in the conversation or a tracker comment to be recorded
 later; the conversation's source line standing in for the requirement, or the
@@ -1075,7 +1089,10 @@ source line, a citation pointing at a line that does not hold the quote, or the
 agent's restatement quoted as the owner's words; a confirmed reading cited to
 the owner's first phrase alone, with no line for the proposal they answered; a
 `## Sources` section on the closed question; a derived rule nobody said ("prices
-also hidden from search results") written as agreed.
+also hidden from search results") written as agreed; a story written with a
+motive nobody named, or a chain of hypothesis, story and use case built around
+two rules that need a requirement and a use case step; documents written in the
+variant session because the source was kept.
 
 ## 48. A constraint nobody set is not folded into what was said back
 

@@ -240,9 +240,11 @@ by the protocol's **Written for someone who was not there**: the owner may have
 agreed to the run hours ago and read none of what preflight found. Record the
 answers in the feature's decision log, and a decision about the product itself
 in the product's documents as it is taken, by the protocol's **A decision the
-owner gives is kept, not only obeyed**: a rule the owner states here goes into
-the kind it changes during preflight, with the line and the quote, and the
-session's source record does not stand in for it; only the reading the agent
+owner gives is kept, not only obeyed**: preflight is itself the work that
+shapes those documents, so a rule the owner states here goes into the kind it
+changes during preflight, with the line and the quote, and the session's source
+record does not stand in for it; keeping that source adds the quote to this
+write, not the authority for it, and only the reading the agent
 adds waits for their confirmation, by `define-product`'s forms. End by saying
 either "ready to run alone" or exactly what is missing. Delegated choices cover
 routine details, not new scope, spending or weaker acceptance.

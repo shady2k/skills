@@ -49,9 +49,12 @@ const SKILLS = [
       'the kind it changes, the source line and the quote, and no wait for a shaping session',
       'The line in the conversation\'s source record is not that write',
       'putting it in the document\'s sentence is part of the write, not a reading that waits',
+      'The direct write touches the kinds the words need and no others',
       'What is derived is said back before it is written.',
       'or leave it as an open question until then',
       'The citation of a confirmed reading names two lines — the proposal that was put to them and their answer to it',
+      'a story carrying one stays a proposal or an open question until they confirm it',
+      'is not a reading; the line they never spoke is',
     ],
   },
   {
@@ -61,8 +64,11 @@ const SKILLS = [
       'that yes confirmed those words and they are not put back to the owner',
       'the reading of the project that action needs starts at once under it',
       'not a narrower or larger version of it read into the agreement',
-      'Where the session already keeps the conversation as a source, the owner has allowed that write',
-      'it waits neither for its reading to be confirmed nor for the work to start',
+      'Keeping the conversation and writing the documents are two permissions',
+      'no requirement, use case, story or open question is written on the strength of that consent',
+      'the source consent adds the quotation to that write, not the authority for it',
+      'waiting neither for its reading to be confirmed nor for the work to start',
+      'names the write that will carry the decision as the step the owner can permit next',
       'belongs to the product\'s documents and is written by `define-product` in the same turn',
     ],
   },
@@ -71,8 +77,10 @@ const SKILLS = [
     source: 'authoring/skills/engineering/take-task/SKILL.md.in',
     needs: [
       'their yes carries into the run and the first write starts on it',
+      'preflight is itself the work that shapes those documents',
       'a rule the owner states here goes into the kind it changes during preflight',
       'the session\'s source record does not stand in for it',
+      'keeping that source adds the quote to this write, not the authority for it',
       'a decision about the product itself — what a user sees, one step of a journey, a limit or a term — goes into the product\'s documents in that same write',
     ],
   },
@@ -111,6 +119,30 @@ test('a product decision is written into the document kind it changes as it is t
     'a decision kept only in the conversation or a comment is one the next run cannot read',
     'the place is its `## Answer`, where a question records what settled it',
   ], 'speaking.md');
+});
+
+test('keeping a source and writing the documents are two permissions', () => {
+  const speaking = read(SPEAKING);
+  requireAll(speaking, [
+    'The write needs the work that shapes the documents, not the consent that keeps the conversation',
+    'keeping a source allows that record alone, its lines as they were said',
+    'the shaping session, the orientation or the run\'s preflight is what may write the kind',
+    'A session that only keeps the record stays the read of the project it was',
+    'names the write that will carry the decision as the step the owner can permit next',
+  ], 'speaking.md');
+
+  // A rule read from the wrong permission is the failure this passage exists
+  // for, so its absence has to fail the check and not only break a sentence.
+  for (const passage of [
+    'The write needs the work that shapes the documents, not the consent that keeps the conversation',
+    'A session that only keeps the record stays the read of the project it was',
+  ]) {
+    const pattern = new RegExp(passage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+'));
+    const cut = speaking.replace(pattern, '');
+    assert.notEqual(cut, speaking, `"${passage}" is not one passage of speaking.md`);
+    assert.throws(() => requireAll(cut, [passage], SPEAKING),
+      `"${passage}" can be deleted and the check still passes`);
+  }
 });
 
 test('a closed question keeps the owner\'s quote in its answer, which has no sources section', () => {
@@ -165,6 +197,8 @@ test('a deleted step, a deleted link or a deleted rule fails the check', () => {
     'It is written as it is taken, in the same turn, not at the next planning session',
     'their yes is the confirmation and the same words are not put back to them',
     'its citation names two lines: the proposal that was put to them and their answer',
+    'The write needs the work that shapes the documents, not the consent that keeps the conversation',
+    'A session that only keeps the record stays the read of the project it was',
   ]) {
     const pattern = new RegExp(passage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+'));
     const cut = speaking.replace(pattern, '');

@@ -362,7 +362,13 @@ product requirement, a use case, a user story or an open question, in the form
 **A quote names its place**. It is written as it is taken, in the same turn,
 not at the next planning session: a decision kept only in the conversation or a
 comment is one the next run cannot read, and the documents stop being the
-record of what was agreed. Where the kind that changes is an open question the
+record of what was agreed. The write needs the work that shapes the documents,
+not the consent that keeps the conversation: keeping a source allows that
+record alone, its lines as they were said, while the shaping session, the
+orientation or the run's preflight is what may write the kind, and the source
+supplies the quotation to it. A session that only keeps the record stays the
+read of the project it was, and names the write that will carry the decision as
+the step the owner can permit next. Where the kind that changes is an open question the
 decision closes, the place is its `## Answer`, where a question records what
 settled it: a question has no `## Sources`, and product.md's form says how the
 quote goes there.
