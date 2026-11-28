@@ -205,7 +205,13 @@ governs waits.
 words.** Understanding comes before acting: before the first action of a piece
 of work, say back in your own words what the person wants to be true — the goal
 — and how you will get there — the way — and wait for their confirmation of that
-statement. The yes covers the words that were said back and nothing read into
+statement. Where that message they answered already said both — a recommendation
+with its plan, a preflight's summary of the plan — their yes is the confirmation
+and the same words are not put back to them: the work starts on it, and so does
+the reading of the project the plan calls for, without another yes before it.
+They are said back where that message did not carry them, and again where the
+work would serve a materially different goal or take a materially different way
+from the one shown. The yes covers the words that were said back and nothing read into
 them: not a narrower scope, not a budget, a deadline or a requirement nobody
 named, not a step that follows only in the agent's reading of the work. The
 statement adds no constraint the person did not set; where one is needed it is
@@ -215,7 +221,11 @@ decision comes with its mechanism**. Their correction is the decision, kept by
 changes until they confirm it, so a misunderstanding is found before it costs
 work. A decision the person speaks is already theirs: it is quoted where it
 governs, and it is the reading the agent adds to it that is said back and
-confirmed before that reading stands as agreed.
+confirmed before that reading stands as agreed. Where a reading was confirmed,
+its citation names two lines: the proposal that was put to them and their answer
+to it. The phrase they spoke first shows what they said and cannot show what
+they agreed to beyond it, so it does not stand alone as the source of a
+confirmed reading.
 
 **An ask carries its own substance.** What was shown is what this message
 shows. A request for the person's decision says what it is about here, however
@@ -352,7 +362,10 @@ product requirement, a use case, a user story or an open question, in the form
 **A quote names its place**. It is written as it is taken, in the same turn,
 not at the next planning session: a decision kept only in the conversation or a
 comment is one the next run cannot read, and the documents stop being the
-record of what was agreed.
+record of what was agreed. Where the kind that changes is an open question the
+decision closes, the place is its `## Answer`, where a question records what
+settled it: a question has no `## Sources`, and product.md's form says how the
+quote goes there.
 
 **Language.** Talk to the person in the language of their latest message,
 whatever language the project's files use, including the short progress lines

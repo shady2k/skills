@@ -240,21 +240,27 @@ by the protocol's **Written for someone who was not there**: the owner may have
 agreed to the run hours ago and read none of what preflight found. Record the
 answers in the feature's decision log, and a decision about the product itself
 in the product's documents as it is taken, by the protocol's **A decision the
-owner gives is kept, not only obeyed**. End by saying either "ready to run
-alone" or exactly what is missing. Delegated choices cover routine details,
-not new scope, spending or weaker acceptance.
+owner gives is kept, not only obeyed**: a rule the owner states here goes into
+the kind it changes during preflight, with the line and the quote, and the
+session's source record does not stand in for it; only the reading the agent
+adds waits for their confirmation, by `define-product`'s forms. End by saying
+either "ready to run alone" or exactly what is missing. Delegated choices cover
+routine details, not new scope, spending or weaker acceptance.
 
 ## 3. Run the feature
 
 On "run", land the conversation's general plan once and start the feature on
 the branch this project's way of landing names, as the protocol's **Sessions
-and landing** says; do not wait for the owner to create or rename anything. Before that
-first write, say back in your own words the goal the feature
-serves and the way the run will take, and go on their confirmation of that
-statement, by the protocol's [**The goal and the way are said back before the
-work, and a yes answers those words**](references/speaking.md) — their yes to
-"run" agreed the plan, and this is how the run knows it read the same plan.
-Anything he
+and landing** says; do not wait for the owner to create or rename anything. Where
+that plan the owner approved already said the goal the feature serves and the
+way the run will take — as preflight's summary of it does — their yes carries
+into the run and the first write starts on it: the same words are not put back
+to them, and the reading of the project the plan calls for does not wait for
+another yes. Where it was agreed without them, or the run would serve a
+materially different goal or take a materially different way, say them back
+before that first write and go on their confirmation of that statement, by the
+protocol's [**The goal and the way are said back before the work, and a yes
+answers those words**](references/speaking.md). Anything he
 decided in the conversation that the record does not yet hold lands in that
 same first write, before the branch starts, by the protocol's **A decision the
 owner gives is kept, not only obeyed**, and a decision about the product itself

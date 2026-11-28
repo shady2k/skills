@@ -25,6 +25,7 @@ const read = (p) => readFileSync(resolve(root, p), 'utf8');
 const norm = (s) => s.replace(/\s+/g, ' ').trim();
 const SETUP = 'skills/backlog/setup-shady2k-skills';
 const SPEAKING = 'authoring/skills/backlog/setup-shady2k-skills/references/speaking.md.in';
+const PRODUCT = 'authoring/skills/backlog/setup-shady2k-skills/references/product.md.in';
 const RULE = 'The goal and the way are said back before the work, and a yes answers those words';
 const KEPT = 'A decision the owner gives is kept, not only obeyed';
 const LINK = `[**${RULE}**](references/speaking.md)`;
@@ -46,16 +47,22 @@ const SKILLS = [
       'A decision taken is written then.',
       'in an orientation, a run\'s preflight, or any conversation that is not this one',
       'the kind it changes, the source line and the quote, and no wait for a shaping session',
+      'The line in the conversation\'s source record is not that write',
+      'putting it in the document\'s sentence is part of the write, not a reading that waits',
       'What is derived is said back before it is written.',
-      'the citation stays the line they spoke, never the restatement',
+      'or leave it as an open question until then',
+      'The citation of a confirmed reading names two lines — the proposal that was put to them and their answer to it',
     ],
   },
   {
     skill: 'ask-shady2k',
     source: 'authoring/skills/backlog/ask-shady2k/SKILL.md.in',
     needs: [
-      'Before it starts, say back in your own words the goal that action serves and the way it will take',
+      'that yes confirmed those words and they are not put back to the owner',
+      'the reading of the project that action needs starts at once under it',
       'not a narrower or larger version of it read into the agreement',
+      'Where the session already keeps the conversation as a source, the owner has allowed that write',
+      'it waits neither for its reading to be confirmed nor for the work to start',
       'belongs to the product\'s documents and is written by `define-product` in the same turn',
     ],
   },
@@ -63,8 +70,9 @@ const SKILLS = [
     skill: 'take-task',
     source: 'authoring/skills/engineering/take-task/SKILL.md.in',
     needs: [
-      'Before that first write, say back in your own words the goal the feature serves and the way the run will take',
-      'their yes to "run" agreed the plan, and this is how the run knows it read the same plan',
+      'their yes carries into the run and the first write starts on it',
+      'a rule the owner states here goes into the kind it changes during preflight',
+      'the session\'s source record does not stand in for it',
       'a decision about the product itself — what a user sees, one step of a journey, a limit or a term — goes into the product\'s documents in that same write',
     ],
   },
@@ -81,6 +89,9 @@ test('the rule is said once in the protocol: the goal and the way, and what a ye
     'not a budget, a deadline or a requirement nobody named',
     'not a step that follows only in the agent\'s reading of the work',
     'The statement adds no constraint the person did not set',
+    'their yes is the confirmation and the same words are not put back to them',
+    'the reading of the project the plan calls for, without another yes before it',
+    'its citation names two lines: the proposal that was put to them and their answer',
     'Their correction is the decision, kept by',
   ], 'speaking.md');
 
@@ -98,7 +109,31 @@ test('a product decision is written into the document kind it changes as it is t
     'with the line and the quote it came from',
     'It is written as it is taken, in the same turn, not at the next planning session',
     'a decision kept only in the conversation or a comment is one the next run cannot read',
+    'the place is its `## Answer`, where a question records what settled it',
   ], 'speaking.md');
+});
+
+test('a closed question keeps the owner\'s quote in its answer, which has no sources section', () => {
+  requireAll(read(PRODUCT), [
+    'A question has no `## Sources`: the decision that closes it is quoted in its `## Answer`',
+    'A quote of a reading the owner confirmed carries the proposal and their answer to it, one citation each',
+    '`## Answer`. A decision that closes the question is written in',
+    '`## Answer` in the owner\'s words, and its citation follows it there',
+  ], 'product.md');
+
+  // The form is what check-product reads; without the rule, an agent puts the
+  // quote in a section the check refuses, which the walk in product-walk.test.mjs
+  // reproduces.
+  for (const passage of [
+    'A question has no `## Sources`: the decision that closes it is quoted in its `## Answer`',
+    '`## Answer` in the owner\'s words, and its citation follows it there',
+  ]) {
+    const pattern = new RegExp(passage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+'));
+    const cut = read(PRODUCT).replace(pattern, '');
+    assert.notEqual(cut, read(PRODUCT), `"${passage}" is not one passage of product.md`);
+    assert.throws(() => requireAll(cut, [passage], PRODUCT),
+      `"${passage}" can be deleted and the check still passes`);
+  }
 });
 
 test('each of the three skills carries its own step and links the rule', () => {
@@ -128,6 +163,8 @@ test('a deleted step, a deleted link or a deleted rule fails the check', () => {
     'The yes covers the words that were said back and nothing read into them',
     'The statement adds no constraint the person did not set',
     'It is written as it is taken, in the same turn, not at the next planning session',
+    'their yes is the confirmation and the same words are not put back to them',
+    'its citation names two lines: the proposal that was put to them and their answer',
   ]) {
     const pattern = new RegExp(passage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+'));
     const cut = speaking.replace(pattern, '');

@@ -11,12 +11,16 @@ each costs and postpones. Then recommend one by name.
 
 **Read-only** until the user asks for an action. When they agree to a
 recommended action or ask for one, start that skill yourself and carry their
-words into it; never tell them to run a command and repeat a phrase. Before it
-starts, say back in your own words the goal that action serves and the way it
-will take, and start it on their confirmation of that statement, by the
-protocol's [**The goal and the way are said back before the work, and a yes
-answers those words**](references/speaking.md): their yes agreed the action as it
-was recommended, not a narrower or larger version of it read into the agreement.
+words into it; never tell them to run a command and repeat a phrase. It starts
+on the yes that agreed it: where the recommendation already said the goal the
+action serves and the way it will take, that yes confirmed those words and they
+are not put back to the owner, by the protocol's [**The goal and the way are
+said back before the work, and a yes answers those words**](references/speaking.md).
+Where it did not say them, or the action would serve a materially different goal
+or take a materially different way, say them back and start on their
+confirmation of that statement. Their yes agreed the action as it was
+recommended, not a narrower or larger version of it read into the agreement,
+and the reading of the project that action needs starts at once under it.
 
 Change no files, tracker items, holds, branches or config, and
 commit nothing. Reading the tracker and running the gate's report are reads.
@@ -262,7 +266,14 @@ the protocol's **A decision the owner gives is kept, not only obeyed**. A
 decision about the product itself — what a user sees, one step of a journey, a
 limit or a term — belongs to the product's documents and is written by
 `define-product` in the same turn, into the kind it changes with the line and
-the quote it came from, never left as a note on this conversation.
+the quote it came from, never left as a note on this conversation. Where the
+session already keeps the conversation as a source, the owner has allowed that
+write: what they stated goes into the kind it changes, quoted, before anything
+else continues, and it waits neither for its reading to be confirmed nor for the
+work to start — the reading alone waits, as `define-product` says. Where the
+session keeps no record and stays a read, the decision is said here and named
+with the line that would keep it, and that write is the first thing done when
+they ask for the action.
 
 ## 6. A report for the team's sync
 

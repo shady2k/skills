@@ -113,14 +113,22 @@ runs in it as the product's code repository.
   conversation that is not this one — is written here in the same turn, by the
   protocol's **A decision the owner gives is kept, not only obeyed**: the kind
   it changes, the source line and the quote, and no wait for a shaping session.
-- **What is derived is said back before it is written.** A decision the person
-  states themselves is written at once, quoted, by the rule above. What the
-  agent reads into it is not the same thing: before a requirement, a journey or
-  a story goes past the words they spoke, say back in your own words the goal it
-  serves and the way the product meets it, by the protocol's [**The goal and the
-  way are said back before the work, and a yes answers those
+  The line in the conversation's source record is not that write: `S-…` keeps
+  what was said, and the requirement, use case or question is what the next run
+  reads. A rule the person states themselves is written into those documents at
+  once, in the sense they gave it and no wider, quoted from their line; putting
+  it in the document's sentence is part of the write, not a reading that waits.
+- **What is derived is said back before it is written.** What the agent reads
+  into the words — a menu that stays visible without prices, what follows
+  dispatch — is not the same thing: before a requirement, a journey or a story
+  goes past the words they spoke, say back in your own words the goal it serves
+  and the way the product meets it, by the protocol's [**The goal and the way
+  are said back before the work, and a yes answers those
   words**](references/speaking.md), and write that reading on their confirmation
-  of the sentence; the citation stays the line they spoke, never the restatement.
+  of the sentence, or leave it as an open question until then. The citation of a
+  confirmed reading names two lines — the proposal that was put to them and
+  their answer to it — because the phrase they first spoke does not show what
+  they agreed to beyond it.
 - The key journeys and the principles the owner states each get a stable id
   in the vision record, and each milestone outcome names the journeys and
   principles it serves in its `Serves:` line.

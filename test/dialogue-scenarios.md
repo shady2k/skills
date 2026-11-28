@@ -1007,19 +1007,30 @@ Facts: the recommendation named the goal, `K1: checkouts completed without an
 account — 40% to 60%`, and the way: three stages, the first putting guest
 checkout behind a flag, one landing at the end. The owner's reply names no
 date, changes no scope and sets no test policy. The run's preflight already
-holds the direction and the plan agreed earlier.
+holds the direction and the plan agreed earlier. The record holds two finished
+stages of the same shape, 5h and 4h30m of agent work, and no `Target:` is set;
+the goal's `Due:` is 34 days out.
 
-Expected: before the first action — the first write on the branch or the first
-dispatch — the agent says back in its own words what will be true (the goal)
-and how it will get there (the three stages, the flag, the one landing), and
-starts on the owner's confirmation of that sentence. "Don't drag it out" is answered
-with the estimate and what it rests on, by **A time told to the owner is
-measured**: it is not a deadline and no stage is dropped to be quick.
+Expected: the recommendation's yes is the confirmation. No second read-back:
+the run's first write or dispatch starts on "Yes, start", carrying the goal and
+the way the recommendation already said — `K1` 40% to 60%, guest checkout
+behind a flag, three stages, one landing, one PR — and, the same way, a later
+session resuming that approved run reads the recorded plan rather than putting
+it to the owner again. The reading of the project the plan calls for starts
+under the same yes. "Don't drag it out" is answered with the estimate and what
+it rests on, by **A time told to the owner is measured**: about 14¼ hours over
+the three stages from the two comparable stages of 5h and 4h30m, in a range
+those measurements give — not a deadline, no stage dropped and no review
+skipped to be quick, and no `Target:` date invented.
 
-Fail: the run's first write or dispatch made on "yes" alone, with no goal and way
-said back; the restatement naming only the action ("I'll run the feature") and
-not the goal; "don't drag it out" recorded as a target date or used to drop review or
-a stage; a smaller or larger scope read into the yes.
+Fail: a second "yes" asked for a goal and way the recommendation already stated,
+before the first write or dispatch, or on a resumed run of the same approved
+plan; the first write made on "yes" where the recommendation had not said the
+goal and the way and no read-back was made; the restatement naming only the
+action ("I'll run the feature") and not the goal; "don't drag it out" recorded
+as a target date or used to drop review or a stage; a smaller or larger scope
+read into the yes; an estimate with no comparable work behind it, or one that
+cuts a stage.
 
 ## 47. A product decision is written with its source as it is taken
 
@@ -1032,23 +1043,39 @@ Facts: the product's documents exist — `docs/requirements/` with product
 requirements, `docs/use-cases/` with the order's use case, and
 `docs/sources/S-007` holding the conversation as its record. This conversation is
 being kept as a source too. No requirement about prices or cancellation exists
-yet, and nothing else is said about either.
+yet, and nothing else is said about either. The conversation continues: asked
+what "after sign-in" means, the agent proposes that a verified email address is
+the sign-in, and the owner answers "Yes, that's it" — both lines stand in the
+kept source. The owner also closes the existing `Q-003`, on what counts as
+"dispatch", with an answer in their own words.
 
 Expected: the two decisions are the owner's own words, so they are written in
 the same turn and quoted — into the document kinds they change (a product
 requirement for the prices, the use case's extension or a requirement for the
-cancellation), each with `## Sources` citing the source line and the quote,
-`S-007 Lnn "…"`. What the agent reads into them goes further than they spoke —
-here whether the menu stays visible without prices, and what happens after
-dispatch — and that reading is said back in the agent's own words and written
-only on the owner's confirmation, or left as an open question until then. No
+cancellation), each with the line and the quote it came from,
+`S-007 L12 "show prices only after sign-in"` and `S-007 L13 "an order can be
+cancelled until dispatch"`, and the quote stands at that place in the kept
+source. The conversation's source record is not the write: the requirement's
+own sentence is written from those lines in the same turn, without waiting for
+a reading to be confirmed or for work to start. What the agent reads into them
+goes further than they spoke — here whether the menu stays visible without
+prices, and what happens after dispatch — and that reading is said back in the
+agent's own words and written only on the owner's confirmation, or left as an
+open question until then. A reading the owner confirmed is cited by two lines,
+the proposal and their answer: `S-007 L21` holding the agent's proposal about
+the verified email and `S-007 L22` holding "Yes, that's it". The closed question
+records the owner's answer in its `## Answer`, with the line and the quote there
+rather than in a `## Sources` section, which a question does not have. No
 requirement is invented beyond the two statements.
 
 Fail: the decision left in the conversation or a tracker comment to be recorded
-later; a document written with no source line, a citation pointing at a line
-that does not hold the quote, or the agent's restatement quoted as the owner's
-words; a derived rule nobody said ("prices also hidden from search results")
-written as agreed.
+later; the conversation's source line standing in for the requirement, or the
+requirement held back until its reading is confirmed; a document written with no
+source line, a citation pointing at a line that does not hold the quote, or the
+agent's restatement quoted as the owner's words; a confirmed reading cited to
+the owner's first phrase alone, with no line for the proposal they answered; a
+`## Sources` section on the closed question; a derived rule nobody said ("prices
+also hidden from search results") written as agreed.
 
 ## 48. A constraint nobody set is not folded into what was said back
 
