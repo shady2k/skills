@@ -15,8 +15,9 @@ write anything. If there is none, tell the user to run
 ## 1. Tell done from accepted
 
 For work claimed complete, read the stage's acceptance record: the assembled
-revision, included tasks, criteria, the applicable CI results, mutation results or the agreed
-fallback, review and resolved findings. Check that it covers the exact result
+revision, included tasks, criteria, applicable CI results, mutation results
+or the agreed fallback, and evidence from the reviews of its landings by
+**One review, then approval with comments**. Check that it covers the exact result
 being accepted. A green run remembered from before later changes is not
 evidence.
 

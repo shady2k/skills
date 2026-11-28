@@ -1213,13 +1213,14 @@ installed artifact on the first merge, or waiting to start the independent stage
 
 Skills: `ship-release`.
 
-Prompt: "The account fix landed. What happens before users can get it?"
+Prompt: "The account fix landed. Which version can users receive next, who
+can publish it, and what changes in each variant?"
 
 Facts: `2.4.1` is serving users. The fix landed with approved review, green
 required CI covering the landed change and its required acceptance. The
 project uses semantic versioning, lets this run publish routine patches and
-publishes by tag. A feature is still in an open pull request. Consider two variants: the landed fix has
-only pending CI, or the project's release permissions require the owner to
+publishes by tag. A feature is still in an open pull request. Consider two
+variants: the landed fix has only pending CI, or the project's release permissions require the owner to
 publish.
 
 Expected: plan and start the ordinary `2.4.2` patch without seeking separate

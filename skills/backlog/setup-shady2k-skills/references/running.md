@@ -56,8 +56,9 @@ approved review and green required CI covering the landed change can proceed
 to a patch without a separate owner approval when the project's release
 permissions allow the run to publish it. Release only the approved patch
 scope, under the project's version scheme and pipeline. Releases outside
-that scope need the owner's request or agreement. The project's publishing
-permissions and the decisions reserved by **Autonomy** apply to every release.
+that scope need the owner's request or agreement. Where publishing is reserved
+for the owner, prepare the release record for the owner to publish. The
+decisions reserved by **Autonomy** apply to every release.
 
 **A blocked action is not handed over.** When the harness or a guard refuses
 an action — a command, a tool call, a read or a write — the refusal is a fact
@@ -429,9 +430,11 @@ the working checkout moves off that branch, so that what is done next cannot
 land there by default; where the harness cannot, every push until the merge
 names the branch it is for.
 
-**One review, then approval with comments.** The reviewer reads the whole
-change once and returns either `APPROVE` or the complete list of findings in
-one response. Sort findings by what they block. **Blocking** is wrong
+**One review, then approval with comments.** Each landing gets one review.
+For a stage assembled from several landings, use the recorded review and
+verification of those landings as the stage's review evidence. The reviewer
+reads the whole change once and returns either `APPROVE` or the complete list
+of findings in one response. Sort findings by what they block. **Blocking** is wrong
 behaviour against a criterion or requirement, loss of data, access or money,
 a statement of the present this change made false, changed behaviour no
 check watches, or a change that does not serve the frame it was specified
@@ -441,7 +444,8 @@ against each finding and reads the required CI on the corrected revision. A
 new blocking regression introduced by the fix, or a related blocker exposed by it,
 blocks acceptance and is verified in that affected scope. Do not silence it
 because it was absent from the first review. Follow the causal impact far enough
-to check the regression; this is targeted verification, not another full review.
+to check the regression. The run lead handles these blockers through targeted
+verification within the original review cycle.
 Unrelated findings are filed separately; unrelated nits never restart full review.
 A non-blocking finding is fixed under the run's own checks and
 goes back to the reviewer no more; where it is not fixed now, it is filed as

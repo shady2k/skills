@@ -592,10 +592,9 @@ on** and building.md's **One surface per capability**. The stage is read
 against the project's target architecture too, by **The strategy is the
 target, and the views are the present**: a stage that departs from a principle
 of the architecture document's `Solution strategy` section is not accepted
-until the code is fixed or the owner changes the principle. For a stage that
-lands by itself, get its review following [review.md](review.md), preferably
-from another model the set can reach ([agents.md](references/agents.md)). For
-a feature that lands whole, get that review on the assembled feature. Record
+until the code is fixed or the owner changes the principle. For the change
+that will land, get the review following [review.md](review.md), preferably
+from another model the set can reach ([agents.md](references/agents.md)). Record
 whether the change matches the design and any divergences
 (`design-divergence`). Resolve findings by **One review, then approval with
 comments**. A later fix reuses
@@ -607,7 +606,8 @@ For a stage inside a feature that lands whole, accept the assembled stage
 when its evidence is ready so dependants can start. For a stage landing by
 itself, complete its acceptance in step 7 on the revision its practice uses.
 Record the stage's base and final revisions, included tasks, criteria, test and
-mutation results, and review findings with what was done about each. For
+mutation results, and evidence from the reviews of its landings by **One review,
+then approval with comments**. For
 non-code work, use the project's equivalent evidence and say which checks do
 not apply. Get the evidence at the integration's level and run the acceptance
 document check. At the protected level, "passed" written by an agent is not a
@@ -660,11 +660,8 @@ comments**.
 Review comments on it are handled by **A reviewer's comment is judged, not
 obeyed**.
 
-A landing waits for what this project's review rule records, at the point the
-practice lands: a stage's own review where the stage lands alone, and the run's
-final review where the feature lands whole. The rule, its preference, its
-fallback and its acceptance policy are the project's, by
-[review.md](review.md), and a change of practice acquires no second one.
+A landing waits for the review record the project requires for that change,
+by [review.md](review.md) and **One review, then approval with comments**.
 
 Once review findings are verified and the required CI is green, use **A stage
 is accepted once on the assembled result** on the revision the practice names.

@@ -143,13 +143,11 @@ is a finding.
 **Cheapest check first.** Checks follow the test pyramid and narrow scope
 outward from the failure: reading and static checks, then a unit test, then a
 local integration or end-to-end run; the one failing test, then its file or
-package, then what the change touches, then the full local check. Each
-question gets the cheapest check that can answer it. Beyond that: CI and any
-remote machine come last, only for what nothing local can show (another
-platform, the real pipeline), because they spend runner time, money, the
-owner's wait and limits shared with everyone; and where the behaviour has no
-unit test that could catch it, one is written before an end-to-end run is
-reached for. A failure at any step sends the work back to the cheapest check
+package, then what the change touches. Each question gets the cheapest check
+that can answer it. Use CI for **CI supplies the pre-merge checks** and use a
+remote machine for development questions that need it, such as a different
+platform. Where the behaviour has no unit test that could catch it, write
+one before reaching for an end-to-end run. A failure at any step sends the work back to the cheapest check
 that shows it, never to a rerun of the whole. Independent checks run in
 parallel, within what the machine carries while other agents share it. A
 change that cannot touch product code (documents, process tooling) does not

@@ -94,6 +94,7 @@
       "owner": "authoring/skills/backlog/setup-shady2k-skills/references/running.md.in",
       "required": [
         "returns either `APPROVE` or the complete list of findings in one response",
+        "use the recorded review and verification of those landings as the stage's review evidence",
         "The run lead verifies the fix's diff against each finding and reads the required CI on the corrected revision",
         "split off the unverified work, keeping its findings and evidence with it",
         "apply **CI supplies the pre-merge checks** to whatever lands"
@@ -134,7 +135,8 @@
       "owner": "authoring/skills/backlog/setup-shady2k-skills/references/running.md.in",
       "required": [
         "green required CI covering the landed change can proceed to a patch without a separate owner approval when the project's release permissions allow the run to publish it",
-        "Release only the approved patch scope"
+        "Release only the approved patch scope",
+        "Where publishing is reserved for the owner, prepare the release record for the owner to publish"
       ],
       "exclusive": [],
       "consumers": {

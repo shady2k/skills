@@ -32,7 +32,7 @@ Also available directly to the user.
   before closure, close a bug or task that waits for no stage on the merge that
   delivered it, keep the records proportionate to the task and preserve
   pending implementation/publication results.
-  Read CI and the assembled stage’s acceptance evidence before closing.
+  Read CI, the landings' review records and the stage's acceptance evidence.
 - [check-upkeep](./check-upkeep/SKILL.md): the recurring pass over what runs the
   product — dependencies, vulnerabilities, expiries, deprecated features,
   checks — reading and filing, never upgrading.
