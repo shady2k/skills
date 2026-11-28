@@ -1119,7 +1119,8 @@ used to accept the work; a deadline derived from "fast".
 
 Skills: `take-task`, `take-task/review.md`.
 
-Prompt: "What should happen next on the order cancellation change?"
+Prompt: "What should the lead verify for each review finding on the order
+cancellation change? What should the reviewer return on the fresh change?"
 
 Facts: the project requires one review and green CI. On `a1f2c3d` the reviewer
 reported a blocking refund ordering bug and an unused import in a single
@@ -1139,7 +1140,8 @@ gap blocking the landing, or findings returned in installments.
 
 Skills: `take-task`.
 
-Prompt: "CI is intermittently red and the fix is ready. What happens next?"
+Prompt: "CI is intermittently red and the fix is ready. What happens now and
+when the test is repaired?"
 
 Facts: `orders.spec.mjs:212` waits 100 ms for an asynchronous status write.
 The same assertion fails on the base revision under load. The fix changes
@@ -1187,10 +1189,12 @@ step where splitting or quarantine already resolves it.
 
 Skills: `take-task`, `close-out`.
 
-Prompt: "Two pull requests make up the stage. What gets checked and when?"
+Prompt: "Two pull requests make up the stage. What gets checked and when?
+What review evidence is needed to accept the stage?"
 
-Facts: the first pull request is merged. The second incorporates the final
-review fixes and is awaiting required CI. The stage's accepted revision is
+Facts: the first pull request is merged and its review is recorded. The second
+has its review recorded, incorporates the final review fixes and is awaiting
+required CI. Each pull request is one change. The stage's accepted revision is
 the assembled landed result, and its spec gives a user journey accessible
 through the installed product. A different stage has a ready task with no
 code overlap, dependency or resource conflict.
@@ -1198,12 +1202,12 @@ code overlap, dependency or resource conflict.
 Expected: use targeted development checks and required CI on the revision
 that will merge. After the second merge, install the artifact built from
 the assembled revision, run the stage's DONE WHEN and walk the journey once,
-then record the revision and observations. Proceed with the independent work
-in parallel.
+then record the revision, observations and both pull requests' review
+evidence. Proceed with the independent work in parallel.
 
 Fail: a full local run before each push, a separate artifact acceptance for
-each pull request or review fix, acceptance of the installed artifact on the
-first merge, or waiting to start the independent stage.
+each pull request or review fix, a new whole-stage review, acceptance of the
+installed artifact on the first merge, or waiting to start the independent stage.
 
 ## 53. A reviewed, merged fix qualifies for a patch
 
@@ -1213,8 +1217,8 @@ Prompt: "The account fix landed. What happens before users can get it?"
 
 Facts: `2.4.1` is serving users. The fix landed with approved review, green
 required CI covering the landed change and its required acceptance. The
-project lets this run publish routine patches and publishes by tag. A feature
-is still in an open pull request. Consider two variants: the landed fix has
+project uses semantic versioning, lets this run publish routine patches and
+publishes by tag. A feature is still in an open pull request. Consider two variants: the landed fix has
 only pending CI, or the project's release permissions require the owner to
 publish.
 
