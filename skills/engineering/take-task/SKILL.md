@@ -187,13 +187,18 @@ Before the owner leaves, prepare the run so it needs nobody:
   **Whoever started a run answers for it to the owner**. Give it
   in agent time, by the protocol's **Estimates** and **A time told to the owner
   is measured, and a dispute is answered with its basis**, starting from the
-  measured pace: `pace --tasks <n>`, which also proposes the forecast by phase,
-  with the absence named below. The clock past runs lasted, which it prints
-  apart, is no forecast. The same figure names the comparable stages the hours
-  come from and what each took, by [**An estimate is hours of comparable work,
-  and its first measurement revises it**](references/okr.md); with too few of
-  them the estimate says so and stands to be revised at the first measured
-  stage instead of defended. The preflight also says, for each key result the
+  comparable stages of this project's own work selected for this one and what
+  each took, by [**An estimate is hours of comparable work, and its first
+  measurement revises it**](references/okr.md). `pace --tasks <n>` proposes the
+  forecast by phase, with the absence named below, but it sums every completed
+  run of the right shape without checking that those stages are alike: its
+  figure is used once the selection says the runs behind it compare — three
+  one-task migrations of twelve to sixteen hours are no measurement of a stage
+  of another shape — and where no comparable run exists it is the project's
+  general pace, named as that and not as this stage's. The clock past runs
+  lasted, which it prints apart, is no forecast. With too few comparable stages
+  the estimate says so and stands to be revised at the first measured stage
+  instead of defended. The preflight also says, for each key result the
   feature moves, the value read today, the value that counts as reached and
   where the date stands, by [**A report carries the number and the date, not a
   status**](references/okr.md). If that is longer than this project's way of landing lets

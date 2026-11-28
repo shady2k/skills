@@ -293,7 +293,12 @@ whose transcripts nobody has written up, makes the figure "at least", said so.
   disagreement is the forecast's first sentence, with what each lever would
   cost, by the protocol's **A forecast is checked against the date it
   serves**. Where no date was recorded, the forecast is named as the agent's
-  own and stops there, not read as a promise someone made.
+  own and stops there, not read as a promise someone made. For each key result
+  the work moves, give the number read today, the value that counts as reached
+  and what changed since the report before, said with where the goal's `Due:`
+  stands against the forecast, by the protocol's [**A report carries the number
+  and the date, not a status**](references/okr.md): a date alone does not say
+  whether the goal is arriving.
 - **Delivery:** the four delivery metrics the delivery practice tracks (DORA:
   lead time for changes, deployment frequency, change failure rate, time to
   restore), each said as words, from what the run script computes for the

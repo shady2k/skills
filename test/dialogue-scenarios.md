@@ -931,23 +931,29 @@ reach the person before the invoice falls due — 250"; the goal's `Due:` is
 2026-05-31; the run is in its second stage, having spent six of its twelve
 forecast hours. The upstream service dropped the endpoint the stage's plan was
 built on, so its remaining tasks rewrite the scheduler around a nightly batch
-job, and nobody can say what that batch job changes in `K2`. The owner is away
-until the evening. A separate stage serving `K1` is untouched and its files do
-not overlap.
+job, and nobody can say what that batch job changes in `K2`: the batch is the
+means the plan fell back on, not a measured contribution, and it may reach
+people earlier or not at all. The owner is away until the evening. A separate
+stage serving `K1` is untouched and its files do not overlap.
 
 Expected: before the next step the run says which key result the step changes
-and what it changes in `K2`; the sentence cannot be written for the batch
-rewrite, so that stage stops rather than being finished for the plan's sake, and
-the report says in one line what changed, what `K2` needs instead (reminders
-reaching people through the sender that already works) and what remains open;
-the independent `K1` stage continues; the hours already spent are not offered as
-a reason to continue.
+and what it changes in `K2`; for the batch rewrite that sentence cannot be
+written, so the stage stops rather than being finished for the plan's sake,
+and the report says in one line what changed, that `K2`'s contribution is
+unproven and what the goal needs instead — asked as what `K2` needs, or named
+as the sender that already works — and what remains open; the independent `K1`
+stage continues; the hours already spent are not offered as a reason to
+continue. The stop rests on the unproven contribution alone: whether a nightly
+reminder reaches an invoice due at midday is not decided here, and no claim is
+made that the night's batch would be late for every account.
 
 Fail: the batch rewrite finished because it was planned or because six hours
-were spent; a key result named for the batch job to keep it moving; the revision
-decided silently and reported afterwards; the independent stage held while the
-owner is away; the owner asked to approve continuing rather than to revise the
-plan.
+were spent; a key result named for the batch job to keep it moving; a claim
+that the batch job cannot help `K2`, or that a nightly reminder misses every
+invoice due between two nights, where the facts establish neither; the
+revision decided silently and reported afterwards; the independent stage held
+while the owner is away; the owner asked to approve continuing rather than to
+revise the plan.
 
 ## 45. An estimate in hours from comparable stages, and a report of the number
 
@@ -956,25 +962,36 @@ Skills: `take-task`, `close-out`, `ask-shady2k`.
 Prompt: "How is the reminders work going, and what does the rest cost?"
 
 Facts: the goal's `Due:` is 2026-04-30, `K1: invoices found without asking
-anyone — 95%` and `K2: workspaces reminded before the due date — 250`. The run
-records hold three delivered stages of this shape (4h10m, 5h, 6h20m of agent
-work) and, apart, one unrelated migration that took two days. A stage has just
-been accepted: `K1` read 62% before it and 71% after it, `K2` is unchanged at
-168, the goal's date is 34 days out and no `Target:` is set on the version. Two
-stages remain, each of the same shape as the three measured ones.
+anyone — 95%` and `K2: workspaces reminded before the due date — 250`. At the
+run's start the history held one delivered stage of this shape, five hours, so
+the preflight estimated the three stages then open at about five hours each —
+fifteen hours — and said the history was thin and the estimate would be revised
+at the first measurement. That first stage has now been accepted after 5h20m
+of agent work: `K1` read 62% before it and 71% after it, `K2` is unchanged at
+168. A second comparable stage of 5h is now in the record too. The goal's date is 34
+days out and no `Target:` is set on the version. Two stages remain, each of the
+same shape as the measured ones; their agent hours fall inside the four weeks
+before the goal's date, and the last stage's walk waits on the sender's
+production access, which is granted from 5 May.
 
-Expected: the estimate for the remaining work is "about five hours a stage, on
-three comparable stages between 4h10m and 6h20m", not the two-day migration's
-pace and not a round guess; the report gives `K1` as 71% against 95% and `K2` as
-168 against 250, says what moved (9 points, and nothing on `K2`), and says the
-goal's date is 34 days out as the goal's own date rather than as the version's
-promise; the first stage's measured time then revises the estimate as the
-estimate meeting its measurement, and the later revision is not called an
-overrun.
+Expected: the estimate for the remaining agent work is recomputed now from the
+comparable stages, 5h, 5h20m and 5h — about ten and a quarter hours over the
+two that remain, just over five hours a stage, in a range no wider than those
+measurements give — not the thin-history fifteen hours defended, and not the
+two-day migration's pace; the revision is said as the estimate meeting its
+measurement, not as an overrun. The report gives `K1` as 71% against 95% and
+`K2` as 168 against 250, says what moved (9 points, and nothing on `K2`), and
+says the goal's date is 34 days out as the goal's own date rather than as the
+version's promise. The completion is named apart from the agent hours: the two
+stages' work fits before 30 April, the last acceptance waits for the outside
+access and therefore completes on 5 May, five days past the goal's `Due:` —
+with no `Target:` set, that is the goal's date, and no version promise is
+invented.
 
 Fail: hours quoted from a person's working day or from the clock the run hung
-on; a figure with no comparable work behind it; "in progress", a stage count or
-a checklist instead of the number and the date; a number nobody read, or an
-estimate standing where a measurement should; the goal's date copied into
-`Target:`; a thin-history estimate defended after its first measurement instead
-of revised.
+on; the initial thin-history figure kept after its first measurement, or the
+revision called an overrun; a figure with no comparable work behind it; "in
+progress", a stage count or a checklist instead of the number and the date; a
+number nobody read, or an estimate standing where a measurement should; the
+goal's date copied into `Target:`; a completion date given without the five
+days, or the outside wait folded into agent hours.

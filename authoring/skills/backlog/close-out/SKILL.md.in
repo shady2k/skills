@@ -40,6 +40,16 @@ why; for a duplicate, name the issue that survives.
 
 ## 2. Close the accepted stage, then its parents
 
+Read the contribution before anything is written that records acceptance, by
+the protocol's [**A step is taken for the key result it moves, and one that
+stops moving it stops**](references/okr.md): say which key result this stage
+changes and what it changes in the number. A stage whose contribution was
+established and has since gone — the work turned into something else, the number
+is reached or answered another way — is not accepted as if it had: stop before
+the spec merge, the publish and the close, say in one line what changed in the
+work, what the goal needs instead and what remains open, and revise the plan.
+The other stages and features do not wait for this one.
+
 Before closing, merge the stage's requirement changes into the current
 capability specs through the integration's sync workflow. Use the real target
 baseline; keep untouched requirements and other accepted changes. Update
@@ -68,11 +78,7 @@ not wait for this one.
 
 If the criterion fails, fix the existing work or file the missing task. A
 defect against the agreed stage is not new scope or a budgeted finding; use
-`to-backlog` only for genuinely new work. A stage that has stopped moving the
-key result it was linked to is not accepted as if it had, by the protocol's [**A
-step is taken for the key result it moves, and one that stops moving it
-stops**](references/okr.md): say what changed in the work, what the goal needs
-instead and what remains open.
+`to-backlog` only for genuinely new work.
 
 ## 3. File discoveries and return unfinished work
 

@@ -337,8 +337,11 @@ const RUN_SCENARIOS = [
       'a step whose contribution has gone is stopped and the plan revised rather than finished for the sake of the plan',
       'A result that does not fit one short pull request and hours of agent work is cut through `to-stages` before it starts',
       'never after a worker reports it too big',
-      'The same figure names the comparable stages the hours come from and what each took',
-      'with too few of them the estimate says so and stands to be revised at the first measured stage instead of defended',
+      'starting from the comparable stages of this project\'s own work selected for this one and what each took',
+      'it sums every completed run of the right shape without checking that those stages are alike',
+      'its figure is used once the selection says the runs behind it compare',
+      'where no comparable run exists it is the project\'s general pace, named as that and not as this stage\'s',
+      'With too few comparable stages the estimate says so and stands to be revised at the first measured stage instead of defended',
       'for each key result the feature moves, the value read today, the value that counts as reached and where the date stands',
       'The stage\'s report carries the number and the date too',
       'the key results the stage moved, read after it, against the goal\'s `Due:`',
@@ -350,18 +353,23 @@ const RUN_SCENARIOS = [
     scenario: 'a stage that stopped moving its key result is not accepted, and the closing report is the number and the date',
     links: [stepLink, reportLink],
     needs: [
-      'A stage that has stopped moving the key result it was linked to is not accepted as if it had',
-      'say what changed in the work, what the goal needs instead and what remains open',
+      'Read the contribution before anything is written that records acceptance',
+      'A stage whose contribution was established and has since gone',
+      'stop before the spec merge, the publish and the close',
+      'The other stages and features do not wait for this one',
+      'say in one line what changed in the work, what the goal needs instead and what remains open',
       'Each key result the work moved is said with the number, not the status',
       'the value read where the measurement lives, the value that counts as reached, and where the goal\'s `Due:` now stands against the forecast',
     ],
   },
   {
     source: 'authoring/skills/backlog/ask-shady2k/SKILL.md.in',
-    scenario: 'the progress report is the key result\'s number and the date, not a status',
+    scenario: 'the progress report and the team\'s sync report are the key result\'s number and the date, not a status',
     links: [reportLink],
     needs: [
       'for each key result the milestone moves, the value read today, the target and where the goal\'s `Due:` stands',
+      'For each key result the work moves, give the number read today, the value that counts as reached and what changed since the report before',
+      'a date alone does not say whether the goal is arriving',
     ],
   },
 ];
@@ -388,6 +396,10 @@ test('the step, the report and the estimate cite rules that are real headings', 
     'An estimate is never made smaller to fit the goal\'s `Due:`',
     'which key result that date leaves for later and what the period delivers instead',
     'what the step has already cost buys no continuation',
+    'work agreed before the goal existed, or one whose line names no key result, is the case **An agreed record is not reopened for a missing link** describes',
+    'it continues, its line read as unknown, and the sentence is written where the link is established next',
+    'so the missing link is never the reason to stop agreed work',
+    'A step whose contribution was established and has since gone while it waited',
   ], 'okr.md');
 
   // The two rules the estimate and the date rest on belong to running.md: a
@@ -427,5 +439,45 @@ test('the installed folder of every reporting skill carries the rule and its lin
     assert.equal(read(`${folder}/references/okr.md`), canonical, `${folder}/references/okr.md differs from the rule: npm run build`);
     for (const link of links)
       assert.ok(norm(read(`${folder}/SKILL.md`)).includes(norm(link)), `${folder}/SKILL.md lost the link the rule is read through`);
+  }
+});
+
+// Three readings contradicted each other in the first cut: agreed work with no
+// link could be read as a step to refuse, the contribution check stood after the
+// writes that record acceptance, and the preflight estimate began from an
+// aggregate that never checked its stages were alike. Each passage is removed
+// here, and the check has to notice; a test that passes without the sentence is
+// a test that certifies instead of checking.
+const cut = (text, passage) => {
+  const pattern = new RegExp(passage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+'));
+  const without = text.replace(pattern, '');
+  assert.notEqual(without, text, `"${passage}" is not one passage of its file`);
+  return without;
+};
+
+test('the agreed-record path, the check before acceptance and the comparable pace are load-bearing', () => {
+  const cases = [
+    ['the step rule keeps agreed work with no link', OKR,
+      'work agreed before the goal existed, or one whose line names no key result, is the case'],
+    ['the step rule stops a contribution that was established and has gone', OKR,
+      'A step whose contribution was established and has since gone while it waited'],
+    ['close-out reads the contribution before the first write that records acceptance',
+      'authoring/skills/backlog/close-out/SKILL.md.in',
+      'Read the contribution before anything is written that records acceptance'],
+    ['close-out keeps independent work moving while a stage stops',
+      'authoring/skills/backlog/close-out/SKILL.md.in',
+      'The other stages and features do not wait for this one'],
+    ['the estimate is built on selected comparable stages, not on the aggregate',
+      'authoring/skills/engineering/take-task/SKILL.md.in',
+      'it sums every completed run of the right shape without checking that those stages are alike'],
+    ['the sync report carries the number and the date, not only a forecast date',
+      'authoring/skills/backlog/ask-shady2k/SKILL.md.in',
+      'the number read today, the value that counts as reached and what changed since the report before'],
+  ];
+  for (const [name, file, passage] of cases) {
+    const text = read(file);
+    requireAll(text, [passage], file);
+    assert.throws(() => requireAll(cut(text, passage), [passage], file),
+      `${name}: the passage can be deleted and the check still passes`);
   }
 });
