@@ -42,6 +42,16 @@ stopped a session on purpose to test recovery, ask them afterwards for a grade
 and record it with `recovery`: R3 continued correctly, R2 recovered but redid
 work, R1 needed explanations, R0 did not understand where the work stood.
 
+A run is taken for the key result its work names, by the protocol's [**A step is
+taken for the key result it moves, and one that stops moving it
+stops**](references/okr.md): before each stage, each task and each gap closed
+alone, say which key result it changes and what it changes in the number, and a
+step whose contribution has gone is stopped and the plan revised rather than
+finished for the sake of the plan. A result that does not fit one short pull
+request and hours of agent work is cut through `to-stages` before it starts, by
+that rule's **The queue and the breakdown follow the key results**, never after
+a worker reports it too big.
+
 Everything the owner reads follows the protocol's [**Speaking to the
 owner**](references/speaking.md).
 
@@ -179,7 +189,14 @@ Before the owner leaves, prepare the run so it needs nobody:
   is measured, and a dispute is answered with its basis**, starting from the
   measured pace: `pace --tasks <n>`, which also proposes the forecast by phase,
   with the absence named below. The clock past runs lasted, which it prints
-  apart, is no forecast. If that is longer than this project's way of landing lets
+  apart, is no forecast. The same figure names the comparable stages the hours
+  come from and what each took, by [**An estimate is hours of comparable work,
+  and its first measurement revises it**](references/okr.md); with too few of
+  them the estimate says so and stands to be revised at the first measured
+  stage instead of defended. The preflight also says, for each key result the
+  feature moves, the value read today, the value that counts as reached and
+  where the date stands, by [**A report carries the number and the date, not a
+  status**](references/okr.md). If that is longer than this project's way of landing lets
   anything it lands keep a branch alive — the feature's branch where the whole
   feature lands at once, a stage's branch where each stage lands alone — the
   feature is too big for one run: split it
@@ -526,7 +543,10 @@ step 7, and fixes merged after a review stay there too (the protocol's
 **Know what a push starts, and push once**). Acceptance is a stage boundary:
 the time by phase is read against the forecast the run claimed, and the
 forecast is checked against the target date again, by the protocol's **A
-forecast is checked against the date it serves**. Where the stage carries the spec's
+forecast is checked against the date it serves**. The stage's report carries the
+number and the date too, by [**A report carries the number and the date, not a
+status**](references/okr.md): the key results the stage moved, read after it,
+against the goal's `Due:`. Where the stage carries the spec's
 place of observation, walk the happy path there yourself the way a person
 reaches it, and record what you saw; a walk you could not make is recorded as
 not made. Where the stage's result follows a reference, acceptance's
@@ -622,8 +642,10 @@ run is submitted, by the protocol's **A submitted branch is frozen**. Write
 its report as the protocol's **Autonomy** describes: what users can now do,
 how to check it yourself as the few steps of the walk you made, every decision
 and assumption made alone, departures from the spec, review findings, what is
-not done, the checkouts and branches this run created and left, each with why,
-and the risks left. A yes the practice asks for waits for the owner's own look — their merge
+not done, the key results the run moved, with the numbers read and where the
+date stands by [**A report carries the number and the date, not a
+status**](references/okr.md), the checkouts and branches this run created and
+left, each with why, and the risks left. A yes the practice asks for waits for the owner's own look — their merge
 where the landing is theirs, their approval where their rule requires one — and
 no further yes is asked where the practice lands the run's own change, by the
 protocol's [**Autonomy**](references/running.md). Wait for its checks to go green,

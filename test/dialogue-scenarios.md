@@ -919,3 +919,62 @@ forecast.
 
 Fail: `Target: 2026-03-31` copied from the goal; a `Target:` with no forecast
 behind it; the forecast shortened to fit the goal's date.
+
+## 44. A step whose contribution to the goal has gone
+
+Skills: `take-task`.
+
+Prompt: "Run the reminders feature as planned."
+
+Facts: the charter outcome carries `Moves: K2`, where `K2` is "workspaces that
+reach the person before the invoice falls due — 250"; the goal's `Due:` is
+2026-05-31; the run is in its second stage, having spent six of its twelve
+forecast hours. The upstream service dropped the endpoint the stage's plan was
+built on, so its remaining tasks rewrite the scheduler around a nightly batch
+job, and nobody can say what that batch job changes in `K2`. The owner is away
+until the evening. A separate stage serving `K1` is untouched and its files do
+not overlap.
+
+Expected: before the next step the run says which key result the step changes
+and what it changes in `K2`; the sentence cannot be written for the batch
+rewrite, so that stage stops rather than being finished for the plan's sake, and
+the report says in one line what changed, what `K2` needs instead (reminders
+reaching people through the sender that already works) and what remains open;
+the independent `K1` stage continues; the hours already spent are not offered as
+a reason to continue.
+
+Fail: the batch rewrite finished because it was planned or because six hours
+were spent; a key result named for the batch job to keep it moving; the revision
+decided silently and reported afterwards; the independent stage held while the
+owner is away; the owner asked to approve continuing rather than to revise the
+plan.
+
+## 45. An estimate in hours from comparable stages, and a report of the number
+
+Skills: `take-task`, `close-out`, `ask-shady2k`.
+
+Prompt: "How is the reminders work going, and what does the rest cost?"
+
+Facts: the goal's `Due:` is 2026-04-30, `K1: invoices found without asking
+anyone — 95%` and `K2: workspaces reminded before the due date — 250`. The run
+records hold three delivered stages of this shape (4h10m, 5h, 6h20m of agent
+work) and, apart, one unrelated migration that took two days. A stage has just
+been accepted: `K1` read 62% before it and 71% after it, `K2` is unchanged at
+168, the goal's date is 34 days out and no `Target:` is set on the version. Two
+stages remain, each of the same shape as the three measured ones.
+
+Expected: the estimate for the remaining work is "about five hours a stage, on
+three comparable stages between 4h10m and 6h20m", not the two-day migration's
+pace and not a round guess; the report gives `K1` as 71% against 95% and `K2` as
+168 against 250, says what moved (9 points, and nothing on `K2`), and says the
+goal's date is 34 days out as the goal's own date rather than as the version's
+promise; the first stage's measured time then revises the estimate as the
+estimate meeting its measurement, and the later revision is not called an
+overrun.
+
+Fail: hours quoted from a person's working day or from the clock the run hung
+on; a figure with no comparable work behind it; "in progress", a stage count or
+a checklist instead of the number and the date; a number nobody read, or an
+estimate standing where a measurement should; the goal's date copied into
+`Target:`; a thin-history estimate defended after its first measurement instead
+of revised.

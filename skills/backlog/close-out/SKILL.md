@@ -73,7 +73,11 @@ not wait for this one.
 
 If the criterion fails, fix the existing work or file the missing task. A
 defect against the agreed stage is not new scope or a budgeted finding; use
-`to-backlog` only for genuinely new work.
+`to-backlog` only for genuinely new work. A stage that has stopped moving the
+key result it was linked to is not accepted as if it had, by the protocol's [**A
+step is taken for the key result it moves, and one that stops moving it
+stops**](references/okr.md): say what changed in the work, what the goal needs
+instead and what remains open.
 
 ## 3. File discoveries and return unfinished work
 
@@ -162,7 +166,12 @@ owner**](references/speaking.md): what was accepted and on which revision, what
 now works, what remains pending or unproven (for a feature left open, first
 what users or the owner still cannot rely on, before any stage or task), what was filed or returned, as the
 ledger of [**End with the next step**](references/speaking.md), and the
-milestone's outcomes and finding budget. If a decision is needed, recommend the
+milestone's outcomes and finding budget. Each key result the work moved is said
+with the number, not the status, by the protocol's [**A report carries the
+number and the date, not a
+status**](references/okr.md): the value read where the measurement lives, the
+value that counts as reached, and where the goal's `Due:` now stands against the
+forecast. If a decision is needed, recommend the
 next action with its time and risk, by the protocol's [**A time told to the
 owner is measured, and a dispute is answered with its basis**](references/running.md).
 Where this project's users receive the change later than the merge — it deploys or publishes — that next action is

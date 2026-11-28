@@ -105,3 +105,44 @@ moves one or protects one. The breakdown cuts a result until each piece is one
 short pull request and hours of agent work, by the protocol's **Levels**: a piece
 bigger than that is cut before it is filed, and one that cannot be cut without
 choosing between key results is the owner's decision, not the breakdown's.
+
+**A step is taken for the key result it moves, and one that stops moving it
+stops.** The link is checked before each step, not once when the work was
+filed: the stage, the task, the gap a run closes alone, the next thing it would
+do. The check is one sentence — which key result this step changes, and what it
+changes in the number — and a step whose sentence cannot be written is not
+taken. A step whose contribution has gone while it waited — the obstacle moved,
+the work turned into something else, the number is reached or answered another
+way — is not finished for the sake of the plan that named it: it stops, the
+owner hears in one line what changed and what the goal needs instead, and the
+plan is revised before the next step starts. What a step must do to keep
+moving — the repair its landing waits on, the regression its change caused — is
+charged to the key result that step serves, never filed as new work to avoid
+the question, and what the step has already cost buys no continuation, by
+[running.md](running.md)'s **A forecast is checked against the date it serves**.
+
+**A report carries the number and the date, not a status.** A report the owner
+reads about work that carries key results says, for each key result the work
+moves, three facts: the value read today where the measurement lives, the value
+that counts as reached, and where the schedule stands — what is still forecast
+against the goal's `Due:` and against the milestone's own `Target:` where the
+owner set one, by [running.md](running.md)'s **A forecast is checked against the
+date it serves**. It says what changed in the number since the report before
+it, and a reading that has not moved is said as it is rather than rounded into
+progress. A stage number, "in progress" or a checklist stands for none of those
+facts, and where a value cannot be read, the report names the reading it waits
+for and puts no estimate in the measurement's place.
+
+**An estimate is hours of comparable work, and its first measurement revises
+it.** Every estimate the work is given — the run's, a stage's, a task's — is
+hours of agent work, by [running.md](running.md)'s **Estimates are agent time**,
+and it names what it stands on: the comparable pieces of this project's own
+work, with how long each took, read from the run records or from the tracker's
+and git's timestamps over stages of the same shape. Where the history is too
+thin to measure, the estimate says so, keeps its range and the nearest
+comparable work it used or says there is none, and the first stage to finish is
+measured against it and the estimate revised from it — the revision said as the
+estimate meeting its measurement, not as an overrun, with the time the owner was
+given moving with it. An estimate is never made smaller to fit the goal's
+`Due:`: where the forecast passes it, the report says in one line which key
+result that date leaves for later and what the period delivers instead.

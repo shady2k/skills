@@ -29,7 +29,10 @@ Do not make the user pick a mode.
   we", "what are our options"): the full picture of sections 3 and 4.
 - **A progress report** ("a progress report: time, shares, what is done,
   where we stand, what is ahead"; "how is the work going"): the figures
-  section 2's `progress` collects, told as the note below this list says.
+  section 2's `progress` collects and, for each key result the milestone moves,
+  the value read today, the target and where the goal's `Due:` stands, by the
+  protocol's [**A report carries the number and the date, not a
+  status**](references/okr.md), told as the note below this list says.
 - **A report for the team's sync** ("for the standup", "what was done since
   yesterday", "over the weekend"): section 6 instead of the picture.
 - **How well Jev judges here** ("is Jev right", "does it lie"), where the
