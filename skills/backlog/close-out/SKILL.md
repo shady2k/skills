@@ -45,6 +45,16 @@ why; for a duplicate, name the issue that survives.
 
 ## 2. Close the accepted stage, then its parents
 
+Read the contribution before anything is written that records acceptance, by
+the protocol's [**A step is taken for the key result it moves, and one that
+stops moving it stops**](references/okr.md): say which key result this stage
+changes and what it changes in the number. A stage whose contribution was
+established and has since gone — the work turned into something else, the number
+is reached or answered another way — is not accepted as if it had: stop before
+the spec merge, the publish and the close, say in one line what changed in the
+work, what the goal needs instead and what remains open, and revise the plan.
+The other stages and features do not wait for this one.
+
 Before closing, merge the stage's requirement changes into the current
 capability specs through the integration's sync workflow. Use the real target
 baseline; keep untouched requirements and other accepted changes. Update
@@ -162,7 +172,12 @@ owner**](references/speaking.md): what was accepted and on which revision, what
 now works, what remains pending or unproven (for a feature left open, first
 what users or the owner still cannot rely on, before any stage or task), what was filed or returned, as the
 ledger of [**End with the next step**](references/speaking.md), and the
-milestone's outcomes and finding budget. If a decision is needed, recommend the
+milestone's outcomes and finding budget. Each key result the work moved is said
+with the number, not the status, by the protocol's [**A report carries the
+number and the date, not a
+status**](references/okr.md): the value read where the measurement lives, the
+value that counts as reached, and where the goal's `Due:` now stands against the
+forecast. If a decision is needed, recommend the
 next action with its time and risk, by the protocol's [**A time told to the
 owner is measured, and a dispute is answered with its basis**](references/running.md).
 Where this project's users receive the change later than the merge — it deploys or publishes — that next action is

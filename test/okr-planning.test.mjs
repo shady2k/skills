@@ -9,8 +9,11 @@
 // milestone that moves no key result actually stops for the owner, whether a
 // grooming session leaves an uncontributing root out of the slice, or whether a
 // finding with no contribution is really filed deferred. Those are read by a
-// model, and test/dialogue-scenarios.md case 39 is that case. This file proves
-// the instruction and the link are present and go away together, nothing more.
+// model, and test/dialogue-scenarios.md case 39 is that case. So is the run's
+// side of the same rule — a step that stops when its contribution goes, an
+// estimate in hours of comparable stages, a report that gives the number and
+// the date — which is cases 44 and 45. This file proves the instruction and the
+// link are present and go away together, nothing more.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
@@ -308,5 +311,173 @@ test('every scenario check fails when its step or its link is deleted', () => {
     assert.notEqual(rule.replace(heading, ''), rule, `${heading} is not one passage of the rule`);
     assert.throws(() => requireAll(rule.replace(heading, ''), [heading], 'okr.md'),
       `${heading} can be deleted and the check still passes`);
+  }
+});
+
+// The run's side of the same rule: a step is taken for the key result it moves
+// and stops when that has gone, its estimate is hours of comparable work, and
+// its report is the number and the date. The scenario a check cannot hold —
+// whether a run really stops — is test/dialogue-scenarios.md case 44; here the
+// instruction, its link and the report duty have to exist and go away together.
+const STEP_RULE = 'A step is taken for the key result it moves, and one that stops moving it stops';
+const REPORT_RULE = 'A report carries the number and the date, not a status';
+const ESTIMATE_RULE = 'An estimate is hours of comparable work, and its first measurement revises it';
+const stepLink = `[**${STEP_RULE}**](references/okr.md)`;
+const reportLink = `[**${REPORT_RULE}**](references/okr.md)`;
+const estimateLink = `[**${ESTIMATE_RULE}**](references/okr.md)`;
+
+const RUN_SCENARIOS = [
+  {
+    source: 'authoring/skills/engineering/take-task/SKILL.md.in',
+    scenario: 'every step is taken for the key result it moves, the estimate is hours of comparable work, and the report is the number and the date',
+    links: [stepLink, estimateLink, reportLink],
+    needs: [
+      'A run is taken for the key result its work names',
+      'before each stage, each task and each gap closed alone, say which key result it changes and what it changes in the number',
+      'a step whose contribution has gone is stopped and the plan revised rather than finished for the sake of the plan',
+      'A result that does not fit one short pull request and hours of agent work is cut through `to-stages` before it starts',
+      'never after a worker reports it too big',
+      'starting from the comparable stages of this project\'s own work selected for this one and what each took',
+      'it sums every completed run of the right shape without checking that those stages are alike',
+      'its figure is used once the selection says the runs behind it compare',
+      'where no comparable run exists it is the project\'s general pace, named as that and not as this stage\'s',
+      'With too few comparable stages the estimate says so and stands to be revised at the first measured stage instead of defended',
+      'for each key result the feature moves, the value read today, the value that counts as reached and where the date stands',
+      'The stage\'s report carries the number and the date too',
+      'the key results the stage moved, read after it, against the goal\'s `Due:`',
+      'the key results the run moved, with the numbers read and where the date stands',
+    ],
+  },
+  {
+    source: 'authoring/skills/backlog/close-out/SKILL.md.in',
+    scenario: 'a stage that stopped moving its key result is not accepted, and the closing report is the number and the date',
+    links: [stepLink, reportLink],
+    needs: [
+      'Read the contribution before anything is written that records acceptance',
+      'A stage whose contribution was established and has since gone',
+      'stop before the spec merge, the publish and the close',
+      'The other stages and features do not wait for this one',
+      'say in one line what changed in the work, what the goal needs instead and what remains open',
+      'Each key result the work moved is said with the number, not the status',
+      'the value read where the measurement lives, the value that counts as reached, and where the goal\'s `Due:` now stands against the forecast',
+    ],
+  },
+  {
+    source: 'authoring/skills/backlog/ask-shady2k/SKILL.md.in',
+    scenario: 'the progress report and the team\'s sync report are the key result\'s number and the date, not a status',
+    links: [reportLink],
+    needs: [
+      'for each key result the milestone moves, the value read today, the target and where the goal\'s `Due:` stands',
+      'For each key result the work moves, give the number read today, the value that counts as reached and what changed since the report before',
+      'a date alone does not say whether the goal is arriving',
+    ],
+  },
+];
+
+for (const { source, scenario, links, needs } of RUN_SCENARIOS)
+  test(`${source.split('/')[3]}: ${scenario}`, () => {
+    const text = read(source);
+    for (const link of links) assert.ok(norm(text).includes(norm(link)), `${source} does not link the rule it rests on`);
+    requireAll(text, needs, source);
+  });
+
+test('the step, the report and the estimate cite rules that are real headings', () => {
+  requireAll(read(OKR), [
+    `**${STEP_RULE}.`,
+    `**${REPORT_RULE}.`,
+    `**${ESTIMATE_RULE}.`,
+    '[running.md](running.md)\'s **Estimates are agent time**',
+    '[running.md](running.md)\'s **A forecast is checked against the date it serves**',
+    'It says what changed in the number since the report before it',
+    'a reading that has not moved is said as it is rather than rounded into progress',
+    'where a value cannot be read, the report names the reading it waits for and puts no estimate in the measurement\'s place',
+    'read from the run records or from the tracker\'s and git\'s timestamps over stages of the same shape',
+    'the revision said as the estimate meeting its measurement, not as an overrun',
+    'An estimate is never made smaller to fit the goal\'s `Due:`',
+    'which key result that date leaves for later and what the period delivers instead',
+    'what the step has already cost buys no continuation',
+    'work agreed before the goal existed, or one whose line names no key result, is the case **An agreed record is not reopened for a missing link** describes',
+    'it continues, its line read as unknown, and the sentence is written where the link is established next',
+    'so the missing link is never the reason to stop agreed work',
+    'A step whose contribution was established and has since gone while it waited',
+  ], 'okr.md');
+
+  // The two rules the estimate and the date rest on belong to running.md: a
+  // citation of a heading that moved is a link to nothing, and this is the one
+  // way the check can see it.
+  const running = read('authoring/skills/backlog/setup-shady2k-skills/references/running.md.in');
+  for (const heading of ['Estimates are agent time', 'A forecast is checked against the date it serves'])
+    assert.ok(norm(running).includes(`**${heading}.**`), `okr.md cites "${heading}", which is no heading of running.md`);
+});
+
+test('every run check fails when its step or its link is deleted', () => {
+  for (const { source, links, needs } of RUN_SCENARIOS) {
+    const text = read(source);
+    const step = needs[0];
+    const passage = new RegExp(step.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+'));
+    const withoutStep = text.replace(passage, '');
+    assert.notEqual(withoutStep, text, `${source}: the step "${step}" is not a single passage of the file, so deleting it proves nothing`);
+    assert.throws(() => requireAll(withoutStep, needs, source), `${source}: a deleted step still passes`);
+    const withoutLink = text.replaceAll('](references/okr.md)', ']()');
+    assert.throws(() => requireAll(withoutLink, links, source), `${source}: a cut link still passes`);
+  }
+  const rule = read(OKR);
+  for (const heading of [`**${STEP_RULE}.**`, `**${REPORT_RULE}.**`, `**${ESTIMATE_RULE}.**`]) {
+    // A heading wraps where the file's width put it, so the deletion is exact
+    // about the words and indifferent to where the line breaks fell.
+    const passage = new RegExp(heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+'));
+    assert.notEqual(rule.replace(passage, ''), rule, `${heading} is not one passage of the rule`);
+    assert.throws(() => requireAll(rule.replace(passage, ''), [heading], 'okr.md'),
+      `${heading} can be deleted and the check still passes`);
+  }
+});
+
+test('the installed folder of every reporting skill carries the rule and its link', () => {
+  const canonical = readFileSync(resolve(root, SETUP, 'references/okr.md'), 'utf8');
+  for (const { source, links } of RUN_SCENARIOS) {
+    const folder = dirname(source).replace(/^authoring\//, '');
+    assert.equal(read(`${folder}/references/okr.md`), canonical, `${folder}/references/okr.md differs from the rule: npm run build`);
+    for (const link of links)
+      assert.ok(norm(read(`${folder}/SKILL.md`)).includes(norm(link)), `${folder}/SKILL.md lost the link the rule is read through`);
+  }
+});
+
+// Three readings contradicted each other in the first cut: agreed work with no
+// link could be read as a step to refuse, the contribution check stood after the
+// writes that record acceptance, and the preflight estimate began from an
+// aggregate that never checked its stages were alike. Each passage is removed
+// here, and the check has to notice; a test that passes without the sentence is
+// a test that certifies instead of checking.
+const cut = (text, passage) => {
+  const pattern = new RegExp(passage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+'));
+  const without = text.replace(pattern, '');
+  assert.notEqual(without, text, `"${passage}" is not one passage of its file`);
+  return without;
+};
+
+test('the agreed-record path, the check before acceptance and the comparable pace are load-bearing', () => {
+  const cases = [
+    ['the step rule keeps agreed work with no link', OKR,
+      'work agreed before the goal existed, or one whose line names no key result, is the case'],
+    ['the step rule stops a contribution that was established and has gone', OKR,
+      'A step whose contribution was established and has since gone while it waited'],
+    ['close-out reads the contribution before the first write that records acceptance',
+      'authoring/skills/backlog/close-out/SKILL.md.in',
+      'Read the contribution before anything is written that records acceptance'],
+    ['close-out keeps independent work moving while a stage stops',
+      'authoring/skills/backlog/close-out/SKILL.md.in',
+      'The other stages and features do not wait for this one'],
+    ['the estimate is built on selected comparable stages, not on the aggregate',
+      'authoring/skills/engineering/take-task/SKILL.md.in',
+      'it sums every completed run of the right shape without checking that those stages are alike'],
+    ['the sync report carries the number and the date, not only a forecast date',
+      'authoring/skills/backlog/ask-shady2k/SKILL.md.in',
+      'the number read today, the value that counts as reached and what changed since the report before'],
+  ];
+  for (const [name, file, passage] of cases) {
+    const text = read(file);
+    requireAll(text, [passage], file);
+    assert.throws(() => requireAll(cut(text, passage), [passage], file),
+      `${name}: the passage can be deleted and the check still passes`);
   }
 });
