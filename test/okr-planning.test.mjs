@@ -45,8 +45,12 @@ const SCENARIOS = [
       'Where the project has no goal yet, say so in one line and propose one with the draft rather than planning towards nothing',
       'It names in a `Moves:` line the key results it moves',
       'an outcome that moves none of the period\'s key results is a scope decision for the owner',
-      'It is the goal\'s own date where the milestone serves that period',
-      'every outcome names the key results it moves and the slice moves at least one of the period\'s',
+      'Set, charter file exists, and this is the running milestone',
+      'no next milestone is planned over the running one',
+      'Carried work is linked again',
+      'The goal\'s `Due:` bounds the plan and is never copied as the milestone\'s own date',
+      'a date the forecast over this milestone\'s own tasks supports',
+      'every outcome names the key results it moves — read as unknown only where the project has no goal yet',
     ],
   },
   {
@@ -54,7 +58,10 @@ const SCENARIOS = [
     scenario: 'every stage and task names the key result it moves, and a result bigger than one short pull request is cut',
     needs: [
       'It must also name the key results it moves',
-      'An outcome whose charter line names none is not decomposed',
+      'An outcome written after the goal was agreed whose line names none is not decomposed',
+      'An outcome, stage or task that was agreed before the goal, or before the line existed, is not that case',
+      'An agreed record is not reopened for a missing link',
+      'and the breakdown continues',
       'one short pull request and hours of agent work',
       'A result that is bigger is cut here until each piece is',
       'Names the key result it moves in its own `Moves:` line, and so does its stage',
@@ -69,7 +76,10 @@ const SCENARIOS = [
       'The slice is the work that moves those key results',
       'leave a root whose contribution nobody can state outside the slice',
       'a link nobody can establish is written as unknown',
+      'Where the project has no goal yet, say so in one line, propose one with the cleanup',
+      'an unset goal defers nothing on its own, and an agreed slice stays agreed',
       'every root in the slice carries its label and says which key result it moves',
+      'or says the link is unknown, where the project has no goal or nobody can state it',
     ],
   },
   {
@@ -77,9 +87,13 @@ const SCENARIOS = [
     scenario: 'a finding with a contribution is a finding and one without a contribution is not',
     needs: [
       'a bug or debt on the current milestone\'s path, and it moves or protects one of the goal\'s key results',
-      'a bug or debt that moves no key result',
+      'a bug on the current milestone\'s path that costs a person something now, and no key result can be shown',
+      'It never reaches the deferred lane for want of a link',
+      'a bug or debt that moves no key result and costs nobody anything now',
       'What a finding is worth reading is the key result it moves or protects',
       'Where the contribution cannot be stated, the item says so and the owner is asked',
+      'Then read what it costs while it waits, before counting anything',
+      'deferring is not an answer the agent gives itself',
       '**The key result it moves or protects**, in a `Moves:` line',
       'one short pull request and hours of agent work',
     ],
@@ -134,6 +148,41 @@ test('every level names the key result it moves, from the record and never from 
   ], 'okr.md');
 });
 
+test('a key result\'s number belongs to its period, so a line resolves to one measurement', () => {
+  requireAll(read(OKR), [
+    '**A key result\'s id belongs to its period.**',
+    'the next period\'s results continue the numbering rather than restart it',
+    'a number is never given to a second measurement',
+    'a `Moves: K1` line therefore names the one result written under its own `Due:` however old the record carrying it is',
+    'Work carried into a new period is linked again before it continues',
+    'each stage and each leaf under it confirms its line against the new period\'s results',
+  ], 'okr.md');
+});
+
+test('the goal\'s date bounds the plan and is not the milestone\'s promise', () => {
+  requireAll(read(OKR), [
+    '**The goal\'s date bounds the plan; it is not the milestone\'s promise.**',
+    'no milestone\'s forecast may pass it',
+    'says in one line which key result it leaves for that date and what it delivers instead',
+    'The goal\'s date is never copied into it',
+  ], 'okr.md');
+  requireAll(read(SKILLS['to-milestone']), [
+    'The goal\'s `Due:` bounds the plan and is never copied as the milestone\'s own date',
+    'a date the forecast over this milestone\'s own tasks supports',
+  ], 'to-milestone');
+});
+
+test('an agreed record is not reopened for a missing link, and an unset goal defers nothing', () => {
+  requireAll(read(OKR), [
+    '**An agreed record is not reopened for a missing link.**',
+    'The link is asked of a record being written, never of work already agreed',
+    'their approved scope, plan and queue stand exactly as agreed',
+    'never filled with a number chosen to keep the work live',
+    'A project with no goal yet plans, breaks down and grooms from the agreement and the evidence it has',
+    'an unset goal defers nothing on its own',
+  ], 'okr.md');
+});
+
 test('work that moves no key result is not first priority, and the protocol\'s urgent work keeps its place', () => {
   requireAll(read(OKR), [
     '**Work that moves no key result is not first priority.**',
@@ -141,6 +190,8 @@ test('work that moves no key result is not first priority, and the protocol\'s u
     'What it never does is reach the front of the queue by being interesting, urgent in the agent\'s own reading, or cheap',
     'The exceptions stay the protocol\'s own, and each names what it protects',
     'a repair a landing waits on and upkeep of the installation are charged to the work they serve',
+    'a fault that costs a person something now is a finding whatever budget is left',
+    'A key result nobody can name does not decide that for them',
     '**A finding that does not fit is decided, not parked**',
   ], 'okr.md');
 
@@ -204,7 +255,10 @@ test('every rule cited by name is a heading of the file the skill carries', () =
   for (const need of [
     RULE,
     'Where the goal is kept',
+    'A key result\'s id belongs to its period',
+    'The goal\'s date bounds the plan; it is not the milestone\'s promise',
     'Every level names the key result it moves',
+    'An agreed record is not reopened for a missing link',
     'Work that moves no key result is not first priority',
     'A contribution is a claim, and a claim carries its evidence',
     'The queue and the breakdown follow the key results',
@@ -233,4 +287,11 @@ test('every scenario check fails when its step or its link is deleted', () => {
   assert.notEqual(withoutRule, rule);
   assert.throws(() => requireAll(withoutRule, ['**Every level names the key result it moves.**'], 'okr.md'),
     'the rule can be deleted and the check still passes');
+  for (const heading of ['**A key result\'s id belongs to its period.**',
+    '**The goal\'s date bounds the plan; it is not the milestone\'s promise.**',
+    '**An agreed record is not reopened for a missing link.**']) {
+    assert.notEqual(rule.replace(heading, ''), rule, `${heading} is not one passage of the rule`);
+    assert.throws(() => requireAll(rule.replace(heading, ''), [heading], 'okr.md'),
+      `${heading} can be deleted and the check still passes`);
+  }
 });

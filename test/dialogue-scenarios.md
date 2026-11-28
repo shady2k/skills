@@ -790,24 +790,119 @@ Skills: `to-milestone`, `to-stages`, `groom-backlog`, `to-backlog`.
 
 Prompt: "Plan the next version and take the first task."
 
-Facts: the vision's `## Success signal` holds `Due: 2026-03-31` and two key
-results, `K1` and `K2`, each a number someone watches. The backlog holds a
-feature that plainly serves `K1`; a bug in the area `K2` counts that keeps its
-work from landing; a stale bug in an area no key result touches; and a feature
-that everyone believes is useful and nothing ties to either key result. The
-finding budget has room for one.
+Facts: the vision's `## Outcome` is "a person finds last month's invoice
+without asking anyone", and `## Success signal` holds `Due: 2026-03-31`,
+`K1: median time to find last month's invoice — 60 seconds or less` and
+`K2: workspaces that search at least weekly — 400`, each a number someone
+watches. The current version is ending: its charter admitted three findings and
+it took three, so the budget is spent. The backlog holds a feature that plainly
+serves `K1` (search across invoices); a product defect on that path — signing
+out on one device makes the other device's saved search return nothing, while
+`K2` counts the weekly searches those same workspaces make — that users report
+today; a stale bug in an area no key result touches (the email footer); and a
+feature everyone believes is useful (dark mode) that nothing ties to either key
+result. The required check on the last landing is green, so nothing waits on a
+repair, and no one outside the work set a date.
 
 Expected: the charter's outcomes each name the key result they move in a
-`Moves:` line, and the milestone's date is the goal's own; a stage and each of
-its tasks carry the same key result, and a result larger than one short pull
-request and hours of agent work is cut before it is filed. The slice is the work
-that moves `K1` and `K2`; the bug that blocks `K2`'s work is found and filed with
-the finding budget; the stale bug and the feature nothing ties to a key result
-stay deferred, with the link said to be unknown rather than a key result named
-to keep them live.
+`Moves:` line; the goal's `Due:` bounds the plan and is not written as the
+version's `Target:`; a stage and each of its tasks carry the same key result,
+and a result larger than one short pull request and hours of agent work is cut
+before it is filed. The slice is the work that moves `K1` and `K2`. The defect
+is a finding whose contribution to `K2` is stated, and because the budget is
+spent you are asked what it displaces or what risk you accept — the cost of
+waiting said first — rather than it being filed deferred; it is not routed as a
+required-check repair, since that check is green. The stale bug and the
+dark-mode feature stay deferred, each with its link said to be unknown instead
+of a key result named to keep it live.
 
 Fail: outcomes or tasks with no key result, or with one guessed to qualify them;
-a milestone whose date drifts from the goal without saying which key result it
-leaves for it; the untying feature kept live because it is cheap or popular; a
-finding that moves nothing counted against the budget; a task cut only after a
-worker says it was too big.
+the goal's date copied into `Target:`, or a `Target:` with no forecast behind
+it, or a milestone whose date drifts from the goal without saying which key
+result it leaves for it; the untying feature kept live because it is cheap or
+popular; the defect filed deferred for want of budget, or filed as a
+required-check repair because its area is red somewhere; a finding that moves
+nothing counted against the budget; a task cut only after a worker says it was
+too big.
+
+## 40. The update lands in the middle of an agreed milestone
+
+Skills: `to-stages`, `to-milestone`, `groom-backlog`.
+
+Prompt: "Break the next stage down now that we updated the plugin."
+
+Facts: the project was planned before the goal existed, so its charter, stages
+and tasks carry `Serves:` and no `Moves:` line; the owner has not stated a goal;
+the running stages are accepted and the next one is the work in hand; the
+config names this milestone and its charter file exists; the owner confirmed the
+live slice last week.
+
+Expected: the breakdown continues from the agreed charter, and the missing line
+is read as unknown — said once, with no key result named to fill it — so the
+outcome, stage and task are created as planned and nothing is sent back to
+`/to-milestone`; the goal is proposed for a planning conversation and does not
+defer the slice, block the breakdown or replan the running milestone as if it
+were ending.
+
+Fail: refusing to decompose until a key result exists; a key result invented for
+the running outcome; grooming deferring the confirmed slice because no goal is
+written; the same call planning the next version over the running one.
+
+## 41. A defect people live with now, with no key result and no budget
+
+Skills: `to-backlog`, `setup-shady2k-skills`.
+
+Prompt: "Signing out on my laptop wipes the saved searches on my phone — file it."
+
+Facts: the defect sits on the current version's path; the goal measures search
+latency and activations, and neither moves in any way anyone can state for the
+workspaces reporting it; the finding budget is spent, five of five; the last
+landing's required check is green and no branch waits on anything; three people
+report the loss today.
+
+Expected: filed as a finding with its link written unknown; the cost while it
+waits said first; you are asked what it displaces from the version or what risk
+you accept by shipping it, and nothing is made ready before your answer. It is
+not treated as a check repair, and the spent budget is not the reason it waits.
+
+Fail: filing it deferred because no key result can be named; naming a key result
+to qualify it; routing it as upkeep or as a repair a merge waits on; making it
+ready and reporting the parking afterwards.
+
+## 42. A new period, and the same number over a different measurement
+
+Skills: `to-milestone`, `to-stages`.
+
+Prompt: "The quarter is over; plan the next one and carry the search feature over."
+
+Facts: the closed period's `K1` was activations reaching 400 by 2026-03-31; the
+next period's results are search latency and retention, numbered `K3` and `K4`
+because the closed numbers are not reused; the carried feature has two open
+stages and four leaves, all carrying `Moves: K1`; the owner says the feature now
+serves latency.
+
+Expected: the carried outcome, each stage and each leaf is read against the new
+results, and each is confirmed as `Moves: K3` — or rewritten unknown where the
+owner has not said — before the carried work continues; no line keeps `K1` as if
+it still named something, and the closed period's block is not edited.
+
+Fail: a carried `Moves: K1` surviving into the new period; reusing `K1` for the
+new period's measurement; updating only the feature's line and leaving its
+stages and leaves naming the closed period's result.
+
+## 43. A quarter's date is not a promise for the version
+
+Skills: `to-milestone`.
+
+Prompt: "Plan the next version of search."
+
+Facts: the goal's `Due:` is 2026-03-31; the owner has set no demo or release
+date; the forecast over the proposed version's own tasks runs to mid-April.
+
+Expected: the charter carries no `Target:` — the goal's date bounds the plan —
+and the summary says in one line which key result the version leaves for that
+date and what it delivers instead, with the overrun framed as the agent's own
+forecast.
+
+Fail: `Target: 2026-03-31` copied from the goal; a `Target:` with no forecast
+behind it; the forecast shortened to fit the goal's date.

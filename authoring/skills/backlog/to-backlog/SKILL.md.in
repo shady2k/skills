@@ -34,8 +34,9 @@ issue that already covers it.
 | --- | --- |
 | an idea, a wish, a "what if" | the **ideas** lane, with a review date |
 | a bug or debt on the current milestone's path, and it moves or protects one of the goal's key results | **finding**: under the stage it serves, with the finding label and the current milestone's label; step 3 first |
+| a bug on the current milestone's path that costs a person something now, and no key result can be shown | **the owner's decision first**, by step 3 and the protocol's **A finding that does not fit is decided, not parked**: what it costs while it waits, then what it displaces or the risk accepted in so many words. It never reaches the deferred lane for want of a link |
 | a defect a required check caught on the way to a merge, fixed to make it green; or a fault in the set's own checks, hooks, connect command or their CI wiring | not a finding, by the protocol's **Only what the milestone chose is intake**: with the work whose merge it blocks, or with the setup task: under it where it is a container, beside it where it is a leaf. What the work leaves unfixed is a finding |
-| a bug or debt that moves no key result | deferred, under its feature, or with no parent if it has none |
+| a bug or debt that moves no key result and costs nobody anything now | deferred, under its feature, or with no parent if it has none |
 | planned work the charter already names | `to-stages` when breaking it down is authorized; otherwise send it that way. A fix needed to meet an agreed criterion is part of that work, not a finding |
 | work for a later milestone | deferred, with that milestone's label, as a feature title only |
 | a question that blocks building | work, under the stage it blocks; it is not an idea |
@@ -51,9 +52,13 @@ protocol's [**A project's goal is its key results, and every piece of work names
 the one it moves**](references/okr.md): a fault that keeps work for a key result
 from landing, or that costs a person what the result counts, is on the queue; a
 fault of an area nobody's key result touches waits where the rest of that area
-waits. Where the contribution cannot be stated, the item says so and the owner
-is asked — filing it need not wait for the answer, and a key result named to
-qualify it is worse than none.
+waits, unless it costs a person something now — then step 3 puts the answer to
+the owner. Where the contribution cannot be stated, the item says so and the
+owner is asked — filing it need not wait for the answer, and a key result named to
+qualify it is worse than none. Where the project has no goal yet, every link is
+unknown and the queue follows the evidence it has, by [okr.md](references/okr.md)'s
+**An agreed record is not reopened for a missing link**; a missing goal defers
+nothing on its own.
 
 A finding that needs its own feature is a scope decision for the owner: join
 the current milestone by an explicit scope and budget change, or wait deferred.
@@ -63,14 +68,23 @@ Joining the slice gives a feature no dependencies on other features.
 
 First check it is one: a repair a merge waits on, or upkeep of the installation,
 spends no budget, by the protocol's **Only what the milestone chose is
-intake**. Then read the finding budget from the config and count the
-milestone's findings. Within budget, file it and carry on. At or over budget,
+intake**. Then read what it costs while it waits, before counting anything, by
+the protocol's **A finding that does not fit is decided, not parked**: where
+people live with the fault now, that is the first sentence, and a counter that
+measures only intake never decides urgency. A fault that costs a person
+something now is a finding whether or not its key result can be named; where it
+cannot, the item says the link is unknown and the owner is asked, and the filing
+does not wait for the answer. Then read the finding budget from the config and
+count the milestone's findings. Within budget, file it and carry on. At or over budget,
 file it as deferred and bring the decision to the owner: leave it for later, or
 replace named planned work and approve the new count. If they replace, update
 the budget in the config and record the decision in the charter with what was
 displaced; the count is of what the milestone took in, as the protocol's
 findings lane says. Do not make an unapproved finding ready; filing it need
-not wait for the decision.
+not wait for the decision. Where what it costs while it waits is real — people
+or their data living with the fault now — deferring is not an answer the agent
+gives itself: the owner chooses what it displaces or what risk they accept, by
+that rule.
 
 Where the milestone it would join is already closed and the next one does not
 exist, the protocol's **A finding that does not fit is decided, not parked**

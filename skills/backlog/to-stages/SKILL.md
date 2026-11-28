@@ -28,9 +28,16 @@ decompose it, however clear it looks: say so and stop.
 
 It must also name the key results it moves, by the protocol's [**A project's
 goal is its key results, and every piece of work names the one it moves**](references/okr.md).
-An outcome whose charter line names none is not decomposed: it goes back to
+An outcome written after the goal was agreed whose line names none is not
+decomposed: it goes back to
 `/to-milestone`, which decides what the slice is for and puts the choice to the
-owner, before any stage exists.
+owner, before any stage exists. An outcome, stage or task that was agreed
+before the goal, or before the line existed, is not that case: its scope and
+plan stand as agreed, its line reads as unknown by [okr.md](references/okr.md)'s
+**An agreed record is not reopened for a missing link** — said once to the
+owner, never filled with a number chosen to keep it live — and the breakdown
+continues. The stages and tasks created from here carry the key result once the
+owner names it; nothing already agreed goes back to planning for the gap.
 
 ## 2. Gather
 
@@ -234,7 +241,9 @@ analysis**](references/deciding.md).
 
 Create stages under the feature and tasks under their stages with the tracker's
 verbs. Run the gate. It is done when the gate is clean, every stage and task
-carries the key result it moves from the outcome's own line, and the ready tasks are
+carries the key result it moves from the outcome's own line — or says the link
+is unknown, where the outcome predates the goal and the owner has not named it
+yet — and the ready tasks are
 exactly the first ones you expect. Publish and name what is ready to take:
 `take-task` for the stage, with the tasks that can run in parallel. When called
 from an authorized execution workflow whose feature already carries the agreed

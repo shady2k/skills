@@ -32,7 +32,14 @@ Read `currentMilestone` from the gate config.
   A charter over an undeclared slice leaves unrelated work live and the gate red.
 - **Set, no charter file:** the running milestone, declared by setup or
   grooming. Nothing ends: skip carryover and defer nothing.
-- **Otherwise:** the next milestone; the current one is ending. Offer
+- **Set, charter file exists, and this is the running milestone:** its charter
+  stands as the owner agreed it. Change only what they asked for. A breakdown
+  that arrived here for a missing `Moves:` is given one by the owner here, or,
+  where they do not give it, is written unknown by [okr.md](references/okr.md)'s
+  **An agreed record is not reopened for a missing link** and goes back to
+  `to-stages`; no next milestone is planned over the running one.
+- **Set, and the owner is planning what comes next:** the next milestone; the
+  current one is ending. Offer
   `refine-practices` first, by the protocol's [**A repeated failure is fixed as
   its class, not as its cases**](references/keeping.md): a look back over the
   work since the last retrospective, whose practices land before the next
@@ -111,20 +118,26 @@ The draft covers:
 3. **What is out**, by name: an outcome somebody will assume is in, not an
    area nobody may touch.
 4. **What carries over** from the ending milestone, and what is deferred.
-   Carrying over is a decision, never a default.
+   Carrying over is a decision, never a default. Carried work is linked again
+   before it continues: the carried outcome, its stages and their leaves confirm
+   their `Moves:` line against the new period's key results, because a number
+   from the closed period named that period's measurement, by
+   [okr.md](references/okr.md)'s **A key result's id belongs to its period**.
 5. **The finding budget**: how many bugs and debts found along the way this
    milestone absorbs before something must leave. Recommend it from the ending
    milestone's count and the agreed scope, as the protocol's findings lane
    counts it. Raising it admits more unplanned work and can delay delivery; keeping it means deferring or trading off when it is reached.
-6. **A target date**, where the milestone serves one the owner set from
-   outside the project — a demo, a release, someone outside the work who
-   waits: taken with who set it and why, and written into the charter with
-   that. It is the goal's own date where the milestone serves that period; a
-   milestone that promises a date of its own says in one line which key result
-   it leaves for the goal's date and why. None is invented where the owner has
-   none; the run's forecast stays
-   the agent's own, later checked against the recorded date by the protocol's
-   **A forecast is checked against the date it serves**.
+6. **The date it promises**, where there is one. The goal's `Due:` bounds the
+   plan and is never copied as the milestone's own date, by [okr.md](references/okr.md)'s
+   **The goal's date bounds the plan; it is not the milestone's promise**: a plan
+   whose forecast passes it says which key result it leaves for that date and
+   what it delivers instead. The milestone's `Target:` is the owner's own date —
+   a demo, a release, someone outside the work who waits — taken with who set it
+   and why, or a date the forecast over this milestone's own tasks supports, by
+   the protocol's **A forecast is checked against the date it serves**. None is
+   invented where the owner has none, and none is owed where the goal already
+   has a date: the run's forecast stays the agent's own, checked against the
+   date it serves.
 7. **The next milestone**, as feature titles only.
 
 ## 3. Write it
@@ -155,8 +168,8 @@ it the charter is kept as a draft and the vision and charter are not accepted.
 
 Run the gate. It is done when the gate is clean, every outcome has exactly one
 feature issue with the milestone's label, every outcome names the key results it
-moves and the slice moves at least one of the period's, and nothing outside the
-milestone is live. Publish, then tell the owner that `take-task` picks the route for an
+moves — read as unknown only where the project has no goal yet — the slice
+moves at least one of the period's, and nothing outside the milestone is live. Publish, then tell the owner that `take-task` picks the route for an
 outcome by name, or `to-spec` does design alone. Do not impose an order on
 independent outcomes. For a new product, run the product document check before
 recommending implementation; its first feature also needs the feature check.
